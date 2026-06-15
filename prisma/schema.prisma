@@ -1,0 +1,673 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================
+// ENUMS
+// ============================
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  GURU
+  SISWA
+  ORANG_TUA
+}
+
+enum ClassType {
+  REGULER
+  PRIVAT
+  ONLINE
+}
+
+enum ScheduleDay {
+  SENIN
+  SELASA
+  RABU
+  KAMIS
+  JUMAT
+  SABTU
+  MINGGU
+}
+
+enum MaterialType {
+  PDF
+  VIDEO
+  YOUTUBE
+  PRESENTATION
+  DOCUMENT
+  LINK
+  TEXT
+}
+
+enum QuestionType {
+  PILGAN
+  ESSAY
+  BENAR_SALAH
+  ISIAN
+}
+
+enum AttendanceStatus {
+  HADIR
+  SAKIT
+  IZIN
+  ALPHA
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  TRANSFER
+  CASH
+  MIDTRANS
+  XENDIT
+}
+
+enum FeatureTier {
+  BASIC
+  STANDARD
+  PREMIUM
+}
+
+enum NotifType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  PAYMENT
+  ATTENDANCE
+  GRADE
+  ASSIGNMENT
+  EXAM
+}
+
+// ============================
+// FEATURE FLAGS
+// ============================
+
+model FeatureFlag {
+  id           String      @id @default(cuid())
+  code         String      @unique
+  name         String
+  description  String
+  isActive     Boolean     @default(false)
+  tier         FeatureTier @default(BASIC)
+  category     String      @default("general")
+  icon         String?
+  affectedRoles String[]
+  sortOrder    Int         @default(0)
+  modifiedBy   String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("feature_flags")
+}
+
+// ============================
+// USERS & AUTH
+// ============================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String?
+  role          UserRole  @default(SISWA)
+  avatar        String?
+  isActive      Boolean   @default(true)
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  profile       UserProfile?
+  accounts      Account[]
+  sessions      Session[]
+
+  taughtClasses    Class[]      @relation("TeacherClasses")
+  enrolledClasses  ClassStudent[]
+  materials        Material[]
+  assignments      Assignment[]
+  submissions      Submission[]
+  examAttempts     ExamAttempt[]
+  attendanceRecords AttendanceRecord[]
+  grades           Grade[]
+  invoices         Invoice[]
+  payments         Payment[]
+  notifications    Notification[]
+  sentAnnouncements Announcement[]
+  studentBadges    StudentBadge[]
+  studentPoints    StudentPoints?
+  children         ParentChild[]  @relation("ParentRelation")
+  parents          ParentChild[]  @relation("ChildRelation")
+  featureFlagLogs  FeatureFlagLog[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  phone       String?
+  address     String?
+  birthDate   DateTime?
+  gender      String?
+  schoolName  String?
+  gradeLevel  String?
+  parentName  String?
+  parentPhone String?
+  bio         String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model ParentChild {
+  parentId  String
+  childId   String
+  createdAt DateTime @default(now())
+
+  parent    User     @relation("ParentRelation", fields: [parentId], references: [id])
+  child     User     @relation("ChildRelation", fields: [childId], references: [id])
+
+  @@id([parentId, childId])
+  @@map("parent_children")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// ============================
+// AKADEMIK
+// ============================
+
+model Subject {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  description String?
+  color       String   @default("#3B82F6")
+  icon        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  classes     Class[]
+  materials   Material[]
+  questions   Question[]
+
+  @@map("subjects")
+}
+
+model Class {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  subjectId   String
+  teacherId   String
+  type        ClassType @default(REGULER)
+  maxStudents Int       @default(30)
+  room        String?
+  isActive    Boolean   @default(true)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  subject     Subject   @relation(fields: [subjectId], references: [id])
+  teacher     User      @relation("TeacherClasses", fields: [teacherId], references: [id])
+  students    ClassStudent[]
+  schedules   Schedule[]
+  materials   Material[]
+  assignments Assignment[]
+  exams       Exam[]
+  attendances Attendance[]
+  gradeComponents GradeComponent[]
+
+  @@map("classes")
+}
+
+model ClassStudent {
+  classId    String
+  studentId  String
+  enrolledAt DateTime @default(now())
+
+  class      Class    @relation(fields: [classId], references: [id])
+  student    User     @relation(fields: [studentId], references: [id])
+
+  @@id([classId, studentId])
+  @@map("class_students")
+}
+
+model Schedule {
+  id             String      @id @default(cuid())
+  classId        String
+  dayOfWeek      ScheduleDay
+  startTime      String
+  endTime        String
+  room           String?
+  isRecurring    Boolean     @default(true)
+  startDate      DateTime?
+  endDate        DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  class          Class       @relation(fields: [classId], references: [id])
+  attendances    Attendance[]
+  exceptions     ScheduleException[]
+
+  @@map("schedules")
+}
+
+model ScheduleException {
+  id              String   @id @default(cuid())
+  scheduleId      String
+  date            DateTime
+  reason          String?
+  replacementDate DateTime?
+  createdAt       DateTime @default(now())
+
+  schedule        Schedule @relation(fields: [scheduleId], references: [id])
+
+  @@map("schedule_exceptions")
+}
+
+// ============================
+// MATERI PEMBELAJARAN
+// ============================
+
+model Material {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  classId     String?
+  subjectId   String?
+  uploaderId  String
+  type        MaterialType @default(PDF)
+  fileUrl     String?
+  fileSize    Int?
+  duration    Int?
+  order       Int          @default(0)
+  isPublished Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  class       Class?       @relation(fields: [classId], references: [id])
+  subject     Subject?     @relation(fields: [subjectId], references: [id])
+  uploader    User         @relation(fields: [uploaderId], references: [id])
+  progress    MaterialProgress[]
+
+  @@map("materials")
+}
+
+model MaterialProgress {
+  materialId  String
+  studentId   String
+  isCompleted Boolean  @default(false)
+  completedAt DateTime?
+  lastViewedAt DateTime?
+
+  material    Material @relation(fields: [materialId], references: [id])
+
+  @@id([materialId, studentId])
+  @@map("material_progress")
+}
+
+// ============================
+// TUGAS
+// ============================
+
+model Assignment {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  classId     String
+  teacherId   String
+  dueDate     DateTime
+  maxScore    Float     @default(100)
+  fileUrl     String?
+  isPublished Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  class       Class     @relation(fields: [classId], references: [id])
+  teacher     User      @relation(fields: [teacherId], references: [id])
+  submissions Submission[]
+
+  @@map("assignments")
+}
+
+model Submission {
+  id           String    @id @default(cuid())
+  assignmentId String
+  studentId    String
+  content      String?
+  fileUrl      String?
+  score        Float?
+  feedback     String?
+  submittedAt  DateTime  @default(now())
+  gradedAt     DateTime?
+
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  student      User       @relation(fields: [studentId], references: [id])
+
+  @@unique([assignmentId, studentId])
+  @@map("submissions")
+}
+
+// ============================
+// UJIAN ONLINE
+// ============================
+
+model Exam {
+  id           String    @id @default(cuid())
+  title        String
+  description  String?
+  classId      String
+  duration     Int
+  startTime    DateTime?
+  endTime      DateTime?
+  isRandomized Boolean   @default(false)
+  passingScore Float     @default(60)
+  isPublished  Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  class        Class     @relation(fields: [classId], references: [id])
+  questions    Question[]
+  attempts     ExamAttempt[]
+
+  @@map("exams")
+}
+
+model Question {
+  id            String       @id @default(cuid())
+  examId        String?
+  subjectId     String?
+  type          QuestionType @default(PILGAN)
+  content       String
+  options       Json?
+  correctAnswer String?
+  explanation   String?
+  score         Float        @default(1)
+  difficulty    Int          @default(2)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  exam          Exam?        @relation(fields: [examId], references: [id])
+  subject       Subject?     @relation(fields: [subjectId], references: [id])
+
+  @@map("questions")
+}
+
+model ExamAttempt {
+  id          String    @id @default(cuid())
+  examId      String
+  studentId   String
+  startedAt   DateTime  @default(now())
+  submittedAt DateTime?
+  score       Float?
+  answers     Json?
+  isCompleted Boolean   @default(false)
+
+  exam        Exam      @relation(fields: [examId], references: [id])
+  student     User      @relation(fields: [studentId], references: [id])
+
+  @@unique([examId, studentId])
+  @@map("exam_attempts")
+}
+
+// ============================
+// ABSENSI
+// ============================
+
+model Attendance {
+  id         String    @id @default(cuid())
+  classId    String
+  scheduleId String?
+  date       DateTime
+  createdAt  DateTime  @default(now())
+
+  class      Class     @relation(fields: [classId], references: [id])
+  schedule   Schedule? @relation(fields: [scheduleId], references: [id])
+  records    AttendanceRecord[]
+
+  @@unique([classId, date])
+  @@map("attendances")
+}
+
+model AttendanceRecord {
+  id           String           @id @default(cuid())
+  attendanceId String
+  studentId    String
+  status       AttendanceStatus @default(HADIR)
+  note         String?
+  createdAt    DateTime         @default(now())
+
+  attendance   Attendance @relation(fields: [attendanceId], references: [id])
+  student      User       @relation(fields: [studentId], references: [id])
+
+  @@unique([attendanceId, studentId])
+  @@map("attendance_records")
+}
+
+// ============================
+// NILAI
+// ============================
+
+model GradeComponent {
+  id       String  @id @default(cuid())
+  classId  String
+  name     String
+  weight   Float   @default(1)
+  period   String?
+  order    Int     @default(0)
+
+  class    Class   @relation(fields: [classId], references: [id])
+  grades   Grade[]
+
+  @@map("grade_components")
+}
+
+model Grade {
+  id          String         @id @default(cuid())
+  studentId   String
+  componentId String
+  score       Float
+  note        String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  student     User           @relation(fields: [studentId], references: [id])
+  component   GradeComponent @relation(fields: [componentId], references: [id])
+
+  @@unique([studentId, componentId])
+  @@map("grades")
+}
+
+// ============================
+// KEUANGAN
+// ============================
+
+model BillingPlan {
+  id          String    @id @default(cuid())
+  name        String
+  amount      Float
+  period      String
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  invoices    Invoice[]
+
+  @@map("billing_plans")
+}
+
+model Invoice {
+  id         String        @id @default(cuid())
+  studentId  String
+  planId     String?
+  amount     Float
+  dueDate    DateTime
+  status     InvoiceStatus @default(UNPAID)
+  note       String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  student    User          @relation(fields: [studentId], references: [id])
+  plan       BillingPlan?  @relation(fields: [planId], references: [id])
+  payments   Payment[]
+
+  @@map("invoices")
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  invoiceId   String
+  userId      String
+  amount      Float
+  method      PaymentMethod @default(TRANSFER)
+  proofUrl    String?
+  externalId  String?
+  confirmedAt DateTime?
+  confirmedBy String?
+  createdAt   DateTime      @default(now())
+
+  invoice     Invoice @relation(fields: [invoiceId], references: [id])
+  user        User    @relation(fields: [userId], references: [id])
+
+  @@map("payments")
+}
+
+// ============================
+// NOTIFIKASI & PENGUMUMAN
+// ============================
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String
+  content   String
+  type      NotifType @default(INFO)
+  link      String?
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+model Announcement {
+  id          String    @id @default(cuid())
+  title       String
+  content     String
+  authorId    String
+  targetRoles String[]
+  isPinned    Boolean   @default(false)
+  publishedAt DateTime  @default(now())
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  author      User      @relation(fields: [authorId], references: [id])
+
+  @@map("announcements")
+}
+
+// ============================
+// GAMIFIKASI
+// ============================
+
+model Badge {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  criteria    String?
+  createdAt   DateTime  @default(now())
+
+  studentBadges StudentBadge[]
+
+  @@map("badges")
+}
+
+model StudentBadge {
+  studentId String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+
+  student   User     @relation(fields: [studentId], references: [id])
+  badge     Badge    @relation(fields: [badgeId], references: [id])
+
+  @@id([studentId, badgeId])
+  @@map("student_badges")
+}
+
+model StudentPoints {
+  id       String @id @default(cuid())
+  userId   String @unique
+  points   Int    @default(0)
+  level    Int    @default(1)
+  streak   Int    @default(0)
+  xp       Int    @default(0)
+
+  user     User   @relation(fields: [userId], references: [id])
+
+  @@map("student_points")
+}
+
+// ============================
+// AUDIT LOG FEATURE FLAGS
+// ============================
+
+model FeatureFlagLog {
+  id        String   @id @default(cuid())
+  flagCode  String
+  oldValue  Boolean
+  newValue  Boolean
+  userId    String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("feature_flag_logs")
+}
