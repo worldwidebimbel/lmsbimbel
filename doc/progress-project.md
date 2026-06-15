@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
-**Last updated:** 2025-06-16  
-**Commit:** `b8fdfdc` — feat: initial LMS app setup  
-**Build status:** ✅ Clean (14 routes)  
+**Last updated:** 2025-06-17  
+**Commit:** `(latest)` — feat: materi pembelajaran module  
+**Build status:** ✅ Clean (21 routes)  
 **Live:** https://lmsbimbel.digsan.id _(belum deploy ke VPS)_
 
 ---
@@ -53,12 +53,16 @@
 - [ ] Notifikasi jadwal otomatis
 
 ### 📖 Modul 3: Materi Pembelajaran
-- [ ] Upload materi (PDF, PPT, Word, gambar)
-- [ ] Video pembelajaran (upload/embed YouTube)
-- [ ] Organisasi per mata pelajaran & topik
-- [ ] Materi terstruktur (chapter/module)
-- [ ] Download materi offline
-- [ ] Rich text editor untuk konten interaktif
+- [x] API CRUD materi (`GET/POST /api/materi`, `GET/PATCH/DELETE /api/materi/[id]`)
+- [x] API progress siswa (`POST /api/materi/[id]/progress`)
+- [x] Guru: halaman daftar & upload materi — `/guru/materi`
+- [x] Guru: `MaterialList` component (search, filter, toggle publish, edit, delete)
+- [x] Guru: `MaterialUploadModal` (semua tipe: PDF, Video, YouTube, Link, Teks)
+- [x] Siswa: halaman lihat materi per mata pelajaran — `/siswa/materi`
+- [x] Siswa: `MaterialCard` (buka link, tandai selesai, progress tracking)
+- [ ] Upload file langsung ke cloud storage (Cloudinary/S3)
+- [ ] Rich text editor untuk konten teks
+- [ ] Notifikasi materi baru ke siswa
 
 ### ✏️ Modul 4: Tugas & Pekerjaan Rumah
 - [ ] Buat & bagikan tugas
