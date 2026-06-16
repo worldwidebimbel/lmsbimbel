@@ -83,22 +83,60 @@ psql -U lmsuser -d lmsbimbel -h localhost
 
 ---
 
-## 4. Clone Repository dari GitHub
+## 4. Clone Repository dari GitHub (Deploy Key)
+
+Karena repo **private**, gunakan **Deploy Key** (SSH) — lebih aman dari PAT karena terbatas satu repo dan tidak perlu menyimpan password.
+
+### 4a. Generate SSH key di VPS
 
 ```bash
-mkdir -p /var/www
-cd /var/www
-git clone https://github.com/digsanid-26/lmsbimbel lms-bimbel
-cd lms-bimbel
+ssh-keygen -t ed25519 -C "deploy@lmsbimbel-vps" -f ~/.ssh/lmsbimbel_deploy -N ""
+cat ~/.ssh/lmsbimbel_deploy.pub
 ```
 
-> Karena repo **private**, otentikasi menggunakan Personal Access Token (PAT):
-> - Buka GitHub → Settings → Developer settings → Personal access tokens → Generate new token (classic)
-> - Scope: `repo`
-> - Gunakan sebagai password saat `git clone`:
-> ```bash
-> git clone https://<USERNAME>:<TOKEN>@github.com/digsanid-26/lmsbimbel lms-bimbel
-> ```
+Salin output public key (`ssh-ed25519 AAAA...`).
+
+### 4b. Tambahkan ke GitHub Deploy Keys
+
+1. Buka https://github.com/digsanid-26/lmsbimbel/settings/keys
+2. Klik **Add deploy key**
+3. Title: `VPS IDCloudHost`
+4. Key: paste public key dari langkah di atas
+5. **Allow write access**: ❌ (read-only cukup)
+6. Klik **Add key**
+
+### 4c. Konfigurasi SSH agar pakai key ini
+
+```bash
+cat >> ~/.ssh/config << 'EOF'
+Host github-lms
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/lmsbimbel_deploy
+  IdentitiesOnly yes
+EOF
+chmod 600 ~/.ssh/config
+```
+
+### 4d. Test koneksi & clone
+
+```bash
+ssh -T github-lms
+# Expected: Hi digsanid-26/lmsbimbel! You've successfully authenticated...
+
+sudo mkdir -p /var/www/lms-bimbel
+sudo chown -R lmsbimbel:lmsbimbel /var/www/lms-bimbel
+git clone github-lms:digsanid-26/lmsbimbel /var/www/lms-bimbel
+cd /var/www/lms-bimbel
+```
+
+### 4e. Update remote untuk `git pull` berikutnya
+
+```bash
+git remote set-url origin github-lms:digsanid-26/lmsbimbel
+```
+
+> **Catatan CI/CD:** GitHub Actions menggunakan secret `SSH_PRIVATE_KEY` yang sudah dikonfigurasi di workflow — tidak perlu deploy key yang sama. Deploy key ini hanya untuk akses manual di VPS.
 
 ---
 
@@ -112,7 +150,7 @@ nano .env.local
 Isi `.env.local` dengan nilai production:
 
 ```env
-DATABASE_URL="postgresql://lmsuser:GantiPasswordKuat123!@localhost:5432/lmsbimbel"
+DATABASE_URL="postgresql://lmsuser:Digsan_160626@localhost:5432/lmsbimbel"
 
 NEXTAUTH_URL="https://lmsbimbel.digsan.id"
 NEXTAUTH_SECRET="isi-dengan-random-string-32-karakter"
@@ -135,7 +173,41 @@ NEXT_PUBLIC_APP_NAME="EduBimbel LMS"
 
 ```bash
 npm install
+```
+
+### Prisma Generate
+
+`prisma generate` membutuhkan download binary engine dari `binaries.prisma.sh`. Jika VPS memblokir koneksi tersebut, cek dulu:
+
+```bash
+curl -I https://binaries.prisma.sh
+```
+
+**Jika berhasil (HTTP 200/301):**
+```bash
 npx prisma generate
+```
+
+**Jika gagal / timeout** — gunakan engine yang sudah ada di `node_modules`:
+
+```bash
+# Cari engine binary yang sudah ada setelah npm install
+ENGINE=$(find /var/www/lms-bimbel/node_modules -name "libquery_engine-debian-openssl-3.0.x.so.node" 2>/dev/null | head -1)
+
+# Jika ditemukan, set env var lalu generate
+PRISMA_QUERY_ENGINE_LIBRARY="$ENGINE" npx prisma generate
+
+# Jika tidak ditemukan, buka port outbound terlebih dahulu:
+sudo ufw allow out 443/tcp
+sudo ufw reload
+npx prisma generate
+```
+
+> **Catatan:** `schema.prisma` sudah dikonfigurasi dengan `binaryTargets = ["native", "debian-openssl-3.0.x"]` sehingga binary untuk Ubuntu 22.04 akan di-include saat `npm install`.
+
+### Database & Build
+
+```bash
 npx prisma db push
 npm run db:seed
 npm run build

@@ -22,6 +22,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
       - name: Build application
         run: npm run build
         env:
@@ -39,7 +44,9 @@ jobs:
           script: |
             cd /var/www/lms-bimbel
             git pull origin main
-            npm ci --production
+            npm ci
+            npx prisma generate
+            npx prisma migrate deploy
             npm run build
             pm2 restart lms-bimbel || pm2 start npm --name lms-bimbel -- start
             pm2 save
