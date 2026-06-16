@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
-**Last updated:** 2025-06-17  
-**Commit:** `(latest)` — feat: materi pembelajaran module  
-**Build status:** ✅ Clean (21 routes)  
+**Last updated:** 2026-06-16  
+**Commit:** `(latest)` — feat: tugas & PR module  
+**Build status:** ✅ Clean (26 routes)  
 **Live:** https://lmsbimbel.digsan.id _(belum deploy ke VPS)_
 
 ---
@@ -65,11 +65,14 @@
 - [ ] Notifikasi materi baru ke siswa
 
 ### ✏️ Modul 4: Tugas & Pekerjaan Rumah
-- [ ] Buat & bagikan tugas
-- [ ] Submit tugas (file upload / teks)
-- [ ] Deadline tracking & pengingat
-- [ ] Penilaian & feedback guru
-- [ ] Riwayat pengumpulan tugas
+- [x] API CRUD tugas (`GET/POST /api/tugas`, `GET/PATCH/DELETE /api/tugas/[id]`)
+- [x] API submit siswa (`POST /api/tugas/[id]/submit`)
+- [x] API penilaian guru (`PATCH /api/tugas/[id]/submissions/[subId]`)
+- [x] Guru: daftar tugas + modal buat/edit — `/guru/tugas`
+- [x] Guru: halaman submissions + beri nilai/feedback — `/guru/tugas/[id]`
+- [x] Siswa: daftar tugas (tab belum/selesai) + modal kumpulkan — `/siswa/tugas`
+- [ ] Notifikasi deadline tugas
+- [ ] Upload file langsung (Cloudinary/S3)
 
 ### 📝 Modul 5: Ujian & Kuis Online
 - [ ] Bank soal (pilgan, essay, benar/salah, isian)
@@ -166,8 +169,8 @@
 | Core Architecture | 13 | 16 | 81% |
 | Modul 1: Pengguna | 3 | 9 | 33% |
 | Modul 2: Kelas & Jadwal | 1 | 8 | 13% |
-| Modul 3: Materi | 0 | 6 | 0% |
-| Modul 4: Tugas | 0 | 5 | 0% |
+| Modul 3: Materi | 7 | 10 | 70% |
+| Modul 4: Tugas | 6 | 8 | 75% |
 | Modul 5: Ujian | 0 | 7 | 0% |
 | Modul 6: Absensi | 0 | 6 | 0% |
 | Modul 7: Nilai & Rapor | 0 | 6 | 0% |
