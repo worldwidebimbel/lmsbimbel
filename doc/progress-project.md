@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-16  
-**Commit:** `(latest)` — feat: absensi module  
-**Build status:** ✅ Clean (32 routes)  
+**Commit:** `(latest)` — feat: nilai & rapor module  
+**Build status:** ✅ Clean (37 routes)  
 **Live:** https://lmsbimbel.digsan.id _(belum deploy ke VPS)_
 
 ---
@@ -93,12 +93,13 @@
 - [ ] Laporan absensi bulanan (PDF)
 
 ### 🏆 Modul 7: Nilai & Rapor
-- [ ] Input nilai ulangan, tugas, ujian
-- [ ] Perhitungan nilai otomatis (bobot konfigurabel)
-- [ ] Rapor digital per periode
-- [ ] Ranking kelas
+- [x] API komponen nilai (`GET/POST /api/nilai/components`, `DELETE /api/nilai/components/[id]`)
+- [x] API input/rekap nilai (`GET/POST /api/nilai`)
+- [x] Guru: tabel input nilai per siswa + komponen bobot + ranking — `/guru/nilai`
+- [x] Siswa: rekap nilai per kelas + nilai akhir + progress bar — `/siswa/nilai`
+- [ ] Rapor digital (cetak PDF)
 - [ ] Grafik perkembangan nilai
-- [ ] Export rapor ke PDF
+- [ ] Export Excel
 
 ### 📈 Modul 8: Analitik & Laporan
 - [x] Dashboard admin (stats: siswa, guru, kelas, tagihan, feature flags) — `/admin`
@@ -174,7 +175,7 @@
 | Modul 4: Tugas | 6 | 8 | 75% |
 | Modul 5: Ujian | 0 | 7 | 0% |
 | Modul 6: Absensi | 4 | 7 | 57% |
-| Modul 7: Nilai & Rapor | 0 | 6 | 0% |
+| Modul 7: Nilai & Rapor | 4 | 7 | 57% |
 | Modul 8: Analitik | 1 | 6 | 17% |
 | Modul 9: Keuangan | 2 | 8 | 25% |
 | Modul 10: Notifikasi | 0 | 5 | 0% |
