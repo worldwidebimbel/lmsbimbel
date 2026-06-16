@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-16  
-**Commit:** `(latest)` — feat: tugas & PR module  
-**Build status:** ✅ Clean (26 routes)  
+**Commit:** `(latest)` — feat: absensi module  
+**Build status:** ✅ Clean (32 routes)  
 **Live:** https://lmsbimbel.digsan.id _(belum deploy ke VPS)_
 
 ---
@@ -84,12 +84,13 @@
 - [ ] Tryout / simulasi UTBK / Nasional
 
 ### 📊 Modul 6: Absensi
-- [ ] Absensi manual oleh guru
+- [x] API sesi absensi (`GET/POST /api/absensi`, `GET/DELETE /api/absensi/[id]`)
+- [x] API input rekap (`POST /api/absensi/[id]/records`)
+- [x] Guru: daftar sesi + buat sesi + input per siswa (HADIR/SAKIT/IZIN/ALPHA) — `/guru/absensi`
+- [x] Siswa: rekap kehadiran + persentase + tabel riwayat — `/siswa/absensi`
 - [ ] Absensi QR Code
-- [ ] Rekap kehadiran per siswa/kelas
 - [ ] Notifikasi ketidakhadiran ke orang tua
 - [ ] Laporan absensi bulanan (PDF)
-- [ ] Izin & alasan ketidakhadiran
 
 ### 🏆 Modul 7: Nilai & Rapor
 - [ ] Input nilai ulangan, tugas, ujian
@@ -172,7 +173,7 @@
 | Modul 3: Materi | 7 | 10 | 70% |
 | Modul 4: Tugas | 6 | 8 | 75% |
 | Modul 5: Ujian | 0 | 7 | 0% |
-| Modul 6: Absensi | 0 | 6 | 0% |
+| Modul 6: Absensi | 4 | 7 | 57% |
 | Modul 7: Nilai & Rapor | 0 | 6 | 0% |
 | Modul 8: Analitik | 1 | 6 | 17% |
 | Modul 9: Keuangan | 2 | 8 | 25% |
