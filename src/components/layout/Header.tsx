@@ -5,6 +5,7 @@ import { LogOut, User, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import Link from "next/link";
 
 interface HeaderProps {
   title: string;
@@ -50,10 +51,11 @@ export function Header({ title, userName, role }: HeaderProps) {
             <>
               <div className="fixed inset-0 z-10" onClick={() => setShowDropdown(false)} />
               <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-20 py-1">
-                <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                <Link href="/profile" onClick={() => setShowDropdown(false)}
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                   <User className="w-4 h-4" />
                   Profil Saya
-                </button>
+                </Link>
                 <div className="h-px bg-gray-100 my-1" />
                 <button
                   onClick={() => signOut({ callbackUrl: "/login" })}

@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-16  
-**Commit:** `(latest)` — feat: jadwal kelas CRUD, siswa jadwal mingguan, guru kelas overview  
-**Build status:** ✅ Clean (76 routes)  
+**Commit:** `(latest)` — feat: halaman profil pengguna + ganti password + nav header  
+**Build status:** ✅ Clean (78 routes)  
 **Live:** https://lmsbimbel.digsan.id _(belum deploy ke VPS)_
 
 ---
@@ -38,7 +38,7 @@
 - [x] Form tambah pengguna — `/admin/users/new`
 - [x] Form edit + suspend pengguna — `/admin/users/[id]`
 - [x] API CRUD pengguna (`POST /api/admin/users`, `GET/PATCH/DELETE /api/admin/users/[id]`)
-- [ ] Manajemen profil pengguna (halaman edit diri)
+- [x] Manajemen profil pengguna (edit nama, HP, alamat, ganti password) — `/profile`
 - [ ] Reset password via email
 - [ ] Import data siswa (CSV/Excel)
 - [ ] Kartu Siswa Digital (PDF)
@@ -181,7 +181,7 @@
 | Modul | Selesai | Total | % |
 |-------|---------|-------|---|
 | Core Architecture | 13 | 16 | 81% |
-| Modul 1: Pengguna | 6 | 9 | 67% |
+| Modul 1: Pengguna | 7 | 9 | 78% |
 | Modul 2: Kelas & Jadwal | 7 | 8 | 88% |
 | Modul 3: Materi | 7 | 10 | 70% |
 | Modul 4: Tugas | 6 | 8 | 75% |
@@ -196,7 +196,7 @@
 | Modul 13: Gamifikasi | 0 | 5 | 0% |
 | Modul 14: Portal Ortu | 6 | 8 | 75% |
 | Modul 15: PWA | 0 | 3 | 0% |
-| **TOTAL** | **55** | **117** | **47%** |
+| **TOTAL** | **56** | **117** | **48%** |
 
 ---
 
