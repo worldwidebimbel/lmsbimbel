@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-16  
-**Commit:** `(latest)` — feat: portal ortu progress anak + tagihan anak lengkap  
-**Build status:** ✅ Clean (71 routes)  
+**Commit:** `(latest)` — feat: jadwal kelas CRUD, siswa jadwal mingguan, guru kelas overview  
+**Build status:** ✅ Clean (76 routes)  
 **Live:** https://lmsbimbel.digsan.id _(belum deploy ke VPS)_
 
 ---
@@ -48,10 +48,10 @@
 - [x] Form buat kelas — `/admin/classes/new`
 - [x] Detail kelas + enroll/keluarkan siswa — `/admin/classes/[id]`
 - [x] API CRUD kelas + enroll siswa
-- [ ] Form jadwal pelajaran per kelas
+- [x] Kelola jadwal per kelas (tambah/hapus) — `/admin/classes/[id]/schedules`
+- [x] Siswa: jadwal mingguan visual per hari — `/siswa/jadwal`
+- [x] Guru: overview kelas diampu + jadwal — `/guru/kelas`
 - [ ] Kalender akademik
-- [ ] Konflik jadwal detection
-- [ ] Notifikasi jadwal otomatis
 
 ### 📖 Modul 3: Materi Pembelajaran
 - [x] API CRUD materi (`GET/POST /api/materi`, `GET/PATCH/DELETE /api/materi/[id]`)
@@ -182,7 +182,7 @@
 |-------|---------|-------|---|
 | Core Architecture | 13 | 16 | 81% |
 | Modul 1: Pengguna | 6 | 9 | 67% |
-| Modul 2: Kelas & Jadwal | 4 | 8 | 50% |
+| Modul 2: Kelas & Jadwal | 7 | 8 | 88% |
 | Modul 3: Materi | 7 | 10 | 70% |
 | Modul 4: Tugas | 6 | 8 | 75% |
 | Modul 5: Ujian | 8 | 9 | 89% |
@@ -196,7 +196,7 @@
 | Modul 13: Gamifikasi | 0 | 5 | 0% |
 | Modul 14: Portal Ortu | 6 | 8 | 75% |
 | Modul 15: PWA | 0 | 3 | 0% |
-| **TOTAL** | **52** | **117** | **44%** |
+| **TOTAL** | **55** | **117** | **47%** |
 
 ---
 
