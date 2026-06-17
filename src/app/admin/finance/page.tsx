@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { formatCurrency, formatDate, getInvoiceStatusColor, getInvoiceStatusLabel } from "@/lib/utils";
-import { Wallet, TrendingUp, AlertCircle, CheckCircle } from "lucide-react";
+import { Wallet, TrendingUp, AlertCircle, CheckCircle, Plus } from "lucide-react";
 
 async function getFinanceData() {
   const [invoices, paidSum, unpaidSum, overdueCount] = await Promise.all([
@@ -30,9 +30,16 @@ export default async function FinancePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Keuangan & Pembayaran</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Kelola tagihan dan konfirmasi pembayaran</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Keuangan & Pembayaran</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Kelola tagihan dan konfirmasi pembayaran</p>
+        </div>
+        <a href="/admin/finance/new"
+          className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors">
+          <Plus className="w-4 h-4" />
+          Buat Tagihan
+        </a>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

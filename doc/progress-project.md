@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-16  
-**Commit:** `(latest)` — feat: admin CRUD pengguna & kelas  
-**Build status:** ✅ Clean (47 routes)  
+**Commit:** `(latest)` — feat: keuangan - tagihan CRUD, konfirmasi, siswa tagihan  
+**Build status:** ✅ Clean (54 routes)  
 **Live:** https://lmsbimbel.digsan.id _(belum deploy ke VPS)_
 
 ---
@@ -113,7 +113,10 @@
 ### 💰 Modul 9: Keuangan & Pembayaran
 - [x] Halaman daftar tagihan (admin) — `/admin/finance`
 - [x] Summary keuangan (total terbayar, belum bayar, jatuh tempo)
-- [ ] Form buat tagihan manual
+- [x] Form buat tagihan manual — `/admin/finance/new`
+- [x] Detail tagihan + konfirmasi pembayaran — `/admin/finance/[id]`
+- [x] API tagihan (POST, GET/PATCH, konfirmasi) — `/api/admin/finance/invoices`
+- [x] Halaman tagihan siswa — `/siswa/tagihan`
 - [ ] Pembayaran online (Midtrans/Xendit) — integrasi gateway
 - [ ] Konfirmasi pembayaran manual oleh admin
 - [ ] Reminder tagihan otomatis
@@ -178,7 +181,7 @@
 | Modul 6: Absensi | 4 | 7 | 57% |
 | Modul 7: Nilai & Rapor | 4 | 7 | 57% |
 | Modul 8: Analitik | 1 | 6 | 17% |
-| Modul 9: Keuangan | 2 | 8 | 25% |
+| Modul 9: Keuangan | 6 | 8 | 75% |
 | Modul 10: Notifikasi | 0 | 5 | 0% |
 | Modul 11: Forum & Chat | 0 | 5 | 0% |
 | Modul 12: Kelas Online | 0 | 5 | 0% |
