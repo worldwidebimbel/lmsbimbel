@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-16  
-**Commit:** `(latest)` — feat: analitik admin (KPI, absensi, keuangan, tabel kelas)  
-**Build status:** ✅ Clean (61 routes)  
+**Commit:** `(latest)` — feat: ujian online lengkap (guru kelola soal, siswa kerjakan ujian)  
+**Build status:** ✅ Clean (69 routes)  
 **Live:** https://lmsbimbel.digsan.id _(belum deploy ke VPS)_
 
 ---
@@ -76,12 +76,15 @@
 - [ ] Upload file langsung (Cloudinary/S3)
 
 ### 📝 Modul 5: Ujian & Kuis Online
-- [ ] Bank soal (pilgan, essay, benar/salah, isian)
-- [ ] Buat ujian dari bank soal (manual/acak)
-- [ ] Timer ujian
-- [ ] Anti-cheating (fullscreen mode, randomize soal)
-- [ ] Auto-grading (pilgan)
-- [ ] Review jawaban & pembahasan
+- [x] Guru: daftar ujian — `/guru/ujian`
+- [x] Guru: buat ujian (judul, durasi, KKM, jadwal, acak soal) — `/guru/ujian/new`
+- [x] Guru: kelola soal (pilgan/esai/benar-salah) + lihat hasil — `/guru/ujian/[id]`
+- [x] Guru: publish/unpublish ujian
+- [x] Siswa: daftar ujian tersedia — `/siswa/ujian`
+- [x] Siswa: kerjakan ujian dengan timer countdown — `/siswa/ujian/[id]`
+- [x] Auto-koreksi pilgan + skor otomatis
+- [x] API: CRUD ujian, soal, submit jawaban
+- [ ] Bank soal bersama (lintas ujian)
 - [ ] Tryout / simulasi UTBK / Nasional
 
 ### 📊 Modul 6: Absensi
@@ -182,7 +185,7 @@
 | Modul 2: Kelas & Jadwal | 4 | 8 | 50% |
 | Modul 3: Materi | 7 | 10 | 70% |
 | Modul 4: Tugas | 6 | 8 | 75% |
-| Modul 5: Ujian | 0 | 7 | 0% |
+| Modul 5: Ujian | 8 | 9 | 89% |
 | Modul 6: Absensi | 4 | 7 | 57% |
 | Modul 7: Nilai & Rapor | 4 | 7 | 57% |
 | Modul 8: Analitik | 2 | 6 | 33% |
@@ -193,7 +196,7 @@
 | Modul 13: Gamifikasi | 0 | 5 | 0% |
 | Modul 14: Portal Ortu | 4 | 8 | 50% |
 | Modul 15: PWA | 0 | 3 | 0% |
-| **TOTAL** | **42** | **117** | **36%** |
+| **TOTAL** | **50** | **117** | **43%** |
 
 ---
 
