@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-16  
-**Commit:** `(latest)` — feat: nilai & rapor module  
-**Build status:** ✅ Clean (37 routes)  
+**Commit:** `(latest)` — feat: admin CRUD pengguna & kelas  
+**Build status:** ✅ Clean (47 routes)  
 **Live:** https://lmsbimbel.digsan.id _(belum deploy ke VPS)_
 
 ---
@@ -35,21 +35,22 @@
 - [x] Registrasi & Login (Email/Google) — NextAuth credentials + Google
 - [x] Sistem peran & hak akses (RBAC) — middleware + role layouts
 - [x] Halaman daftar pengguna (admin) — `/admin/users`
-- [ ] Form tambah / edit pengguna
-- [ ] Manajemen profil pengguna (halaman edit)
-- [ ] Verifikasi email
-- [ ] Reset password
+- [x] Form tambah pengguna — `/admin/users/new`
+- [x] Form edit + suspend pengguna — `/admin/users/[id]`
+- [x] API CRUD pengguna (`POST /api/admin/users`, `GET/PATCH/DELETE /api/admin/users/[id]`)
+- [ ] Manajemen profil pengguna (halaman edit diri)
+- [ ] Reset password via email
 - [ ] Import data siswa (CSV/Excel)
 - [ ] Kartu Siswa Digital (PDF)
 
 ### 📅 Modul 2: Kelas & Jadwal
 - [x] Halaman daftar kelas (admin) — `/admin/classes`
-- [ ] Form buat kelas baru
-- [ ] Edit & nonaktifkan kelas
-- [ ] Jadwal pertemuan (mingguan/insidental)
+- [x] Form buat kelas — `/admin/classes/new`
+- [x] Detail kelas + enroll/keluarkan siswa — `/admin/classes/[id]`
+- [x] API CRUD kelas + enroll siswa
+- [ ] Form jadwal pelajaran per kelas
 - [ ] Kalender akademik
-- [ ] Manajemen ruang/kelas fisik
-- [ ] Reschedule & pembatalan kelas
+- [ ] Konflik jadwal detection
 - [ ] Notifikasi jadwal otomatis
 
 ### 📖 Modul 3: Materi Pembelajaran
@@ -169,8 +170,8 @@
 | Modul | Selesai | Total | % |
 |-------|---------|-------|---|
 | Core Architecture | 13 | 16 | 81% |
-| Modul 1: Pengguna | 3 | 9 | 33% |
-| Modul 2: Kelas & Jadwal | 1 | 8 | 13% |
+| Modul 1: Pengguna | 6 | 9 | 67% |
+| Modul 2: Kelas & Jadwal | 4 | 8 | 50% |
 | Modul 3: Materi | 7 | 10 | 70% |
 | Modul 4: Tugas | 6 | 8 | 75% |
 | Modul 5: Ujian | 0 | 7 | 0% |
