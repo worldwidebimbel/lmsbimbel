@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-16  
-**Commit:** `(latest)` — feat: ujian online lengkap (guru kelola soal, siswa kerjakan ujian)  
-**Build status:** ✅ Clean (69 routes)  
+**Commit:** `(latest)` — feat: portal ortu progress anak + tagihan anak lengkap  
+**Build status:** ✅ Clean (71 routes)  
 **Live:** https://lmsbimbel.digsan.id _(belum deploy ke VPS)_
 
 ---
@@ -164,10 +164,10 @@
 - [x] Lihat nilai anak (terbaru)
 - [x] Lihat absensi anak
 - [x] Lihat tagihan anak (unpaid)
+- [x] Progress anak lengkap (nilai, tugas, ujian, absensi, kelas) — `/orangtua/progress`
+- [x] Tagihan anak lengkap + riwayat + progress bayar — `/orangtua/tagihan`
 - [ ] Chat dengan guru
 - [ ] Bayar tagihan online
-- [ ] Laporan perkembangan anak lengkap
-- [ ] Notifikasi real-time
 
 ### 📱 Modul 15: PWA & Offline
 - [ ] Installable sebagai app (PWA)
@@ -194,9 +194,9 @@
 | Modul 11: Forum & Chat | 0 | 5 | 0% |
 | Modul 12: Kelas Online | 0 | 5 | 0% |
 | Modul 13: Gamifikasi | 0 | 5 | 0% |
-| Modul 14: Portal Ortu | 4 | 8 | 50% |
+| Modul 14: Portal Ortu | 6 | 8 | 75% |
 | Modul 15: PWA | 0 | 3 | 0% |
-| **TOTAL** | **50** | **117** | **43%** |
+| **TOTAL** | **52** | **117** | **44%** |
 
 ---
 

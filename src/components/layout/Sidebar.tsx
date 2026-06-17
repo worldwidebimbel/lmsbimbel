@@ -68,10 +68,10 @@ const NAV_SISWA: NavItem[] = [
 
 const NAV_ORANGTUA: NavItem[] = [
   { title: "Dashboard", href: "/orangtua", icon: "LayoutDashboard" },
-  { title: "Progress Anak", href: "/orangtua/progress", icon: "BarChart3", featureFlag: "FEAT_PARENT_PORTAL" },
+  { title: "Progress Anak", href: "/orangtua/progress", icon: "BarChart3" },
   { title: "Absensi Anak", href: "/orangtua/absensi", icon: "CheckSquare", featureFlag: "FEAT_ATTENDANCE" },
   { title: "Nilai Anak", href: "/orangtua/nilai", icon: "GraduationCap", featureFlag: "FEAT_GRADES" },
-  { title: "Tagihan", href: "/orangtua/tagihan", icon: "Wallet", featureFlag: "FEAT_PAYMENT_MANUAL" },
+  { title: "Tagihan", href: "/orangtua/tagihan", icon: "Wallet" },
 ];
 
 const NAV_MAP: Record<string, NavItem[]> = {
