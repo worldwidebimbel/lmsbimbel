@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-16  
-**Commit:** `(latest)` — feat: notifikasi in-app, bell header, broadcast admin, nav update  
-**Build status:** ✅ Clean (60 routes)  
+**Commit:** `(latest)` — feat: analitik admin (KPI, absensi, keuangan, tabel kelas)  
+**Build status:** ✅ Clean (61 routes)  
 **Live:** https://lmsbimbel.digsan.id _(belum deploy ke VPS)_
 
 ---
@@ -104,6 +104,7 @@
 
 ### 📈 Modul 8: Analitik & Laporan
 - [x] Dashboard admin (stats: siswa, guru, kelas, tagihan, feature flags) — `/admin`
+- [x] Halaman analitik lengkap (KPI, absensi, nilai, keuangan, tabel kelas) — `/admin/analytics`
 - [ ] Progress belajar per siswa
 - [ ] Statistik kehadiran & nilai per kelas
 - [ ] Laporan kinerja guru
@@ -184,7 +185,7 @@
 | Modul 5: Ujian | 0 | 7 | 0% |
 | Modul 6: Absensi | 4 | 7 | 57% |
 | Modul 7: Nilai & Rapor | 4 | 7 | 57% |
-| Modul 8: Analitik | 1 | 6 | 17% |
+| Modul 8: Analitik | 2 | 6 | 33% |
 | Modul 9: Keuangan | 6 | 8 | 75% |
 | Modul 10: Notifikasi | 6 | 9 | 67% |
 | Modul 11: Forum & Chat | 0 | 5 | 0% |
@@ -192,7 +193,7 @@
 | Modul 13: Gamifikasi | 0 | 5 | 0% |
 | Modul 14: Portal Ortu | 4 | 8 | 50% |
 | Modul 15: PWA | 0 | 3 | 0% |
-| **TOTAL** | **41** | **117** | **35%** |
+| **TOTAL** | **42** | **117** | **36%** |
 
 ---
 
