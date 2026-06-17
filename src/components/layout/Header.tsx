@@ -1,9 +1,10 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { Bell, LogOut, User, ChevronDown } from "lucide-react";
+import { LogOut, User, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
 interface HeaderProps {
   title: string;
@@ -27,11 +28,7 @@ export function Header({ title, userName, role }: HeaderProps) {
       <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
 
       <div className="flex items-center gap-3">
-        {/* Notifications */}
-        <button className="relative p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-        </button>
+        <NotificationBell />
 
         {/* User Menu */}
         <div className="relative">

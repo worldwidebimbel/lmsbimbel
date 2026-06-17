@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-16  
-**Commit:** `(latest)` — feat: keuangan - tagihan CRUD, konfirmasi, siswa tagihan  
-**Build status:** ✅ Clean (54 routes)  
+**Commit:** `(latest)` — feat: notifikasi in-app, bell header, broadcast admin, nav update  
+**Build status:** ✅ Clean (60 routes)  
 **Live:** https://lmsbimbel.digsan.id _(belum deploy ke VPS)_
 
 ---
@@ -124,8 +124,12 @@
 - [ ] Laporan keuangan bulanan (PDF)
 
 ### 🔔 Modul 10: Notifikasi & Pengumuman
-- [ ] Pengumuman lembaga (broadcast)
-- [ ] Notifikasi in-app
+- [x] Notifikasi in-app — `GET /api/notifications`
+- [x] Tandai dibaca (satu/semua) — `POST /api/notifications/read`
+- [x] Bell icon header real-time (polling 60s) — `NotificationBell.tsx`
+- [x] Halaman notifikasi — `/notifikasi`
+- [x] Broadcast pengumuman admin — `/admin/announcements`
+- [x] API broadcast — `POST /api/admin/announcements`
 - [ ] Notifikasi WhatsApp (via API)
 - [ ] Notifikasi email
 - [ ] Notifikasi push (PWA)
@@ -182,13 +186,13 @@
 | Modul 7: Nilai & Rapor | 4 | 7 | 57% |
 | Modul 8: Analitik | 1 | 6 | 17% |
 | Modul 9: Keuangan | 6 | 8 | 75% |
-| Modul 10: Notifikasi | 0 | 5 | 0% |
+| Modul 10: Notifikasi | 6 | 9 | 67% |
 | Modul 11: Forum & Chat | 0 | 5 | 0% |
 | Modul 12: Kelas Online | 0 | 5 | 0% |
 | Modul 13: Gamifikasi | 0 | 5 | 0% |
 | Modul 14: Portal Ortu | 4 | 8 | 50% |
 | Modul 15: PWA | 0 | 3 | 0% |
-| **TOTAL** | **24** | **113** | **21%** |
+| **TOTAL** | **41** | **117** | **35%** |
 
 ---
 
