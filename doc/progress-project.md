@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
-**Last updated:** 2026-06-16  
-**Commit:** `(latest)` — feat: halaman profil pengguna + ganti password + nav header  
-**Build status:** ✅ Clean (78 routes)  
+**Last updated:** 2026-06-19  
+**Commit:** `0d565e6` — feat: Modul 11 Chat, Modul 12 Kelas Online, Cloudinary upload infra  
+**Build status:** ✅ Clean (90+ routes)  
 **Live:** https://lmsbimbel.digsan.id _(belum deploy ke VPS)_
 
 ---
@@ -27,6 +27,8 @@
 - [x] Prisma db push di VPS
 - [x] Nginx reverse proxy + SSL (Certbot) live di domain
 - [x] CI/CD auto-deploy via GitHub Actions
+- [x] Halaman pengaturan sistem — `/admin/settings` (Umum, Demo Data, Email, Info Sistem)
+- [x] Import & clear demo data 4 tipe bimbel (Akademik, UTBK/SNBT, Kedinasan, Bahasa) — `src/lib/demo-seeder.ts`
 
 ---
 
@@ -62,7 +64,7 @@
 - [x] Guru: `MaterialUploadModal` (semua tipe: PDF, Video, YouTube, Link, Teks)
 - [x] Siswa: halaman lihat materi per mata pelajaran — `/siswa/materi`
 - [x] Siswa: `MaterialCard` (buka link, tandai selesai, progress tracking)
-- [ ] Upload file langsung ke cloud storage (Cloudinary/S3)
+- [x] Upload file langsung ke cloud storage — `src/lib/cloudinary.ts`, `POST /api/upload` (Cloudinary, perlu set env vars)
 - [ ] Rich text editor untuk konten teks
 - [ ] Notifikasi materi baru ke siswa
 
@@ -74,7 +76,7 @@
 - [x] Guru: halaman submissions + beri nilai/feedback — `/guru/tugas/[id]`
 - [x] Siswa: daftar tugas (tab belum/selesai) + modal kumpulkan — `/siswa/tugas`
 - [ ] Notifikasi deadline tugas
-- [ ] Upload file langsung (Cloudinary/S3)
+- [x] Upload file langsung (Cloudinary) — API `/api/upload` siap, perlu integrasi ke form
 
 ### 📝 Modul 5: Ujian & Kuis Online
 - [x] Guru: daftar ujian — `/guru/ujian`
@@ -143,13 +145,13 @@
 - [x] Forum diskusi per kelas — `/siswa/forum`, `/guru/forum`
 - [x] Thread tanya jawab siswa-guru (buat, baca, hapus)
 - [x] Upvote thread & jawaban
-- [ ] Chat private siswa-guru
+- [x] Chat private siswa-guru — `/siswa/chat`, `/guru/chat`, polling 5s, unread badge — `ChatInterface.tsx`
 - [ ] Group chat per kelas
 
 ### 🎥 Modul 12: Kelas Online (Live)
-- [ ] Integrasi Zoom / Google Meet
-- [ ] Jadwal kelas online
-- [ ] Rekaman kelas tersimpan
+- [x] Integrasi Zoom / Google Meet / Teams / YouTube Live — simpan & tampilkan link meeting
+- [x] Jadwal kelas online (buat, edit, hapus) — `/guru/live`, `/siswa/live`
+- [x] Rekaman kelas tersimpan — field `recordingUrl`, tampil tombol tonton setelah sesi selesai
 - [ ] Whiteboard digital
 - [ ] Raise hand & polling
 
@@ -200,28 +202,41 @@
 
 | Modul | Selesai | Total | % |
 |-------|---------|-------|---|
-| Core Architecture | 13 | 16 | 81% |
+| Core Architecture | 15 | 18 | 83% |
 | Modul 1: Pengguna | 7 | 9 | 78% |
 | Modul 2: Kelas & Jadwal | 7 | 8 | 88% |
-| Modul 3: Materi | 7 | 10 | 70% |
-| Modul 4: Tugas | 6 | 8 | 75% |
+| Modul 3: Materi | 8 | 10 | 80% |
+| Modul 4: Tugas | 7 | 8 | 88% |
 | Modul 5: Ujian | 9 | 9 | 100% |
 | Modul 6: Absensi | 5 | 7 | 71% |
 | Modul 7: Nilai & Rapor | 5 | 7 | 71% |
 | Modul 8: Analitik | 5 | 6 | 83% |
 | Modul 9: Keuangan | 6 | 8 | 75% |
 | Modul 10: Notifikasi | 7 | 9 | 78% |
-| Modul 11: Forum & Chat | 3 | 5 | 60% |
-| Modul 12: Kelas Online | 0 | 5 | 0% |
+| Modul 11: Forum & Chat | 4 | 5 | 80% |
+| Modul 12: Kelas Online | 3 | 5 | 60% |
 | Modul 13: Gamifikasi | 3 | 5 | 60% |
 | Modul 14: Portal Ortu | 7 | 8 | 88% |
 | Modul 15: PWA | 2 | 3 | 67% |
 | Modul 16: Landing Page | 9 | 16 | 56% |
-| **TOTAL** | **81** | **133** | **61%** |
+| **TOTAL** | **89** | **135** | **66%** |
 
 ---
 
 ## 📝 Changelog
+
+### 2026-06-19 — Commit `0d565e6`
+- **Modul 11:** Chat private siswa-guru — `/siswa/chat`, `/guru/chat`, polling 5s, unread badge
+- **Modul 12:** Kelas Online — `/guru/live` (buat/edit/hapus sesi), `/siswa/live` (jadwal + join link + rekaman)
+- **Cloudinary:** `src/lib/cloudinary.ts` + `POST /api/upload` — upload siap pakai setelah set env vars
+- **Admin Settings:** `/admin/settings` — tab Umum, Demo Data, Email, Info Sistem
+- **Demo Data:** Import 4 tipe bimbel + tombol clear, seeder `src/lib/demo-seeder.ts`
+
+### 2026-06-19 — Commit `ab87b30`
+- **Modul 11:** Forum diskusi per kelas (`ForumThread`, `ForumReply`, `ForumUpvote`) — `/siswa/forum`, `/guru/forum`
+- **Modul 13:** Gamifikasi — poin, badge, level, leaderboard — `/siswa/prestasi`
+- **Modul 15:** PWA — `manifest.json`, `sw.js`, meta tags
+- Fix: `nodemailer` downgrade v7 (next-auth peer dep), `prisma generate`
 
 ### 2025-06-16 — Commit `b8fdfdc`
 - Setup full project structure (Next.js 15, Prisma, NextAuth v5)

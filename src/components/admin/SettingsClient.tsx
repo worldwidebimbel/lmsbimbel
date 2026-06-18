@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Save, Database, Mail, Info, AlertTriangle, CheckCircle, Loader2, Trash2, Download, Globe } from "lucide-react";
+import { Save, Database, Mail, Info, AlertTriangle, CheckCircle, Loader2, Trash2, Download, Globe, QrCode, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 type DemoType = "AKADEMIK" | "UTBK_SNBT" | "KEDINASAN" | "BAHASA";
@@ -19,7 +19,7 @@ interface Props {
   appVersion: string;
 }
 
-type Tab = "umum" | "demo" | "email" | "info";
+type Tab = "umum" | "pembayaran" | "demo" | "email" | "info";
 
 export default function SettingsClient({ initialSettings, demoStatus, smtpConfigured, appVersion }: Props) {
   const [tab, setTab] = useState<Tab>("umum");
@@ -32,12 +32,35 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
   const [testingEmail, setTestingEmail] = useState(false);
   const [testEmailTo, setTestEmailTo] = useState("");
 
+  const [uploadingQris, setUploadingQris] = useState(false);
+
   const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "umum", label: "Umum", icon: <Globe className="h-4 w-4" /> },
+    { id: "pembayaran", label: "Pembayaran", icon: <QrCode className="h-4 w-4" /> },
     { id: "demo", label: "Demo Data", icon: <Database className="h-4 w-4" /> },
     { id: "email", label: "Email", icon: <Mail className="h-4 w-4" /> },
     { id: "info", label: "Info Sistem", icon: <Info className="h-4 w-4" /> },
   ];
+
+  async function handleQrisUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingQris(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("folder", "qris");
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      if (res.ok) {
+        const d = await res.json();
+        setSettings((prev) => ({ ...prev, qris_image_url: d.url }));
+        toast.success("Gambar QRIS berhasil diupload");
+      } else {
+        const d = await res.json();
+        toast.error(d.error ?? "Gagal upload QRIS");
+      }
+    } finally { setUploadingQris(false); }
+  }
 
   async function saveSettings() {
     setSavingSettings(true);
@@ -172,6 +195,66 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
               className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50">
               {savingSettings ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Simpan Pengaturan
+            </button>
+          </div>
+        )}
+
+        {/* ── PEMBAYARAN ── */}
+        {tab === "pembayaran" && (
+          <div className="space-y-6 max-w-xl">
+            <div>
+              <h3 className="mb-1 font-semibold text-gray-800">Pengaturan QRIS</h3>
+              <p className="mb-4 text-sm text-gray-500">Upload gambar QRIS yang akan ditampilkan kepada siswa saat melakukan pembayaran tagihan.</p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-600">Gambar QRIS</label>
+                  {settings.qris_image_url ? (
+                    <div className="mb-3 flex items-start gap-4">
+                      <div className="rounded-xl border-2 border-gray-200 p-2 bg-white">
+                        <img src={settings.qris_image_url} alt="QRIS" className="h-40 w-40 object-contain" />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs text-green-600 font-medium flex items-center gap-1">
+                          <CheckCircle className="h-3.5 w-3.5" /> QRIS aktif
+                        </p>
+                        <p className="text-xs text-gray-400 break-all max-w-[200px]">{settings.qris_image_url}</p>
+                        <button onClick={() => setSettings((s) => ({ ...s, qris_image_url: "" }))}
+                          className="text-xs text-red-500 hover:underline">Hapus</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mb-3 rounded-xl border-2 border-dashed border-gray-200 p-6 text-center text-sm text-gray-400">
+                      Belum ada gambar QRIS
+                    </div>
+                  )}
+                  <label className={`flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 w-fit ${uploadingQris ? "opacity-50 pointer-events-none" : ""}`}>
+                    {uploadingQris ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    {uploadingQris ? "Mengupload..." : "Upload Gambar QRIS"}
+                    <input type="file" accept="image/*" className="hidden" onChange={handleQrisUpload} disabled={uploadingQris} />
+                  </label>
+                  <p className="mt-1 text-xs text-gray-400">Format JPG/PNG, maks 5MB. Gunakan Cloudinary untuk upload.</p>
+                </div>
+
+                {[
+                  { key: "qris_bank_name",      label: "Nama Bank / E-Wallet", placeholder: "BCA, GoPay, OVO, Dana..." },
+                  { key: "qris_account_name",   label: "Nama Pemilik Rekening", placeholder: "Bimbel EduBimbel" },
+                  { key: "qris_account_number", label: "Nomor Rekening / ID (opsional)", placeholder: "1234567890" },
+                ].map((f) => (
+                  <div key={f.key}>
+                    <label className="mb-1 block text-sm font-medium text-gray-600">{f.label}</label>
+                    <input value={settings[f.key] ?? ""} placeholder={f.placeholder}
+                      onChange={(e) => setSettings({ ...settings, [f.key]: e.target.value })}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button onClick={saveSettings} disabled={savingSettings}
+              className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50">
+              {savingSettings ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Simpan Pengaturan QRIS
             </button>
           </div>
         )}

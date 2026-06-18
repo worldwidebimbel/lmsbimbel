@@ -1,31 +1,33 @@
 import { db } from "@/lib/db";
 import { formatCurrency, formatDate, getInvoiceStatusColor, getInvoiceStatusLabel } from "@/lib/utils";
-import { Wallet, TrendingUp, AlertCircle, CheckCircle, Plus } from "lucide-react";
+import { Wallet, TrendingUp, AlertCircle, CheckCircle, Plus, BarChart2, Hourglass } from "lucide-react";
+import Link from "next/link";
 
 async function getFinanceData() {
-  const [invoices, paidSum, unpaidSum, overdueCount] = await Promise.all([
+  const [invoices, paidSum, unpaidSum, overdueCount, pendingCount] = await Promise.all([
     db.invoice.findMany({
       include: { student: true, plan: true },
       orderBy: { createdAt: "desc" },
-      take: 20,
+      take: 50,
     }),
     db.invoice.aggregate({ where: { status: "PAID" }, _sum: { amount: true } }),
-    db.invoice.aggregate({ where: { status: "UNPAID" }, _sum: { amount: true } }),
+    db.invoice.aggregate({ where: { status: { in: ["UNPAID", "OVERDUE"] } }, _sum: { amount: true } }),
     db.invoice.count({ where: { status: "OVERDUE" } }),
+    db.invoice.count({ where: { status: "PENDING" } }),
   ]);
-  return { invoices, paidAmount: paidSum._sum.amount ?? 0, unpaidAmount: unpaidSum._sum.amount ?? 0, overdueCount };
+  return { invoices, paidAmount: paidSum._sum.amount ?? 0, unpaidAmount: unpaidSum._sum.amount ?? 0, overdueCount, pendingCount };
 }
 
 export const metadata = { title: "Keuangan" };
 
 export default async function FinancePage() {
-  const { invoices, paidAmount, unpaidAmount, overdueCount } = await getFinanceData();
+  const { invoices, paidAmount, unpaidAmount, overdueCount, pendingCount } = await getFinanceData();
 
   const cards = [
-    { label: "Total Terbayar", value: formatCurrency(paidAmount), icon: CheckCircle, color: "text-green-600", bg: "bg-green-50" },
-    { label: "Belum Dibayar", value: formatCurrency(unpaidAmount), icon: Wallet, color: "text-orange-600", bg: "bg-orange-50" },
-    { label: "Jatuh Tempo", value: `${overdueCount} tagihan`, icon: AlertCircle, color: "text-red-600", bg: "bg-red-50" },
-    { label: "Total Tagihan", value: invoices.length, icon: TrendingUp, color: "text-blue-600", bg: "bg-blue-50" },
+    { label: "Total Terbayar",           value: formatCurrency(paidAmount),  icon: CheckCircle, color: "text-green-600", bg: "bg-green-50" },
+    { label: "Belum Dibayar",            value: formatCurrency(unpaidAmount), icon: Wallet,      color: "text-orange-600", bg: "bg-orange-50" },
+    { label: "Jatuh Tempo",              value: `${overdueCount} tagihan`,    icon: AlertCircle, color: "text-red-600",    bg: "bg-red-50" },
+    { label: "Menunggu Konfirmasi QRIS", value: `${pendingCount} tagihan`,    icon: Hourglass,   color: "text-blue-600",   bg: "bg-blue-50" },
   ];
 
   return (
@@ -35,11 +37,16 @@ export default async function FinancePage() {
           <h1 className="text-2xl font-bold text-gray-900">Keuangan & Pembayaran</h1>
           <p className="text-sm text-gray-500 mt-0.5">Kelola tagihan dan konfirmasi pembayaran</p>
         </div>
-        <a href="/admin/finance/new"
-          className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors">
-          <Plus className="w-4 h-4" />
-          Buat Tagihan
-        </a>
+        <div className="flex gap-2">
+          <Link href="/admin/finance/laporan"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50">
+            <BarChart2 className="w-4 h-4" /> Laporan
+          </Link>
+          <a href="/admin/finance/new"
+            className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors">
+            <Plus className="w-4 h-4" /> Buat Tagihan
+          </a>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

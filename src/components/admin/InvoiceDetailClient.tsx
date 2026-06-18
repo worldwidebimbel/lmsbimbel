@@ -4,10 +4,11 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { CheckCircle, Loader2, Clock, XCircle, AlertCircle } from "lucide-react";
+import { CheckCircle, Loader2, Clock, XCircle, AlertCircle, Hourglass, ExternalLink, ThumbsUp, ThumbsDown, Bell } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { toast } from "sonner";
 
-interface Payment { id: string; amount: number; method: string; confirmedAt: string | null; user: { name: string } }
+interface Payment { id: string; amount: number; method: string; confirmedAt: string | null; proofUrl: string | null; user: { name: string } }
 interface Invoice {
   id: string;
   amount: number;
@@ -20,24 +21,28 @@ interface Invoice {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; Icon: React.ElementType }> = {
-  PAID:      { label: "Lunas",       color: "text-green-700",  bg: "bg-green-100",  Icon: CheckCircle },
-  UNPAID:    { label: "Belum Bayar", color: "text-orange-700", bg: "bg-orange-100", Icon: Clock },
-  OVERDUE:   { label: "Jatuh Tempo", color: "text-red-700",    bg: "bg-red-100",    Icon: AlertCircle },
-  CANCELLED: { label: "Dibatalkan",  color: "text-gray-500",   bg: "bg-gray-100",   Icon: XCircle },
+  PAID:      { label: "Lunas",                 color: "text-green-700",  bg: "bg-green-100",  Icon: CheckCircle },
+  UNPAID:    { label: "Belum Bayar",           color: "text-orange-700", bg: "bg-orange-100", Icon: Clock },
+  PENDING:   { label: "Menunggu Konfirmasi",   color: "text-blue-700",   bg: "bg-blue-100",   Icon: Hourglass },
+  OVERDUE:   { label: "Jatuh Tempo",           color: "text-red-700",    bg: "bg-red-100",    Icon: AlertCircle },
+  CANCELLED: { label: "Dibatalkan",            color: "text-gray-500",   bg: "bg-gray-100",   Icon: XCircle },
 };
 
 const METHOD_LABEL: Record<string, string> = {
-  TRANSFER: "Transfer Bank", CASH: "Tunai", MIDTRANS: "Midtrans",
+  TRANSFER: "Transfer Bank", CASH: "Tunai", QRIS: "QRIS", MIDTRANS: "Midtrans", XENDIT: "Xendit",
 };
 
 export default function InvoiceDetailClient({ invoice, totalPaid }: { invoice: Invoice; totalPaid: number }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showReject, setShowReject] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
   const [confirmForm, setConfirmForm] = useState({ method: "CASH", amount: String(invoice.amount - totalPaid) });
   const [status, setStatus] = useState(invoice.status);
   const [payments, setPayments] = useState<Payment[]>(invoice.payments);
   const [error, setError] = useState("");
+  const [sendingReminder, setSendingReminder] = useState(false);
 
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.UNPAID;
   const Icon = cfg.Icon;
@@ -72,6 +77,44 @@ export default function InvoiceDetailClient({ invoice, totalPaid }: { invoice: I
       body: JSON.stringify({ status: newStatus }),
     });
     if (res.ok) setStatus(newStatus);
+  }
+
+  async function handleApprove() {
+    startTransition(async () => {
+      const res = await fetch(`/api/admin/finance/invoices/${invoice.id}/approve`, { method: "POST" });
+      if (res.ok) {
+        setStatus("PAID");
+        setPayments((prev) => prev.map((p) => !p.confirmedAt ? { ...p, confirmedAt: new Date().toISOString() } : p));
+        toast.success("Pembayaran QRIS dikonfirmasi");
+        router.refresh();
+      } else toast.error("Gagal konfirmasi");
+    });
+  }
+
+  async function handleReject() {
+    startTransition(async () => {
+      const res = await fetch(`/api/admin/finance/invoices/${invoice.id}/reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: rejectReason || "Bukti tidak valid" }),
+      });
+      if (res.ok) {
+        setStatus("UNPAID");
+        setPayments((prev) => prev.filter((p) => p.confirmedAt !== null));
+        setShowReject(false);
+        toast.success("Bukti ditolak, tagihan dikembalikan ke UNPAID");
+        router.refresh();
+      } else toast.error("Gagal menolak");
+    });
+  }
+
+  async function handleSendReminder() {
+    setSendingReminder(true);
+    try {
+      const res = await fetch(`/api/admin/finance/reminder`, { method: "POST" });
+      const d = await res.json();
+      toast.success(`Reminder terkirim ke ${d.sent} siswa`);
+    } finally { setSendingReminder(false); }
   }
 
   return (
@@ -121,28 +164,75 @@ export default function InvoiceDetailClient({ invoice, totalPaid }: { invoice: I
 
         {status !== "PAID" && status !== "CANCELLED" && (
           <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
-            <button
-              onClick={() => setShowConfirm(true)}
-              className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
-            >
-              <CheckCircle className="h-4 w-4" />
-              Konfirmasi Pembayaran
-            </button>
-            <button
-              onClick={() => handleStatusChange("OVERDUE")}
-              className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 hover:bg-red-100"
-            >
-              Tandai Jatuh Tempo
-            </button>
-            <button
-              onClick={() => handleStatusChange("CANCELLED")}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
-            >
-              Batalkan
-            </button>
+            {status === "PENDING" ? (
+              <>
+                <button onClick={handleApprove} disabled={isPending}
+                  className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
+                  {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ThumbsUp className="h-4 w-4" />}
+                  Setujui QRIS
+                </button>
+                <button onClick={() => setShowReject(true)}
+                  className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 hover:bg-red-100">
+                  <ThumbsDown className="h-4 w-4" /> Tolak Bukti
+                </button>
+              </>
+            ) : (
+              <button onClick={() => setShowConfirm(true)}
+                className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
+                <CheckCircle className="h-4 w-4" /> Konfirmasi Pembayaran
+              </button>
+            )}
+            {status !== "PENDING" && (
+              <>
+                <button onClick={() => handleStatusChange("OVERDUE")}
+                  className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 hover:bg-red-100">
+                  Tandai Jatuh Tempo
+                </button>
+                <button onClick={() => handleStatusChange("CANCELLED")}
+                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50">
+                  Batalkan
+                </button>
+                <button onClick={handleSendReminder} disabled={sendingReminder}
+                  className="flex items-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm text-orange-700 hover:bg-orange-100 disabled:opacity-50">
+                  {sendingReminder ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bell className="h-3.5 w-3.5" />}
+                  Kirim Reminder
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
+
+      {status === "PENDING" && (() => {
+        const proof = payments.find((p) => !p.confirmedAt && p.proofUrl);
+        return proof ? (
+          <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900">Bukti Pembayaran QRIS</h3>
+              <a href={proof.proofUrl!} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
+                <ExternalLink className="h-3.5 w-3.5" /> Buka Asli
+              </a>
+            </div>
+            <img src={proof.proofUrl!} alt="Bukti Bayar" className="max-h-60 rounded-lg border border-gray-200 object-contain" />
+          </div>
+        ) : null;
+      })()}
+
+      {showReject && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-5 space-y-3">
+          <h3 className="font-semibold text-gray-900">Alasan Penolakan</h3>
+          <input value={rejectReason} onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="Contoh: Nominal tidak sesuai, gambar buram..." className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+          <div className="flex gap-2">
+            <button onClick={handleReject} disabled={isPending}
+              className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+              {isPending && <Loader2 className="h-4 w-4 animate-spin" />} Tolak Bukti
+            </button>
+            <button onClick={() => setShowReject(false)} className="rounded-lg border px-4 py-2 text-sm text-gray-600">Batal</button>
+          </div>
+        </div>
+      )}
 
       {showConfirm && (
         <div className="rounded-xl border border-green-200 bg-green-50 p-5">
@@ -193,7 +283,7 @@ export default function InvoiceDetailClient({ invoice, totalPaid }: { invoice: I
                 <div>
                   <p className="text-sm font-medium text-gray-900">{formatCurrency(p.amount)}</p>
                   <p className="text-xs text-gray-400">
-                    {METHOD_LABEL[p.method] ?? p.method} · Dikonfirmasi oleh {p.user.name}
+                    {METHOD_LABEL[p.method] ?? p.method} · {p.confirmedAt ? `Dikonfirmasi oleh ${p.user.name}` : "Menunggu konfirmasi"}
                   </p>
                 </div>
                 <p className="text-xs text-gray-400">

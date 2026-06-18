@@ -19,8 +19,8 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
       student: { select: { id: true, name: true, email: true } },
       plan: true,
       payments: {
-        include: { user: { select: { id: true, name: true } } },
         orderBy: { createdAt: "desc" },
+        include: { user: { select: { id: true, name: true } } },
       },
     },
   });

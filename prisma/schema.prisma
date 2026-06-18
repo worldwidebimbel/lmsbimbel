@@ -62,6 +62,7 @@ enum AttendanceStatus {
 
 enum InvoiceStatus {
   UNPAID
+  PENDING
   PAID
   OVERDUE
   CANCELLED
@@ -70,6 +71,7 @@ enum InvoiceStatus {
 enum PaymentMethod {
   TRANSFER
   CASH
+  QRIS
   MIDTRANS
   XENDIT
 }

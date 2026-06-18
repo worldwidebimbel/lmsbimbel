@@ -127,6 +127,7 @@ export function getAttendanceStatusColor(status: string): string {
 export function getInvoiceStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     UNPAID: "Belum Dibayar",
+    PENDING: "Menunggu Konfirmasi",
     PAID: "Lunas",
     OVERDUE: "Jatuh Tempo",
     CANCELLED: "Dibatalkan",
@@ -137,6 +138,7 @@ export function getInvoiceStatusLabel(status: string): string {
 export function getInvoiceStatusColor(status: string): string {
   const colors: Record<string, string> = {
     UNPAID: "text-yellow-700 bg-yellow-100",
+    PENDING: "text-blue-700 bg-blue-100",
     PAID: "text-green-700 bg-green-100",
     OVERDUE: "text-red-700 bg-red-100",
     CANCELLED: "text-gray-700 bg-gray-100",
