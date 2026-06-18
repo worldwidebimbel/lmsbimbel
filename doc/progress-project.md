@@ -1,9 +1,11 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-19  
-**Commit:** `cd34aa9` — feat: Modul 9 QRIS payment, upload bukti, approve/reject, reminder, laporan  
+**Commit:** `ea81e0f` — fix: QRIS upload settings, 5 tipe soal baru, fullstack question models  
 **Build status:** ✅ Clean (90+ routes)  
-**Live:** https://lmsbimbel.digsan.id _(belum deploy ke VPS)_
+**Live:** https://lmsbimbel.digsan.id  
+
+**Scope baru:** Kebutuhan aplikasi berbasis web umum (company profile + LMS + ujian + event berbayar + sertifikat + administrasi multi-cabang + pembayaran otomatis).
 
 ---
 
@@ -27,8 +29,9 @@
 - [x] Prisma db push di VPS
 - [x] Nginx reverse proxy + SSL (Certbot) live di domain
 - [x] CI/CD auto-deploy via GitHub Actions
-- [x] Halaman pengaturan sistem — `/admin/settings` (Umum, Demo Data, Email, Info Sistem)
+- [x] Halaman pengaturan sistem — `/admin/settings` (Umum, Pembayaran/QRIS, Demo Data, Email, Info Sistem)
 - [x] Import & clear demo data 4 tipe bimbel (Akademik, UTBK/SNBT, Kedinasan, Bahasa) — `src/lib/demo-seeder.ts`
+- [ ] Branding global: tema warna navy / kuning / putih + CMS landing page
 
 ---
 
@@ -36,7 +39,7 @@
 
 ### 🏫 Modul 1: Manajemen Pengguna
 - [x] Registrasi & Login (Email/Google) — NextAuth credentials + Google
-- [x] Sistem peran & hak akses (RBAC) — middleware + role layouts
+- [x] Sistem peran & hak akses multi-role (SUPER_ADMIN, ADMIN, TUTOR/GURU, SISWA, ORANG_TUA) — middleware + role layouts
 - [x] Halaman daftar pengguna (admin) — `/admin/users`
 - [x] Form tambah pengguna — `/admin/users/new`
 - [x] Form edit + suspend pengguna — `/admin/users/[id]`
@@ -61,7 +64,7 @@
 - [x] API progress siswa (`POST /api/materi/[id]/progress`)
 - [x] Guru: halaman daftar & upload materi — `/guru/materi`
 - [x] Guru: `MaterialList` component (search, filter, toggle publish, edit, delete)
-- [x] Guru: `MaterialUploadModal` (semua tipe: PDF, Video, YouTube, Link, Teks)
+- [x] Guru: `MaterialUploadModal` (semua tipe: PDF, Video, YouTube, Audio/Google Drive, Link, Teks, Gambar)
 - [x] Siswa: halaman lihat materi per mata pelajaran — `/siswa/materi`
 - [x] Siswa: `MaterialCard` (buka link, tandai selesai, progress tracking)
 - [x] Upload file langsung ke cloud storage — `src/lib/cloudinary.ts`, `POST /api/upload` (Cloudinary, perlu set env vars)
@@ -81,13 +84,15 @@
 ### 📝 Modul 5: Ujian & Kuis Online
 - [x] Guru: daftar ujian — `/guru/ujian`
 - [x] Guru: buat ujian (judul, durasi, KKM, jadwal, acak soal) — `/guru/ujian/new`
-- [x] Guru: kelola soal (pilgan/esai/benar-salah) + lihat hasil — `/guru/ujian/[id]`
+- [x] Guru: kelola soal (7 tipe: pilgan tunggal, pilgan kompleks, benar/salah, menjodohkan, mengurutkan, setuju/tidak, essay) + lihat hasil — `/guru/ujian/[id]`
 - [x] Guru: publish/unpublish ujian
 - [x] Siswa: daftar ujian tersedia — `/siswa/ujian`
 - [x] Siswa: kerjakan ujian dengan timer countdown — `/siswa/ujian/[id]`
-- [x] Auto-koreksi pilgan + skor otomatis
+- [x] Auto-koreksi semua tipe soal (exact / partial credit) + skor otomatis
 - [x] API: CRUD ujian, soal, submit jawaban
 - [x] Bank soal bersama — `/guru/bank-soal` (tambah, hapus, import ke ujian)
+- [ ] Pembahasan soal setelah ujian (review jawaban + kunci)
+- [ ] Rapor / laporan hasil ujian per siswa dengan score & pembahasan
 - [ ] Tryout / simulasi UTBK / Nasional
 
 ### 📊 Modul 6: Absensi
@@ -117,19 +122,27 @@
 - [ ] Analitik soal (tingkat kesulitan, daya pembeda)
 - [ ] Export laporan (PDF/Excel)
 
-### 💰 Modul 9: Keuangan & Pembayaran
+### 💰 Modul 9: Keuangan, Pembayaran & Administrasi Multi-Cabang
 - [x] Halaman daftar tagihan (admin) — `/admin/finance`
 - [x] Summary keuangan (total terbayar, belum bayar, jatuh tempo)
 - [x] Form buat tagihan manual — `/admin/finance/new`
 - [x] Detail tagihan + konfirmasi pembayaran — `/admin/finance/[id]`
 - [x] API tagihan (POST, GET/PATCH, konfirmasi) — `/api/admin/finance/invoices`
 - [x] Halaman tagihan siswa — `/siswa/tagihan`
-- [ ] Pembayaran online (Midtrans/Xendit) — integrasi gateway
 - [x] Pembayaran QRIS manual — tampil QR untuk discan siswa, upload bukti — `/siswa/tagihan`
 - [x] Konfirmasi / tolak bukti bayar QRIS oleh admin — `/admin/finance/[id]` (approve + reject + lihat bukti)
 - [x] Reminder tagihan otomatis (email) — `POST /api/admin/finance/reminder`
 - [x] Histori transaksi + status PENDING — tabel di `/admin/finance`
 - [x] Laporan keuangan bulanan (rekap 6 bulan, per metode, per status) — `/admin/finance/laporan`
+- [ ] Multi-cabang / multi-branch: tagihan, pemasukan, pengeluaran per cabang
+- [ ] Pencatatan pengeluaran operasional & gaji karyawan
+- [ ] Rekap keuangan harian, mingguan, bulanan, tahunan
+- [ ] Reminder jatuh tempo via WhatsApp (gateway WABLAS / Twilio / Fonnte)
+- [ ] Daftar tunggakan + notifikasi waktu bayar
+- [ ] Tagihan paketan meeting (contoh: per 10 pertemuan)
+- [ ] Generate kuitansi / invoice PDF setelah pembayaran lunas
+- [ ] Pembayaran online otomatis Midtrans / Xendit (toggle enable/disable per event/tagihan)
+- [ ] Verifikasi pembayaran otomatis (Midtrans callback) + fallback manual upload bukti
 
 ### 🔔 Modul 10: Notifikasi & Pengumuman
 - [x] Notifikasi in-app — `GET /api/notifications`
@@ -156,12 +169,13 @@
 - [ ] Whiteboard digital
 - [ ] Raise hand & polling
 
-### 🎖️ Modul 13: Gamifikasi & Motivasi
+### 🎖️ Modul 13: Gamifikasi, Motivasi & E-Sertifikat
 - [x] Poin & badge prestasi (computed dari aktivitas, persist ke DB) — `/siswa/prestasi`
 - [x] Leaderboard siswa (rank per kelas berdasarkan poin)
-- [ ] Streak belajar harian
-- [ ] Sertifikat digital (PDF)
 - [x] Level & XP system (5 level: Pemula → Master)
+- [ ] Streak belajar harian
+- [ ] E-sertifikat otomatis (PDF) untuk lomba & siswa yang menyelesaikan LMS
+- [ ] Template sertifikat yang bisa diganti-ganti (editor/admin)
 
 ### 👨‍👩‍👧 Modul 14: Portal Orang Tua
 - [x] Dashboard orang tua — `/orangtua`
@@ -180,7 +194,7 @@
 - [ ] Sinkronisasi otomatis saat online
 
 ### 🌐 Modul 16: Landing Page & Marketing Website
-- [x] Halaman publik depan (company profile) — `/`
+- [x] Halaman publik depan (company profile)
 - [x] Hero section dengan headline & CTA
 - [x] SEO meta & Open Graph configuration
 - [x] Navigasi publik (home, program, tentang, kontak, daftar)
@@ -190,12 +204,28 @@
 - [x] Testimonial section
 - [x] CTA section + WhatsApp link
 - [x] Footer dengan kontak & links
+- [x] Tema dasar Tailwind (bisa di-override)
+- [ ] Branding: tone warna logo — Biru Navy, Kuning, Putih + warna minor harmonis
 - [ ] Hero / Banner slider configurable
-- [ ] Branding: logo, warna primer/sekunder/accent, font, heading (CMS)
+- [ ] Gallery prestasi siswa (foto, keterangan, periode)
+- [ ] Gallery aktivitas bimbel (event, lomba, outing, kelas)
+- [ ] Promo product per program: Kelas Reguler Offline & Kelas Online (LMS)
+- [ ] Promo event-event tertentu: lomba olimpiade, tryout, open house
 - [ ] Modal/popup promosi & CTA
-- [ ] Form pendaftaran siswa baru / inquiry
+- [ ] Form pendaftaran siswa baru / inquiry (lead CRM)
 - [ ] Blog / artikel pemasaran
-- [ ] CMS admin untuk kelola konten landing page
+- [ ] CMS admin untuk kelola konten web frontpage, banner, promo, gallery, testimoni
+
+### 🎟️ Modul 17: Event Berbayar Online
+- [ ] Manajemen event (tryout online, lomba olimpiade, workshop) — admin CRUD
+- [ ] Halaman publik daftar event / landing page event
+- [ ] Registrasi peserta + pilih paket / tier harga
+- [ ] Pembayaran event (Midtrans otomatis / QRIS manual / upload bukti)
+- [ ] Pembayaran bisa toggle enable/disable (gratis vs berbayar)
+- [ ] Sesi ujian khusus event (soal terpisah dari kelas regular)
+- [ ] Hasil & ranking event (leaderboard, score, sertifikat)
+- [ ] E-sertifikat otomatis untuk peserta lomba
+- [ ] Notifikasi reminder event via email/WhatsApp
 
 ---
 
@@ -203,28 +233,39 @@
 
 | Modul | Selesai | Total | % |
 |-------|---------|-------|---|
-| Core Architecture | 15 | 18 | 83% |
+| Core Architecture | 15 | 19 | 79% |
 | Modul 1: Pengguna | 7 | 9 | 78% |
 | Modul 2: Kelas & Jadwal | 7 | 8 | 88% |
 | Modul 3: Materi | 8 | 10 | 80% |
 | Modul 4: Tugas | 7 | 8 | 88% |
-| Modul 5: Ujian | 9 | 9 | 100% |
+| Modul 5: Ujian | 9 | 12 | 75% |
 | Modul 6: Absensi | 5 | 7 | 71% |
 | Modul 7: Nilai & Rapor | 5 | 7 | 71% |
 | Modul 8: Analitik | 5 | 6 | 83% |
-| Modul 9: Keuangan | 10 | 11 | 91% |
+| Modul 9: Keuangan & Admin | 10 | 20 | 50% |
 | Modul 10: Notifikasi | 7 | 9 | 78% |
 | Modul 11: Forum & Chat | 4 | 5 | 80% |
 | Modul 12: Kelas Online | 3 | 5 | 60% |
-| Modul 13: Gamifikasi | 3 | 5 | 60% |
+| Modul 13: Gamifikasi & Sertifikat | 3 | 5 | 60% |
 | Modul 14: Portal Ortu | 7 | 8 | 88% |
 | Modul 15: PWA | 2 | 3 | 67% |
-| Modul 16: Landing Page | 9 | 16 | 56% |
-| **TOTAL** | **93** | **136** | **68%** |
+| Modul 16: Landing Page | 10 | 22 | 45% |
+| Modul 17: Event Berbayar | 0 | 9 | 0% |
+| **TOTAL** | **115** | **182** | **63%** |
 
 ---
 
 ## 📝 Changelog
+
+### 2026-06-19 — Commit `ea81e0f`
+- **Scope & Progress:** sinkronisasi kebutuhan baru ke `progress-project.md`
+  - Modul 16: company profile (gallery, promo program, event olimpiade, navy/yellow/white branding)
+  - Modul 5: 7 tipe soal (pilgan tunggal/kompleks, benar/salah, menjodohkan, mengurutkan, setuju/tidak, essay)
+  - Modul 9: administrasi multi-cabang, pengeluaran, gaji, rekap harian/mingguan/bulanan/tahunan, kuitansi, Midtrans toggle
+  - Modul 13: e-sertifikat otomatis dengan template
+  - Modul 17: **Event Berbayar Online** (tryout, lomba olimpiade) — modul baru
+- **Fix:** QRIS upload settings — key QRIS masuk ke `DEFAULT_SETTINGS`, auto-save setelah upload
+- **Build:** ✅ clean
 
 ### 2026-06-19 — Commit `cd34aa9`
 - **Modul 9:** QRIS payment flow — upload bukti, status PENDING, approve/reject admin, reminder email, laporan keuangan
