@@ -719,6 +719,18 @@ model ForumUpvote {
 }
 
 // ============================
+// APP SETTINGS
+// ============================
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("app_settings")
+}
+
+// ============================
 // AUDIT LOG FEATURE FLAGS
 // ============================
 
