@@ -94,9 +94,14 @@ export default async function AnalyticsPage() {
             <p className="text-sm text-gray-500">Ringkasan performa lembaga</p>
           </div>
         </div>
-        <Link href="/admin/analytics/classes" className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
-          Statistik Per Kelas <ArrowRight className="h-4 w-4" />
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/admin/analytics/teachers" className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            Kinerja Guru <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link href="/admin/analytics/classes" className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+            Statistik Per Kelas <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
 
       {/* KPI Cards */}

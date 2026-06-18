@@ -103,7 +103,7 @@
 - [x] Guru: tabel input nilai per siswa + komponen bobot + ranking — `/guru/nilai`
 - [x] Siswa: rekap nilai per kelas + nilai akhir + progress bar — `/siswa/nilai`
 - [ ] Rapor digital (cetak PDF)
-- [ ] Grafik perkembangan nilai
+- [x] Grafik perkembangan nilai (komponen, ujian, tugas) — `/siswa/nilai/grafik`
 - [ ] Export Excel
 
 ### 📈 Modul 8: Analitik & Laporan
@@ -111,7 +111,7 @@
 - [x] Halaman analitik lengkap (KPI, absensi, nilai, keuangan, tabel kelas) — `/admin/analytics`
 - [x] Progress belajar per siswa (statistik materi, tugas, ujian, nilai, kehadiran + grafik) — `/siswa/progress`
 - [x] Statistik kehadiran & nilai per kelas (admin) — `/admin/analytics/classes`
-- [ ] Laporan kinerja guru
+- [x] Laporan kinerja guru (kelas, materi, tugas, ujian, absensi, penilaian) — `/admin/analytics/teachers`
 - [ ] Analitik soal (tingkat kesulitan, daya pembeda)
 - [ ] Export laporan (PDF/Excel)
 
@@ -207,8 +207,8 @@
 | Modul 4: Tugas | 6 | 8 | 75% |
 | Modul 5: Ujian | 8 | 9 | 89% |
 | Modul 6: Absensi | 4 | 7 | 57% |
-| Modul 7: Nilai & Rapor | 4 | 7 | 57% |
-| Modul 8: Analitik | 4 | 6 | 67% |
+| Modul 7: Nilai & Rapor | 5 | 7 | 71% |
+| Modul 8: Analitik | 5 | 6 | 83% |
 | Modul 9: Keuangan | 6 | 8 | 75% |
 | Modul 10: Notifikasi | 6 | 9 | 67% |
 | Modul 11: Forum & Chat | 0 | 5 | 0% |
@@ -217,7 +217,7 @@
 | Modul 14: Portal Ortu | 7 | 8 | 88% |
 | Modul 15: PWA | 0 | 3 | 0% |
 | Modul 16: Landing Page | 9 | 16 | 56% |
-| **TOTAL** | **68** | **133** | **51%** |
+| **TOTAL** | **70** | **133** | **53%** |
 
 ---
 
