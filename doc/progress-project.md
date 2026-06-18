@@ -140,9 +140,9 @@
 - [ ] Notifikasi push (PWA)
 
 ### 💬 Modul 11: Forum Diskusi & Chat
-- [ ] Forum diskusi per mata pelajaran
-- [ ] Thread tanya jawab siswa-guru
-- [ ] Upvote jawaban terbaik
+- [x] Forum diskusi per kelas — `/siswa/forum`, `/guru/forum`
+- [x] Thread tanya jawab siswa-guru (buat, baca, hapus)
+- [x] Upvote thread & jawaban
 - [ ] Chat private siswa-guru
 - [ ] Group chat per kelas
 
@@ -154,11 +154,11 @@
 - [ ] Raise hand & polling
 
 ### 🎖️ Modul 13: Gamifikasi & Motivasi
-- [ ] Poin & badge prestasi
-- [ ] Leaderboard siswa
+- [x] Poin & badge prestasi (computed dari aktivitas, persist ke DB) — `/siswa/prestasi`
+- [x] Leaderboard siswa (rank per kelas berdasarkan poin)
 - [ ] Streak belajar harian
 - [ ] Sertifikat digital (PDF)
-- [ ] Level & XP system
+- [x] Level & XP system (5 level: Pemula → Master)
 
 ### 👨‍👩‍👧 Modul 14: Portal Orang Tua
 - [x] Dashboard orang tua — `/orangtua`
@@ -172,8 +172,8 @@
 - [ ] Bayar tagihan online
 
 ### 📱 Modul 15: PWA & Offline
-- [ ] Installable sebagai app (PWA)
-- [ ] Akses materi offline (cached)
+- [x] Installable sebagai app (PWA) — `public/manifest.json` + meta tags + SW registration
+- [x] Akses materi offline (cached) — `public/sw.js` cache-first strategy
 - [ ] Sinkronisasi otomatis saat online
 
 ### 🌐 Modul 16: Landing Page & Marketing Website
@@ -211,13 +211,13 @@
 | Modul 8: Analitik | 5 | 6 | 83% |
 | Modul 9: Keuangan | 6 | 8 | 75% |
 | Modul 10: Notifikasi | 7 | 9 | 78% |
-| Modul 11: Forum & Chat | 0 | 5 | 0% |
+| Modul 11: Forum & Chat | 3 | 5 | 60% |
 | Modul 12: Kelas Online | 0 | 5 | 0% |
-| Modul 13: Gamifikasi | 0 | 5 | 0% |
+| Modul 13: Gamifikasi | 3 | 5 | 60% |
 | Modul 14: Portal Ortu | 7 | 8 | 88% |
-| Modul 15: PWA | 0 | 3 | 0% |
+| Modul 15: PWA | 2 | 3 | 67% |
 | Modul 16: Landing Page | 9 | 16 | 56% |
-| **TOTAL** | **73** | **133** | **55%** |
+| **TOTAL** | **81** | **133** | **61%** |
 
 ---
 

@@ -151,6 +151,9 @@ model User {
   children         ParentChild[]  @relation("ParentRelation")
   parents          ParentChild[]  @relation("ChildRelation")
   featureFlagLogs  FeatureFlagLog[]
+  forumThreads     ForumThread[]
+  forumReplies     ForumReply[]
+  forumUpvotes     ForumUpvote[]
 
   @@map("users")
 }
@@ -235,6 +238,7 @@ model Subject {
   classes     Class[]
   materials   Material[]
   questions   Question[]
+  forumThreads ForumThread[]
 
   @@map("subjects")
 }
@@ -263,6 +267,7 @@ model Class {
   exams       Exam[]
   attendances Attendance[]
   gradeComponents GradeComponent[]
+  forumThreads ForumThread[]
 
   @@map("classes")
 }
@@ -654,6 +659,63 @@ model StudentPoints {
   user     User   @relation(fields: [userId], references: [id])
 
   @@map("student_points")
+}
+
+// ============================
+// FORUM DISKUSI
+// ============================
+
+model ForumThread {
+  id        String   @id @default(cuid())
+  classId   String?
+  subjectId String?
+  authorId  String
+  title     String
+  content   String
+  isPinned  Boolean  @default(false)
+  isLocked  Boolean  @default(false)
+  viewCount Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  class     Class?   @relation(fields: [classId], references: [id])
+  subject   Subject? @relation(fields: [subjectId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+  replies   ForumReply[]
+  upvotes   ForumUpvote[]
+
+  @@map("forum_threads")
+}
+
+model ForumReply {
+  id        String   @id @default(cuid())
+  threadId  String
+  authorId  String
+  content   String
+  isAnswer  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  thread    ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author    User        @relation(fields: [authorId], references: [id])
+  upvotes   ForumUpvote[]
+
+  @@map("forum_replies")
+}
+
+model ForumUpvote {
+  id       String      @id @default(cuid())
+  userId   String
+  threadId String?
+  replyId  String?
+
+  user     User        @relation(fields: [userId], references: [id])
+  thread   ForumThread? @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  reply    ForumReply?  @relation(fields: [replyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, threadId])
+  @@unique([userId, replyId])
+  @@map("forum_upvotes")
 }
 
 // ============================
