@@ -1,7 +1,7 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-19  
-**Commit:** `0d565e6` — feat: Modul 11 Chat, Modul 12 Kelas Online, Cloudinary upload infra  
+**Commit:** `cd34aa9` — feat: Modul 9 QRIS payment, upload bukti, approve/reject, reminder, laporan  
 **Build status:** ✅ Clean (90+ routes)  
 **Live:** https://lmsbimbel.digsan.id _(belum deploy ke VPS)_
 
@@ -125,10 +125,11 @@
 - [x] API tagihan (POST, GET/PATCH, konfirmasi) — `/api/admin/finance/invoices`
 - [x] Halaman tagihan siswa — `/siswa/tagihan`
 - [ ] Pembayaran online (Midtrans/Xendit) — integrasi gateway
-- [ ] Konfirmasi pembayaran manual oleh admin
-- [ ] Reminder tagihan otomatis
-- [ ] Histori transaksi lengkap
-- [ ] Laporan keuangan bulanan (PDF)
+- [x] Pembayaran QRIS manual — tampil QR untuk discan siswa, upload bukti — `/siswa/tagihan`
+- [x] Konfirmasi / tolak bukti bayar QRIS oleh admin — `/admin/finance/[id]` (approve + reject + lihat bukti)
+- [x] Reminder tagihan otomatis (email) — `POST /api/admin/finance/reminder`
+- [x] Histori transaksi + status PENDING — tabel di `/admin/finance`
+- [x] Laporan keuangan bulanan (rekap 6 bulan, per metode, per status) — `/admin/finance/laporan`
 
 ### 🔔 Modul 10: Notifikasi & Pengumuman
 - [x] Notifikasi in-app — `GET /api/notifications`
@@ -211,7 +212,7 @@
 | Modul 6: Absensi | 5 | 7 | 71% |
 | Modul 7: Nilai & Rapor | 5 | 7 | 71% |
 | Modul 8: Analitik | 5 | 6 | 83% |
-| Modul 9: Keuangan | 6 | 8 | 75% |
+| Modul 9: Keuangan | 10 | 11 | 91% |
 | Modul 10: Notifikasi | 7 | 9 | 78% |
 | Modul 11: Forum & Chat | 4 | 5 | 80% |
 | Modul 12: Kelas Online | 3 | 5 | 60% |
@@ -219,11 +220,16 @@
 | Modul 14: Portal Ortu | 7 | 8 | 88% |
 | Modul 15: PWA | 2 | 3 | 67% |
 | Modul 16: Landing Page | 9 | 16 | 56% |
-| **TOTAL** | **89** | **135** | **66%** |
+| **TOTAL** | **93** | **136** | **68%** |
 
 ---
 
 ## 📝 Changelog
+
+### 2026-06-19 — Commit `cd34aa9`
+- **Modul 9:** QRIS payment flow — upload bukti, status PENDING, approve/reject admin, reminder email, laporan keuangan
+- **Admin Settings:** Tab Pembayaran — upload gambar QRIS, nama bank, nama pemilik
+- Schema: `PENDING` ke `InvoiceStatus`, `QRIS` ke `PaymentMethod`
 
 ### 2026-06-19 — Commit `0d565e6`
 - **Modul 11:** Chat private siswa-guru — `/siswa/chat`, `/guru/chat`, polling 5s, unread badge

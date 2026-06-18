@@ -27,9 +27,10 @@ interface Props {
   summary: { total: number; paid: number; unpaid: number; overdue: number };
   qris: QrisConfig;
   cloudinaryConfigured: boolean;
+  paymentApiBase?: string;
 }
 
-export default function TagihanSiswaClient({ invoices: initial, summary, qris, cloudinaryConfigured }: Props) {
+export default function TagihanSiswaClient({ invoices: initial, summary, qris, cloudinaryConfigured, paymentApiBase = "/api/siswa/tagihan" }: Props) {
   const [invoices, setInvoices] = useState(initial);
   const [activeInvoice, setActiveInvoice] = useState<Invoice | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -78,7 +79,7 @@ export default function TagihanSiswaClient({ invoices: initial, summary, qris, c
     if (!activeInvoice || !uploadedUrl) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/siswa/tagihan/${activeInvoice.id}/bayar`, {
+      const res = await fetch(`${paymentApiBase}/${activeInvoice.id}/bayar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ proofUrl: uploadedUrl }),

@@ -34,6 +34,19 @@ export async function GET() {
     return NextResponse.json(Array.from(studentMap.values()));
   }
 
-  // Admin / super admin: can chat with anyone (return empty for now)
+  if (role === "ORANG_TUA") {
+    const children = await db.parentChild.findMany({
+      where: { parentId: userId },
+      select: { childId: true },
+    });
+    const childIds = children.map((c) => c.childId);
+    const enrolled = await db.classStudent.findMany({
+      where: { studentId: { in: childIds } },
+      include: { class: { include: { teacher: { select: { id: true, name: true, avatar: true, role: true } } } } },
+    });
+    const teacherMap = new Map(enrolled.map((e) => [e.class.teacherId, e.class.teacher]));
+    return NextResponse.json(Array.from(teacherMap.values()));
+  }
+
   return NextResponse.json([]);
 }

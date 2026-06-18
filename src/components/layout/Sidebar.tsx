@@ -49,6 +49,8 @@ const NAV_GURU: NavItem[] = [
   { title: "Absensi", href: "/guru/absensi", icon: "CheckSquare", featureFlag: "FEAT_ATTENDANCE" },
   { title: "Nilai", href: "/guru/nilai", icon: "GraduationCap", featureFlag: "FEAT_GRADES" },
   { title: "Forum", href: "/guru/forum", icon: "MessagesSquare", featureFlag: "FEAT_FORUM" },
+  { title: "Chat", href: "/guru/chat", icon: "MessageSquare", featureFlag: "FEAT_CHAT" },
+  { title: "Kelas Live", href: "/guru/live", icon: "Video", featureFlag: "FEAT_LIVE_CLASS" },
 ];
 
 const NAV_SISWA: NavItem[] = [
@@ -75,6 +77,7 @@ const NAV_ORANGTUA: NavItem[] = [
   { title: "Absensi Anak", href: "/orangtua/absensi", icon: "CheckSquare", featureFlag: "FEAT_ATTENDANCE" },
   { title: "Nilai Anak", href: "/orangtua/nilai", icon: "GraduationCap", featureFlag: "FEAT_GRADES" },
   { title: "Tagihan", href: "/orangtua/tagihan", icon: "Wallet" },
+  { title: "Chat dengan Guru", href: "/orangtua/chat", icon: "MessageSquare", featureFlag: "FEAT_CHAT" },
 ];
 
 const NAV_MAP: Record<string, NavItem[]> = {

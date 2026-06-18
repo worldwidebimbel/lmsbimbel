@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "sonner";
@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   icons: { icon: "/favicon.ico", apple: "/icons/icon-192x192.png" },
   appleWebApp: { capable: true, statusBarStyle: "default", title: "EduBimbel" },
   other: { "mobile-web-app-capable": "yes" },
+};
+
+export const viewport: Viewport = {
   themeColor: "#3B82F6",
 };
 
@@ -30,11 +33,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" suppressHydrationWarning>
-      <head>
-        <meta name="theme-color" content="#3B82F6" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-      </head>
       <body className={inter.className}>
         <FeatureFlagProvider>
           {children}
