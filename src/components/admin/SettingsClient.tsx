@@ -45,21 +45,35 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
   async function handleQrisUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    // Reset input so the same file can be re-selected if needed
+    e.target.value = "";
     setUploadingQris(true);
     try {
       const fd = new FormData();
       fd.append("file", file);
       fd.append("folder", "qris");
       const res = await fetch("/api/upload", { method: "POST", body: fd });
-      if (res.ok) {
-        const d = await res.json();
-        setSettings((prev) => ({ ...prev, qris_image_url: d.url }));
-        toast.success("Gambar QRIS berhasil diupload");
-      } else {
-        const d = await res.json();
+      const d = await res.json();
+      if (!res.ok) {
         toast.error(d.error ?? "Gagal upload QRIS");
+        return;
       }
-    } finally { setUploadingQris(false); }
+      const newUrl = d.url as string;
+      setSettings((prev) => ({ ...prev, qris_image_url: newUrl }));
+      // Auto-save to DB immediately
+      const saveRes = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ qris_image_url: newUrl }),
+      });
+      if (saveRes.ok) {
+        toast.success("Gambar QRIS berhasil diupload dan disimpan");
+      } else {
+        toast.warning("Upload berhasil, tapi gagal menyimpan ke database. Klik Simpan.");
+      }
+    } finally {
+      setUploadingQris(false);
+    }
   }
 
   async function saveSettings() {

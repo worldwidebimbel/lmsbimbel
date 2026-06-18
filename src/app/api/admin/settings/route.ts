@@ -9,6 +9,10 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   contact_phone: "",
   address: "",
   whatsapp_admin: "",
+  qris_image_url: "",
+  qris_bank_name: "",
+  qris_account_name: "",
+  qris_account_number: "",
 };
 
 function isAdmin(role: string) {
