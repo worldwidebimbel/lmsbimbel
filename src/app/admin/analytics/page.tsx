@@ -1,7 +1,8 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { BarChart3, Users, BookOpen, CheckSquare, GraduationCap, TrendingUp, Wallet, FileText } from "lucide-react";
+import Link from "next/link";
+import { BarChart3, Users, BookOpen, CheckSquare, GraduationCap, TrendingUp, Wallet, FileText, ArrowRight } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 export const metadata = { title: "Analitik" };
@@ -83,14 +84,19 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
-          <BarChart3 className="h-5 w-5 text-blue-600" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
+            <BarChart3 className="h-5 w-5 text-blue-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Analitik</h1>
+            <p className="text-sm text-gray-500">Ringkasan performa lembaga</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Analitik</h1>
-          <p className="text-sm text-gray-500">Ringkasan performa lembaga</p>
-        </div>
+        <Link href="/admin/analytics/classes" className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+          Statistik Per Kelas <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
 
       {/* KPI Cards */}

@@ -31,6 +31,7 @@ const NAV_ADMIN: NavItem[] = [
   { title: "Dashboard", href: "/admin", icon: "LayoutDashboard" },
   { title: "Fitur & Modul", href: "/admin/features", icon: "ToggleLeft" },
   { title: "Pengguna", href: "/admin/users", icon: "Users", featureFlag: "FEAT_USER_MANAGEMENT" },
+  { title: "Orang Tua & Anak", href: "/admin/parents", icon: "Users2" },
   { title: "Kelas & Jadwal", href: "/admin/classes", icon: "CalendarDays", featureFlag: "FEAT_CLASS_SCHEDULE" },
   { title: "Keuangan", href: "/admin/finance", icon: "Wallet", featureFlag: "FEAT_PAYMENT_MANUAL" },
   { title: "Analitik", href: "/admin/analytics", icon: "BarChart3", featureFlag: "FEAT_ANALYTICS" },
@@ -69,6 +70,7 @@ const NAV_SISWA: NavItem[] = [
 
 const NAV_ORANGTUA: NavItem[] = [
   { title: "Dashboard", href: "/orangtua", icon: "LayoutDashboard" },
+  { title: "Hubungkan Anak", href: "/orangtua/link-anak", icon: "Users2" },
   { title: "Progress Anak", href: "/orangtua/progress", icon: "BarChart3" },
   { title: "Absensi Anak", href: "/orangtua/absensi", icon: "CheckSquare", featureFlag: "FEAT_ATTENDANCE" },
   { title: "Nilai Anak", href: "/orangtua/nilai", icon: "GraduationCap", featureFlag: "FEAT_GRADES" },

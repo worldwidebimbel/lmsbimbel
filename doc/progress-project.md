@@ -110,7 +110,7 @@
 - [x] Dashboard admin (stats: siswa, guru, kelas, tagihan, feature flags) — `/admin`
 - [x] Halaman analitik lengkap (KPI, absensi, nilai, keuangan, tabel kelas) — `/admin/analytics`
 - [x] Progress belajar per siswa (statistik materi, tugas, ujian, nilai, kehadiran + grafik) — `/siswa/progress`
-- [ ] Statistik kehadiran & nilai per kelas
+- [x] Statistik kehadiran & nilai per kelas (admin) — `/admin/analytics/classes`
 - [ ] Laporan kinerja guru
 - [ ] Analitik soal (tingkat kesulitan, daya pembeda)
 - [ ] Export laporan (PDF/Excel)
@@ -167,6 +167,7 @@
 - [x] Lihat tagihan anak (unpaid)
 - [x] Progress anak lengkap (nilai, tugas, ujian, absensi, kelas) — `/orangtua/progress`
 - [x] Tagihan anak lengkap + riwayat + progress bayar — `/orangtua/tagihan`
+- [x] Hubungkan akun anak (admin assign + self-service) — `/orangtua/link-anak`
 - [ ] Chat dengan guru
 - [ ] Bayar tagihan online
 
@@ -207,16 +208,16 @@
 | Modul 5: Ujian | 8 | 9 | 89% |
 | Modul 6: Absensi | 4 | 7 | 57% |
 | Modul 7: Nilai & Rapor | 4 | 7 | 57% |
-| Modul 8: Analitik | 3 | 6 | 50% |
+| Modul 8: Analitik | 4 | 6 | 67% |
 | Modul 9: Keuangan | 6 | 8 | 75% |
 | Modul 10: Notifikasi | 6 | 9 | 67% |
 | Modul 11: Forum & Chat | 0 | 5 | 0% |
 | Modul 12: Kelas Online | 0 | 5 | 0% |
 | Modul 13: Gamifikasi | 0 | 5 | 0% |
-| Modul 14: Portal Ortu | 6 | 8 | 75% |
+| Modul 14: Portal Ortu | 7 | 8 | 88% |
 | Modul 15: PWA | 0 | 3 | 0% |
 | Modul 16: Landing Page | 9 | 16 | 56% |
-| **TOTAL** | **66** | **133** | **50%** |
+| **TOTAL** | **68** | **133** | **51%** |
 
 ---
 
