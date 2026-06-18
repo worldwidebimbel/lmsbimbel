@@ -176,14 +176,20 @@
 - [ ] Sinkronisasi otomatis saat online
 
 ### 🌐 Modul 16: Landing Page & Marketing Website
-- [ ] Halaman publik depan (company profile)
+- [x] Halaman publik depan (company profile) — `/`
+- [x] Hero section dengan headline & CTA
+- [x] SEO meta & Open Graph configuration
+- [x] Navigasi publik (home, program, tentang, kontak, daftar)
+- [x] Statistik real-time dari DB (siswa, guru, kelas, mapel)
+- [x] Program unggulan (SD, SMP, SMA)
+- [x] Features & keunggulan
+- [x] Testimonial section
+- [x] CTA section + WhatsApp link
+- [x] Footer dengan kontak & links
 - [ ] Hero / Banner slider configurable
-- [ ] Branding: logo, warna primer/sekunder/accent, font, heading
-- [ ] SEO meta & Open Graph configuration
-- [ ] Navigasi publik (home, program, tentang, kontak, daftar)
+- [ ] Branding: logo, warna primer/sekunder/accent, font, heading (CMS)
 - [ ] Modal/popup promosi & CTA
 - [ ] Form pendaftaran siswa baru / inquiry
-- [ ] Testimonial & statistik bimbel
 - [ ] Blog / artikel pemasaran
 - [ ] CMS admin untuk kelola konten landing page
 
@@ -209,8 +215,8 @@
 | Modul 13: Gamifikasi | 0 | 5 | 0% |
 | Modul 14: Portal Ortu | 6 | 8 | 75% |
 | Modul 15: PWA | 0 | 3 | 0% |
-| Modul 16: Landing Page | 0 | 10 | 0% |
-| **TOTAL** | **57** | **127** | **45%** |
+| Modul 16: Landing Page | 9 | 16 | 56% |
+| **TOTAL** | **66** | **133** | **50%** |
 
 ---
 

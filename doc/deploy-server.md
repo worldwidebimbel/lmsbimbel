@@ -20,6 +20,8 @@ npm run build 2>&1 | Select-String "Route" | Select-Object -Last 1
 cd C:\Users\MANAKreatif\CascadeProjects\lms-bimbel; npm run build 2>&1 | Select-String "error TS|Type error|Failed"
 
 cd C:\Users\MANAKreatif\CascadeProjects\lms-bimbel; npm run build 2>&1 | Select-String "Type error|error TS|Failed" | Select-Object -First 10
+cd C:\Users\MANAKreatif\CascadeProjects\lms-bimbel
+git add -A; git commit -m "chore: add source_files to gitignore"; git push origin main
 ```
 
 ## 1. Akses VPS via SSH
@@ -382,6 +384,9 @@ Akses di browser: **https://lmsbimbel.digsan.id**
 
 ### Update Manual (tanpa CI/CD)
 ```bash
+cd C:\Users\MANAKreatif\CascadeProjects\lms-bimbel
+git add -A; git commit -m; git push origin main
+
 cd /var/www/lms-bimbel
 git pull origin main
 npm install

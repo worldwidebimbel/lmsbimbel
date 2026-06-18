@@ -30,3 +30,6 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Source templates (not tracked)
+/source_files
