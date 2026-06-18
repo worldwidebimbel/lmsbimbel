@@ -23,9 +23,10 @@
 - [x] CI/CD GitHub Actions → VPS
 - [x] `.env.example` & `README.md`
 - [x] `deploy-server.md` (panduan VPS IDCloudHost)
-- [ ] Setup PostgreSQL di VPS production
-- [ ] Prisma db push + seed di VPS
-- [ ] Nginx + SSL live di domain
+- [x] Setup PostgreSQL di VPS production
+- [x] Prisma db push di VPS
+- [x] Nginx reverse proxy + SSL (Certbot) live di domain
+- [x] CI/CD auto-deploy via GitHub Actions
 
 ---
 
@@ -174,6 +175,18 @@
 - [ ] Akses materi offline (cached)
 - [ ] Sinkronisasi otomatis saat online
 
+### 🌐 Modul 16: Landing Page & Marketing Website
+- [ ] Halaman publik depan (company profile)
+- [ ] Hero / Banner slider configurable
+- [ ] Branding: logo, warna primer/sekunder/accent, font, heading
+- [ ] SEO meta & Open Graph configuration
+- [ ] Navigasi publik (home, program, tentang, kontak, daftar)
+- [ ] Modal/popup promosi & CTA
+- [ ] Form pendaftaran siswa baru / inquiry
+- [ ] Testimonial & statistik bimbel
+- [ ] Blog / artikel pemasaran
+- [ ] CMS admin untuk kelola konten landing page
+
 ---
 
 ## 📊 Summary Progress
@@ -196,7 +209,8 @@
 | Modul 13: Gamifikasi | 0 | 5 | 0% |
 | Modul 14: Portal Ortu | 6 | 8 | 75% |
 | Modul 15: PWA | 0 | 3 | 0% |
-| **TOTAL** | **56** | **117** | **48%** |
+| Modul 16: Landing Page | 0 | 10 | 0% |
+| **TOTAL** | **56** | **127** | **44%** |
 
 ---
 

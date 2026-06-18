@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { BarChart3, Trophy } from "lucide-react";
+import NilaiChart from "@/components/siswa/NilaiChart";
 
 export const metadata = { title: "Nilai" };
 
@@ -98,6 +99,9 @@ export default async function SiswaNilaiPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+                <div className="border-t border-gray-100 px-5 py-4 bg-gray-50/50">
+                  <NilaiChart data={data.components.map((c) => ({ name: c.name, score: c.score, weight: c.weight, period: c.period }))} />
                 </div>
               </div>
             );
