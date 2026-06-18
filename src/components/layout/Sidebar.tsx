@@ -45,7 +45,7 @@ const NAV_GURU: NavItem[] = [
   { title: "Materi", href: "/guru/materi", icon: "BookOpen", featureFlag: "FEAT_MATERIALS" },
   { title: "Tugas", href: "/guru/tugas", icon: "ClipboardList", featureFlag: "FEAT_ASSIGNMENTS" },
   { title: "Ujian", href: "/guru/ujian", icon: "FileCheck" },
-  { title: "Bank Soal", href: "/guru/bank-soal", icon: "Database", featureFlag: "FEAT_EXAM_BANK" },
+  { title: "Bank Soal", href: "/guru/bank-soal", icon: "Database" },
   { title: "Absensi", href: "/guru/absensi", icon: "CheckSquare", featureFlag: "FEAT_ATTENDANCE" },
   { title: "Nilai", href: "/guru/nilai", icon: "GraduationCap", featureFlag: "FEAT_GRADES" },
   { title: "Forum", href: "/guru/forum", icon: "MessagesSquare", featureFlag: "FEAT_FORUM" },

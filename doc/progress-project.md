@@ -85,7 +85,7 @@
 - [x] Siswa: kerjakan ujian dengan timer countdown — `/siswa/ujian/[id]`
 - [x] Auto-koreksi pilgan + skor otomatis
 - [x] API: CRUD ujian, soal, submit jawaban
-- [ ] Bank soal bersama (lintas ujian)
+- [x] Bank soal bersama — `/guru/bank-soal` (tambah, hapus, import ke ujian)
 - [ ] Tryout / simulasi UTBK / Nasional
 
 ### 📊 Modul 6: Absensi
@@ -93,7 +93,7 @@
 - [x] API input rekap (`POST /api/absensi/[id]/records`)
 - [x] Guru: daftar sesi + buat sesi + input per siswa (HADIR/SAKIT/IZIN/ALPHA) — `/guru/absensi`
 - [x] Siswa: rekap kehadiran + persentase + tabel riwayat — `/siswa/absensi`
-- [ ] Absensi QR Code
+- [x] Absensi QR Code — guru tampilkan QR `/guru/absensi/[id]/qr`, siswa scan `/siswa/absensi/scan`
 - [ ] Notifikasi ketidakhadiran ke orang tua
 - [ ] Laporan absensi bulanan (PDF)
 
@@ -136,7 +136,7 @@
 - [x] Broadcast pengumuman admin — `/admin/announcements`
 - [x] API broadcast — `POST /api/admin/announcements`
 - [ ] Notifikasi WhatsApp (via API)
-- [ ] Notifikasi email
+- [x] Notifikasi email (SMTP nodemailer, broadcast pengumuman + tagihan + absensi) — `src/lib/email.ts`
 - [ ] Notifikasi push (PWA)
 
 ### 💬 Modul 11: Forum Diskusi & Chat
@@ -205,19 +205,19 @@
 | Modul 2: Kelas & Jadwal | 7 | 8 | 88% |
 | Modul 3: Materi | 7 | 10 | 70% |
 | Modul 4: Tugas | 6 | 8 | 75% |
-| Modul 5: Ujian | 8 | 9 | 89% |
-| Modul 6: Absensi | 4 | 7 | 57% |
+| Modul 5: Ujian | 9 | 9 | 100% |
+| Modul 6: Absensi | 5 | 7 | 71% |
 | Modul 7: Nilai & Rapor | 5 | 7 | 71% |
 | Modul 8: Analitik | 5 | 6 | 83% |
 | Modul 9: Keuangan | 6 | 8 | 75% |
-| Modul 10: Notifikasi | 6 | 9 | 67% |
+| Modul 10: Notifikasi | 7 | 9 | 78% |
 | Modul 11: Forum & Chat | 0 | 5 | 0% |
 | Modul 12: Kelas Online | 0 | 5 | 0% |
 | Modul 13: Gamifikasi | 0 | 5 | 0% |
 | Modul 14: Portal Ortu | 7 | 8 | 88% |
 | Modul 15: PWA | 0 | 3 | 0% |
 | Modul 16: Landing Page | 9 | 16 | 56% |
-| **TOTAL** | **70** | **133** | **53%** |
+| **TOTAL** | **73** | **133** | **55%** |
 
 ---
 

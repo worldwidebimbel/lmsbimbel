@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { emailAnnouncementBroadcast } from "@/lib/email";
 
 export async function GET() {
   const session = await auth();
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
       isActive: true,
       ...(targetRole ? { role: targetRole } : {}),
     },
-    select: { id: true },
+    select: { id: true, email: true },
   });
 
   await db.notification.createMany({
@@ -48,6 +49,14 @@ export async function POST(req: NextRequest) {
       link: link ?? null,
     })),
   });
+
+  const sendEmail = body.sendEmail ?? false;
+  if (sendEmail && users.length > 0) {
+    const emails = users.map((u) => u.email).filter(Boolean) as string[];
+    emailAnnouncementBroadcast({ to: emails, title, message: content }).catch((e) =>
+      console.error("[email] Broadcast failed:", e)
+    );
+  }
 
   return NextResponse.json({ sent: users.length }, { status: 201 });
 }

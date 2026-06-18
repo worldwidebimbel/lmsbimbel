@@ -3,8 +3,9 @@
 import { useState, useTransition } from "react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import Link from "next/link";
 import {
-  CheckSquare, Plus, Trash2, Users, Loader2, X, ChevronDown, ChevronUp,
+  CheckSquare, Plus, Trash2, Users, Loader2, X, ChevronDown, ChevronUp, QrCode,
 } from "lucide-react";
 
 interface AttendanceClass { id: string; name: string }
@@ -223,6 +224,13 @@ export default function AbsensiGuruClient({ classes, initialAttendances }: Absen
                     <Users className="h-4 w-4" />
                     {item._count.records}
                   </span>
+                  <Link
+                    href={`/guru/absensi/${item.id}/qr`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                  >
+                    <QrCode className="h-3.5 w-3.5" /> QR
+                  </Link>
                   <button
                     onClick={(e) => { e.stopPropagation(); openInput(item); }}
                     className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700"
