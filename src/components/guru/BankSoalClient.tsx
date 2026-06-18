@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus, Trash2, Upload, Search, BookMarked, CheckSquare } from "lucide-react";
+import { Plus, Trash2, Upload, Search, BookMarked, X } from "lucide-react";
 
-type QuestionType = "PILGAN" | "ESSAY" | "BENAR_SALAH" | "ISIAN";
+type QuestionType = "PILGAN" | "PILGAN_KOMPLEK" | "BENAR_SALAH" | "MENJODOHKAN" | "MENGURUTKAN" | "SETUJU_TIDAK" | "ESSAY" | "ISIAN";
 
 interface Question {
   id: string;
@@ -28,7 +28,14 @@ const DIFF_LABELS: Record<number, { label: string; cls: string }> = {
 };
 
 const TYPE_LABELS: Record<QuestionType, string> = {
-  PILGAN: "Pilgan", ESSAY: "Essay", BENAR_SALAH: "Benar/Salah", ISIAN: "Isian",
+  PILGAN:        "Pilihan Ganda",
+  PILGAN_KOMPLEK:"Pilgan Kompleks",
+  BENAR_SALAH:   "Benar / Salah",
+  MENJODOHKAN:   "Menjodohkan",
+  MENGURUTKAN:   "Mengurutkan",
+  SETUJU_TIDAK:  "Setuju / Tidak",
+  ESSAY:         "Essay",
+  ISIAN:         "Isian Singkat",
 };
 
 export default function BankSoalClient({ initialQuestions, subjects, exams }: {
@@ -46,10 +53,18 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
   const [targetExam, setTargetExam] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const [form, setForm] = useState({
+  const BLANK_FORM = {
     subjectId: "", type: "PILGAN" as QuestionType,
-    content: "", options: ["", "", "", ""], correctAnswer: "", explanation: "", score: 1, difficulty: 2,
-  });
+    content: "",
+    options: ["", "", "", ""] as string[],
+    correctAnswer: "",
+    correctIndices: [] as number[],
+    pairs: [{ left: "", right: "" }, { left: "", right: "" }, { left: "", right: "" }] as { left: string; right: string }[],
+    orderedItems: ["", "", "", ""] as string[],
+    statements: [{ text: "", answer: "SETUJU" as "SETUJU" | "TIDAK" }, { text: "", answer: "SETUJU" as "SETUJU" | "TIDAK" }] as { text: string; answer: "SETUJU" | "TIDAK" }[],
+    explanation: "", score: 1, difficulty: 2,
+  };
+  const [form, setForm] = useState(BLANK_FORM);
 
   const filtered = questions.filter((q) => {
     const matchSearch = !search || q.content.toLowerCase().includes(search.toLowerCase());
@@ -67,14 +82,51 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
       subjectId: form.subjectId || null,
       type: form.type,
       content: form.content,
-      correctAnswer: form.correctAnswer || null,
       explanation: form.explanation || null,
       score: form.score,
       difficulty: form.difficulty,
     };
-    if (form.type === "PILGAN" || form.type === "BENAR_SALAH") {
-      body.options = form.type === "BENAR_SALAH" ? ["Benar", "Salah"] : form.options.filter(Boolean);
+
+    switch (form.type) {
+      case "PILGAN":
+        body.options = form.options.filter(Boolean);
+        body.correctAnswer = form.correctAnswer || null;
+        break;
+      case "PILGAN_KOMPLEK": {
+        const opts = form.options.filter(Boolean);
+        body.options = opts;
+        body.correctAnswer = form.correctIndices
+          .map((i) => form.options[i]).filter(Boolean).sort().join("|");
+        break;
+      }
+      case "BENAR_SALAH":
+        body.options = ["Benar", "Salah"];
+        body.correctAnswer = form.correctAnswer || null;
+        break;
+      case "MENJODOHKAN": {
+        const valid = form.pairs.filter((p) => p.left && p.right);
+        body.options = valid;
+        body.correctAnswer = null;
+        break;
+      }
+      case "MENGURUTKAN": {
+        const items = form.orderedItems.filter(Boolean);
+        body.options = items;
+        body.correctAnswer = items.join(",");
+        break;
+      }
+      case "SETUJU_TIDAK": {
+        const stmts = form.statements.filter((s) => s.text);
+        body.options = stmts.map((s) => s.text);
+        body.correctAnswer = stmts.map((s) => s.answer).join(",");
+        break;
+      }
+      case "ISIAN":
+      case "ESSAY":
+        body.correctAnswer = form.correctAnswer || null;
+        break;
     }
+
     const res = await fetch("/api/guru/bank-soal", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -83,7 +135,7 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
       const q = await res.json();
       setQuestions((prev) => [q, ...prev]);
       setShowAdd(false);
-      setForm({ subjectId: "", type: "PILGAN", content: "", options: ["", "", "", ""], correctAnswer: "", explanation: "", score: 1, difficulty: 2 });
+      setForm(BLANK_FORM);
     }
   }
 
@@ -184,13 +236,21 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
 
       {/* Add Modal */}
       {showAdd && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-bold text-gray-900">Tambah Soal ke Bank</h2>
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 space-y-4 my-8">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">Tambah Soal ke Bank</h2>
+              <button onClick={() => setShowAdd(false)} className="rounded-lg p-1 hover:bg-gray-100">
+                <X className="h-4 w-4 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Tipe + Mapel */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">Tipe</label>
-                <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as QuestionType })}
+                <label className="mb-1 block text-xs font-medium text-gray-600">Tipe Soal</label>
+                <select value={form.type}
+                  onChange={(e) => setForm({ ...BLANK_FORM, type: e.target.value as QuestionType, subjectId: form.subjectId, score: form.score, difficulty: form.difficulty })}
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
                   {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
@@ -204,41 +264,175 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
                 </select>
               </div>
             </div>
+
+            {/* Pertanyaan */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-600">Soal *</label>
+              <label className="mb-1 block text-xs font-medium text-gray-600">
+                {form.type === "MENJODOHKAN" || form.type === "SETUJU_TIDAK" || form.type === "MENGURUTKAN"
+                  ? "Petunjuk / Instruksi (opsional)" : "Soal *"}
+              </label>
               <textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })}
-                rows={3} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm resize-none" />
+                rows={3} placeholder={
+                  form.type === "MENJODOHKAN" ? "Contoh: Jodohkan negara dengan ibu kotanya!"
+                  : form.type === "MENGURUTKAN" ? "Contoh: Urutkan langkah-langkah berikut dari yang pertama!"
+                  : form.type === "SETUJU_TIDAK" ? "Contoh: Tentukan apakah pernyataan berikut setuju atau tidak setuju!"
+                  : "Ketik soal di sini..."
+                }
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500" />
             </div>
+
+            {/* PILGAN */}
             {form.type === "PILGAN" && (
               <div className="space-y-2">
                 <label className="text-xs font-medium text-gray-600">Pilihan Jawaban</label>
                 {form.options.map((opt, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <span className="w-6 text-xs text-gray-400">{String.fromCharCode(65 + i)}.</span>
+                    <span className="w-6 text-center text-xs font-medium text-gray-500">{String.fromCharCode(65 + i)}.</span>
                     <input value={opt} onChange={(e) => { const o = [...form.options]; o[i] = e.target.value; setForm({ ...form, options: o }); }}
-                      className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm" />
+                      className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm" placeholder={`Opsi ${String.fromCharCode(65 + i)}`} />
+                  </div>
+                ))}
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Kunci Jawaban (tulis teks opsi yang benar)</label>
+                  <input value={form.correctAnswer} onChange={(e) => setForm({ ...form, correctAnswer: e.target.value })}
+                    placeholder="Contoh: Paris" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+                </div>
+              </div>
+            )}
+
+            {/* PILGAN_KOMPLEK */}
+            {form.type === "PILGAN_KOMPLEK" && (
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-gray-600">Pilihan Jawaban (centang semua yang benar)</label>
+                {form.options.map((opt, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <input type="checkbox" id={`ck-${i}`}
+                      checked={form.correctIndices.includes(i)}
+                      onChange={(e) => {
+                        const ci = e.target.checked
+                          ? [...form.correctIndices, i]
+                          : form.correctIndices.filter((x) => x !== i);
+                        setForm({ ...form, correctIndices: ci });
+                      }}
+                      className="h-4 w-4 rounded accent-amber-600" />
+                    <span className="w-5 text-xs font-medium text-gray-500">{String.fromCharCode(65 + i)}.</span>
+                    <input value={opt} onChange={(e) => { const o = [...form.options]; o[i] = e.target.value; setForm({ ...form, options: o }); }}
+                      className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm" placeholder={`Opsi ${String.fromCharCode(65 + i)}`} />
+                  </div>
+                ))}
+                <p className="text-xs text-amber-600">✓ = jawaban benar (bisa lebih dari satu)</p>
+              </div>
+            )}
+
+            {/* BENAR_SALAH */}
+            {form.type === "BENAR_SALAH" && (
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-600">Jawaban Benar</label>
+                <div className="flex gap-3">
+                  {["Benar", "Salah"].map((val) => (
+                    <label key={val} className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 py-2.5 text-sm font-medium transition-all ${
+                      form.correctAnswer === val ? "border-amber-500 bg-amber-50 text-amber-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
+                    }`}>
+                      <input type="radio" className="sr-only" checked={form.correctAnswer === val}
+                        onChange={() => setForm({ ...form, correctAnswer: val })} />
+                      {val === "Benar" ? "✓ Benar" : "✗ Salah"}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* MENJODOHKAN */}
+            {form.type === "MENJODOHKAN" && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium text-gray-600">Pasangan (Kiri → Kanan)</label>
+                  <button onClick={() => setForm({ ...form, pairs: [...form.pairs, { left: "", right: "" }] })}
+                    className="text-xs text-amber-600 hover:underline">+ Tambah pasangan</button>
+                </div>
+                {form.pairs.map((pair, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="w-5 text-xs text-gray-400">{i + 1}.</span>
+                    <input value={pair.left} onChange={(e) => { const p = [...form.pairs]; p[i] = { ...p[i], left: e.target.value }; setForm({ ...form, pairs: p }); }}
+                      placeholder="Sisi kiri" className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm" />
+                    <span className="text-gray-400">→</span>
+                    <input value={pair.right} onChange={(e) => { const p = [...form.pairs]; p[i] = { ...p[i], right: e.target.value }; setForm({ ...form, pairs: p }); }}
+                      placeholder="Pasangan kanan" className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm" />
+                    {form.pairs.length > 2 && (
+                      <button onClick={() => setForm({ ...form, pairs: form.pairs.filter((_, j) => j !== i) })}
+                        className="text-red-400 hover:text-red-600"><X className="h-3.5 w-3.5" /></button>
+                    )}
                   </div>
                 ))}
               </div>
             )}
-            {(form.type === "PILGAN" || form.type === "BENAR_SALAH" || form.type === "ISIAN") && (
-              <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
-                  {form.type === "BENAR_SALAH" ? "Jawaban (Benar/Salah)" : "Kunci Jawaban"}
-                </label>
-                {form.type === "BENAR_SALAH" ? (
-                  <select value={form.correctAnswer} onChange={(e) => setForm({ ...form, correctAnswer: e.target.value })}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
-                    <option value="">Pilih...</option>
-                    <option value="Benar">Benar</option>
-                    <option value="Salah">Salah</option>
-                  </select>
-                ) : (
-                  <input value={form.correctAnswer} onChange={(e) => setForm({ ...form, correctAnswer: e.target.value })}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
-                )}
+
+            {/* MENGURUTKAN */}
+            {form.type === "MENGURUTKAN" && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium text-gray-600">Item (tulis dalam urutan yang BENAR, dari 1 ke terakhir)</label>
+                  <button onClick={() => setForm({ ...form, orderedItems: [...form.orderedItems, ""] })}
+                    className="text-xs text-amber-600 hover:underline">+ Tambah item</button>
+                </div>
+                {form.orderedItems.map((item, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">{i + 1}</span>
+                    <input value={item} onChange={(e) => { const o = [...form.orderedItems]; o[i] = e.target.value; setForm({ ...form, orderedItems: o }); }}
+                      placeholder={`Item ke-${i + 1}`} className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm" />
+                    {form.orderedItems.length > 2 && (
+                      <button onClick={() => setForm({ ...form, orderedItems: form.orderedItems.filter((_, j) => j !== i) })}
+                        className="text-red-400 hover:text-red-600"><X className="h-3.5 w-3.5" /></button>
+                    )}
+                  </div>
+                ))}
+                <p className="text-xs text-gray-400">Siswa akan melihat item dalam urutan acak dan diminta mengurutkan kembali.</p>
               </div>
             )}
+
+            {/* SETUJU_TIDAK */}
+            {form.type === "SETUJU_TIDAK" && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium text-gray-600">Pernyataan + Jawaban Benar</label>
+                  <button onClick={() => setForm({ ...form, statements: [...form.statements, { text: "", answer: "SETUJU" }] })}
+                    className="text-xs text-amber-600 hover:underline">+ Tambah pernyataan</button>
+                </div>
+                {form.statements.map((stmt, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="w-5 text-xs text-gray-400">{i + 1}.</span>
+                    <input value={stmt.text} onChange={(e) => { const s = [...form.statements]; s[i] = { ...s[i], text: e.target.value }; setForm({ ...form, statements: s }); }}
+                      placeholder={`Pernyataan ${i + 1}`} className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm" />
+                    <select value={stmt.answer}
+                      onChange={(e) => { const s = [...form.statements]; s[i] = { ...s[i], answer: e.target.value as "SETUJU" | "TIDAK" }; setForm({ ...form, statements: s }); }}
+                      className="rounded-lg border border-gray-200 px-2 py-1.5 text-xs">
+                      <option value="SETUJU">✓ Setuju</option>
+                      <option value="TIDAK">✗ Tidak</option>
+                    </select>
+                    {form.statements.length > 1 && (
+                      <button onClick={() => setForm({ ...form, statements: form.statements.filter((_, j) => j !== i) })}
+                        className="text-red-400 hover:text-red-600"><X className="h-3.5 w-3.5" /></button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ISIAN */}
+            {form.type === "ISIAN" && (
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-600">Kunci Jawaban</label>
+                <input value={form.correctAnswer} onChange={(e) => setForm({ ...form, correctAnswer: e.target.value })}
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" placeholder="Jawaban yang diharapkan" />
+              </div>
+            )}
+
+            {/* ESSAY — no correct answer */}
+            {form.type === "ESSAY" && (
+              <p className="text-xs text-gray-400 italic">Essay dinilai manual oleh guru.</p>
+            )}
+
+            {/* Skor + Kesulitan */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1 block text-xs font-medium text-gray-600">Skor</label>
@@ -255,7 +449,8 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
                 </select>
               </div>
             </div>
-            <div className="flex gap-3">
+
+            <div className="flex gap-3 pt-1">
               <button onClick={() => setShowAdd(false)} className="flex-1 rounded-xl border border-gray-200 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Batal</button>
               <button onClick={handleAdd} disabled={!form.content}
                 className="flex-1 rounded-xl bg-amber-600 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50">

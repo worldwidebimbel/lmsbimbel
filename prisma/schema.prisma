@@ -48,8 +48,12 @@ enum MaterialType {
 
 enum QuestionType {
   PILGAN
-  ESSAY
+  PILGAN_KOMPLEK
   BENAR_SALAH
+  MENJODOHKAN
+  MENGURUTKAN
+  SETUJU_TIDAK
+  ESSAY
   ISIAN
 }
 

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useTransition, useCallback } from "react";
+import { useState, useEffect, useTransition, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight, Loader2, ArrowUp, ArrowDown } from "lucide-react";
 import Link from "next/link";
 
-interface Question { id: string; type: string; content: string; options: string[] | null; score: number }
+interface Question { id: string; type: string; content: string; options: unknown; score: number }
 interface Exam {
   id: string; title: string; duration: number; passingScore: number;
   description: string | null; isRandomized: boolean;
@@ -14,10 +14,26 @@ interface Exam {
 }
 interface Attempt { id: string; score: number | null; isCompleted: boolean; answers: Record<string, string> | null }
 
+function shuffleArr<T>(arr: T[], seed: string): T[] {
+  const result = [...arr];
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) { h = (Math.imul(31, h) + seed.charCodeAt(i)) | 0; }
+  for (let i = result.length - 1; i > 0; i--) {
+    h = (Math.imul(h, 1664525) + 1013904223) | 0;
+    const j = Math.abs(h) % (i + 1);
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
 export default function TakeExamClient({ exam, existingAttempt }: { exam: Exam; existingAttempt: Attempt | null }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [answers, setAnswers] = useState<Record<string, string>>(existingAttempt?.answers ?? {});
+  // MENGURUTKAN: track current item order per question
+  const [orderedQ, setOrderedQ] = useState<Record<string, string[]>>({});
+  // MENJODOHKAN: shuffled right items per question (stable)
+  const shuffledRightsRef = useRef<Record<string, string[]>>({});
   const [current, setCurrent] = useState(0);
   const [timeLeft, setTimeLeft] = useState(exam.duration * 60);
   const [submitted, setSubmitted] = useState(existingAttempt?.isCompleted ?? false);
@@ -130,7 +146,8 @@ export default function TakeExamClient({ exam, existingAttempt }: { exam: Exam; 
 
         <p className="text-base text-gray-900 whitespace-pre-wrap">{q.content}</p>
 
-        {q.type === "PILGAN" && q.options && (
+        {/* Pilihan Ganda Tunggal */}
+        {q.type === "PILGAN" && Array.isArray(q.options) && (
           <div className="space-y-2">
             {(q.options as string[]).map((opt, i) => (
               <label key={i} className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 px-4 py-3 transition-all ${
@@ -150,24 +167,172 @@ export default function TakeExamClient({ exam, existingAttempt }: { exam: Exam; 
           </div>
         )}
 
-        {q.type === "TRUE_FALSE" && (
+        {/* Pilihan Ganda Kompleks — centang semua yang benar */}
+        {q.type === "PILGAN_KOMPLEK" && Array.isArray(q.options) && (() => {
+          const opts = q.options as string[];
+          const selected = answers[q.id] ? answers[q.id].split("|") : [];
+          return (
+            <div className="space-y-2">
+              <p className="text-xs text-indigo-600 font-medium">Pilih semua jawaban yang benar (boleh lebih dari satu)</p>
+              {opts.map((opt, i) => {
+                const checked = selected.includes(opt);
+                return (
+                  <label key={i} className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 px-4 py-3 transition-all ${
+                    checked ? "border-indigo-500 bg-indigo-50" : "border-gray-200 hover:border-gray-300"
+                  }`}>
+                    <div className={`flex h-5 w-5 items-center justify-center rounded border-2 shrink-0 ${
+                      checked ? "border-indigo-500 bg-indigo-500" : "border-gray-300"
+                    }`}>
+                      {checked && <CheckCircle className="h-3 w-3 text-white" />}
+                    </div>
+                    <input type="checkbox" className="sr-only" checked={checked}
+                      onChange={() => {
+                        const next = checked ? selected.filter((s) => s !== opt) : [...selected, opt];
+                        setAnswers((p) => ({ ...p, [q.id]: next.sort().join("|") }));
+                      }} />
+                    <span className="text-sm text-gray-800">{String.fromCharCode(65 + i)}. {opt}</span>
+                  </label>
+                );
+              })}
+            </div>
+          );
+        })()}
+
+        {/* Benar / Salah */}
+        {q.type === "BENAR_SALAH" && (
           <div className="flex gap-3">
-            {["TRUE", "FALSE"].map((val) => (
+            {["Benar", "Salah"].map((val) => (
               <label key={val} className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 py-3 text-sm font-medium transition-all ${
                 answers[q.id] === val ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-gray-200 text-gray-700 hover:border-gray-300"
               }`}>
                 <input type="radio" className="sr-only" name={q.id} value={val}
                   onChange={() => setAnswers((p) => ({ ...p, [q.id]: val }))} />
-                {val === "TRUE" ? "✓ Benar" : "✗ Salah"}
+                {val === "Benar" ? "✓ Benar" : "✗ Salah"}
               </label>
             ))}
           </div>
         )}
 
+        {/* Menjodohkan */}
+        {q.type === "MENJODOHKAN" && Array.isArray(q.options) && (() => {
+          const pairs = q.options as { left: string; right: string }[];
+          if (!shuffledRightsRef.current[q.id]) {
+            shuffledRightsRef.current[q.id] = shuffleArr(pairs.map((p) => p.right), q.id);
+          }
+          const rightOpts = shuffledRightsRef.current[q.id];
+          const studentMap: Record<string, string> = answers[q.id]
+            ? Object.fromEntries(answers[q.id].split(",").map((pair) => pair.split(":")))
+            : {};
+          return (
+            <div className="space-y-3">
+              <p className="text-xs text-indigo-600 font-medium">Pilih pasangan yang tepat untuk setiap item di kiri</p>
+              {pairs.map((pair, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800">{pair.left}</div>
+                  <span className="text-gray-400 shrink-0">→</span>
+                  <select
+                    value={studentMap[String(i)] ?? ""}
+                    onChange={(e) => {
+                      const updated = { ...studentMap, [String(i)]: e.target.value };
+                      setAnswers((p) => ({
+                        ...p,
+                        [q.id]: Object.entries(updated).map(([k, v]) => `${k}:${v}`).join(","),
+                      }));
+                    }}
+                    className="flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none">
+                    <option value="">— Pilih pasangan —</option>
+                    {rightOpts.map((r, j) => <option key={j} value={r}>{r}</option>)}
+                  </select>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+
+        {/* Mengurutkan */}
+        {q.type === "MENGURUTKAN" && Array.isArray(q.options) && (() => {
+          const items = q.options as string[];
+          if (!orderedQ[q.id]) {
+            const shuffled = shuffleArr(items, q.id);
+            setTimeout(() => {
+              setOrderedQ((prev) => prev[q.id] ? prev : { ...prev, [q.id]: shuffled });
+            }, 0);
+            return <div className="text-sm text-gray-400">Memuat...</div>;
+          }
+          const current_order = orderedQ[q.id];
+          function moveItem(from: number, to: number) {
+            const arr = [...current_order];
+            const [item] = arr.splice(from, 1);
+            arr.splice(to, 0, item);
+            setOrderedQ((p) => ({ ...p, [q.id]: arr }));
+            setAnswers((p) => ({ ...p, [q.id]: arr.join(",") }));
+          }
+          return (
+            <div className="space-y-2">
+              <p className="text-xs text-indigo-600 font-medium">Gunakan tombol ↑↓ untuk mengurutkan item dengan benar</p>
+              {current_order.map((item, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">{i + 1}</span>
+                  <div className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800">{item}</div>
+                  <div className="flex flex-col gap-0.5">
+                    <button disabled={i === 0} onClick={() => moveItem(i, i - 1)}
+                      className="rounded p-0.5 text-gray-400 hover:text-indigo-600 disabled:opacity-20">
+                      <ArrowUp className="h-4 w-4" />
+                    </button>
+                    <button disabled={i === current_order.length - 1} onClick={() => moveItem(i, i + 1)}
+                      className="rounded p-0.5 text-gray-400 hover:text-indigo-600 disabled:opacity-20">
+                      <ArrowDown className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+
+        {/* Setuju / Tidak Setuju */}
+        {q.type === "SETUJU_TIDAK" && Array.isArray(q.options) && (() => {
+          const stmts = q.options as string[];
+          const studentAnswers = answers[q.id] ? answers[q.id].split(",") : Array(stmts.length).fill("");
+          return (
+            <div className="space-y-3">
+              <p className="text-xs text-indigo-600 font-medium">Tentukan setuju atau tidak setuju untuk setiap pernyataan</p>
+              {stmts.map((stmt, i) => (
+                <div key={i} className="rounded-xl border border-gray-200 p-3 space-y-2">
+                  <p className="text-sm text-gray-800">{i + 1}. {stmt}</p>
+                  <div className="flex gap-2">
+                    {["SETUJU", "TIDAK"].map((val) => (
+                      <label key={val} className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border-2 py-2 text-xs font-medium transition-all ${
+                        studentAnswers[i] === val ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
+                      }`}>
+                        <input type="radio" className="sr-only" name={`${q.id}-${i}`} value={val}
+                          onChange={() => {
+                            const arr = [...studentAnswers];
+                            arr[i] = val;
+                            setAnswers((p) => ({ ...p, [q.id]: arr.join(",") }));
+                          }} />
+                        {val === "SETUJU" ? "✓ Setuju" : "✗ Tidak Setuju"}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+
+        {/* Essay */}
         {q.type === "ESSAY" && (
           <textarea rows={4} value={answers[q.id] ?? ""}
             onChange={(e) => setAnswers((p) => ({ ...p, [q.id]: e.target.value }))}
             placeholder="Tulis jawaban kamu di sini..."
+            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:border-indigo-500 focus:outline-none" />
+        )}
+
+        {/* Isian Singkat */}
+        {q.type === "ISIAN" && (
+          <input value={answers[q.id] ?? ""} onChange={(e) => setAnswers((p) => ({ ...p, [q.id]: e.target.value }))}
+            placeholder="Ketik jawaban singkat..."
             className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:border-indigo-500 focus:outline-none" />
         )}
       </div>

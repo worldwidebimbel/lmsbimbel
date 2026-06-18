@@ -62,9 +62,53 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   for (const q of exam.questions) {
     maxScore += q.score;
-    const studentAnswer = answers?.[q.id];
-    if (studentAnswer !== undefined && studentAnswer === q.correctAnswer) {
-      totalScore += q.score;
+    const studentAnswer: string | undefined = answers?.[q.id];
+    if (!studentAnswer) continue;
+
+    switch (q.type) {
+      case "PILGAN":
+      case "BENAR_SALAH":
+      case "ISIAN":
+      case "MENGURUTKAN":
+        if (studentAnswer === q.correctAnswer) totalScore += q.score;
+        break;
+
+      case "PILGAN_KOMPLEK": {
+        if (!q.correctAnswer) break;
+        const sortStudent = studentAnswer.split("|").sort().join("|");
+        const sortCorrect = q.correctAnswer.split("|").sort().join("|");
+        if (sortStudent === sortCorrect) totalScore += q.score;
+        break;
+      }
+
+      case "MENJODOHKAN": {
+        const opts = q.options as { left: string; right: string }[] | null;
+        if (!opts?.length) break;
+        const studentMap = Object.fromEntries(
+          studentAnswer.split(",").map((p) => p.split(":"))
+        );
+        let correct = 0;
+        opts.forEach((pair, i) => {
+          if (studentMap[String(i)] === pair.right) correct++;
+        });
+        totalScore += Math.round((correct / opts.length) * q.score);
+        break;
+      }
+
+      case "SETUJU_TIDAK": {
+        if (!q.correctAnswer) break;
+        const studentParts = studentAnswer.split(",");
+        const correctParts = q.correctAnswer.split(",");
+        let correct = 0;
+        correctParts.forEach((ans, i) => {
+          if (studentParts[i] === ans) correct++;
+        });
+        totalScore += Math.round((correct / correctParts.length) * q.score);
+        break;
+      }
+
+      case "ESSAY":
+        break;
     }
   }
 
