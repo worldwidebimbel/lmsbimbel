@@ -6,6 +6,21 @@
 **Repo:** https://github.com/digsanid-26/lmsbimbel
 
 ---
+## Push Git manual :
+
+```bash
+cd C:\Users\MANAKreatif\CascadeProjects\lms-bimbel
+npm run build 2>&1 | Select-String "Type error|error TS|Failed" | Select-Object -First 5
+
+cd C:\Users\MANAKreatif\CascadeProjects\lms-bimbel
+git add -A; git commit -m "feat: grafik bar chart nilai siswa (Recharts) + Modul 16 docs"; git push origin main
+
+npm run build 2>&1 | Select-String "Route" | Select-Object -Last 1
+
+cd C:\Users\MANAKreatif\CascadeProjects\lms-bimbel; npm run build 2>&1 | Select-String "error TS|Type error|Failed"
+
+cd C:\Users\MANAKreatif\CascadeProjects\lms-bimbel; npm run build 2>&1 | Select-String "Type error|error TS|Failed" | Select-Object -First 10
+```
 
 ## 1. Akses VPS via SSH
 

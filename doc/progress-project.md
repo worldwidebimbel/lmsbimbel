@@ -109,7 +109,7 @@
 ### 📈 Modul 8: Analitik & Laporan
 - [x] Dashboard admin (stats: siswa, guru, kelas, tagihan, feature flags) — `/admin`
 - [x] Halaman analitik lengkap (KPI, absensi, nilai, keuangan, tabel kelas) — `/admin/analytics`
-- [ ] Progress belajar per siswa
+- [x] Progress belajar per siswa (statistik materi, tugas, ujian, nilai, kehadiran + grafik) — `/siswa/progress`
 - [ ] Statistik kehadiran & nilai per kelas
 - [ ] Laporan kinerja guru
 - [ ] Analitik soal (tingkat kesulitan, daya pembeda)
@@ -201,7 +201,7 @@
 | Modul 5: Ujian | 8 | 9 | 89% |
 | Modul 6: Absensi | 4 | 7 | 57% |
 | Modul 7: Nilai & Rapor | 4 | 7 | 57% |
-| Modul 8: Analitik | 2 | 6 | 33% |
+| Modul 8: Analitik | 3 | 6 | 50% |
 | Modul 9: Keuangan | 6 | 8 | 75% |
 | Modul 10: Notifikasi | 6 | 9 | 67% |
 | Modul 11: Forum & Chat | 0 | 5 | 0% |
@@ -210,7 +210,7 @@
 | Modul 14: Portal Ortu | 6 | 8 | 75% |
 | Modul 15: PWA | 0 | 3 | 0% |
 | Modul 16: Landing Page | 0 | 10 | 0% |
-| **TOTAL** | **56** | **127** | **44%** |
+| **TOTAL** | **57** | **127** | **45%** |
 
 ---
 
