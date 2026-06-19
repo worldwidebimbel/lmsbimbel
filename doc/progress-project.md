@@ -229,6 +229,81 @@
 
 ---
 
+## 🏢 Multi-Cabang: Tugas Tersisa (Audit & Implementasi)
+
+### Auth & Core
+- [x] `defaultBranchId` di session/JWT
+- [x] Helper `getBranchScope()` untuk filter role-based
+- [ ] Enforce branch scope di semua server action & API non-admin
+
+### Modul 1: Pengguna
+- [x] Filter daftar user per cabang di `/admin/users`
+- [x] User create/edit: assign `defaultBranchId` (admin) + branch selector for super admin
+- [x] Non-super admin hanya bisa edit user di cabangnya sendiri
+- [ ] Parent-child linking scoped by branch
+
+### Modul 2: Kelas & Jadwal
+- [x] Filter daftar kelas per cabang di `/admin/classes`
+- [x] Create class dengan branch selector
+- [ ] Edit class: update branch + branch selector
+- [ ] Detail class: cek akses cabang, jadwal scoped by class branch
+
+### Modul 3: Materi
+- [ ] Filter materi per cabang (via class branch)
+- [ ] Guru hanya lihat materi kelas di cabangnya
+
+### Modul 4: Tugas
+- [ ] Filter tugas per cabang (via class branch)
+- [ ] Guru hanya buat tugas untuk kelas di cabangnya
+
+### Modul 5: Ujian
+- [ ] Filter ujian per cabang (via class branch)
+- [ ] Bank soal scoped by branch
+
+### Modul 6: Absensi
+- [ ] Filter sesi absensi per cabang (via class branch)
+- [ ] QR scan validasi cabang siswa
+
+### Modul 7: Nilai & Rapor
+- [ ] Filter nilai/rapor per cabang (via class branch)
+- [ ] Grafik nilai per cabang
+
+### Modul 8: Analitik
+- [ ] Dashboard analitik filter by branch
+- [ ] Laporan per cabang
+
+### Modul 9: Keuangan
+- [x] Filter tagihan per cabang
+- [x] Create invoice dengan branch selector
+- [ ] Detail tagihan: cek akses cabang
+- [ ] Laporan keuangan per cabang
+- [ ] Branch transaction (income/expense) CRUD
+- [ ] Branch cash transfer antar cabang
+- [ ] Settings QRIS per cabang
+
+### Modul 10: Notifikasi & Pengumuman
+- [ ] Broadcast pengumuman target by branch
+- [ ] Notifikasi tagihan per cabang
+
+### Modul 11: Forum & Chat
+- [ ] Chat siswa-guru hanya dalam cabang yang sama
+- [ ] Forum thread scoped by class branch
+
+### Modul 12: Kelas Online
+- [ ] Live session scoped by class branch
+- [ ] Siswa hanya lihat live di cabangnya
+
+### Modul 13: Gamifikasi
+- [ ] Leaderboard per cabang (toggle)
+
+### Modul 14: Portal Orang Tua
+- [ ] Ortu hanya lihat data anak di cabang terkait
+
+### Modul 17: Event Berbayar
+- [ ] Event scoped by branch
+
+---
+
 ## 📊 Summary Progress
 
 | Modul | Selesai | Total | % |

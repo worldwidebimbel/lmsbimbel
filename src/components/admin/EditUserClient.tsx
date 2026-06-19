@@ -11,7 +11,10 @@ interface UserData {
   email: string;
   role: string;
   isActive: boolean;
+  defaultBranchId: string | null;
 }
+
+interface Branch { id: string; name: string; code: string }
 
 const ROLES = [
   { value: "SISWA", label: "Siswa" },
@@ -20,7 +23,7 @@ const ROLES = [
   { value: "ORANG_TUA", label: "Orang Tua" },
 ];
 
-export default function EditUserClient({ user, isSelf }: { user: UserData; isSelf: boolean }) {
+export default function EditUserClient({ user, isSelf, branches, isSuperAdmin }: { user: UserData; isSelf: boolean; branches: Branch[]; isSuperAdmin: boolean }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showPass, setShowPass] = useState(false);
@@ -32,6 +35,7 @@ export default function EditUserClient({ user, isSelf }: { user: UserData; isSel
     password: "",
     role: user.role,
     isActive: user.isActive,
+    branchId: user.defaultBranchId ?? "",
   });
 
   function update(k: string, v: unknown) { setForm((p) => ({ ...p, [k]: v })); }
@@ -42,6 +46,7 @@ export default function EditUserClient({ user, isSelf }: { user: UserData; isSel
     startTransition(async () => {
       const payload: Record<string, unknown> = { name: form.name, email: form.email, role: form.role, isActive: form.isActive };
       if (form.password) payload.password = form.password;
+      if (isSuperAdmin) payload.branchId = form.branchId;
 
       const res = await fetch(`/api/admin/users/${user.id}`, {
         method: "PATCH",
@@ -129,6 +134,20 @@ export default function EditUserClient({ user, isSelf }: { user: UserData; isSel
           </button>
         </div>
       </div>
+
+      {isSuperAdmin && (
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">Cabang Default</label>
+          <select
+            value={form.branchId}
+            onChange={(e) => update("branchId", e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
+          >
+            <option value="">Pilih cabang</option>
+            {branches.map((b) => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
+          </select>
+        </div>
+      )}
 
       <div className="flex items-center justify-between pt-2 border-t border-gray-100">
         {!isSelf && (
