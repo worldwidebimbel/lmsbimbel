@@ -134,7 +134,7 @@
 - [x] Reminder tagihan otomatis (email) — `POST /api/admin/finance/reminder`
 - [x] Histori transaksi + status PENDING — tabel di `/admin/finance`
 - [x] Laporan keuangan bulanan (rekap 6 bulan, per metode, per status) — `/admin/finance/laporan`
-- [ ] Multi-cabang / multi-branch: tagihan, pemasukan, pengeluaran per cabang
+- [x] Multi-cabang / multi-branch: model `Branch`, filter tagihan/kelas/user per cabang, pembuatan cabang, feature flag `FEAT_MULTI_BRANCH`
 - [ ] Pencatatan pengeluaran operasional & gaji karyawan
 - [ ] Rekap keuangan harian, mingguan, bulanan, tahunan
 - [ ] Reminder jatuh tempo via WhatsApp (gateway WABLAS / Twilio / Fonnte)
@@ -242,7 +242,7 @@
 | Modul 6: Absensi | 5 | 7 | 71% |
 | Modul 7: Nilai & Rapor | 5 | 7 | 71% |
 | Modul 8: Analitik | 5 | 6 | 83% |
-| Modul 9: Keuangan & Admin | 10 | 20 | 50% |
+| Modul 9: Keuangan & Admin | 11 | 20 | 55% |
 | Modul 10: Notifikasi | 7 | 9 | 78% |
 | Modul 11: Forum & Chat | 4 | 5 | 80% |
 | Modul 12: Kelas Online | 3 | 5 | 60% |
@@ -251,11 +251,21 @@
 | Modul 15: PWA | 2 | 3 | 67% |
 | Modul 16: Landing Page | 10 | 22 | 45% |
 | Modul 17: Event Berbayar | 0 | 9 | 0% |
-| **TOTAL** | **115** | **182** | **63%** |
+| **TOTAL** | **116** | **182** | **64%** |
 
 ---
 
 ## 📝 Changelog
+
+### 2026-06-19 — Multi-Cabang (progress update)
+- **Modul 9:** implementasi dasar multi-cabang
+  - Schema: model `Branch`, relasi `branchId` di `User`, `Class`, `Invoice`
+  - Auth: `defaultBranchId` di JWT/session
+  - API: CRUD cabang (`/api/admin/branches`), filter branch di `/api/admin/classes`, `/api/admin/finance/invoices`
+  - UI: halaman cabang (`/admin/branches`), form tambah cabang, selector cabang di finance/users/classes/new invoice/new class
+  - Feature flag: `FEAT_MULTI_BRANCH` di seed
+  - Migration script: `scripts/seed-default-branch.ts` + `npm run db:seed:default-branch`
+- **Build:** ✅ clean
 
 ### 2026-06-19 — Commit `ea81e0f`
 - **Scope & Progress:** sinkronisasi kebutuhan baru ke `progress-project.md`
