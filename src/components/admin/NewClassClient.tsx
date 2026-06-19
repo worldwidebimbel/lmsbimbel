@@ -7,8 +7,9 @@ import Link from "next/link";
 
 interface Subject { id: string; name: string; code: string; color: string }
 interface Teacher { id: string; name: string }
+interface Branch { id: string; name: string; code: string }
 
-export default function NewClassClient({ subjects, teachers }: { subjects: Subject[]; teachers: Teacher[] }) {
+export default function NewClassClient({ subjects, teachers, branches, defaultBranchId, isSuperAdmin }: { subjects: Subject[]; teachers: Teacher[]; branches: Branch[]; defaultBranchId: string | null; isSuperAdmin: boolean }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
@@ -17,6 +18,7 @@ export default function NewClassClient({ subjects, teachers }: { subjects: Subje
     description: "",
     subjectId: "",
     teacherId: "",
+    branchId: defaultBranchId ?? "",
     type: "REGULER",
     maxStudents: "30",
     room: "",
@@ -87,6 +89,21 @@ export default function NewClassClient({ subjects, teachers }: { subjects: Subje
             {teachers.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
         </div>
+
+        {isSuperAdmin && (
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">Cabang *</label>
+            <select
+              required
+              value={form.branchId}
+              onChange={(e) => update("branchId", e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
+            >
+              <option value="">Pilih cabang</option>
+              {branches.map((b) => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
+            </select>
+          </div>
+        )}
 
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">Tipe Kelas</label>

@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
 import NewClassClient from "@/components/admin/NewClassClient";
 import { BookOpen, ArrowLeft } from "lucide-react";
@@ -11,9 +12,12 @@ export default async function NewClassPage() {
   const session = await auth();
   if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
 
+  const { isSuperAdmin, allBranches, branchId } = await getBranchScope();
+  const branchFilter = session.user.role === "SUPER_ADMIN" ? {} : { defaultBranchId: branchId };
+
   const [subjects, teachers] = await Promise.all([
     db.subject.findMany({ orderBy: { name: "asc" } }),
-    db.user.findMany({ where: { role: "GURU", isActive: true }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    db.user.findMany({ where: { role: "GURU", isActive: true, ...branchFilter }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
   ]);
 
   return (
@@ -34,6 +38,9 @@ export default async function NewClassPage() {
       <NewClassClient
         subjects={JSON.parse(JSON.stringify(subjects))}
         teachers={teachers}
+        branches={allBranches}
+        defaultBranchId={branchId}
+        isSuperAdmin={isSuperAdmin}
       />
     </div>
   );
