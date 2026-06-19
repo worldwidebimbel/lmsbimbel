@@ -385,11 +385,23 @@ Akses di browser: **https://lmsbimbel.digsan.id**
 ### Update Manual (tanpa CI/CD)
 ```bash
 cd C:\Users\MANAKreatif\CascadeProjects\lms-bimbel
-git add -A; git commit -m; git push origin main
+git add -A; git commit -m "fix: allow public access to landing page (/) without auth"; git push origin main
 
 cd /var/www/lms-bimbel
 git pull origin main
 npm install
 npm run build
 pm2 restart lms-bimbel
+
+git checkout -- package-lock.json && git pull origin main
+npm install          # nodemailer sudah v7.0.7, tidak ada error
+npx prisma generate  # regenerate client
+npx prisma db push   # buat tabel forum_threads, forum_replies, forum_upvotes
+
+npm run db:seed:default-branch  # npx tsx scripts/seed-default-branch.ts
+
+npm run build
+pm2 restart lms-bimbel
+
+git pull && npx prisma generate && npx prisma db push && npm run build && pm2 restart lms-bimbel
 ```
