@@ -205,6 +205,19 @@
 - [x] Akses materi offline (cached)
 - [x] Sinkronisasi otomatis saat online
 
+### 🏢 Modul 16: Multi-Cabang / Multi-Branch
+- [ ] Master data cabang (nama, kode, alamat, kontak, kepala cabang)
+- [ ] Assign user (siswa, guru, admin) ke cabang tertentu
+- [ ] Assign kelas & jadwal ke cabang
+- [ ] Tagihan, invoice, dan pembayaran per cabang
+- [ ] Pemasukan & pengeluaran operasional per cabang
+- [ ] Transfer kas antar-cabang dengan approval
+- [ ] Laporan keuangan harian, mingguan, bulanan, tahunan per cabang
+- [ ] Laporan gabungan (consolidated) semua cabang untuk super admin
+- [ ] Role admin cabang (hanya lihat/kelola cabang sendiri)
+- [ ] Filter cabang di seluruh dashboard & laporan
+- [ ] PWA & notifikasi cabang-spesifik
+
 ---
 
 ## 🎛️ Admin Feature Control Panel
@@ -254,6 +267,7 @@ interface FeatureFlag {
 | `FEAT_PWA` | Mode Offline PWA | Standard | ✅ ON |
 | `FEAT_TRYOUT` | Tryout Nasional | Premium | ❌ OFF |
 | `FEAT_CERTIFICATE` | Sertifikat Digital | Standard | ❌ OFF |
+| `FEAT_MULTI_BRANCH` | Multi-Cabang / Multi-Branch | Premium | ❌ OFF |
 
 ### UI Feature Control Panel
 
@@ -421,6 +435,14 @@ billing_plans (id, name, amount, period, description)
 invoices (id, studentId, planId, amount, dueDate, status[unpaid/paid/overdue])
 payments (id, invoiceId, amount, method, proofUrl, confirmedAt, confirmedBy)
 
+-- Multi-Cabang
+branches (id, code, name, address, phone, email, managerName, isActive, createdAt)
+branch_users (branchId, userId, roleAtBranch)
+branch_classes (branchId, classId)
+branch_invoices (branchId, invoiceId)
+branch_transactions (id, branchId, type[income/expense/transfer], category, amount, date, note, attachmentUrl, createdBy)
+branch_cash_transfers (id, fromBranchId, toBranchId, amount, status[pending/approved/rejected], requestedBy, approvedBy, createdAt)
+
 -- Notifikasi
 notifications (id, userId, title, content, type, isRead, createdAt)
 announcements (id, title, content, targetRoles[], publishedAt, expiresAt)
@@ -459,6 +481,11 @@ Landing Page (/)
     │   │   ├── Tagihan & SPP
     │   │   ├── Konfirmasi Pembayaran
     │   │   └── Laporan Keuangan
+    │   ├── 🏢 Multi-Cabang [FEAT_MULTI_BRANCH]
+    │   │   ├── Master Cabang
+    │   │   ├── Assign User & Kelas
+    │   │   ├── Kas & Transfer Antar Cabang
+    │   │   └── Laporan Cabang / Konsolidasi
     │   ├── 📢 Pengumuman
     │   └── ⚙️ Pengaturan Sistem
     │
@@ -526,6 +553,7 @@ Landing Page (/)
 - [ ] Tryout Nasional
 - [ ] PWA & offline mode
 - [ ] Absensi QR Code
+- [ ] Multi-Cabang / Multi-Branch (master cabang, assign user, laporan konsolidasi)
 
 ---
 
