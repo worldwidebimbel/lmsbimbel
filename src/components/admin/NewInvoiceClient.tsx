@@ -5,16 +5,18 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
-interface Student { id: string; name: string; email: string }
+interface Student { id: string; name: string; email: string; defaultBranchId?: string | null }
 interface Plan { id: string; name: string; amount: number; period: string }
+interface Branch { id: string; name: string; code: string }
 
-export default function NewInvoiceClient({ students, plans }: { students: Student[]; plans: Plan[] }) {
+export default function NewInvoiceClient({ students, plans, branches, defaultBranchId, isSuperAdmin }: { students: Student[]; plans: Plan[]; branches: Branch[]; defaultBranchId: string | null; isSuperAdmin: boolean }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
   const [form, setForm] = useState({
     studentId: "",
     planId: "",
+    branchId: defaultBranchId ?? "",
     amount: "",
     dueDate: "",
     note: "",
@@ -60,13 +62,36 @@ export default function NewInvoiceClient({ students, plans }: { students: Studen
         <select
           required
           value={form.studentId}
-          onChange={(e) => update("studentId", e.target.value)}
+          onChange={(e) => {
+            const studentId = e.target.value;
+            const student = students.find((s) => s.id === studentId);
+            setForm((p) => ({
+              ...p,
+              studentId,
+              branchId: isSuperAdmin ? (student?.defaultBranchId ?? p.branchId) : p.branchId,
+            }));
+          }}
           className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
         >
           <option value="">Pilih siswa</option>
           {students.map((s) => <option key={s.id} value={s.id}>{s.name} — {s.email}</option>)}
         </select>
       </div>
+
+      {isSuperAdmin && (
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">Cabang *</label>
+          <select
+            required
+            value={form.branchId}
+            onChange={(e) => update("branchId", e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
+          >
+            <option value="">Pilih cabang</option>
+            {branches.map((b) => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
+          </select>
+        </div>
+      )}
 
       <div>
         <label className="mb-1.5 block text-sm font-medium text-gray-700">Paket Pembayaran <span className="text-gray-400">(opsional)</span></label>

@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
 import NewInvoiceClient from "@/components/admin/NewInvoiceClient";
 import { Wallet, ArrowLeft } from "lucide-react";
@@ -11,8 +12,11 @@ export default async function NewInvoicePage() {
   const session = await auth();
   if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
 
+  const { isSuperAdmin, allBranches, branchId } = await getBranchScope();
+  const branchFilter = session.user.role === "SUPER_ADMIN" ? {} : { defaultBranchId: branchId };
+
   const [students, plans] = await Promise.all([
-    db.user.findMany({ where: { role: "SISWA", isActive: true }, select: { id: true, name: true, email: true }, orderBy: { name: "asc" } }),
+    db.user.findMany({ where: { role: "SISWA", isActive: true, ...branchFilter }, select: { id: true, name: true, email: true, defaultBranchId: true }, orderBy: { name: "asc" } }),
     db.billingPlan.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
   ]);
 
@@ -31,7 +35,7 @@ export default async function NewInvoicePage() {
         </div>
       </div>
 
-      <NewInvoiceClient students={students} plans={JSON.parse(JSON.stringify(plans))} />
+      <NewInvoiceClient students={students} plans={JSON.parse(JSON.stringify(plans))} branches={allBranches} defaultBranchId={branchId} isSuperAdmin={isSuperAdmin} />
     </div>
   );
 }
