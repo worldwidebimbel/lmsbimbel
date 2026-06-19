@@ -1,11 +1,15 @@
 import { db } from "@/lib/db";
-import { Plus, Users, BookOpen } from "lucide-react";
+import { getBranchScope } from "@/lib/branch-context";
+import { Plus, Users, BookOpen, Building2 } from "lucide-react";
 
-async function getClasses() {
+async function getClasses(branchId: string | null) {
+  const where = branchId ? { branchId } : {};
   return db.class.findMany({
+    where,
     include: {
       subject: true,
       teacher: true,
+      branch: { select: { name: true, code: true } },
       _count: { select: { students: true, schedules: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -27,7 +31,8 @@ const CLASS_TYPE_COLOR: Record<string, string> = {
 };
 
 export default async function ClassesPage() {
-  const classes = await getClasses();
+  const { branchId, isSuperAdmin, allBranches } = await getBranchScope();
+  const classes = await getClasses(branchId);
 
   return (
     <div className="space-y-6">
@@ -36,11 +41,22 @@ export default async function ClassesPage() {
           <h1 className="text-2xl font-bold text-gray-900">Manajemen Kelas</h1>
           <p className="text-sm text-gray-500 mt-0.5">{classes.length} kelas aktif</p>
         </div>
-        <a href="/admin/classes/new"
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-          <Plus className="w-4 h-4" />
-          Buat Kelas
-        </a>
+        <div className="flex items-center gap-2">
+          {isSuperAdmin && allBranches.length > 0 && (
+            <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg bg-white">
+              <Building2 className="w-4 h-4 text-gray-500" />
+              <select name="branch" defaultValue={branchId ?? "all"} className="text-sm bg-transparent outline-none">
+                <option value="all">Semua Cabang</option>
+                {allBranches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </div>
+          )}
+          <a href="/admin/classes/new"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+            <Plus className="w-4 h-4" />
+            Buat Kelas
+          </a>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -70,6 +86,7 @@ export default async function ClassesPage() {
                   {cls._count.students}/{cls.maxStudents} siswa
                 </span>
                 <span>{cls.teacher.name}</span>
+                {cls.branch && <span className="ml-auto text-xs font-medium text-blue-600">{cls.branch.name}</span>}
               </div>
             </a>
           ))

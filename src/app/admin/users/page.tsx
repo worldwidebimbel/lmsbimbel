@@ -1,10 +1,13 @@
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { getRoleLabel, getRoleColor, formatDate } from "@/lib/utils";
-import { UserPlus, Search } from "lucide-react";
+import { UserPlus, Search, Building2 } from "lucide-react";
 
-async function getUsers() {
+async function getUsers(branchId: string | null, isSuperAdmin: boolean) {
+  const where = branchId ? { defaultBranchId: branchId } : {};
   return db.user.findMany({
-    include: { profile: true },
+    where,
+    include: { profile: true, defaultBranch: { select: { name: true, code: true } } },
     orderBy: { createdAt: "desc" },
   });
 }
@@ -12,7 +15,8 @@ async function getUsers() {
 export const metadata = { title: "Manajemen Pengguna" };
 
 export default async function UsersPage() {
-  const users = await getUsers();
+  const { branchId, isSuperAdmin, allBranches } = await getBranchScope();
+  const users = await getUsers(branchId, isSuperAdmin);
 
   const roleGroups = {
     SISWA: users.filter((u) => u.role === "SISWA"),
@@ -28,11 +32,22 @@ export default async function UsersPage() {
           <h1 className="text-2xl font-bold text-gray-900">Manajemen Pengguna</h1>
           <p className="text-sm text-gray-500 mt-0.5">Total {users.length} pengguna terdaftar</p>
         </div>
-        <a href="/admin/users/new"
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-          <UserPlus className="w-4 h-4" />
-          Tambah Pengguna
-        </a>
+        <div className="flex items-center gap-2">
+          {isSuperAdmin && allBranches.length > 0 && (
+            <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg bg-white">
+              <Building2 className="w-4 h-4 text-gray-500" />
+              <select name="branch" defaultValue={branchId ?? "all"} className="text-sm bg-transparent outline-none">
+                <option value="all">Semua Cabang</option>
+                {allBranches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </div>
+          )}
+          <a href="/admin/users/new"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+            <UserPlus className="w-4 h-4" />
+            Tambah Pengguna
+          </a>
+        </div>
       </div>
 
       {/* Stats */}
@@ -59,6 +74,7 @@ export default async function UsersPage() {
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Nama</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Email</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600">Cabang</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Role</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Terdaftar</th>
@@ -77,6 +93,9 @@ export default async function UsersPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-gray-600">{user.email}</td>
+                  <td className="px-4 py-3 text-gray-500">
+                    {user.defaultBranch ? `${user.defaultBranch.name} (${user.defaultBranch.code})` : "-"}
+                  </td>
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${getRoleColor(user.role)}`}>
                       {getRoleLabel(user.role)}
