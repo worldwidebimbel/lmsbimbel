@@ -1,19 +1,22 @@
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { formatCurrency, formatDate, getInvoiceStatusColor, getInvoiceStatusLabel } from "@/lib/utils";
-import { Wallet, TrendingUp, AlertCircle, CheckCircle, Plus, BarChart2, Hourglass } from "lucide-react";
+import { Wallet, TrendingUp, AlertCircle, CheckCircle, Plus, BarChart2, Hourglass, Building2 } from "lucide-react";
 import Link from "next/link";
 
-async function getFinanceData() {
+async function getFinanceData(branchId: string | null, isSuperAdmin: boolean) {
+  const branchFilter = branchId ? { branchId } : {};
   const [invoices, paidSum, unpaidSum, overdueCount, pendingCount] = await Promise.all([
     db.invoice.findMany({
-      include: { student: true, plan: true },
+      where: branchFilter,
+      include: { student: true, plan: true, branch: { select: { name: true, code: true } } },
       orderBy: { createdAt: "desc" },
       take: 50,
     }),
-    db.invoice.aggregate({ where: { status: "PAID" }, _sum: { amount: true } }),
-    db.invoice.aggregate({ where: { status: { in: ["UNPAID", "OVERDUE"] } }, _sum: { amount: true } }),
-    db.invoice.count({ where: { status: "OVERDUE" } }),
-    db.invoice.count({ where: { status: "PENDING" } }),
+    db.invoice.aggregate({ where: { ...branchFilter, status: "PAID" }, _sum: { amount: true } }),
+    db.invoice.aggregate({ where: { ...branchFilter, status: { in: ["UNPAID", "OVERDUE"] } }, _sum: { amount: true } }),
+    db.invoice.count({ where: { ...branchFilter, status: "OVERDUE" } }),
+    db.invoice.count({ where: { ...branchFilter, status: "PENDING" } }),
   ]);
   return { invoices, paidAmount: paidSum._sum.amount ?? 0, unpaidAmount: unpaidSum._sum.amount ?? 0, overdueCount, pendingCount };
 }
@@ -21,7 +24,8 @@ async function getFinanceData() {
 export const metadata = { title: "Keuangan" };
 
 export default async function FinancePage() {
-  const { invoices, paidAmount, unpaidAmount, overdueCount, pendingCount } = await getFinanceData();
+  const { branchId, isSuperAdmin, allBranches } = await getBranchScope();
+  const { invoices, paidAmount, unpaidAmount, overdueCount, pendingCount } = await getFinanceData(branchId, isSuperAdmin);
 
   const cards = [
     { label: "Total Terbayar",           value: formatCurrency(paidAmount),  icon: CheckCircle, color: "text-green-600", bg: "bg-green-50" },
@@ -37,7 +41,16 @@ export default async function FinancePage() {
           <h1 className="text-2xl font-bold text-gray-900">Keuangan & Pembayaran</h1>
           <p className="text-sm text-gray-500 mt-0.5">Kelola tagihan dan konfirmasi pembayaran</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {isSuperAdmin && allBranches.length > 0 && (
+            <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg bg-white">
+              <Building2 className="w-4 h-4 text-gray-500" />
+              <select name="branch" defaultValue={branchId ?? "all"} className="text-sm bg-transparent outline-none">
+                <option value="all">Semua Cabang</option>
+                {allBranches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </div>
+          )}
           <Link href="/admin/finance/laporan"
             className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50">
             <BarChart2 className="w-4 h-4" /> Laporan
@@ -73,6 +86,7 @@ export default async function FinancePage() {
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Siswa</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600">Cabang</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Paket</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Nominal</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Jatuh Tempo</th>
@@ -83,12 +97,15 @@ export default async function FinancePage() {
             <tbody className="divide-y divide-gray-100">
               {invoices.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-400">Belum ada tagihan</td>
+                  <td colSpan={7} className="px-4 py-8 text-center text-gray-400">Belum ada tagihan</td>
                 </tr>
               ) : (
                 invoices.map((inv) => (
                   <tr key={inv.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium text-gray-800">{inv.student.name}</td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {inv.branch ? `${inv.branch.name} (${inv.branch.code})` : "-"}
+                    </td>
                     <td className="px-4 py-3 text-gray-500">{inv.plan?.name ?? "Manual"}</td>
                     <td className="px-4 py-3 font-semibold text-gray-900">{formatCurrency(inv.amount)}</td>
                     <td className="px-4 py-3 text-gray-500">{formatDate(inv.dueDate)}</td>

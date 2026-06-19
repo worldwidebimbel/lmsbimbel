@@ -9,7 +9,7 @@ import {
   FileCheck, CheckSquare, GraduationCap, BarChart3, Wallet, CreditCard,
   Megaphone, MessagesSquare, MessageSquare, Video, Gamepad2, Award,
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
-  Mail, Smartphone, TrendingUp,
+  Mail, Smartphone, TrendingUp, Building2,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -17,7 +17,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   FileCheck, CheckSquare, GraduationCap, BarChart3, Wallet, CreditCard,
   Megaphone, MessagesSquare, MessageSquare, Video, Gamepad2, Award,
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
-  Mail, Smartphone, TrendingUp,
+  Mail, Smartphone, TrendingUp, Building2,
 };
 
 interface NavItem {
@@ -34,6 +34,7 @@ const NAV_ADMIN: NavItem[] = [
   { title: "Orang Tua & Anak", href: "/admin/parents", icon: "Users2" },
   { title: "Kelas & Jadwal", href: "/admin/classes", icon: "CalendarDays", featureFlag: "FEAT_CLASS_SCHEDULE" },
   { title: "Keuangan", href: "/admin/finance", icon: "Wallet", featureFlag: "FEAT_PAYMENT_MANUAL" },
+  { title: "Multi-Cabang", href: "/admin/branches", icon: "Building2", featureFlag: "FEAT_MULTI_BRANCH" },
   { title: "Analitik", href: "/admin/analytics", icon: "BarChart3", featureFlag: "FEAT_ANALYTICS" },
   { title: "Pengumuman", href: "/admin/announcements", icon: "Megaphone", featureFlag: "FEAT_ANNOUNCEMENTS" },
   { title: "Pengaturan", href: "/admin/settings", icon: "Settings" },

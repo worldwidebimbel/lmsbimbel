@@ -9,11 +9,16 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { name, description, subjectId, teacherId, type, maxStudents, room, startDate, endDate } = body;
+  const { name, description, subjectId, teacherId, branchId, type, maxStudents, room, startDate, endDate } = body;
 
   if (!name || !subjectId || !teacherId) {
     return NextResponse.json({ error: "name, subjectId, teacherId wajib diisi" }, { status: 400 });
   }
+
+  // Admin non-super must use their own branch
+  const assignedBranchId = session.user.role === "SUPER_ADMIN"
+    ? (branchId || session.user.defaultBranchId)
+    : session.user.defaultBranchId;
 
   const cls = await db.class.create({
     data: {
@@ -21,6 +26,7 @@ export async function POST(req: NextRequest) {
       description,
       subjectId,
       teacherId,
+      branchId: assignedBranchId,
       type: type ?? "REGULER",
       maxStudents: maxStudents ?? 30,
       room,
@@ -30,6 +36,7 @@ export async function POST(req: NextRequest) {
     include: {
       subject: { select: { id: true, name: true, code: true, color: true } },
       teacher: { select: { id: true, name: true } },
+      branch: { select: { id: true, name: true, code: true } },
     },
   });
 

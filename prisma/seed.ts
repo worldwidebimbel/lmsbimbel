@@ -257,6 +257,17 @@ const FEATURE_FLAGS = [
     affectedRoles: ["SISWA", "GURU"],
     sortOrder: 23,
   },
+  {
+    code: "FEAT_MULTI_BRANCH",
+    name: "Multi-Cabang / Multi-Branch",
+    description: "Kelola lebih dari satu cabang bimbel dengan laporan terpisah",
+    isActive: false,
+    tier: FeatureTier.PREMIUM,
+    category: "operasional",
+    icon: "Building2",
+    affectedRoles: ["ADMIN", "SUPER_ADMIN"],
+    sortOrder: 24,
+  },
 ];
 
 const SUBJECTS = [
@@ -295,6 +306,21 @@ async function main() {
   }
   console.log(`✅ ${SUBJECTS.length} subjects seeded`);
 
+  // Seed Default Branch
+  console.log("🏢 Seeding default branch...");
+  const defaultBranch = await prisma.branch.upsert({
+    where: { code: "MAIN" },
+    update: {},
+    create: {
+      code: "MAIN",
+      name: "Cabang Utama",
+      address: "Alamat utama bimbel",
+      isActive: true,
+      isDefault: true,
+    },
+  });
+  console.log(`✅ Default branch seeded: ${defaultBranch.name}`);
+
   // Seed Admin User
   console.log("👤 Seeding admin user...");
   const hashedPassword = await bcrypt.hash("admin123", 12);
@@ -307,6 +333,7 @@ async function main() {
       password: hashedPassword,
       role: UserRole.SUPER_ADMIN,
       isActive: true,
+      defaultBranchId: defaultBranch.id,
     },
   });
 
@@ -321,6 +348,7 @@ async function main() {
       password: guruPassword,
       role: UserRole.GURU,
       isActive: true,
+      defaultBranchId: defaultBranch.id,
     },
   });
 
@@ -335,6 +363,7 @@ async function main() {
       password: siswaPassword,
       role: UserRole.SISWA,
       isActive: true,
+      defaultBranchId: defaultBranch.id,
     },
   });
 
@@ -349,6 +378,7 @@ async function main() {
       password: orangtuaPassword,
       role: UserRole.ORANG_TUA,
       isActive: true,
+      defaultBranchId: defaultBranch.id,
     },
   });
 

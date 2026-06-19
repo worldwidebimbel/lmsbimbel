@@ -121,24 +121,52 @@ model FeatureFlag {
 }
 
 // ============================
+// BRANCHES
+// ============================
+
+model Branch {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  name        String
+  address     String?
+  phone       String?
+  email       String?
+  managerName String?
+  isActive    Boolean   @default(true)
+  isDefault   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  users        User[]
+  classes      Class[]
+  invoices     Invoice[]
+  transactions BranchTransaction[]
+  transfersFrom BranchCashTransfer[] @relation("TransferFrom")
+  transfersTo   BranchCashTransfer[] @relation("TransferTo")
+
+  @@map("branches")
+}
+
 // USERS & AUTH
 // ============================
 
 model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  password      String?
-  role          UserRole  @default(SISWA)
-  avatar        String?
-  isActive      Boolean   @default(true)
-  emailVerified DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  name             String
+  email            String    @unique
+  password         String?
+  role             UserRole  @default(SISWA)
+  avatar           String?
+  isActive         Boolean   @default(true)
+  emailVerified    DateTime?
+  defaultBranchId  String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   profile       UserProfile?
   accounts      Account[]
   sessions      Session[]
+  defaultBranch Branch?      @relation(fields: [defaultBranchId], references: [id])
 
   taughtClasses    Class[]      @relation("TeacherClasses")
   enrolledClasses  ClassStudent[]
@@ -163,6 +191,8 @@ model User {
   sentMessages     Message[]     @relation("SentMessages")
   receivedMessages Message[]     @relation("ReceivedMessages")
   liveSessions     LiveSession[] @relation("TeacherLiveSessions")
+  branchTransactions BranchTransaction[]
+  requestedTransfers BranchCashTransfer[]
 
   @@map("users")
 }
@@ -258,6 +288,7 @@ model Class {
   description String?
   subjectId   String
   teacherId   String
+  branchId    String?
   type        ClassType @default(REGULER)
   maxStudents Int       @default(30)
   room        String?
@@ -269,6 +300,7 @@ model Class {
 
   subject     Subject   @relation(fields: [subjectId], references: [id])
   teacher     User      @relation("TeacherClasses", fields: [teacherId], references: [id])
+  branch      Branch?   @relation(fields: [branchId], references: [id])
   students    ClassStudent[]
   schedules   Schedule[]
   materials   Material[]
@@ -280,6 +312,7 @@ model Class {
   liveSessions LiveSession[]
 
   @@map("classes")
+  @@index([branchId])
 }
 
 model ClassStudent {
@@ -562,6 +595,7 @@ model Invoice {
   id         String        @id @default(cuid())
   studentId  String
   planId     String?
+  branchId   String?
   amount     Float
   dueDate    DateTime
   status     InvoiceStatus @default(UNPAID)
@@ -571,9 +605,11 @@ model Invoice {
 
   student    User          @relation(fields: [studentId], references: [id])
   plan       BillingPlan?  @relation(fields: [planId], references: [id])
+  branch     Branch?       @relation(fields: [branchId], references: [id])
   payments   Payment[]
 
   @@map("invoices")
+  @@index([branchId])
 }
 
 model Payment {
@@ -592,6 +628,67 @@ model Payment {
   user        User    @relation(fields: [userId], references: [id])
 
   @@map("payments")
+}
+
+// ============================
+// MULTI-BRANCH: KEUANGAN CABANG
+// ============================
+
+enum BranchTransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER_IN
+  TRANSFER_OUT
+}
+
+model BranchTransaction {
+  id          String                @id @default(cuid())
+  branchId    String
+  type        BranchTransactionType
+  category    String
+  amount      Float
+  date        DateTime              @default(now())
+  note        String?
+  attachmentUrl String?
+  createdBy   String
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  creator     User     @relation(fields: [createdBy], references: [id])
+
+  @@map("branch_transactions")
+  @@index([branchId])
+  @@index([date])
+}
+
+enum BranchTransferStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model BranchCashTransfer {
+  id          String               @id @default(cuid())
+  fromBranchId String
+  toBranchId   String
+  amount      Float
+  status      BranchTransferStatus @default(PENDING)
+  note        String?
+  requestedBy String
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  fromBranch Branch @relation("TransferFrom", fields: [fromBranchId], references: [id])
+  toBranch   Branch @relation("TransferTo", fields: [toBranchId], references: [id])
+  requester  User   @relation(fields: [requestedBy], references: [id])
+
+  @@map("branch_cash_transfers")
+  @@index([fromBranchId])
+  @@index([toBranchId])
+  @@index([status])
 }
 
 // ============================

@@ -25,6 +25,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             role: true,
             avatar: true,
             isActive: true,
+            defaultBranchId: true,
           },
         });
 
@@ -43,6 +44,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email,
           role: user.role as string,
           image: user.avatar,
+          defaultBranchId: user.defaultBranchId,
         };
       },
     }),
@@ -52,10 +54,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id as string;
         token.role = user.role;
+        token.defaultBranchId = user.defaultBranchId;
+      }
+      if (trigger === "update" && session?.defaultBranchId) {
+        token.defaultBranchId = session.defaultBranchId;
       }
       return token;
     },
@@ -63,6 +69,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (token) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
+        session.user.defaultBranchId = token.defaultBranchId as string | null;
       }
       return session;
     },
