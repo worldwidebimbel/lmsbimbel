@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Loader2, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
+import ImageUploadButton from "./ImageUploadButton";
+import { normalizeOptions, optionText, toOptionPayload } from "@/lib/question-options";
 
 interface Question {
   id: string; type: string; content: string; options: string[] | null;
@@ -26,12 +28,16 @@ export default function UjianDetailClient({ exam: initial, attempts }: { exam: E
   const [tab, setTab] = useState<"soal" | "hasil">("soal");
   const [error, setError] = useState("");
   const [newQ, setNewQ] = useState({
-    type: "PILGAN", content: "", options: ["", "", "", ""],
+    type: "PILGAN", content: "", contentImageUrl: "",
+    options: ["", "", "", ""], optionImages: ["", "", "", ""],
     correctAnswer: "", explanation: "", score: "1", difficulty: "2",
   });
 
   function updateOpt(i: number, v: string) {
     setNewQ((p) => { const o = [...p.options]; o[i] = v; return { ...p, options: o }; });
+  }
+  function updateOptImage(i: number, url: string) {
+    setNewQ((p) => { const imgs = [...p.optionImages]; imgs[i] = url; return { ...p, optionImages: imgs }; });
   }
 
   async function handleTogglePublish() {
@@ -46,14 +52,22 @@ export default function UjianDetailClient({ exam: initial, attempts }: { exam: E
   function handleAddQuestion(e: React.FormEvent) {
     e.preventDefault(); setError("");
     startTransition(async () => {
+      const content = newQ.contentImageUrl
+        ? `${newQ.content}\n\n<img src="${newQ.contentImageUrl}" alt="Soal" class="max-h-48 rounded-lg" />`
+        : newQ.content;
       const payload: Record<string, unknown> = {
-        type: newQ.type, content: newQ.content,
+        type: newQ.type, content,
         score: Number(newQ.score), difficulty: Number(newQ.difficulty),
         explanation: newQ.explanation || null,
         correctAnswer: newQ.correctAnswer || null,
       };
-      if (newQ.type === "PILGAN") {
-        payload.options = newQ.options.filter(Boolean);
+      if (newQ.type === "PILGAN" || newQ.type === "PILGAN_KOMPLEK") {
+        payload.options = newQ.options
+          .map((text, i) => toOptionPayload(text, newQ.optionImages[i]))
+          .filter((o) => optionText(o));
+      }
+      if (newQ.type === "BENAR_SALAH") {
+        payload.options = ["Benar", "Salah"];
       }
       const res = await fetch(`/api/guru/ujian/${exam.id}/questions`, {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -62,7 +76,7 @@ export default function UjianDetailClient({ exam: initial, attempts }: { exam: E
       if (!res.ok) { const d = await res.json(); setError(d.error ?? "Gagal"); return; }
       const q = await res.json();
       setExam((p) => ({ ...p, questions: [...p.questions, q] }));
-      setNewQ({ type: "PILGAN", content: "", options: ["", "", "", ""], correctAnswer: "", explanation: "", score: "1", difficulty: "2" });
+      setNewQ({ type: "PILGAN", content: "", contentImageUrl: "", options: ["", "", "", ""], optionImages: ["", "", "", ""], correctAnswer: "", explanation: "", score: "1", difficulty: "2" });
       setShowForm(false);
     });
   }
@@ -126,16 +140,17 @@ export default function UjianDetailClient({ exam: initial, attempts }: { exam: E
                     </span>
                     <span className="ml-auto text-xs text-gray-400">{q.score} poin</span>
                   </div>
-                  <p className="text-sm text-gray-800 whitespace-pre-wrap">{q.content}</p>
+                  <div className="text-sm text-gray-800 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: q.content }} />
                   {q.options && (
                     <div className="mt-2 grid gap-1">
-                      {(q.options as string[]).map((opt, oi) => (
+                      {normalizeOptions(q.options).map((opt, oi) => (
                         <div key={oi} className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm ${
-                          opt === q.correctAnswer ? "bg-green-50 text-green-700 font-medium" : "bg-gray-50 text-gray-600"
+                          opt.text === q.correctAnswer ? "bg-green-50 text-green-700 font-medium" : "bg-gray-50 text-gray-600"
                         }`}>
                           <span className="font-bold">{String.fromCharCode(65 + oi)}.</span>
-                          <span>{opt}</span>
-                          {opt === q.correctAnswer && <CheckCircle className="h-3.5 w-3.5 ml-auto" />}
+                          <span>{opt.text}</span>
+                          {opt.imageUrl && <img src={opt.imageUrl} alt="" className="ml-2 h-10 w-10 rounded object-cover" />}
+                          {opt.text === q.correctAnswer && <CheckCircle className="h-3.5 w-3.5 ml-auto" />}
                         </div>
                       ))}
                     </div>
@@ -169,8 +184,13 @@ export default function UjianDetailClient({ exam: initial, attempts }: { exam: E
                   <select value={newQ.type} onChange={(e) => setNewQ((p) => ({ ...p, type: e.target.value }))}
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none">
                     <option value="PILGAN">Pilihan Ganda</option>
+                    <option value="PILGAN_KOMPLEK">Pilihan Ganda Kompleks</option>
+                    <option value="BENAR_SALAH">Benar/Salah</option>
+                    <option value="MENJODOHKAN">Menjodohkan</option>
+                    <option value="MENGURUTKAN">Mengurutkan</option>
+                    <option value="SETUJU_TIDAK">Setuju/Tidak</option>
                     <option value="ESSAY">Esai</option>
-                    <option value="TRUE_FALSE">Benar/Salah</option>
+                    <option value="ISIAN">Isian Singkat</option>
                   </select>
                 </div>
                 <div>
@@ -193,13 +213,21 @@ export default function UjianDetailClient({ exam: initial, attempts }: { exam: E
 
               <div>
                 <label className="mb-1 block text-xs font-medium text-gray-600">Isi Soal *</label>
-                <textarea required rows={3} value={newQ.content}
-                  onChange={(e) => setNewQ((p) => ({ ...p, content: e.target.value }))}
-                  placeholder="Tulis pertanyaan di sini..."
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none" />
+                <div className="flex gap-3">
+                  <textarea required rows={3} value={newQ.content}
+                    onChange={(e) => setNewQ((p) => ({ ...p, content: e.target.value }))}
+                    placeholder="Tulis pertanyaan di sini..."
+                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none" />
+                  <ImageUploadButton
+                    url={newQ.contentImageUrl}
+                    onChange={(url) => setNewQ((p) => ({ ...p, contentImageUrl: url }))}
+                    label="Gambar soal"
+                    size="md"
+                  />
+                </div>
               </div>
 
-              {newQ.type === "PILGAN" && (
+              {(newQ.type === "PILGAN" || newQ.type === "PILGAN_KOMPLEK") && (
                 <div className="space-y-2">
                   <label className="block text-xs font-medium text-gray-600">Pilihan Jawaban</label>
                   {newQ.options.map((opt, i) => (
@@ -208,16 +236,23 @@ export default function UjianDetailClient({ exam: initial, attempts }: { exam: E
                       <input value={opt} onChange={(e) => updateOpt(i, e.target.value)}
                         placeholder={`Pilihan ${String.fromCharCode(65 + i)}`}
                         className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none" />
-                      <input type="radio" name="correct" checked={newQ.correctAnswer === opt && opt !== ""}
-                        onChange={() => setNewQ((p) => ({ ...p, correctAnswer: opt }))}
-                        title="Tandai jawaban benar" />
+                      <ImageUploadButton
+                        url={newQ.optionImages[i]}
+                        onChange={(url) => updateOptImage(i, url)}
+                        label={`Gambar pilihan ${String.fromCharCode(65 + i)}`}
+                      />
+                      {newQ.type === "PILGAN" && (
+                        <input type="radio" name="correct" checked={newQ.correctAnswer === opt && opt !== ""}
+                          onChange={() => setNewQ((p) => ({ ...p, correctAnswer: opt }))}
+                          title="Tandai jawaban benar" />
+                      )}
                     </div>
                   ))}
                   <p className="text-xs text-gray-400">Klik radio di kanan untuk menandai jawaban benar</p>
                 </div>
               )}
 
-              {newQ.type !== "PILGAN" && (
+              {newQ.type !== "PILGAN" && newQ.type !== "PILGAN_KOMPLEK" && newQ.type !== "ESSAY" && (
                 <div>
                   <label className="mb-1 block text-xs font-medium text-gray-600">Kunci Jawaban</label>
                   <input value={newQ.correctAnswer}

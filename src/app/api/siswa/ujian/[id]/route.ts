@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { optionText } from "@/lib/question-options";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -69,9 +70,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       case "PILGAN":
       case "BENAR_SALAH":
       case "ISIAN":
-      case "MENGURUTKAN":
         if (studentAnswer === q.correctAnswer) totalScore += q.score;
         break;
+
+      case "MENGURUTKAN": {
+        if (!q.correctAnswer) break;
+        const correctOrder = q.correctAnswer.split(",");
+        const studentOrder = studentAnswer.split(",");
+        if (correctOrder.join(",") === studentOrder.join(",")) totalScore += q.score;
+        break;
+      }
 
       case "PILGAN_KOMPLEK": {
         if (!q.correctAnswer) break;

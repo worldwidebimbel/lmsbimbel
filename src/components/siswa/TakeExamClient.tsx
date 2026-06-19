@@ -4,6 +4,7 @@ import { useState, useEffect, useTransition, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight, Loader2, ArrowUp, ArrowDown } from "lucide-react";
 import Link from "next/link";
+import { normalizeOptions } from "@/lib/question-options";
 
 interface Question { id: string; type: string; content: string; options: unknown; score: number }
 interface Exam {
@@ -31,7 +32,7 @@ export default function TakeExamClient({ exam, existingAttempt }: { exam: Exam; 
   const [isPending, startTransition] = useTransition();
   const [answers, setAnswers] = useState<Record<string, string>>(existingAttempt?.answers ?? {});
   // MENGURUTKAN: track current item order per question
-  const [orderedQ, setOrderedQ] = useState<Record<string, string[]>>({});
+  const [orderedQ, setOrderedQ] = useState<Record<string, { text: string; imageUrl?: string }[]>>({});
   // MENJODOHKAN: shuffled right items per question (stable)
   const shuffledRightsRef = useRef<Record<string, string[]>>({});
   const [current, setCurrent] = useState(0);
@@ -144,24 +145,25 @@ export default function TakeExamClient({ exam, existingAttempt }: { exam: Exam; 
           <span className="text-xs text-gray-400">{q.score} poin</span>
         </div>
 
-        <p className="text-base text-gray-900 whitespace-pre-wrap">{q.content}</p>
+        <div className="text-base text-gray-900 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: q.content }} />
 
         {/* Pilihan Ganda Tunggal */}
         {q.type === "PILGAN" && Array.isArray(q.options) && (
           <div className="space-y-2">
-            {(q.options as string[]).map((opt, i) => (
+            {normalizeOptions(q.options).map((opt, i) => (
               <label key={i} className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 px-4 py-3 transition-all ${
-                answers[q.id] === opt ? "border-indigo-500 bg-indigo-50" : "border-gray-200 hover:border-gray-300"
+                answers[q.id] === opt.text ? "border-indigo-500 bg-indigo-50" : "border-gray-200 hover:border-gray-300"
               }`}>
                 <div className={`flex h-5 w-5 items-center justify-center rounded-full border-2 shrink-0 ${
-                  answers[q.id] === opt ? "border-indigo-500 bg-indigo-500" : "border-gray-300"
+                  answers[q.id] === opt.text ? "border-indigo-500 bg-indigo-500" : "border-gray-300"
                 }`}>
-                  {answers[q.id] === opt && <div className="h-2 w-2 rounded-full bg-white" />}
+                  {answers[q.id] === opt.text && <div className="h-2 w-2 rounded-full bg-white" />}
                 </div>
-                <input type="radio" className="sr-only" name={q.id} value={opt}
-                  checked={answers[q.id] === opt}
-                  onChange={() => setAnswers((p) => ({ ...p, [q.id]: opt }))} />
-                <span className="text-sm text-gray-800">{String.fromCharCode(65 + i)}. {opt}</span>
+                <input type="radio" className="sr-only" name={q.id} value={opt.text}
+                  checked={answers[q.id] === opt.text}
+                  onChange={() => setAnswers((p) => ({ ...p, [q.id]: opt.text }))} />
+                <span className="text-sm text-gray-800">{String.fromCharCode(65 + i)}. {opt.text}</span>
+                {opt.imageUrl && <img src={opt.imageUrl} alt="" className="ml-auto h-12 w-12 rounded object-cover" />}
               </label>
             ))}
           </div>
@@ -169,13 +171,13 @@ export default function TakeExamClient({ exam, existingAttempt }: { exam: Exam; 
 
         {/* Pilihan Ganda Kompleks — centang semua yang benar */}
         {q.type === "PILGAN_KOMPLEK" && Array.isArray(q.options) && (() => {
-          const opts = q.options as string[];
+          const opts = normalizeOptions(q.options);
           const selected = answers[q.id] ? answers[q.id].split("|") : [];
           return (
             <div className="space-y-2">
               <p className="text-xs text-indigo-600 font-medium">Pilih semua jawaban yang benar (boleh lebih dari satu)</p>
               {opts.map((opt, i) => {
-                const checked = selected.includes(opt);
+                const checked = selected.includes(opt.text);
                 return (
                   <label key={i} className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 px-4 py-3 transition-all ${
                     checked ? "border-indigo-500 bg-indigo-50" : "border-gray-200 hover:border-gray-300"
@@ -187,10 +189,11 @@ export default function TakeExamClient({ exam, existingAttempt }: { exam: Exam; 
                     </div>
                     <input type="checkbox" className="sr-only" checked={checked}
                       onChange={() => {
-                        const next = checked ? selected.filter((s) => s !== opt) : [...selected, opt];
+                        const next = checked ? selected.filter((s) => s !== opt.text) : [...selected, opt.text];
                         setAnswers((p) => ({ ...p, [q.id]: next.sort().join("|") }));
                       }} />
-                    <span className="text-sm text-gray-800">{String.fromCharCode(65 + i)}. {opt}</span>
+                    <span className="text-sm text-gray-800">{String.fromCharCode(65 + i)}. {opt.text}</span>
+                    {opt.imageUrl && <img src={opt.imageUrl} alt="" className="ml-auto h-12 w-12 rounded object-cover" />}
                   </label>
                 );
               })}
@@ -251,7 +254,8 @@ export default function TakeExamClient({ exam, existingAttempt }: { exam: Exam; 
 
         {/* Mengurutkan */}
         {q.type === "MENGURUTKAN" && Array.isArray(q.options) && (() => {
-          const items = q.options as string[];
+          const items = normalizeOptions(q.options);
+          const itemTexts = items.map((o) => o.text);
           if (!orderedQ[q.id]) {
             const shuffled = shuffleArr(items, q.id);
             setTimeout(() => {
@@ -259,13 +263,13 @@ export default function TakeExamClient({ exam, existingAttempt }: { exam: Exam; 
             }, 0);
             return <div className="text-sm text-gray-400">Memuat...</div>;
           }
-          const current_order = orderedQ[q.id];
+          const current_order = orderedQ[q.id].map((v) => normalizeOptions([v])[0]);
           function moveItem(from: number, to: number) {
             const arr = [...current_order];
             const [item] = arr.splice(from, 1);
             arr.splice(to, 0, item);
             setOrderedQ((p) => ({ ...p, [q.id]: arr }));
-            setAnswers((p) => ({ ...p, [q.id]: arr.join(",") }));
+            setAnswers((p) => ({ ...p, [q.id]: arr.map((o) => o.text).join(",") }));
           }
           return (
             <div className="space-y-2">
@@ -273,7 +277,10 @@ export default function TakeExamClient({ exam, existingAttempt }: { exam: Exam; 
               {current_order.map((item, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">{i + 1}</span>
-                  <div className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800">{item}</div>
+                  <div className="flex flex-1 items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800">
+                    {item.text}
+                    {item.imageUrl && <img src={item.imageUrl} alt="" className="h-10 w-10 rounded object-cover" />}
+                  </div>
                   <div className="flex flex-col gap-0.5">
                     <button disabled={i === 0} onClick={() => moveItem(i, i - 1)}
                       className="rounded p-0.5 text-gray-400 hover:text-indigo-600 disabled:opacity-20">
