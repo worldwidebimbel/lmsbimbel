@@ -23,13 +23,26 @@ export async function POST(req: NextRequest) {
 
   if (!file) return NextResponse.json({ error: "File tidak ditemukan" }, { status: 400 });
 
-  const maxMb = 20;
-  if (file.size > maxMb * 1024 * 1024) {
-    return NextResponse.json({ error: `Ukuran file maksimal ${maxMb}MB` }, { status: 400 });
+  const allowedTypes = [
+    "image/",
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "application/vnd.ms-powerpoint",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel",
+    "text/plain",
+  ];
+  const isAllowed = allowedTypes.some((t) => file.type.startsWith(t));
+  if (!isAllowed) {
+    return NextResponse.json({ error: `Tipe file tidak didukung: ${file.type}` }, { status: 400 });
   }
 
-  if (!file.type.startsWith("image/")) {
-    return NextResponse.json({ error: `File harus gambar (image/*), diterima: ${file.type}` }, { status: 400 });
+  const resourceType: "image" | "raw" = file.type.startsWith("image/") ? "image" : "raw";
+  const maxMb = resourceType === "image" ? 20 : 50;
+  if (file.size > maxMb * 1024 * 1024) {
+    return NextResponse.json({ error: `Ukuran file maksimal ${maxMb}MB` }, { status: 400 });
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
@@ -37,7 +50,7 @@ export async function POST(req: NextRequest) {
   const filename = `${slug}_${Date.now()}`;
 
   try {
-    const result = await uploadToCloudinary(buffer, folder, filename, "image");
+    const result = await uploadToCloudinary(buffer, folder, filename, resourceType);
     return NextResponse.json({ url: result.url, publicId: result.publicId, name: file.name });
   } catch (err: unknown) {
     console.error("[Upload] Cloudinary error:", err);

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { X, Upload, Link2, Youtube, Loader2 } from "lucide-react";
+import { X, Upload, Link2, Youtube, Loader2, FileText, CheckCircle } from "lucide-react";
 import type { MaterialItem, MaterialClass, MaterialSubject } from "./types";
 
 type Subject = MaterialSubject;
@@ -30,6 +30,8 @@ const MATERIAL_TYPES = [
 export function MaterialUploadModal({ classes, subjects, editData, onClose, onSaved }: Props) {
   const isEdit = !!editData;
   const [isPending, startTransition] = useTransition();
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const [form, setForm] = useState({
     title: editData?.title ?? "",
@@ -48,10 +50,37 @@ export function MaterialUploadModal({ classes, subjects, editData, onClose, onSa
   const showUrlInput = ["YOUTUBE", "LINK", "VIDEO"].includes(form.type);
   const showFileHint = ["PDF", "PRESENTATION", "DOCUMENT"].includes(form.type);
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0] ?? null;
+    if (!f) return;
+    setFile(f);
+  }
+
+  async function handleUpload() {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("folder", "materi");
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const d = await res.json();
+      if (!res.ok) {
+        toast.error(d.error ?? "Gagal upload file");
+        return;
+      }
+      set("fileUrl", d.url);
+      toast.success("File berhasil diupload");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title.trim()) return toast.error("Judul wajib diisi");
     if (showUrlInput && !form.fileUrl.trim()) return toast.error("URL wajib diisi");
+    if (showFileHint && !form.fileUrl.trim()) return toast.error("File belum diupload");
 
     startTransition(async () => {
       const url = isEdit ? `/api/materi/${editData!.id}` : "/api/materi";
@@ -65,6 +94,7 @@ export function MaterialUploadModal({ classes, subjects, editData, onClose, onSa
           classId: form.classId || null,
           subjectId: form.subjectId || null,
           fileUrl: form.fileUrl || null,
+          fileSize: file?.size ?? null,
         }),
       });
 
@@ -153,20 +183,70 @@ export function MaterialUploadModal({ classes, subjects, editData, onClose, onSa
             </div>
           )}
 
-          {/* File upload hint */}
+          {/* File upload */}
           {showFileHint && (
             <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center">
-              <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">Upload file {form.type}</p>
-              <p className="text-xs text-gray-400 mt-1">
-                Masukkan URL Cloudinary/CDN setelah upload
-              </p>
-              <input
-                value={form.fileUrl}
-                onChange={(e) => set("fileUrl", e.target.value)}
-                placeholder="URL file setelah diupload..."
-                className="mt-3 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              {!file && !form.fileUrl && (
+                <>
+                  <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">Upload file {form.type}</p>
+                  <p className="text-xs text-gray-400 mt-1">PDF, PPT, DOC, DOCX (maks 50MB)</p>
+                </>
+              )}
+              {file && !form.fileUrl && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-700">
+                    <FileText className="w-5 h-5 text-blue-500" />
+                    <span className="truncate max-w-[200px]">{file.name}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleUpload}
+                    disabled={uploading}
+                    className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    {uploading ? "Mengupload..." : "Upload File"}
+                  </button>
+                </div>
+              )}
+              {form.fileUrl && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-center gap-2 text-sm text-green-700">
+                    <CheckCircle className="w-5 h-5" />
+                    <span>File berhasil diupload</span>
+                  </div>
+                  <a href={form.fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline break-all">
+                    {form.fileUrl}
+                  </a>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => { setFile(null); set("fileUrl", ""); }}
+                      className="text-xs text-red-600 hover:underline"
+                    >
+                      Ganti file
+                    </button>
+                  </div>
+                </div>
+              )}
+              <label className="block mt-3 cursor-pointer">
+                <input
+                  type="file"
+                  accept={
+                    form.type === "PDF"
+                      ? ".pdf,application/pdf"
+                      : form.type === "PRESENTATION"
+                      ? ".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                      : ".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  }
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <span className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                  {form.fileUrl ? "Pilih file lain" : "Pilih file"}
+                </span>
+              </label>
             </div>
           )}
 
