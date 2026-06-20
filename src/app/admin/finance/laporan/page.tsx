@@ -1,46 +1,78 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
-import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subDays, subWeeks, subMonths, subYears } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { formatCurrency } from "@/lib/utils";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, Printer, Building2 } from "lucide-react";
 import Link from "next/link";
+import ReportControls from "@/components/admin/ReportControls";
 
 export const metadata = { title: "Laporan Keuangan" };
 
-export default async function LaporanKeuanganPage() {
+export default async function LaporanKeuanganPage({ searchParams }: { searchParams: Promise<{ branch?: string; period?: string }> }) {
   const session = await auth();
   if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
 
-  const now = new Date();
-  // Last 6 months data
-  const months = Array.from({ length: 6 }, (_, i) => {
-    const d = subMonths(now, i);
-    return { start: startOfMonth(d), end: endOfMonth(d), label: format(d, "MMMM yyyy", { locale: localeId }) };
-  }).reverse();
+  const { branch, period } = await searchParams;
+  const { isSuperAdmin, branchId, allBranches } = await getBranchScope();
+  const selectedBranch = branch && branch !== "all" ? branch : (isSuperAdmin ? undefined : (branchId ?? undefined));
+  const selectedPeriod = period ?? "monthly";
 
-  const [allInvoices, allPayments] = await Promise.all([
+  const now = new Date();
+  const periods: Record<string, { label: string; start: Date; end: Date }[]> = {
+    daily: Array.from({ length: 30 }, (_, i) => {
+      const d = subDays(now, i);
+      return { label: format(d, "d MMM", { locale: localeId }), start: startOfDay(d), end: endOfDay(d) };
+    }).reverse(),
+    weekly: Array.from({ length: 12 }, (_, i) => {
+      const d = subWeeks(now, i);
+      return { label: format(d, "'Minggu' w", { locale: localeId }), start: startOfWeek(d, { weekStartsOn: 1 }), end: endOfWeek(d, { weekStartsOn: 1 }) };
+    }).reverse(),
+    monthly: Array.from({ length: 6 }, (_, i) => {
+      const d = subMonths(now, i);
+      return { label: format(d, "MMMM yyyy", { locale: localeId }), start: startOfMonth(d), end: endOfMonth(d) };
+    }).reverse(),
+    yearly: Array.from({ length: 5 }, (_, i) => {
+      const d = subYears(now, i);
+      return { label: format(d, "yyyy", { locale: localeId }), start: startOfYear(d), end: endOfYear(d) };
+    }).reverse(),
+  };
+
+  const items = periods[selectedPeriod] ?? periods.monthly;
+  const branchFilter = selectedBranch ? { branchId: selectedBranch } : {};
+
+  const [allInvoices, allPayments, branchTransactions] = await Promise.all([
     db.invoice.findMany({
+      where: branchFilter,
       include: { student: { select: { name: true, email: true } }, plan: { select: { name: true } } },
       orderBy: { createdAt: "desc" },
     }),
     db.payment.findMany({
-      where: { confirmedAt: { not: null } },
+      where: { confirmedAt: { not: null }, ...branchFilter },
       include: { invoice: { select: { studentId: true } }, user: { select: { name: true } } },
       orderBy: { confirmedAt: "desc" },
     }),
+    db.branchTransaction.findMany({
+      where: selectedBranch ? { branchId: selectedBranch } : {},
+      orderBy: { date: "desc" },
+    }),
   ]);
 
-  const monthlyStats = months.map((m) => {
+  const periodStats = items.map((m) => {
     const invoicesInMonth = allInvoices.filter((i) => i.createdAt >= m.start && i.createdAt <= m.end);
     const paymentsInMonth = allPayments.filter((p) => p.confirmedAt && p.confirmedAt >= m.start && p.confirmedAt <= m.end);
+    const incomeTx = branchTransactions.filter((t) => ["INCOME", "TRANSFER_IN"].includes(t.type) && t.date >= m.start && t.date <= m.end).reduce((s, t) => s + t.amount, 0);
+    const expenseTx = branchTransactions.filter((t) => ["EXPENSE", "TRANSFER_OUT"].includes(t.type) && t.date >= m.start && t.date <= m.end).reduce((s, t) => s + t.amount, 0);
     return {
       label: m.label,
       invoiced: invoicesInMonth.reduce((s, i) => s + i.amount, 0),
       collected: paymentsInMonth.reduce((s, p) => s + p.amount, 0),
       count: invoicesInMonth.length,
       paidCount: paymentsInMonth.length,
+      income: incomeTx,
+      expense: expenseTx,
     };
   });
 
@@ -56,6 +88,8 @@ export default async function LaporanKeuanganPage() {
   }
   const METHOD_LABEL: Record<string, string> = { TRANSFER: "Transfer Bank", CASH: "Tunai", QRIS: "QRIS", MIDTRANS: "Midtrans", XENDIT: "Xendit" };
 
+  const branchName = selectedBranch ? allBranches.find((b) => b.id === selectedBranch)?.name ?? "Cabang" : "Semua Cabang";
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -65,13 +99,15 @@ export default async function LaporanKeuanganPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Laporan Keuangan</h1>
-            <p className="text-sm text-gray-500">Dicetak: {format(now, "d MMMM yyyy HH:mm", { locale: localeId })}</p>
+            <p className="text-sm text-gray-500">Dicetak: {format(now, "d MMMM yyyy HH:mm", { locale: localeId })} · {branchName}</p>
           </div>
         </div>
         <button onClick={() => {}} className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 print:hidden">
           <Printer className="h-4 w-4" /> Cetak
         </button>
       </div>
+
+      <ReportControls branches={allBranches} currentBranch={selectedBranch ?? (isSuperAdmin ? "all" : (branchId ?? "all"))} currentPeriod={selectedPeriod} />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -89,13 +125,13 @@ export default async function LaporanKeuanganPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Monthly breakdown */}
+        {/* Period breakdown */}
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
           <div className="border-b border-gray-100 px-5 py-3">
-            <h2 className="font-semibold text-gray-900">Rekap 6 Bulan Terakhir</h2>
+            <h2 className="font-semibold text-gray-900">Rekap {selectedPeriod === "daily" ? "Harian" : selectedPeriod === "weekly" ? "Mingguan" : selectedPeriod === "yearly" ? "Tahunan" : "Bulanan"}</h2>
           </div>
           <div className="divide-y divide-gray-100">
-            {monthlyStats.map((m) => (
+            {periodStats.map((m) => (
               <div key={m.label} className="px-5 py-3">
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="text-sm font-medium text-gray-800">{m.label}</span>
@@ -104,6 +140,10 @@ export default async function LaporanKeuanganPage() {
                 <div className="flex items-center justify-between text-xs text-gray-400 mb-1.5">
                   <span>Ditagihkan: {formatCurrency(m.invoiced)}</span>
                   <span>{m.paidCount}/{m.count} tagihan lunas</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-gray-400 mb-1.5">
+                  <span>Pemasukan cabang: {formatCurrency(m.income)}</span>
+                  <span>Pengeluaran: {formatCurrency(m.expense)}</span>
                 </div>
                 {m.invoiced > 0 && (
                   <div className="h-1.5 w-full rounded-full bg-gray-100">

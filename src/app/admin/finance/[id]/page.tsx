@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect, notFound } from "next/navigation";
+import { getBranchScope } from "@/lib/branch-context";
 import InvoiceDetailClient from "@/components/admin/InvoiceDetailClient";
 import { Wallet, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -18,6 +19,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
     include: {
       student: { select: { id: true, name: true, email: true } },
       plan: true,
+      branch: { select: { id: true, name: true, code: true } },
       payments: {
         orderBy: { createdAt: "desc" },
         include: { user: { select: { id: true, name: true } } },
@@ -26,6 +28,11 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   });
 
   if (!invoice) notFound();
+
+  const { isSuperAdmin, branchId } = await getBranchScope();
+  if (!isSuperAdmin && invoice.branchId && invoice.branchId !== branchId) {
+    redirect("/admin/finance");
+  }
 
   const totalPaid = invoice.payments.reduce((s, p) => s + p.amount, 0);
 

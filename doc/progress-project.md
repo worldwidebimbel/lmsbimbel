@@ -135,14 +135,14 @@
 - [x] Histori transaksi + status PENDING — tabel di `/admin/finance`
 - [x] Laporan keuangan bulanan (rekap 6 bulan, per metode, per status) — `/admin/finance/laporan`
 - [x] Multi-cabang / multi-branch: model `Branch`, filter tagihan/kelas/user per cabang, pembuatan cabang, feature flag `FEAT_MULTI_BRANCH`
-- [ ] Pencatatan pengeluaran operasional & gaji karyawan
-- [ ] Rekap keuangan harian, mingguan, bulanan, tahunan
-- [ ] Reminder jatuh tempo via WhatsApp (gateway WABLAS / Twilio / Fonnte)
-- [ ] Daftar tunggakan + notifikasi waktu bayar
-- [ ] Tagihan paketan meeting (contoh: per 10 pertemuan)
-- [ ] Generate kuitansi / invoice PDF setelah pembayaran lunas
-- [ ] Pembayaran online otomatis Midtrans / Xendit (toggle enable/disable per event/tagihan)
-- [ ] Verifikasi pembayaran otomatis (Midtrans callback) + fallback manual upload bukti
+- [x] Pencatatan pengeluaran operasional & gaji karyawan — `/admin/finance/transactions`
+- [x] Rekap keuangan harian, mingguan, bulanan, tahunan — `/admin/finance/laporan`
+- [x] Reminder jatuh tempo via WhatsApp (gateway WABLAS / Twilio / Fonnte) — `POST /api/admin/finance/reminder` + `src/lib/whatsapp.ts`
+- [x] Daftar tunggakan + notifikasi waktu bayar — `/admin/finance/overdue`
+- [x] Tagihan paketan meeting (contoh: per 10 pertemuan) — field `meetingCount` & `meetingUsage` di `Invoice`, UI di detail tagihan
+- [x] Generate kuitansi / invoice PDF setelah pembayaran lunas — halaman cetak `/admin/finance/[id]/invoice`
+- [x] Pembayaran online otomatis Midtrans / Xendit (toggle enable/disable per event/tagihan) — field `enableOnlinePayment` & `onlinePaymentMethod`, endpoint `POST /api/siswa/tagihan/[id]/pay-online`
+- [x] Verifikasi pembayaran otomatis (Midtrans callback) + fallback manual upload bukti — `POST /api/payments/midtrans/callback` + konfirmasi manual admin
 
 ### 🔔 Modul 10: Notifikasi & Pengumuman
 - [x] Notifikasi in-app — `GET /api/notifications`

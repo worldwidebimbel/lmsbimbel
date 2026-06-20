@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { CheckCircle, Loader2, Clock, XCircle, AlertCircle, Hourglass, ExternalLink, ThumbsUp, ThumbsDown, Bell } from "lucide-react";
+import { CheckCircle, Loader2, Clock, XCircle, AlertCircle, Hourglass, ExternalLink, ThumbsUp, ThumbsDown, Bell, Printer } from "lucide-react";
+import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -15,8 +16,13 @@ interface Invoice {
   dueDate: string;
   status: string;
   note: string | null;
+  meetingCount: number | null;
+  meetingUsage: number;
+  enableOnlinePayment: boolean;
+  onlinePaymentMethod: string | null;
+  branch: { name: string; code: string } | null;
   student: { id: string; name: string; email: string };
-  plan: { name: string } | null;
+  plan: { name: string; type?: string; meetingCount?: number | null } | null;
   payments: Payment[];
 }
 
@@ -43,8 +49,11 @@ export default function InvoiceDetailClient({ invoice, totalPaid }: { invoice: I
   const [payments, setPayments] = useState<Payment[]>(invoice.payments);
   const [error, setError] = useState("");
   const [sendingReminder, setSendingReminder] = useState(false);
+  const [meetingUsage, setMeetingUsage] = useState(invoice.meetingUsage);
+  const [updatingMeeting, setUpdatingMeeting] = useState(false);
 
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.UNPAID;
+  const isMeetingPackage = invoice.meetingCount !== null && invoice.meetingCount > 0;
   const Icon = cfg.Icon;
   const remaining = invoice.amount - payments.reduce((s, p) => s + p.amount, 0);
 
@@ -117,15 +126,37 @@ export default function InvoiceDetailClient({ invoice, totalPaid }: { invoice: I
     } finally { setSendingReminder(false); }
   }
 
+  async function handleMeetingUsage(delta: number) {
+    setUpdatingMeeting(true);
+    try {
+      const res = await fetch(`/api/admin/finance/invoices/${invoice.id}/meetings`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ delta }) });
+      if (!res.ok) throw new Error("Gagal");
+      const data = await res.json();
+      setMeetingUsage(data.meetingUsage);
+      toast.success("Pertemuan diperbarui");
+    } catch {
+      toast.error("Gagal memperbarui pertemuan");
+    } finally { setUpdatingMeeting(false); }
+  }
+
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-gray-900">Info Tagihan</h3>
-          <span className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ${cfg.bg} ${cfg.color}`}>
-            <Icon className="h-4 w-4" />
-            {cfg.label}
-          </span>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/admin/finance/${invoice.id}/invoice`}
+              target="_blank"
+              className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              <Printer className="h-4 w-4" /> Cetak Invoice
+            </Link>
+            <span className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ${cfg.bg} ${cfg.color}`}>
+              <Icon className="h-4 w-4" />
+              {cfg.label}
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-sm">
@@ -137,6 +168,11 @@ export default function InvoiceDetailClient({ invoice, totalPaid }: { invoice: I
           <div>
             <p className="text-gray-500">Paket</p>
             <p className="font-medium text-gray-900">{invoice.plan?.name ?? "Manual"}</p>
+            {invoice.plan?.type === "MEETING_PACKAGE" && <p className="text-xs text-blue-600">Paket Pertemuan</p>}
+          </div>
+          <div>
+            <p className="text-gray-500">Cabang</p>
+            <p className="font-medium text-gray-900">{invoice.branch?.name ?? "Pusat"}</p>
           </div>
           <div>
             <p className="text-gray-500">Nominal</p>
@@ -158,6 +194,45 @@ export default function InvoiceDetailClient({ invoice, totalPaid }: { invoice: I
             <div className="col-span-2">
               <p className="text-gray-500">Catatan</p>
               <p className="text-gray-700">{invoice.note}</p>
+            </div>
+          )}
+          {invoice.enableOnlinePayment && (
+            <div className="col-span-2">
+              <p className="text-gray-500">Pembayaran Online</p>
+              <p className="text-sm font-medium text-emerald-700">
+                Aktif ({invoice.onlinePaymentMethod}) — siswa dapat membayar langsung via gateway.
+              </p>
+            </div>
+          )}
+          {isMeetingPackage && (
+            <div className="col-span-2 rounded-lg bg-blue-50 p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-blue-700 font-medium">Paket Pertemuan</p>
+                  <p className="text-sm text-blue-900 mt-0.5">
+                    {meetingUsage} / {invoice.meetingCount} pertemuan digunakan
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleMeetingUsage(-1)}
+                    disabled={updatingMeeting || meetingUsage <= 0}
+                    className="rounded-lg bg-white px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+                  >
+                    -
+                  </button>
+                  <button
+                    onClick={() => handleMeetingUsage(1)}
+                    disabled={updatingMeeting || meetingUsage >= (invoice.meetingCount ?? 0)}
+                    className="rounded-lg bg-white px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+              {meetingUsage >= (invoice.meetingCount ?? 0) && (
+                <p className="text-xs text-red-600 mt-2">Paket pertemuan telah habis.</p>
+              )}
             </div>
           )}
         </div>

@@ -13,7 +13,14 @@ export default async function SiswaTagihanPage() {
   const [invoices, qrisSettings] = await Promise.all([
     db.invoice.findMany({
       where: { studentId: session.user.id },
-      include: {
+      select: {
+        id: true,
+        amount: true,
+        dueDate: true,
+        status: true,
+        note: true,
+        enableOnlinePayment: true,
+        onlinePaymentMethod: true,
         plan: { select: { name: true } },
         payments: { select: { id: true, amount: true, confirmedAt: true, proofUrl: true } },
       },

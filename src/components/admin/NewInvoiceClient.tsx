@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
 interface Student { id: string; name: string; email: string; defaultBranchId?: string | null }
-interface Plan { id: string; name: string; amount: number; period: string }
+interface Plan { id: string; name: string; amount: number; period: string; type?: string; meetingCount?: number | null }
 interface Branch { id: string; name: string; code: string }
 
 export default function NewInvoiceClient({ students, plans, branches, defaultBranchId, isSuperAdmin }: { students: Student[]; plans: Plan[]; branches: Branch[]; defaultBranchId: string | null; isSuperAdmin: boolean }) {
@@ -20,9 +20,11 @@ export default function NewInvoiceClient({ students, plans, branches, defaultBra
     amount: "",
     dueDate: "",
     note: "",
+    enableOnlinePayment: false,
+    onlinePaymentMethod: "MIDTRANS",
   });
 
-  function update(k: string, v: string) { setForm((p) => ({ ...p, [k]: v })); }
+  function update(k: string, v: string | boolean) { setForm((p) => ({ ...p, [k]: v })); }
 
   function onPlanChange(planId: string) {
     const plan = plans.find((p) => p.id === planId);
@@ -101,7 +103,12 @@ export default function NewInvoiceClient({ students, plans, branches, defaultBra
           className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
         >
           <option value="">Manual (tanpa paket)</option>
-          {plans.map((p) => <option key={p.id} value={p.id}>{p.name} — Rp {p.amount.toLocaleString("id-ID")} / {p.period}</option>)}
+          {plans.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name} — Rp {p.amount.toLocaleString("id-ID")}
+              {p.type === "MEETING_PACKAGE" && p.meetingCount ? ` (${p.meetingCount} pertemuan)` : ` / ${p.period}`}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -138,6 +145,35 @@ export default function NewInvoiceClient({ students, plans, branches, defaultBra
           placeholder="Keterangan tagihan..."
           className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
         />
+      </div>
+
+      <div className="rounded-lg border border-gray-200 p-4 space-y-3">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.enableOnlinePayment}
+            onChange={(e) => update("enableOnlinePayment", e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <div>
+            <p className="text-sm font-medium text-gray-900">Aktifkan pembayaran online</p>
+            <p className="text-xs text-gray-500">Siswa dapat membayar via gateway yang dipilih.</p>
+          </div>
+        </label>
+
+        {form.enableOnlinePayment && (
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">Gateway</label>
+            <select
+              value={form.onlinePaymentMethod}
+              onChange={(e) => update("onlinePaymentMethod", e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
+            >
+              <option value="MIDTRANS">Midtrans</option>
+              <option value="XENDIT">Xendit</option>
+            </select>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">

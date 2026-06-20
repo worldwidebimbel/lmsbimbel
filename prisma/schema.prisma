@@ -577,14 +577,21 @@ model Grade {
 // KEUANGAN
 // ============================
 
+enum BillingPlanType {
+  PERIOD
+  MEETING_PACKAGE
+}
+
 model BillingPlan {
-  id          String    @id @default(cuid())
-  name        String
-  amount      Float
-  period      String
-  description String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
+  id            String          @id @default(cuid())
+  name          String
+  amount        Float
+  type          BillingPlanType @default(PERIOD)
+  period        String
+  meetingCount  Int?
+  description   String?
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
 
   invoices    Invoice[]
 
@@ -592,16 +599,20 @@ model BillingPlan {
 }
 
 model Invoice {
-  id         String        @id @default(cuid())
-  studentId  String
-  planId     String?
-  branchId   String?
-  amount     Float
-  dueDate    DateTime
-  status     InvoiceStatus @default(UNPAID)
-  note       String?
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
+  id            String        @id @default(cuid())
+  studentId     String
+  planId        String?
+  branchId      String?
+  amount        Float
+  dueDate       DateTime
+  status        InvoiceStatus @default(UNPAID)
+  note                String?
+  meetingCount        Int?
+  meetingUsage        Int             @default(0)
+  enableOnlinePayment Boolean         @default(false)
+  onlinePaymentMethod String?
+  createdAt           DateTime        @default(now())
+  updatedAt     DateTime      @updatedAt
 
   student    User          @relation(fields: [studentId], references: [id])
   plan       BillingPlan?  @relation(fields: [planId], references: [id])

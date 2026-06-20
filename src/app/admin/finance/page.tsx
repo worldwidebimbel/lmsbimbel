@@ -1,11 +1,13 @@
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 import { formatCurrency, formatDate, getInvoiceStatusColor, getInvoiceStatusLabel } from "@/lib/utils";
-import { Wallet, TrendingUp, AlertCircle, CheckCircle, Plus, BarChart2, Hourglass, Building2 } from "lucide-react";
+import { Wallet, AlertCircle, CheckCircle, Plus, BarChart2, Hourglass, Building2, Bell } from "lucide-react";
 import Link from "next/link";
+import FinanceBranchFilter from "@/components/admin/FinanceBranchFilter";
 
-async function getFinanceData(branchId: string | null, isSuperAdmin: boolean) {
-  const branchFilter = branchId ? { branchId } : {};
+async function getFinanceData(branchId: string | null, isSuperAdmin: boolean, selectedBranch: string | null) {
+  const activeBranchId = selectedBranch ?? (isSuperAdmin ? undefined : branchId);
+  const branchFilter = activeBranchId ? { branchId: activeBranchId } : {};
   const [invoices, paidSum, unpaidSum, overdueCount, pendingCount] = await Promise.all([
     db.invoice.findMany({
       where: branchFilter,
@@ -23,14 +25,16 @@ async function getFinanceData(branchId: string | null, isSuperAdmin: boolean) {
 
 export const metadata = { title: "Keuangan" };
 
-export default async function FinancePage() {
+export default async function FinancePage({ searchParams }: { searchParams: Promise<{ branch?: string }> }) {
+  const { branch } = await searchParams;
   const { branchId, isSuperAdmin, allBranches } = await getBranchScope();
-  const { invoices, paidAmount, unpaidAmount, overdueCount, pendingCount } = await getFinanceData(branchId, isSuperAdmin);
+  const selectedBranch = branch && branch !== "all" ? branch : null;
+  const { invoices, paidAmount, unpaidAmount, overdueCount, pendingCount } = await getFinanceData(branchId, isSuperAdmin, selectedBranch);
 
   const cards = [
     { label: "Total Terbayar",           value: formatCurrency(paidAmount),  icon: CheckCircle, color: "text-green-600", bg: "bg-green-50" },
     { label: "Belum Dibayar",            value: formatCurrency(unpaidAmount), icon: Wallet,      color: "text-orange-600", bg: "bg-orange-50" },
-    { label: "Jatuh Tempo",              value: `${overdueCount} tagihan`,    icon: AlertCircle, color: "text-red-600",    bg: "bg-red-50" },
+    { label: "Jatuh Tempo",              value: `${overdueCount} tagihan`,    icon: AlertCircle, color: "text-red-600",    bg: "bg-red-50", href: "/admin/finance/overdue" },
     { label: "Menunggu Konfirmasi QRIS", value: `${pendingCount} tagihan`,    icon: Hourglass,   color: "text-blue-600",   bg: "bg-blue-50" },
   ];
 
@@ -42,18 +46,18 @@ export default async function FinancePage() {
           <p className="text-sm text-gray-500 mt-0.5">Kelola tagihan dan konfirmasi pembayaran</p>
         </div>
         <div className="flex items-center gap-2">
-          {isSuperAdmin && allBranches.length > 0 && (
-            <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg bg-white">
-              <Building2 className="w-4 h-4 text-gray-500" />
-              <select name="branch" defaultValue={branchId ?? "all"} className="text-sm bg-transparent outline-none">
-                <option value="all">Semua Cabang</option>
-                {allBranches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
-            </div>
-          )}
+          <FinanceBranchFilter branches={allBranches} currentBranch={selectedBranch ?? (isSuperAdmin ? "all" : (branchId ?? "all"))} />
+          <Link href="/admin/finance/overdue"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-red-600 text-sm font-medium rounded-lg hover:bg-red-50">
+            <Bell className="w-4 h-4" /> Tunggakan
+          </Link>
           <Link href="/admin/finance/laporan"
             className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50">
             <BarChart2 className="w-4 h-4" /> Laporan
+          </Link>
+          <Link href="/admin/finance/transactions"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50">
+            <Building2 className="w-4 h-4" /> Transaksi Cabang
           </Link>
           <a href="/admin/finance/new"
             className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors">

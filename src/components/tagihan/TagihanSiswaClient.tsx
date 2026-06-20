@@ -10,7 +10,8 @@ import { toast } from "sonner";
 interface Payment { id: string; amount: number; confirmedAt: string | null; proofUrl: string | null }
 interface Invoice {
   id: string; amount: number; dueDate: string; status: string;
-  note: string | null; plan: { name: string } | null; payments: Payment[];
+  note: string | null; enableOnlinePayment: boolean; onlinePaymentMethod: string | null;
+  plan: { name: string } | null; payments: Payment[];
 }
 interface QrisConfig { imageUrl: string | null; bankName: string | null; accountName: string | null; accountNumber: string | null }
 
@@ -38,6 +39,7 @@ export default function TagihanSiswaClient({ invoices: initial, summary, qris, c
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [payingOnline, setPayingOnline] = useState(false);
 
   function openPayModal(inv: Invoice) {
     setActiveInvoice(inv);
@@ -94,6 +96,25 @@ export default function TagihanSiswaClient({ invoices: initial, summary, qris, c
       setActiveInvoice(null);
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handlePayOnline(inv: Invoice) {
+    setPayingOnline(true);
+    try {
+      const res = await fetch(`${paymentApiBase}/${inv.id}/pay-online`, { method: "POST" });
+      const d = await res.json();
+      if (!res.ok) {
+        toast.error(d.error ?? "Gagal memulai pembayaran online");
+        return;
+      }
+      if (d.redirectUrl) {
+        window.location.href = d.redirectUrl;
+      } else {
+        toast.error("Gateway tidak mengembalikan link pembayaran");
+      }
+    } finally {
+      setPayingOnline(false);
     }
   }
 
@@ -169,10 +190,19 @@ export default function TagihanSiswaClient({ invoices: initial, summary, qris, c
                 )}
 
                 {isPayable && (
-                  <button onClick={() => openPayModal(inv)}
-                    className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
-                    <QrCode className="h-4 w-4" /> Bayar dengan QRIS
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    <button onClick={() => openPayModal(inv)}
+                      className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                      <QrCode className="h-4 w-4" /> Bayar QRIS
+                    </button>
+                    {inv.enableOnlinePayment && (
+                      <button onClick={() => handlePayOnline(inv)} disabled={payingOnline}
+                        className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50">
+                        {payingOnline ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
+                        Bayar Online {inv.onlinePaymentMethod}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             );
