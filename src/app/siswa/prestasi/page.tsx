@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { calcLevel, calcPoints, computeBadges } from "@/lib/gamification";
 import { getBranchScope } from "@/lib/branch-context";
 import PrestasiClient from "@/components/siswa/PrestasiClient";
+import { randomUUID } from "crypto";
 
 export const metadata = { title: "Prestasi & Gamifikasi" };
 
@@ -52,12 +53,25 @@ export default async function PrestasiPage() {
   });
 
   const levelInfo = calcLevel(totalPoints);
-  const badges = computeBadges({ materiSelesai, tugasDikumpulkan, ujianSelesai, totalHadir: absenData, avgGrade, maxGrade, totalPoints });
+
+  const existing = await db.studentPoints.findUnique({ where: { userId: studentId } });
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+
+  let newStreak = 1;
+  if (existing?.lastActivityDate) {
+    const last = new Date(existing.lastActivityDate); last.setHours(0, 0, 0, 0);
+    if (last.getTime() === today.getTime()) newStreak = existing.streak;
+    else if (last.getTime() === yesterday.getTime()) newStreak = (existing.streak ?? 0) + 1;
+    else newStreak = 1;
+  }
+
+  const badges = computeBadges({ materiSelesai, tugasDikumpulkan, ujianSelesai, totalHadir: absenData, avgGrade, maxGrade, totalPoints, streak: newStreak });
 
   await db.studentPoints.upsert({
     where: { userId: studentId },
-    update: { points: totalPoints, level: levelInfo.level, xp: totalPoints },
-    create: { userId: studentId, points: totalPoints, level: levelInfo.level, xp: totalPoints, streak: 0 },
+    update: { points: totalPoints, level: levelInfo.level, xp: totalPoints, streak: newStreak, lastActivityDate: new Date() },
+    create: { userId: studentId, points: totalPoints, level: levelInfo.level, xp: totalPoints, streak: newStreak, lastActivityDate: new Date() },
   });
 
   const earnedBadgeIds = badges.filter((b) => b.earned).map((b) => b.id);
@@ -72,6 +86,27 @@ export default async function PrestasiPage() {
       }).catch(() => {});
     }
   }
+
+  if (levelInfo.level >= 3) {
+    const hasCert = await db.certificate.findFirst({ where: { userId: studentId, type: "LMS_COMPLETION" } });
+    if (!hasCert) {
+      const studentUser = await db.user.findUnique({ where: { id: studentId }, select: { name: true } });
+      await db.certificate.create({
+        data: {
+          code: randomUUID().replace(/-/g, "").slice(0, 16).toUpperCase(),
+          userId: studentId,
+          type: "LMS_COMPLETION",
+          title: "Sertifikat Kelulusan LMS",
+          recipientName: studentUser?.name ?? "",
+        },
+      });
+    }
+  }
+
+  const myCertificates = await db.certificate.findMany({
+    where: { userId: studentId },
+    orderBy: { issuedAt: "desc" },
+  });
 
   const classIds = myClasses.map((c) => c.classId);
   const classmateIds = classIds.length > 0
@@ -133,6 +168,8 @@ export default async function PrestasiPage() {
       branchLeaderboard={JSON.parse(JSON.stringify(branchLeaderboard.slice(0, 20)))}
       myBranchRank={myBranchRank || 0}
       studentId={studentId}
+      streak={newStreak}
+      certificates={JSON.parse(JSON.stringify(myCertificates))}
     />
   );
 }

@@ -38,6 +38,7 @@ const NAV_ADMIN: NavItem[] = [
   { title: "Analitik", href: "/admin/analytics", icon: "BarChart3", featureFlag: "FEAT_ANALYTICS" },
   { title: "Pengumuman", href: "/admin/announcements", icon: "Megaphone", featureFlag: "FEAT_ANNOUNCEMENTS" },
   { title: "Event Berbayar", href: "/admin/events", icon: "Trophy", featureFlag: "FEAT_EVENTS" },
+  { title: "Sertifikat", href: "/admin/sertifikat", icon: "Award" },
   { title: "CMS Landing Page", href: "/admin/site", icon: "Globe" },
   { title: "Pengaturan", href: "/admin/settings", icon: "Settings" },
 ];

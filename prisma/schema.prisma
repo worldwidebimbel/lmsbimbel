@@ -196,6 +196,7 @@ model User {
   requestedTransfers BranchCashTransfer[]
   createdEvents    Event[]
   eventRegistrations EventRegistration[]
+  certificates       Certificate[]
 
   @@map("users")
 }
@@ -774,11 +775,12 @@ model StudentBadge {
 
 model StudentPoints {
   id       String @id @default(cuid())
-  userId   String @unique
-  points   Int    @default(0)
-  level    Int    @default(1)
-  streak   Int    @default(0)
-  xp       Int    @default(0)
+  userId           String    @unique
+  points           Int       @default(0)
+  level            Int       @default(1)
+  streak           Int       @default(0)
+  xp               Int       @default(0)
+  lastActivityDate DateTime?
 
   user     User   @relation(fields: [userId], references: [id])
 
@@ -920,6 +922,12 @@ model FeatureFlagLog {
 // EVENT BERBAYAR
 // ============================
 
+enum CertificateType {
+  LMS_COMPLETION
+  EVENT_PARTICIPATION
+  EVENT_WINNER
+}
+
 enum EventType {
   TRYOUT
   OLIMPIADE
@@ -1022,6 +1030,30 @@ model EventRegistration {
   @@map("event_registrations")
   @@index([eventId])
   @@index([userId])
+}
+
+// ============================
+// E-SERTIFIKAT
+// ============================
+
+model Certificate {
+  id            String          @id @default(cuid())
+  code          String          @unique
+  userId        String
+  type          CertificateType
+  title         String
+  recipientName String
+  eventId       String?
+  eventName     String?
+  score         Float?
+  rank          Int?
+  issuedAt      DateTime        @default(now())
+  createdAt     DateTime        @default(now())
+
+  user          User            @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("certificates")
 }
 
 // ============================

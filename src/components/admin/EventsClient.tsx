@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Calendar, MapPin, Package, Plus, Trash2, Edit2, X, Users, Check, Loader2, BookOpen, UserCheck } from "lucide-react";
+import { Calendar, MapPin, Package, Plus, Trash2, Edit2, X, Users, Check, Loader2, BookOpen, UserCheck, Award } from "lucide-react";
 
 interface EventPackage {
   id?: string;
@@ -239,6 +239,12 @@ export default function EventsClient({ isSuperAdmin, userBranchId }: { isSuperAd
                     className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-50"
                   >
                     <UserCheck className="w-3.5 h-3.5" /> Peserta
+                  </Link>
+                  <Link
+                    href={`/admin/events/${event.id}/sertifikat`}
+                    className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-amber-200 text-amber-700 hover:bg-amber-50"
+                  >
+                    <Award className="w-3.5 h-3.5" /> Sertifikat
                   </Link>
                 </div>
               </div>

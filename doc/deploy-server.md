@@ -397,6 +397,7 @@ git checkout -- package-lock.json && git pull origin main
 npm install          # nodemailer sudah v7.0.7, tidak ada error
 npx prisma generate  # regenerate client
 npx prisma db push   # buat tabel Branch, BranchTransaction, BranchCashTransfer
+npx prisma db push --accept-data-los
 
 npm run db:seed                  # seed flag FEAT_MULTI_BRANCH + default cabang
 npm run db:seed:default-branch  # assign default cabang ke data lama
@@ -404,5 +405,5 @@ npm run db:seed:default-branch  # assign default cabang ke data lama
 npm run build
 pm2 restart lms-bimbel
 
-git pull && npx prisma generate && npx prisma db push && npm run build && pm2 restart lms-bimbel
+git pull && npm install && npx prisma generate && npx prisma db push && npm run build && pm2 restart lms-bimbel
 ```

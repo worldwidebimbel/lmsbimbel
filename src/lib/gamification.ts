@@ -75,6 +75,7 @@ export function computeBadges(stats: {
   avgGrade: number;
   maxGrade: number;
   totalPoints: number;
+  streak?: number;
 }): Badge[] {
   return [
     {
@@ -121,6 +122,21 @@ export function computeBadges(stats: {
       id: "master_bimbel", name: "Master Bimbel", icon: "👑",
       description: "Kumpulkan 1000 poin",
       earned: stats.totalPoints >= 1000,
+    },
+    {
+      id: "streak_3", name: "Konsisten 3 Hari", icon: "🔥",
+      description: "Belajar 3 hari berturut-turut",
+      earned: (stats.streak ?? 0) >= 3,
+    },
+    {
+      id: "streak_7", name: "Semangat 7 Hari", icon: "🔥🔥",
+      description: "Belajar 7 hari berturut-turut",
+      earned: (stats.streak ?? 0) >= 7,
+    },
+    {
+      id: "streak_30", name: "Pantang Menyerah", icon: "💪",
+      description: "Belajar 30 hari berturut-turut",
+      earned: (stats.streak ?? 0) >= 30,
     },
   ];
 }
