@@ -14,10 +14,11 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const DEMO_ACCOUNTS = [
-    { label: "Super Admin", email: "admin@lmsbimbel.id", password: "admin123", color: "bg-red-100 text-red-700 border-red-200" },
-    { label: "Guru", email: "guru@lmsbimbel.id", password: "guru123", color: "bg-yellow-100 text-yellow-700 border-yellow-200" },
-    { label: "Siswa", email: "siswa@lmsbimbel.id", password: "siswa123", color: "bg-green-100 text-green-700 border-green-200" },
-    { label: "Orang Tua", email: "orangtua@lmsbimbel.id", password: "ortu123", color: "bg-blue-100 text-blue-700 border-blue-200" },
+    { label: "Super Admin", email: "admin@lmsbimbel.id", password: "admin123", color: "bg-red-100 text-red-700 border-red-200", desc: "Akses global semua cabang" },
+    { label: "Admin Cabang", email: "admincabang@lmsbimbel.id", password: "admincabang123", color: "bg-orange-100 text-orange-700 border-orange-200", desc: "Keuangan & ops per cabang" },
+    { label: "Guru", email: "guru@lmsbimbel.id", password: "guru123", color: "bg-yellow-100 text-yellow-700 border-yellow-200", desc: "Kelola kelas, soal, ujian" },
+    { label: "Siswa", email: "siswa@lmsbimbel.id", password: "siswa123", color: "bg-green-100 text-green-700 border-green-200", desc: "Akses materi & ujian" },
+    { label: "Orang Tua", email: "orangtua@lmsbimbel.id", password: "ortu123", color: "bg-blue-100 text-blue-700 border-blue-200", desc: "Pantau progress anak" },
   ];
 
   async function handleLogin(e: React.FormEvent) {
@@ -128,7 +129,8 @@ export default function LoginPage() {
                   onClick={() => fillDemo(acc.email, acc.password)}
                   className={`text-xs px-3 py-2 rounded-lg border font-medium transition-opacity hover:opacity-80 text-left ${acc.color}`}
                 >
-                  {acc.label}
+                  <div className="font-semibold">{acc.label}</div>
+                  <div className="text-[10px] opacity-70 mt-0.5">{acc.desc}</div>
                 </button>
               ))}
             </div>

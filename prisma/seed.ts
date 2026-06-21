@@ -378,6 +378,21 @@ async function main() {
     },
   });
 
+  // Seed Admin Cabang
+  const adminCabangPassword = await bcrypt.hash("admincabang123", 12);
+  await prisma.user.upsert({
+    where: { email: "admincabang@lmsbimbel.id" },
+    update: {},
+    create: {
+      name: "Admin Cabang Utama",
+      email: "admincabang@lmsbimbel.id",
+      password: adminCabangPassword,
+      role: UserRole.ADMIN,
+      isActive: true,
+      defaultBranchId: defaultBranch.id,
+    },
+  });
+
   // Seed Orang Tua
   const orangtuaPassword = await bcrypt.hash("ortu123", 12);
   const orangtua = await prisma.user.upsert({
@@ -393,12 +408,13 @@ async function main() {
     },
   });
 
-  console.log(`✅ Users seeded: admin, guru, siswa, orangtua`);
+  console.log(`✅ Users seeded: superadmin, admincabang, guru, siswa, orangtua`);
   console.log("\n📋 Demo Credentials:");
-  console.log("  Admin     : admin@lmsbimbel.id / admin123");
-  console.log("  Guru      : guru@lmsbimbel.id / guru123");
-  console.log("  Siswa     : siswa@lmsbimbel.id / siswa123");
-  console.log("  Orang Tua : orangtua@lmsbimbel.id / ortu123");
+  console.log("  Super Admin  : admin@lmsbimbel.id / admin123");
+  console.log("  Admin Cabang : admincabang@lmsbimbel.id / admincabang123");
+  console.log("  Guru         : guru@lmsbimbel.id / guru123");
+  console.log("  Siswa        : siswa@lmsbimbel.id / siswa123");
+  console.log("  Orang Tua    : orangtua@lmsbimbel.id / ortu123");
   console.log("\n🎉 Seed completed!");
 }
 
