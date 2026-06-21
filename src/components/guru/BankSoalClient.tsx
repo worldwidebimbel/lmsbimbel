@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus, Trash2, Upload, Search, BookMarked, X } from "lucide-react";
+import { Plus, Trash2, Upload, Search, BookMarked, X, FileDown, FileUp, Download } from "lucide-react";
 import ImageUploadButton from "./ImageUploadButton";
 import { normalizeOptions, optionText, toOptionPayload } from "@/lib/question-options";
+import BankSoalImportClient from "./BankSoalImportClient";
+import MathRenderer from "@/components/ui/MathRenderer";
 
 type QuestionType = "PILGAN" | "PILGAN_KOMPLEK" | "BENAR_SALAH" | "MENJODOHKAN" | "MENGURUTKAN" | "SETUJU_TIDAK" | "ESSAY" | "ISIAN";
 
@@ -18,6 +20,7 @@ interface Question {
   difficulty: number;
   subject: { id: string; name: string; color: string } | null;
   subjectId: string | null;
+  tags?: string[] | null;
 }
 
 interface Subject { id: string; name: string; color: string }
@@ -49,11 +52,17 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
   const [search, setSearch] = useState("");
   const [filterSubject, setFilterSubject] = useState("");
   const [filterType, setFilterType] = useState("");
+  const [filterTag, setFilterTag] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showAdd, setShowAdd] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [showXlsxImport, setShowXlsxImport] = useState(false);
   const [targetExam, setTargetExam] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  const allTags = Array.from(
+    new Set(questions.flatMap((q) => (q.tags as string[] | null) ?? []))
+  ).sort();
 
   const BLANK_FORM = {
     subjectId: "", type: "PILGAN" as QuestionType,
@@ -75,7 +84,8 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
     const matchSearch = !search || q.content.toLowerCase().includes(search.toLowerCase());
     const matchSubject = !filterSubject || q.subjectId === filterSubject;
     const matchType = !filterType || q.type === filterType;
-    return matchSearch && matchSubject && matchType;
+    const matchTag = !filterTag || (q.tags as string[] | null)?.includes(filterTag);
+    return matchSearch && matchSubject && matchType && matchTag;
   });
 
   function toggleSelect(id: string) {
@@ -177,32 +187,65 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
     });
   }
 
+  async function handleExport(format: "xlsx" | "json") {
+    const params = new URLSearchParams({ format });
+    if (filterSubject) params.set("subjectId", filterSubject);
+    if (filterType) params.set("type", filterType);
+    const a = document.createElement("a");
+    a.href = `/api/guru/bank-soal/export?${params.toString()}`;
+    a.click();
+  }
+
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[200px]">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[180px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari soal..." className="w-full rounded-lg border border-gray-200 pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            placeholder="Cari soal..." className="w-full rounded-lg border border-gray-200 pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
         </div>
         <select value={filterSubject} onChange={(e) => setFilterSubject(e.target.value)}
-          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
           <option value="">Semua Mapel</option>
           {subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
         <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
-          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
           <option value="">Semua Tipe</option>
           {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
+        {allTags.length > 0 && (
+          <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)}
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+            <option value="">Semua Tag</option>
+            {allTags.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        )}
         <div className="flex gap-2 ml-auto">
           {selected.size > 0 && (
             <button onClick={() => setShowImport(true)}
               className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700">
-              <Upload className="h-4 w-4" /> Import {selected.size} ke Ujian
+              <Upload className="h-4 w-4" /> Pakai di Ujian ({selected.size})
             </button>
           )}
+          <div className="relative group">
+            <button className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+              <FileDown className="h-4 w-4" /> Export
+            </button>
+            <div className="absolute right-0 top-full mt-1 hidden group-hover:flex flex-col bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-20 min-w-[150px]">
+              <button onClick={() => handleExport("xlsx")} className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left">
+                <Download className="h-4 w-4 text-green-600" /> Export Excel
+              </button>
+              <button onClick={() => handleExport("json")} className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left">
+                <Download className="h-4 w-4 text-blue-600" /> Export JSON
+              </button>
+            </div>
+          </div>
+          <button onClick={() => setShowXlsxImport(true)}
+            className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100">
+            <FileUp className="h-4 w-4" /> Import Excel
+          </button>
           <button onClick={() => setShowAdd(true)}
             className="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700">
             <Plus className="h-4 w-4" /> Tambah Soal
@@ -236,12 +279,24 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
                     </span>
                     <span className="text-xs text-gray-400 ml-auto">Skor: {q.score}</span>
                   </div>
-                  <div className="text-sm text-gray-800 line-clamp-2 whitespace-pre-wrap">{q.content}</div>
+                  <div className="text-sm text-gray-800 line-clamp-3">
+                    <MathRenderer content={q.content} />
+                  </div>
                   {q.content.includes("<img") && (
                     <div className="mt-2 text-xs text-indigo-600">📎 memiliki gambar soal</div>
                   )}
+                  {(q.tags as string[] | null)?.length ? (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {(q.tags as string[]).map((tag) => (
+                        <button key={tag} onClick={() => setFilterTag(tag)}
+                          className="rounded-full bg-gray-100 hover:bg-amber-100 text-gray-600 hover:text-amber-700 px-2 py-0.5 text-xs transition-colors">
+                          #{tag}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
                   {q.correctAnswer && (
-                    <p className="mt-1 text-xs text-green-600">✓ {q.correctAnswer}</p>
+                    <p className="mt-1 text-xs text-green-600">✓ <MathRenderer content={q.correctAnswer} /></p>
                   )}
                 </div>
                 <button onClick={() => handleDelete(q.id)} className="shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
@@ -503,7 +558,28 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
         </div>
       )}
 
-      {/* Import Modal */}
+      {/* Excel Import Modal */}
+      {showXlsxImport && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto">
+          <div className="w-full max-w-5xl rounded-2xl bg-white p-6 my-8 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">Import Soal dari Excel</h2>
+              <button onClick={() => setShowXlsxImport(false)} className="rounded-lg p-1 hover:bg-gray-100">
+                <X className="h-4 w-4 text-gray-500" />
+              </button>
+            </div>
+            <BankSoalImportClient
+              subjects={subjects}
+              onDone={(count) => {
+                setShowXlsxImport(false);
+                window.location.reload();
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Import ke Ujian Modal */}
       {showImport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 space-y-4">

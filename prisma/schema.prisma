@@ -484,6 +484,7 @@ model Question {
   explanation   String?
   score         Float        @default(1)
   difficulty    Int          @default(2)
+  tags          Json?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
