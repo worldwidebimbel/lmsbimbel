@@ -124,6 +124,42 @@ export async function GET(req: NextRequest) {
   const colWidths = [18, 50, 30, 18, 25, 18, 25, 18, 25, 18, 25, 18, 25, 20, 45, 30, 8, 10, 25, 20];
   colWidths.forEach((w, i) => { ws.getColumn(i + 1).width = w; });
 
+  const wsEx = wb.addWorksheet("CONTOH", { properties: { tabColor: { argb: "FF16A34A" } } });
+  wsEx.views = [{ state: "frozen", ySplit: 1 }];
+  const exHeaders = wsEx.addRow(headers);
+  exHeaders.eachCell((cell) => {
+    cell.style = {
+      fill: { type: "pattern", pattern: "solid", fgColor: { argb: "FF166534" } },
+      font: { bold: true, color: { argb: "FFFFFFFF" } },
+      alignment: { horizontal: "center" },
+    };
+  });
+  wsEx.getRow(1).height = 22;
+
+  const EXAMPLES: unknown[][] = [
+    ["PILGAN", "Ibu kota Indonesia adalah...", "", "Jakarta", "", "Surabaya", "", "Bandung", "", "Medan", "", "", "", "A", "Jakarta adalah ibu kota Indonesia.", "", 1, 1, "Geografi,Indonesia", ""],
+    ["PILGAN", "Nilai dari $\\frac{12}{4}+3$ adalah...", "", "3", "", "6", "", "9", "", "12", "", "", "", "B", "12÷4=3, ditambah 3=6", "", 1, 2, "Matematika,Aritmatika", ""],
+    ["PILGAN_KOMPLEK", "Manakah yang termasuk bilangan prima?", "", "2", "", "3", "", "4", "", "5", "", "7", "", "A|B|D|E", "2, 3, 5, 7 adalah bilangan prima. 4 bukan.", "", 2, 2, "Matematika,Bilangan", ""],
+    ["BENAR_SALAH", "Air mendidih pada suhu 100°C di tekanan 1 atm.", "", "", "", "", "", "", "", "", "", "", "", "Benar", "Titik didih air = 100°C pada tekanan normal.", "", 1, 1, "Fisika,Suhu", ""],
+    ["BENAR_SALAH", "Matahari berputar mengelilingi bumi.", "", "", "", "", "", "", "", "", "", "", "", "Salah", "Bumilah yang berputar mengelilingi matahari (heliosentris).", "", 1, 1, "IPA", ""],
+    ["ESSAY", "Jelaskan proses fotosintesis secara singkat!", "", "", "", "", "", "", "", "", "", "", "", "", "Fotosintesis: CO₂ + H₂O → glukosa + O₂ menggunakan energi cahaya matahari.", "", 5, 3, "Biologi,Tumbuhan", ""],
+    ["ISIAN", "Rumus luas lingkaran adalah π × ___", "", "", "", "", "", "", "", "", "", "", "", "r²", "Luas = π × r²", "", 2, 2, "Matematika,Geometri", ""],
+    ["ISIAN", "Tokoh proklamator kemerdekaan Indonesia adalah ___ dan ___", "", "", "", "", "", "", "", "", "", "", "", "Soekarno dan Hatta", "Proklamasi 17 Agustus 1945 dibacakan oleh Soekarno dan Hatta.", "", 2, 1, "Sejarah,Kemerdekaan", ""],
+  ];
+
+  const noteStyle: Partial<ExcelJS.Style> = {
+    fill: { type: "pattern", pattern: "solid", fgColor: { argb: "FFF0FDF4" } },
+    font: { color: { argb: "FF374151" }, italic: true, size: 10 },
+    alignment: { wrapText: true },
+  };
+
+  EXAMPLES.forEach((row) => {
+    const r = wsEx.addRow(row);
+    r.eachCell((cell) => { cell.style = noteStyle; });
+  });
+
+  colWidths.forEach((w, i) => { wsEx.getColumn(i + 1).width = w; });
+
   const buf = await wb.xlsx.writeBuffer();
   return new NextResponse(buf, {
     headers: {

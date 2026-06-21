@@ -62,6 +62,7 @@ export async function PATCH(
     include: {
       subject: { select: { name: true, color: true } },
       class: { select: { name: true } },
+      _count: { select: { progress: true } },
     },
   });
 

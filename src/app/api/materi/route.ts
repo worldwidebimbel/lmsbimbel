@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
     include: {
       subject: { select: { name: true, color: true } },
       class: { select: { name: true } },
+      _count: { select: { progress: true } },
     },
   });
 
