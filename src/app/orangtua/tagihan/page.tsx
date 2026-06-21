@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { Wallet, Users2 } from "lucide-react";
+import { getBranchScope } from "@/lib/branch-context";
+import { getQrisSettings } from "@/lib/qris-settings";
 import TagihanSiswaClient from "@/components/tagihan/TagihanSiswaClient";
 
 export const metadata = { title: "Tagihan Anak" };
@@ -10,9 +12,14 @@ export default async function OrangtuaTagihanPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "ORANG_TUA") redirect("/orangtua");
 
+  const { branchId: parentBranchId } = await getBranchScope();
+
   const children = await db.parentChild.findMany({
-    where: { parentId: session.user.id },
-    include: { child: { select: { id: true, name: true } } },
+    where: {
+      parentId: session.user.id,
+      child: parentBranchId ? { defaultBranchId: parentBranchId } : {},
+    },
+    include: { child: { select: { id: true, name: true, defaultBranchId: true } } },
   });
 
   if (children.length === 0) {
@@ -25,10 +32,11 @@ export default async function OrangtuaTagihanPage() {
   }
 
   const childIds = children.map((c) => c.child.id);
+  const branchId = parentBranchId ?? children[0].child.defaultBranchId;
 
-  const [invoices, qrisSettings] = await Promise.all([
+  const [invoices, qris] = await Promise.all([
     db.invoice.findMany({
-      where: { studentId: { in: childIds } },
+      where: { studentId: { in: childIds }, ...(branchId ? { branchId } : {}) },
       include: {
         student: { select: { id: true, name: true } },
         plan: { select: { name: true } },
@@ -36,18 +44,8 @@ export default async function OrangtuaTagihanPage() {
       },
       orderBy: { createdAt: "desc" },
     }),
-    db.appSetting.findMany({
-      where: { key: { in: ["qris_image_url", "qris_bank_name", "qris_account_name", "qris_account_number"] } },
-    }),
+    getQrisSettings(branchId),
   ]);
-
-  const settingMap = Object.fromEntries(qrisSettings.map((s) => [s.key, s.value]));
-  const qris = {
-    imageUrl: settingMap["qris_image_url"] ?? null,
-    bankName: settingMap["qris_bank_name"] ?? null,
-    accountName: settingMap["qris_account_name"] ?? null,
-    accountNumber: settingMap["qris_account_number"] ?? null,
-  };
 
   const cloudinaryConfigured = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
 

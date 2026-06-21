@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -8,6 +9,7 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const classId = searchParams.get("classId");
+  const { isSuperAdmin, branchId } = await getBranchScope();
 
   const where: Record<string, unknown> = {};
 
@@ -23,6 +25,10 @@ export async function GET(req: NextRequest) {
   }
 
   if (classId) where.classId = classId;
+
+  if (!isSuperAdmin && branchId) {
+    where.class = { branchId };
+  }
 
   const assignments = await prisma.assignment.findMany({
     where,
@@ -43,11 +49,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const { isSuperAdmin, branchId } = await getBranchScope();
   const body = await req.json();
   const { title, description, classId, dueDate, maxScore, fileUrl, isPublished } = body;
 
   if (!title || !classId || !dueDate) {
     return NextResponse.json({ error: "title, classId, dueDate wajib diisi" }, { status: 400 });
+  }
+
+  const cls = await prisma.class.findUnique({ where: { id: classId }, select: { branchId: true } });
+  if (!cls) return NextResponse.json({ error: "Kelas tidak ditemukan" }, { status: 404 });
+  if (!isSuperAdmin && branchId && cls.branchId !== branchId) {
+    return NextResponse.json({ error: "Forbidden: kelas di luar cabang" }, { status: 403 });
   }
 
   const assignment = await prisma.assignment.create({

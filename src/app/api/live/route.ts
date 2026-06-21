@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope, getAllowedClassIds } from "@/lib/branch-context";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -11,14 +12,21 @@ export async function GET(req: NextRequest) {
   const userId = session.user.id;
   const role = session.user.role;
 
+  const { branchId, isSuperAdmin } = await getBranchScope();
+  const allowedClassIds = await getAllowedClassIds(session.user, isSuperAdmin ? null : branchId);
+
+  if (classId && !allowedClassIds.includes(classId)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   let where: Record<string, unknown> = {};
 
   if (role === "GURU") {
     where = classId ? { teacherId: userId, classId } : { teacherId: userId };
   } else if (role === "SISWA") {
-    const enrolled = await db.classStudent.findMany({ where: { studentId: userId }, select: { classId: true } });
-    const classIds = enrolled.map((e) => e.classId);
-    where = classId ? { classId, classId_in: classIds } : { classId: { in: classIds } };
+    where = classId ? { classId } : { classId: { in: allowedClassIds } };
+  } else if (role === "ADMIN" || role === "SUPER_ADMIN") {
+    where = classId ? { classId } : { classId: { in: allowedClassIds } };
   }
 
   const sessions = await db.liveSession.findMany({

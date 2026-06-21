@@ -1,11 +1,20 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { MaterialList } from "@/components/materi/MaterialList";
 
-async function getGuruMateri(uploaderId: string) {
+async function getGuruMateri(uploaderId: string, branchId: string | null) {
+  const classWhere = branchId
+    ? { teacherId: uploaderId, isActive: true, branchId }
+    : { teacherId: uploaderId, isActive: true };
+  const classIds = (await db.class.findMany({
+    where: classWhere,
+    select: { id: true },
+  })).map((c) => c.id);
+
   const [materials, classes, subjects] = await Promise.all([
     db.material.findMany({
-      where: { uploaderId },
+      where: { classId: { in: classIds } },
       include: {
         subject: { select: { id: true, name: true, color: true, code: true } },
         class: { select: { id: true, name: true } },
@@ -14,7 +23,7 @@ async function getGuruMateri(uploaderId: string) {
       orderBy: [{ order: "asc" }, { createdAt: "desc" }],
     }),
     db.class.findMany({
-      where: { teacherId: uploaderId, isActive: true },
+      where: classWhere,
       select: { id: true, name: true },
     }),
     db.subject.findMany({
@@ -29,7 +38,8 @@ export const metadata = { title: "Materi Pembelajaran" };
 
 export default async function GuruMateriPage() {
   const session = await auth();
-  const { materials, classes, subjects } = await getGuruMateri(session!.user!.id);
+  const { branchId } = await getBranchScope();
+  const { materials, classes, subjects } = await getGuruMateri(session!.user!.id, branchId);
 
   return (
     <div className="space-y-6">

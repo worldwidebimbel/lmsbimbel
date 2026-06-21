@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
+import { getBranchQrisKey } from "@/lib/qris-settings";
 
 const DEFAULT_SETTINGS: Record<string, string> = {
   app_name: "EduBimbel LMS",
@@ -15,20 +17,36 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   qris_account_number: "",
 };
 
+const QRIS_KEYS = ["qris_image_url", "qris_bank_name", "qris_account_name", "qris_account_number"];
+
 function isAdmin(role: string) {
   return ["ADMIN", "SUPER_ADMIN"].includes(role);
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user || !isAdmin(session.user.role)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { isSuperAdmin, branchId } = await getBranchScope();
+  const requestedBranchId = req.nextUrl.searchParams.get("branchId") || branchId;
+  if (requestedBranchId && !isSuperAdmin && requestedBranchId !== branchId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const rows = await db.appSetting.findMany();
   const settings = { ...DEFAULT_SETTINGS };
   for (const r of rows) settings[r.key] = r.value;
-  return NextResponse.json(settings);
+
+  if (requestedBranchId) {
+    for (const key of QRIS_KEYS) {
+      const branchValue = settings[getBranchQrisKey(key, requestedBranchId)];
+      if (branchValue !== undefined) settings[key] = branchValue;
+    }
+  }
+
+  return NextResponse.json({ settings });
 }
 
 export async function POST(req: NextRequest) {
@@ -37,15 +55,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const body = await req.json() as Record<string, string>;
+  const { isSuperAdmin, branchId } = await getBranchScope();
+  const body = (await req.json()) as Record<string, string>;
   const allowedKeys = Object.keys(DEFAULT_SETTINGS);
+  const targetBranchId = body.branchId || branchId;
+  if (targetBranchId && !isSuperAdmin && targetBranchId !== branchId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   for (const [key, value] of Object.entries(body)) {
     if (!allowedKeys.includes(key)) continue;
+    const isQris = QRIS_KEYS.includes(key);
+    const dbKey = isQris && targetBranchId ? getBranchQrisKey(key, targetBranchId) : key;
     await db.appSetting.upsert({
-      where: { key },
+      where: { key: dbKey },
       update: { value: String(value) },
-      create: { key, value: String(value) },
+      create: { key: dbKey, value: String(value) },
     });
   }
 

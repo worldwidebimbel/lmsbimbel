@@ -6,6 +6,9 @@ import { Users, Loader2, Trash2, UserPlus, BookOpen, ClipboardList, ToggleLeft, 
 interface Student { id: string; name: string; email: string }
 interface ClassStudent { student: Student }
 interface Schedule { id: string; dayOfWeek: string; startTime: string; endTime: string; room: string | null }
+interface Subject { id: string; name: string; code: string; color: string }
+interface Teacher { id: string; name: string }
+interface Branch { id: string; name: string; code: string }
 interface ClassData {
   id: string;
   name: string;
@@ -14,8 +17,12 @@ interface ClassData {
   maxStudents: number;
   room: string | null;
   isActive: boolean;
-  subject: { id: string; name: string; code: string; color: string };
-  teacher: { id: string; name: string };
+  subjectId: string;
+  teacherId: string;
+  branchId: string | null;
+  subject: Subject;
+  teacher: Teacher;
+  branch: Branch | null;
   students: ClassStudent[];
   schedules: Schedule[];
   _count: { materials: number; assignments: number };
@@ -26,12 +33,25 @@ const DAY_LABEL: Record<string, string> = {
   JUMAT: "Jumat", SABTU: "Sabtu", MINGGU: "Minggu",
 };
 
-export default function ClassDetailClient({ cls, allStudents }: { cls: ClassData; allStudents: Student[] }) {
+export default function ClassDetailClient({ cls, allStudents, subjects, teachers, branches, isSuperAdmin }: { cls: ClassData; allStudents: Student[]; subjects: Subject[]; teachers: Teacher[]; branches: Branch[]; isSuperAdmin: boolean }) {
   const [students, setStudents] = useState<ClassStudent[]>(cls.students);
   const [isActive, setIsActive] = useState(cls.isActive);
   const [selectedStudent, setSelectedStudent] = useState("");
   const [isPending, startTransition] = useTransition();
   const [enrollError, setEnrollError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: cls.name,
+    description: cls.description ?? "",
+    subjectId: cls.subject.id,
+    teacherId: cls.teacher.id,
+    branchId: cls.branchId ?? "",
+    type: cls.type,
+    maxStudents: cls.maxStudents,
+    room: cls.room ?? "",
+  });
+  const [editError, setEditError] = useState("");
+  const [editPending, startEditTransition] = useTransition();
 
   const enrolledIds = new Set(students.map((cs) => cs.student.id));
   const availableStudents = allStudents.filter((s) => !enrolledIds.has(s.id));
@@ -71,49 +91,145 @@ export default function ClassDetailClient({ cls, allStudents }: { cls: ClassData
     if (res.ok) setIsActive(!isActive);
   }
 
+  function handleEditChange(k: string, v: string | number) {
+    setEditForm((p) => ({ ...p, [k]: v }));
+  }
+
+  function handleSaveEdit() {
+    setEditError("");
+    startEditTransition(async () => {
+      const res = await fetch(`/api/admin/classes/${cls.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...editForm,
+          maxStudents: Number(editForm.maxStudents),
+          branchId: isSuperAdmin ? editForm.branchId : cls.branchId,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        setEditError(d.error ?? "Gagal menyimpan perubahan");
+        return;
+      }
+      setIsEditing(false);
+      window.location.reload();
+    });
+  }
+
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
       <div className="lg:col-span-1 space-y-4">
         <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-gray-900">Info Kelas</h3>
-            <button onClick={handleToggleActive} className="text-gray-400 hover:text-gray-600">
-              {isActive
-                ? <ToggleRight className="h-6 w-6 text-green-500" />
-                : <ToggleLeft className="h-6 w-6 text-gray-400" />}
-            </button>
+            <div className="flex items-center gap-2">
+              {!isEditing && (
+                <button onClick={() => setIsEditing(true)} className="text-xs text-blue-600 hover:underline">
+                  Edit
+                </button>
+              )}
+              <button onClick={handleToggleActive} className="text-gray-400 hover:text-gray-600">
+                {isActive
+                  ? <ToggleRight className="h-6 w-6 text-green-500" />
+                  : <ToggleLeft className="h-6 w-6 text-gray-400" />}
+              </button>
+            </div>
           </div>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Status</span>
-              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                {isActive ? "Aktif" : "Nonaktif"}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Tipe</span>
-              <span className="text-gray-700">{cls.type}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Kapasitas</span>
-              <span className="text-gray-700">{students.length}/{cls.maxStudents}</span>
-            </div>
-            {cls.room && (
-              <div className="flex justify-between">
-                <span className="text-gray-500">Ruangan</span>
-                <span className="text-gray-700">{cls.room}</span>
+
+          {isEditing ? (
+            <div className="space-y-3">
+              {editError && <p className="text-xs text-red-600">{editError}</p>}
+              <div>
+                <label className="text-xs text-gray-500">Nama</label>
+                <input value={editForm.name} onChange={(e) => handleEditChange("name", e.target.value)} className="w-full rounded border border-gray-200 px-2 py-1 text-sm" />
               </div>
-            )}
-            <div className="flex justify-between">
-              <span className="text-gray-500">Materi</span>
-              <span className="text-gray-700">{cls._count.materials}</span>
+              <div>
+                <label className="text-xs text-gray-500">Mata Pelajaran</label>
+                <select value={editForm.subjectId} onChange={(e) => handleEditChange("subjectId", e.target.value)} className="w-full rounded border border-gray-200 px-2 py-1 text-sm">
+                  {subjects.map((s) => <option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">Guru</label>
+                <select value={editForm.teacherId} onChange={(e) => handleEditChange("teacherId", e.target.value)} className="w-full rounded border border-gray-200 px-2 py-1 text-sm">
+                  {teachers.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+              </div>
+              {isSuperAdmin && (
+                <div>
+                  <label className="text-xs text-gray-500">Cabang</label>
+                  <select value={editForm.branchId} onChange={(e) => handleEditChange("branchId", e.target.value)} className="w-full rounded border border-gray-200 px-2 py-1 text-sm">
+                    <option value="">Pilih cabang</option>
+                    {branches.map((b) => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
+                  </select>
+                </div>
+              )}
+              <div>
+                <label className="text-xs text-gray-500">Tipe</label>
+                <select value={editForm.type} onChange={(e) => handleEditChange("type", e.target.value)} className="w-full rounded border border-gray-200 px-2 py-1 text-sm">
+                  <option value="REGULER">Reguler</option>
+                  <option value="PRIVAT">Privat</option>
+                  <option value="ONLINE">Online</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">Maks. Siswa</label>
+                <input type="number" value={editForm.maxStudents} onChange={(e) => handleEditChange("maxStudents", parseInt(e.target.value) || 0)} className="w-full rounded border border-gray-200 px-2 py-1 text-sm" />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">Ruangan</label>
+                <input value={editForm.room} onChange={(e) => handleEditChange("room", e.target.value)} className="w-full rounded border border-gray-200 px-2 py-1 text-sm" />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">Deskripsi</label>
+                <textarea value={editForm.description} onChange={(e) => handleEditChange("description", e.target.value)} rows={2} className="w-full rounded border border-gray-200 px-2 py-1 text-sm" />
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button onClick={handleSaveEdit} disabled={editPending} className="flex-1 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                  {editPending && <Loader2 className="mr-1 inline h-3 w-3 animate-spin" />}
+                  Simpan
+                </button>
+                <button onClick={() => setIsEditing(false)} className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">Batal</button>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Tugas</span>
-              <span className="text-gray-700">{cls._count.assignments}</span>
+          ) : (
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Status</span>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                  {isActive ? "Aktif" : "Nonaktif"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Tipe</span>
+                <span className="text-gray-700">{cls.type}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Cabang</span>
+                <span className="text-gray-700">{cls.branch?.name ?? "Pusat"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Kapasitas</span>
+                <span className="text-gray-700">{students.length}/{cls.maxStudents}</span>
+              </div>
+              {cls.room && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Ruangan</span>
+                  <span className="text-gray-700">{cls.room}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-gray-500">Materi</span>
+                <span className="text-gray-700">{cls._count.materials}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Tugas</span>
+                <span className="text-gray-700">{cls._count.assignments}</span>
+              </div>
             </div>
-          </div>
-          {cls.description && (
+          )}
+          {cls.description && !isEditing && (
             <p className="text-xs text-gray-500 pt-2 border-t border-gray-100">{cls.description}</p>
           )}
         </div>

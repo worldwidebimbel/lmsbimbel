@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -8,11 +9,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const { branchId } = await getBranchScope();
   const { searchParams } = new URL(req.url);
   const subjectId = searchParams.get("subjectId");
 
+  const classWhere = branchId
+    ? { teacherId: session.user.id, branchId }
+    : { teacherId: session.user.id };
   const teacherClasses = await db.class.findMany({
-    where: { teacherId: session.user.id },
+    where: classWhere,
     select: { id: true, subjectId: true },
   });
   const examIds = (await db.exam.findMany({

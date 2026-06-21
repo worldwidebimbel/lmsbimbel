@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { BarChart3, Users, BookOpen, CheckSquare, GraduationCap, TrendingUp, Wallet, FileText, ArrowRight } from "lucide-react";
@@ -7,7 +8,11 @@ import { formatCurrency } from "@/lib/utils";
 
 export const metadata = { title: "Analitik" };
 
-async function getAnalyticsData() {
+async function getAnalyticsData(branchId: string | null) {
+  const branchFilter = branchId ? { branchId } : {};
+  const studentBranchFilter = branchId ? { enrollments: { some: { class: { branchId } } } } : {};
+  const teacherBranchFilter = branchId ? { classes: { some: { branchId } } } : {};
+
   const [
     totalStudents,
     totalTeachers,
@@ -22,18 +27,18 @@ async function getAnalyticsData() {
     classStats,
     recentActivity,
   ] = await Promise.all([
-    db.user.count({ where: { role: "SISWA", isActive: true } }),
-    db.user.count({ where: { role: "GURU", isActive: true } }),
-    db.class.count({ where: { isActive: true } }),
-    db.material.count({ where: { isPublished: true } }),
-    db.assignment.count({ where: { isPublished: true } }),
-    db.submission.count(),
-    db.submission.count({ where: { score: { not: null } } }),
-    db.attendanceRecord.groupBy({ by: ["status"], _count: true }),
-    db.submission.aggregate({ _avg: { score: true }, _count: true }),
-    db.invoice.groupBy({ by: ["status"], _sum: { amount: true }, _count: true }),
+    db.user.count({ where: { role: "SISWA", isActive: true, ...studentBranchFilter } }),
+    db.user.count({ where: { role: "GURU", isActive: true, ...teacherBranchFilter } }),
+    db.class.count({ where: { isActive: true, ...branchFilter } }),
+    db.material.count({ where: { isPublished: true, class: branchFilter } }),
+    db.assignment.count({ where: { isPublished: true, class: branchFilter } }),
+    db.submission.count({ where: { assignment: { class: branchFilter } } }),
+    db.submission.count({ where: { score: { not: null }, assignment: { class: branchFilter } } }),
+    db.attendanceRecord.groupBy({ by: ["status"], _count: true, where: { attendance: { class: branchFilter } } }),
+    db.submission.aggregate({ _avg: { score: true }, _count: true, where: { assignment: { class: branchFilter } } }),
+    db.invoice.groupBy({ by: ["status"], _sum: { amount: true }, _count: true, where: branchFilter }),
     db.class.findMany({
-      where: { isActive: true },
+      where: { isActive: true, ...branchFilter },
       select: {
         id: true, name: true,
         subject: { select: { name: true, color: true } },
@@ -44,6 +49,7 @@ async function getAnalyticsData() {
       take: 8,
     }),
     db.submission.findMany({
+      where: { assignment: { class: branchFilter } },
       orderBy: { submittedAt: "desc" },
       take: 5,
       include: {
@@ -80,7 +86,8 @@ export default async function AnalyticsPage() {
   const session = await auth();
   if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
 
-  const d = await getAnalyticsData();
+  const { branchId } = await getBranchScope();
+  const d = await getAnalyticsData(branchId);
 
   return (
     <div className="space-y-6">

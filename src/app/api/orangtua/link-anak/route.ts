@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 
 export async function GET() {
   const session = await auth();
@@ -8,8 +9,12 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
+  const { branchId } = await getBranchScope();
   const children = await db.parentChild.findMany({
-    where: { parentId: session.user.id },
+    where: {
+      parentId: session.user.id,
+      child: branchId ? { defaultBranchId: branchId } : {},
+    },
     include: { child: { select: { id: true, name: true, email: true, avatar: true } } },
   });
   return NextResponse.json(children.map((c) => c.child));
@@ -21,12 +26,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
+  const { branchId } = await getBranchScope();
   const body = await req.json();
   const { childEmail } = body;
   if (!childEmail) return NextResponse.json({ error: "Email anak wajib diisi" }, { status: 400 });
 
   const child = await db.user.findUnique({ where: { email: childEmail } });
   if (!child || child.role !== "SISWA") return NextResponse.json({ error: "Siswa tidak ditemukan" }, { status: 404 });
+  if (branchId && child.defaultBranchId !== branchId) {
+    return NextResponse.json({ error: "Siswa tidak berada di cabang yang sama" }, { status: 403 });
+  }
 
   const exists = await db.parentChild.findUnique({
     where: { parentId_childId: { parentId: session.user.id, childId: child.id } },

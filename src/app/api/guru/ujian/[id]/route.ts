@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
+
+async function getExamWithBranch(id: string) {
+  const { isSuperAdmin, branchId } = await getBranchScope();
+  const exam = await db.exam.findUnique({
+    where: { id },
+    include: { class: { select: { branchId: true } } },
+  });
+  if (!exam) return { exam: null, allowed: false };
+  if (!isSuperAdmin && branchId && exam.class?.branchId !== branchId) {
+    return { exam, allowed: false };
+  }
+  return { exam, allowed: true };
+}
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -9,6 +23,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const { id } = await params;
+  const { allowed } = await getExamWithBranch(id);
+  if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
   const exam = await db.exam.findUnique({
     where: { id },
     include: {
@@ -29,8 +46,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const { id } = await params;
-  const body = await req.json();
+  const { allowed } = await getExamWithBranch(id);
+  if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+  const body = await req.json();
   const exam = await db.exam.update({
     where: { id },
     data: {

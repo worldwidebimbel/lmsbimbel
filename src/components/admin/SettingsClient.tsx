@@ -17,13 +17,18 @@ interface Props {
   demoStatus: { exists: boolean; userCount: number; subjectCount: number };
   smtpConfigured: boolean;
   appVersion: string;
+  branches: { id: string; name: string; code: string }[];
+  isSuperAdmin: boolean;
+  defaultBranchId: string | null;
 }
 
 type Tab = "umum" | "pembayaran" | "demo" | "email" | "info";
 
-export default function SettingsClient({ initialSettings, demoStatus, smtpConfigured, appVersion }: Props) {
+export default function SettingsClient({ initialSettings, demoStatus, smtpConfigured, appVersion, branches, isSuperAdmin, defaultBranchId }: Props) {
   const [tab, setTab] = useState<Tab>("umum");
   const [settings, setSettings] = useState(initialSettings);
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(defaultBranchId);
+  const [loadingBranch, setLoadingBranch] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [selectedDemo, setSelectedDemo] = useState<DemoType>("AKADEMIK");
   const [importingDemo, setImportingDemo] = useState(false);
@@ -41,6 +46,26 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
     { id: "email", label: "Email", icon: <Mail className="h-4 w-4" /> },
     { id: "info", label: "Info Sistem", icon: <Info className="h-4 w-4" /> },
   ];
+
+  async function loadBranchSettings(branchId: string | null) {
+    setLoadingBranch(true);
+    try {
+      const res = await fetch(`/api/admin/settings?branchId=${branchId ?? ""}`);
+      if (!res.ok) {
+        toast.error("Gagal memuat pengaturan cabang");
+        return;
+      }
+      const data = await res.json();
+      setSettings((prev) => ({ ...prev, ...data.settings }));
+    } finally {
+      setLoadingBranch(false);
+    }
+  }
+
+  async function handleBranchChange(branchId: string | null) {
+    setSelectedBranchId(branchId);
+    await loadBranchSettings(branchId);
+  }
 
   async function handleQrisUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -64,7 +89,7 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
       const saveRes = await fetch("/api/admin/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ qris_image_url: newUrl }),
+        body: JSON.stringify({ qris_image_url: newUrl, branchId: selectedBranchId }),
       });
       if (saveRes.ok) {
         toast.success("Gambar QRIS berhasil diupload dan disimpan");
@@ -82,7 +107,7 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
       const res = await fetch("/api/admin/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
+        body: JSON.stringify({ ...settings, branchId: selectedBranchId }),
       });
       if (res.ok) toast.success("Pengaturan berhasil disimpan");
       else toast.error("Gagal menyimpan pengaturan");
@@ -219,6 +244,35 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
             <div>
               <h3 className="mb-1 font-semibold text-gray-800">Pengaturan QRIS</h3>
               <p className="mb-4 text-sm text-gray-500">Upload gambar QRIS yang akan ditampilkan kepada siswa saat melakukan pembayaran tagihan.</p>
+
+              {branches.length > 0 && (
+                <div className="mb-4">
+                  <label className="mb-1 block text-sm font-medium text-gray-600">Cabang</label>
+                  {isSuperAdmin ? (
+                    <select
+                      value={selectedBranchId ?? ""}
+                      onChange={(e) => handleBranchChange(e.target.value || null)}
+                      disabled={loadingBranch}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-50"
+                    >
+                      <option value="">Global (semua cabang)</option>
+                      {branches.map((b) => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-sm text-gray-700">
+                      {branches.find((b) => b.id === selectedBranchId)?.name ?? "Cabang default"}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {loadingBranch && (
+                <p className="mb-4 text-sm text-gray-500 flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Memuat pengaturan cabang...
+                </p>
+              )}
 
               <div className="space-y-4">
                 <div>

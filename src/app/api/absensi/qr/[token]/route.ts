@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const session = await auth();
@@ -9,6 +10,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
   }
 
   const { token } = await params;
+  const { branchId } = await getBranchScope();
 
   const attendance = await db.attendance.findUnique({
     where: { id: token },
@@ -23,6 +25,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
 
   if (!attendance) {
     return NextResponse.json({ error: "Sesi absensi tidak ditemukan" }, { status: 404 });
+  }
+
+  if (branchId && attendance.class.branchId !== branchId) {
+    return NextResponse.json({ error: "Kamu tidak terdaftar di cabang kelas ini" }, { status: 403 });
   }
 
   if (attendance.class.students.length === 0) {
@@ -72,14 +78,19 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
   }
 
   const { token } = await params;
+  const { branchId } = await getBranchScope();
 
   const attendance = await db.attendance.findUnique({
     where: { id: token },
-    include: { class: { select: { id: true, name: true } } },
+    include: { class: { select: { id: true, name: true, branchId: true } } },
   });
 
   if (!attendance) {
     return NextResponse.json({ error: "Sesi tidak ditemukan" }, { status: 404 });
+  }
+
+  if (branchId && attendance.class.branchId !== branchId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   return NextResponse.json({

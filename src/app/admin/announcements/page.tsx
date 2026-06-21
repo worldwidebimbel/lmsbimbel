@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { getBranchScope } from "@/lib/branch-context";
 import AnnouncementsClient from "@/components/admin/AnnouncementsClient";
 import { Megaphone } from "lucide-react";
 
@@ -8,6 +9,8 @@ export const metadata = { title: "Pengumuman" };
 export default async function AnnouncementsPage() {
   const session = await auth();
   if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
+
+  const { isSuperAdmin, branchId, allBranches } = await getBranchScope();
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -21,7 +24,11 @@ export default async function AnnouncementsPage() {
         </div>
       </div>
 
-      <AnnouncementsClient />
+      <AnnouncementsClient
+        branches={allBranches}
+        isSuperAdmin={isSuperAdmin}
+        defaultBranchId={branchId}
+      />
     </div>
   );
 }

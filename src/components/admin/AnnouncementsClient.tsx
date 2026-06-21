@@ -16,7 +16,13 @@ const TYPES = [
   { value: "WARNING", label: "Peringatan", Icon: AlertTriangle, color: "text-yellow-500" },
 ];
 
-export default function AnnouncementsClient() {
+interface Props {
+  branches: { id: string; name: string; code: string }[];
+  isSuperAdmin: boolean;
+  defaultBranchId: string | null;
+}
+
+export default function AnnouncementsClient({ branches, isSuperAdmin, defaultBranchId }: Props) {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<{ sent: number } | null>(null);
   const [error, setError] = useState("");
@@ -26,6 +32,7 @@ export default function AnnouncementsClient() {
     type: "INFO",
     targetRole: "",
     link: "",
+    branchId: defaultBranchId ?? "",
   });
 
   function update(k: string, v: string) { setForm((p) => ({ ...p, [k]: v })); }
@@ -46,7 +53,7 @@ export default function AnnouncementsClient() {
       }
       const data = await res.json();
       setResult(data);
-      setForm({ title: "", content: "", type: "INFO", targetRole: "", link: "" });
+      setForm({ title: "", content: "", type: "INFO", targetRole: "", link: "", branchId: defaultBranchId ?? "" });
     });
   }
 
@@ -136,6 +143,28 @@ export default function AnnouncementsClient() {
             className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
           />
         </div>
+
+        {branches.length > 0 && (
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">Cabang</label>
+            {isSuperAdmin ? (
+              <select
+                value={form.branchId}
+                onChange={(e) => update("branchId", e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
+              >
+                <option value="">Global (semua cabang)</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-sm text-gray-700">
+                {branches.find((b) => b.id === form.branchId)?.name ?? "Cabang default"}
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="flex justify-end pt-2 border-t border-gray-100">
           <button

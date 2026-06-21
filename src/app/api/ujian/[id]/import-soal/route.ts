@@ -21,7 +21,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     include: { class: { select: { teacherId: true } } },
   });
 
-  if (!exam || exam.class.teacherId !== session.user.id) {
+  if (!exam || exam.class?.teacherId !== session.user.id) {
     return NextResponse.json({ error: "Ujian tidak ditemukan atau bukan milik kamu" }, { status: 404 });
   }
 

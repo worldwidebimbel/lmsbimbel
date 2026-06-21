@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect, notFound } from "next/navigation";
+import { getBranchScope } from "@/lib/branch-context";
 import ClassDetailClient from "@/components/admin/ClassDetailClient";
 import { BookOpen, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -12,13 +13,15 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
   if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
 
   const { id } = await params;
+  const { isSuperAdmin, branchId, allBranches } = await getBranchScope();
 
-  const [cls, allStudents] = await Promise.all([
+  const [cls, allStudents, subjects, teachers] = await Promise.all([
     db.class.findUnique({
       where: { id },
       include: {
         subject: { select: { id: true, name: true, code: true, color: true } },
         teacher: { select: { id: true, name: true } },
+        branch: { select: { id: true, name: true, code: true } },
         students: {
           include: { student: { select: { id: true, name: true, email: true } } },
           orderBy: { student: { name: "asc" } },
@@ -28,13 +31,20 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
       },
     }),
     db.user.findMany({
-      where: { role: "SISWA", isActive: true },
+      where: { role: "SISWA", isActive: true, ...(branchId ? { defaultBranchId: branchId } : {}) },
       select: { id: true, name: true, email: true },
+      orderBy: { name: "asc" },
+    }),
+    db.subject.findMany({ orderBy: { name: "asc" } }),
+    db.user.findMany({
+      where: { role: "GURU", isActive: true, ...(branchId ? { defaultBranchId: branchId } : {}) },
+      select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
   ]);
 
   if (!cls) notFound();
+  if (!isSuperAdmin && cls.branchId !== branchId) redirect("/admin/classes");
 
   return (
     <div className="space-y-6">
@@ -54,6 +64,10 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
       <ClassDetailClient
         cls={JSON.parse(JSON.stringify(cls))}
         allStudents={allStudents}
+        subjects={JSON.parse(JSON.stringify(subjects))}
+        teachers={JSON.parse(JSON.stringify(teachers))}
+        branches={JSON.parse(JSON.stringify(allBranches))}
+        isSuperAdmin={isSuperAdmin}
       />
     </div>
   );

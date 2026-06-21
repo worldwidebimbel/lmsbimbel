@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope, getAllowedClassIds } from "@/lib/branch-context";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -10,22 +11,19 @@ export async function GET(req: NextRequest) {
   const classId = searchParams.get("classId");
   const subjectId = searchParams.get("subjectId");
 
+  const { branchId, isSuperAdmin } = await getBranchScope();
+  const allowedClassIds = await getAllowedClassIds(session.user, isSuperAdmin ? null : branchId);
+
   const where: Record<string, unknown> = {};
-  if (classId) where.classId = classId;
   if (subjectId) where.subjectId = subjectId;
 
-  if (session.user.role === "SISWA") {
-    const enrolled = await db.classStudent.findMany({
-      where: { studentId: session.user.id },
-      select: { classId: true },
-    });
-    const allowedClassIds = enrolled.map((e) => e.classId);
-    if (classId && !allowedClassIds.includes(classId)) {
+  if (classId) {
+    if (!allowedClassIds.includes(classId)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    if (!classId && !subjectId) {
-      where.classId = { in: allowedClassIds };
-    }
+    where.classId = classId;
+  } else {
+    where.classId = { in: allowedClassIds };
   }
 
   const threads = await db.forumThread.findMany({
@@ -47,16 +45,22 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const { branchId, isSuperAdmin } = await getBranchScope();
+  const allowedClassIds = await getAllowedClassIds(session.user, isSuperAdmin ? null : branchId);
+
   const body = await req.json();
   const { classId, subjectId, title, content } = body;
 
+  if (!classId || !allowedClassIds.includes(classId)) {
+    return NextResponse.json({ error: "Kelas tidak valid atau tidak diizinkan" }, { status: 403 });
+  }
   if (!title?.trim() || !content?.trim()) {
     return NextResponse.json({ error: "title dan content wajib diisi" }, { status: 400 });
   }
 
   const thread = await db.forumThread.create({
     data: {
-      classId: classId ?? null,
+      classId,
       subjectId: subjectId ?? null,
       authorId: session.user.id,
       title: title.trim(),

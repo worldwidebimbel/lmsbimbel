@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { calcLevel, calcPoints, computeBadges } from "@/lib/gamification";
+import { getBranchScope } from "@/lib/branch-context";
 import PrestasiClient from "@/components/siswa/PrestasiClient";
 
 export const metadata = { title: "Prestasi & Gamifikasi" };
@@ -11,6 +12,7 @@ export default async function PrestasiPage() {
   if (!session?.user || session.user.role !== "SISWA") redirect("/siswa");
 
   const studentId = session.user.id;
+  const { branchId } = await getBranchScope();
 
   const [materiSelesai, tugasData, ujianData, absenData, gradeData, myClasses] = await Promise.all([
     db.materialProgress.count({ where: { studentId, isCompleted: true } }),
@@ -97,6 +99,24 @@ export default async function PrestasiPage() {
   leaderboard.sort((a, b) => b.points - a.points);
   const myRank = leaderboard.findIndex((l) => l.id === studentId) + 1;
 
+  const branchLeaderboard = branchId
+    ? await (async () => {
+        const branchStudents = await db.user.findMany({
+          where: { defaultBranchId: branchId, role: "SISWA", isActive: true },
+          select: { id: true, name: true, avatar: true },
+        });
+        const points = await db.studentPoints.findMany({
+          where: { userId: { in: branchStudents.map((u) => u.id) } },
+          select: { userId: true, points: true },
+        });
+        const pointsMap = Object.fromEntries(points.map((p) => [p.userId, p.points]));
+        return branchStudents
+          .map((u) => ({ id: u.id, name: u.name, avatar: u.avatar ?? null, points: pointsMap[u.id] ?? 0 }))
+          .sort((a, b) => b.points - a.points);
+      })()
+    : [];
+  const myBranchRank = branchLeaderboard.findIndex((l) => l.id === studentId) + 1;
+
   return (
     <PrestasiClient
       totalPoints={totalPoints}
@@ -110,6 +130,8 @@ export default async function PrestasiPage() {
       badges={JSON.parse(JSON.stringify(badges))}
       leaderboard={JSON.parse(JSON.stringify(leaderboard.slice(0, 20)))}
       myRank={myRank}
+      branchLeaderboard={JSON.parse(JSON.stringify(branchLeaderboard.slice(0, 20)))}
+      myBranchRank={myBranchRank || 0}
       studentId={studentId}
     />
   );

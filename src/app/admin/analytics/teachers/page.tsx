@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
+import { UserRole } from "@prisma/client";
 import { ArrowLeft, GraduationCap } from "lucide-react";
 import Link from "next/link";
 import TeacherStatsClient from "@/components/admin/TeacherStatsClient";
@@ -11,23 +13,32 @@ export default async function TeacherAnalyticsPage() {
   const session = await auth();
   if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
 
+  const { branchId } = await getBranchScope();
+  const teacherWhere = branchId
+    ? { role: UserRole.GURU, isActive: true, classes: { some: { branchId } } }
+    : { role: UserRole.GURU, isActive: true };
+
   const teachers = await db.user.findMany({
-    where: { role: "GURU", isActive: true },
+    where: teacherWhere,
     select: { id: true, name: true, email: true, avatar: true },
     orderBy: { name: "asc" },
   });
 
   const teacherStats = await Promise.all(
     teachers.map(async (teacher) => {
+      const classWhere = branchId
+        ? { teacherId: teacher.id, isActive: true, branchId }
+        : { teacherId: teacher.id, isActive: true };
+
       const [classes, materials, assignments, exams, attendanceSessions] = await Promise.all([
         db.class.findMany({
-          where: { teacherId: teacher.id, isActive: true },
+          where: classWhere,
           select: { id: true, name: true, _count: { select: { students: true } } },
         }),
-        db.material.count({ where: { class: { teacherId: teacher.id } } }),
-        db.assignment.count({ where: { class: { teacherId: teacher.id } } }),
-        db.exam.count({ where: { class: { teacherId: teacher.id } } }),
-        db.attendance.count({ where: { class: { teacherId: teacher.id } } }),
+        db.material.count({ where: { class: classWhere } }),
+        db.assignment.count({ where: { class: classWhere } }),
+        db.exam.count({ where: { class: classWhere } }),
+        db.attendance.count({ where: { class: classWhere } }),
       ]);
 
       const classIds = classes.map((c) => c.id);
@@ -41,9 +52,9 @@ export default async function TeacherAnalyticsPage() {
           where: { component: { classId: { in: classIds } } },
           _avg: { score: true },
         }),
-        db.submission.count({ where: { assignment: { class: { teacherId: teacher.id } } } }),
+        db.submission.count({ where: { assignment: { class: classWhere } } }),
         db.submission.count({
-          where: { assignment: { class: { teacherId: teacher.id } }, score: { not: null } },
+          where: { assignment: { class: classWhere }, score: { not: null } },
         }),
       ]);
 

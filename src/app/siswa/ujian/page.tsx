@@ -61,8 +61,8 @@ export default async function SiswaUjianPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                      <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: exam.class.subject.color }} />
-                      <span className="text-xs text-gray-400">{exam.class.subject.name} · {exam.class.name}</span>
+                      <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: exam.class?.subject.color }} />
+                      <span className="text-xs text-gray-400">{exam.class?.subject.name} · {exam.class?.name}</span>
                       {isCompleted && (
                         isPassed
                           ? <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700"><CheckCircle className="h-3 w-3" />Lulus</span>

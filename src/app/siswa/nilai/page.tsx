@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
 import { BarChart3, Trophy, TrendingUp } from "lucide-react";
 import Link from "next/link";
@@ -11,8 +12,14 @@ export default async function SiswaNilaiPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "SISWA") redirect("/siswa");
 
+  const { branchId } = await getBranchScope();
+  const gradeWhere: Record<string, unknown> = { studentId: session.user.id };
+  if (branchId) {
+    gradeWhere.component = { class: { branchId } };
+  }
+
   const grades = await db.grade.findMany({
-    where: { studentId: session.user.id },
+    where: gradeWhere,
     include: {
       component: {
         include: { class: { select: { id: true, name: true } } },

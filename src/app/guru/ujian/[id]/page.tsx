@@ -43,7 +43,7 @@ export default async function UjianDetailPage({ params }: { params: Promise<{ id
         </div>
         <div>
           <h1 className="text-xl font-bold text-gray-900">{exam.title}</h1>
-          <p className="text-sm text-gray-500">{exam.class.subject.name} - {exam.class.name}</p>
+          <p className="text-sm text-gray-500">{exam.class?.subject.name} - {exam.class?.name}</p>
         </div>
       </div>
 

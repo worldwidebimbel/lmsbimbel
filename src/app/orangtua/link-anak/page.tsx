@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
 import { Users2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -11,8 +12,12 @@ export default async function OrangTuaLinkAnakPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "ORANG_TUA") redirect("/orangtua");
 
+  const { branchId } = await getBranchScope();
   const linked = await db.parentChild.findMany({
-    where: { parentId: session.user.id },
+    where: {
+      parentId: session.user.id,
+      child: branchId ? { defaultBranchId: branchId } : {},
+    },
     include: { child: { select: { id: true, name: true, email: true, avatar: true } } },
   });
 

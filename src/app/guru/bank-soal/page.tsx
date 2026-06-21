@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
 import { BookMarked } from "lucide-react";
 import BankSoalClient from "@/components/guru/BankSoalClient";
@@ -10,8 +11,13 @@ export default async function BankSoalPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "GURU") redirect("/guru");
 
+  const { branchId } = await getBranchScope();
+  const classWhere = branchId
+    ? { teacherId: session.user.id, branchId }
+    : { teacherId: session.user.id };
+
   const teacherClasses = await db.class.findMany({
-    where: { teacherId: session.user.id },
+    where: classWhere,
     select: { id: true, subjectId: true },
   });
 

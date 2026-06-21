@@ -10,7 +10,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, handled: false });
   }
 
-  const invoiceId = order_id?.split("-")[1];
+  if (!order_id) return NextResponse.json({ error: "Invalid order_id" }, { status: 400 });
+
+  if (order_id.startsWith("EVT-")) {
+    const registrationId = order_id.split("-")[1];
+    if (!registrationId) return NextResponse.json({ error: "Invalid order_id" }, { status: 400 });
+
+    const registration = await db.eventRegistration.findUnique({ where: { id: registrationId } });
+    if (!registration) return NextResponse.json({ error: "Registration not found" }, { status: 404 });
+
+    await db.eventRegistration.update({
+      where: { id: registrationId },
+      data: {
+        paymentStatus: "PAID",
+        paidAt: new Date(),
+        externalId: order_id,
+      },
+    });
+
+    return NextResponse.json({ ok: true, handled: true });
+  }
+
+  const invoiceId = order_id.split("-")[1];
   if (!invoiceId) return NextResponse.json({ error: "Invalid order_id" }, { status: 400 });
 
   const invoice = await db.invoice.findUnique({ where: { id: invoiceId } });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { emailAnnouncementBroadcast } from "@/lib/email";
 
 export async function GET() {
@@ -9,8 +10,13 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const { branchId, isSuperAdmin } = await getBranchScope();
+
   const announcements = await db.notification.findMany({
-    where: { type: "INFO" },
+    where: {
+      type: "INFO",
+      ...(branchId && !isSuperAdmin ? { user: { defaultBranchId: branchId } } : {}),
+    },
     orderBy: { createdAt: "desc" },
     take: 30,
     distinct: ["content"],
@@ -25,17 +31,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const { isSuperAdmin, branchId } = await getBranchScope();
   const body = await req.json();
-  const { title, content, type, link, targetRole } = body;
+  const { title, content, type, link, targetRole, branchId: bodyBranchId } = body;
 
   if (!title || !content) {
     return NextResponse.json({ error: "title dan content wajib diisi" }, { status: 400 });
+  }
+
+  const targetBranchId = isSuperAdmin ? (bodyBranchId || branchId) : branchId;
+  if (!isSuperAdmin && bodyBranchId && bodyBranchId !== branchId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const users = await db.user.findMany({
     where: {
       isActive: true,
       ...(targetRole ? { role: targetRole } : {}),
+      ...(targetBranchId ? { defaultBranchId: targetBranchId } : {}),
     },
     select: { id: true, email: true },
   });

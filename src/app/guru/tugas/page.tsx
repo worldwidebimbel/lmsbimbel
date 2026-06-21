@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
 import TugasList from "@/components/tugas/TugasList";
 import { ClipboardList } from "lucide-react";
@@ -10,9 +11,14 @@ export default async function GuruTugasPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "GURU") redirect("/guru");
 
+  const { branchId } = await getBranchScope();
+  const classWhere = branchId
+    ? { teacherId: session.user.id, isActive: true, branchId }
+    : { teacherId: session.user.id, isActive: true };
+
   const [assignments, classes] = await Promise.all([
     prisma.assignment.findMany({
-      where: { teacherId: session.user.id },
+      where: { teacherId: session.user.id, class: classWhere },
       include: {
         class: { select: { id: true, name: true } },
         teacher: { select: { id: true, name: true } },
@@ -21,10 +27,7 @@ export default async function GuruTugasPage() {
       orderBy: { dueDate: "asc" },
     }),
     prisma.class.findMany({
-      where: {
-        teacherId: session.user.id,
-        isActive: true,
-      },
+      where: classWhere,
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),

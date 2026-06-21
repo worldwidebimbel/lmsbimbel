@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
 import { BarChart3, BookOpen, ClipboardList, FileCheck, CheckSquare, GraduationCap } from "lucide-react";
 
@@ -9,8 +10,12 @@ export default async function OrangtuaProgressPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "ORANG_TUA") redirect("/orangtua");
 
+  const { branchId } = await getBranchScope();
   const children = await db.parentChild.findMany({
-    where: { parentId: session.user.id },
+    where: {
+      parentId: session.user.id,
+      child: branchId ? { defaultBranchId: branchId } : {},
+    },
     include: { child: { select: { id: true, name: true, email: true } } },
   });
 

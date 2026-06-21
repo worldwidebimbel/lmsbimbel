@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getAdminIdsForBranch } from "@/lib/branch-context";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -45,11 +46,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     db.invoice.update({ where: { id }, data: { status: "PENDING" } }),
   ]);
 
-  const admins = await db.user.findMany({ where: { role: { in: ["ADMIN", "SUPER_ADMIN"] } }, select: { id: true } });
-  if (admins.length > 0) {
+  const adminIds = await getAdminIdsForBranch(invoice.branchId);
+  if (adminIds.length > 0) {
     await db.notification.createMany({
-      data: admins.map((a) => ({
-        userId: a.id,
+      data: adminIds.map((adminId) => ({
+        userId: adminId,
         type: "INFO",
         title: "Bukti Pembayaran Masuk",
         content: `Orang tua dari ${invoice.student.name} mengirimkan bukti pembayaran QRIS.`,

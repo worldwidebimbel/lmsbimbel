@@ -61,6 +61,7 @@ export default async function NilaiGrafikPage() {
   const examByClass: Record<string, { className: string; scores: { label: string; score: number; date: string }[] }> = {};
   for (const a of examAttempts) {
     const cid = a.exam.classId;
+    if (!cid || !a.exam.class) continue;
     if (!examByClass[cid]) examByClass[cid] = { className: a.exam.class.name, scores: [] };
     if (a.score !== null) {
       examByClass[cid].scores.push({

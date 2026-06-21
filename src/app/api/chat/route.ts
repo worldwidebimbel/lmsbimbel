@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope, canChatWith } from "@/lib/branch-context";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -9,6 +10,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const withUserId = searchParams.get("with");
   const userId = session.user.id;
+  const { branchId, isSuperAdmin } = await getBranchScope();
 
   if (!withUserId) {
     // Get list of conversations (last message per contact)
@@ -31,12 +33,16 @@ export async function GET(req: NextRequest) {
 
     for (const m of sent) {
       const key = m.receiverId;
+      const allowed = await canChatWith(session.user, m.receiverId, isSuperAdmin ? null : branchId);
+      if (!allowed) continue;
       if (!contactMap.has(key)) {
         contactMap.set(key, { user: m.receiver, lastMessage: m.content, lastAt: m.createdAt, unread: 0 });
       }
     }
     for (const m of received) {
       const key = m.senderId;
+      const allowed = await canChatWith(session.user, m.senderId, isSuperAdmin ? null : branchId);
+      if (!allowed) continue;
       const existing = contactMap.get(key);
       const isNewer = !existing || m.createdAt > existing.lastAt;
       const unread = await db.message.count({ where: { senderId: key, receiverId: userId, isRead: false } });
@@ -52,6 +58,9 @@ export async function GET(req: NextRequest) {
     const conversations = Array.from(contactMap.values()).sort((a, b) => b.lastAt.getTime() - a.lastAt.getTime());
     return NextResponse.json(conversations);
   }
+
+  const allowed = await canChatWith(session.user, withUserId, isSuperAdmin ? null : branchId);
+  if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   // Mark messages from withUserId as read
   await db.message.updateMany({ where: { senderId: withUserId, receiverId: userId, isRead: false }, data: { isRead: true } });
@@ -74,6 +83,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const { branchId, isSuperAdmin } = await getBranchScope();
   const body = await req.json();
   const { receiverId, content } = body;
 
@@ -83,6 +93,9 @@ export async function POST(req: NextRequest) {
 
   const receiver = await db.user.findUnique({ where: { id: receiverId }, select: { id: true } });
   if (!receiver) return NextResponse.json({ error: "Penerima tidak ditemukan" }, { status: 404 });
+
+  const allowed = await canChatWith(session.user, receiverId, isSuperAdmin ? null : branchId);
+  if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const msg = await db.message.create({
     data: { senderId: session.user.id, receiverId, content: content.trim() },

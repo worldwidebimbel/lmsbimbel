@@ -217,13 +217,15 @@
 - [ ] CMS admin untuk kelola konten web frontpage, banner, promo, gallery, testimoni
 
 ### 🎟️ Modul 17: Event Berbayar Online
-- [ ] Manajemen event (tryout online, lomba olimpiade, workshop) — admin CRUD
-- [ ] Halaman publik daftar event / landing page event
-- [ ] Registrasi peserta + pilih paket / tier harga
-- [ ] Pembayaran event (Midtrans otomatis / QRIS manual / upload bukti)
-- [ ] Pembayaran bisa toggle enable/disable (gratis vs berbayar)
-- [ ] Sesi ujian khusus event (soal terpisah dari kelas regular)
-- [ ] Hasil & ranking event (leaderboard, score, sertifikat)
+- [x] Manajemen event (tryout online, lomba olimpiade, workshop) — admin CRUD + multi-branch
+- [x] Halaman publik daftar event / landing page event
+- [x] Registrasi peserta + pilih paket / tier harga
+- [x] Pembayaran event Midtrans/Xendit otomatis
+- [ ] Pembayaran event QRIS manual / upload bukti
+- [x] Pembayaran bisa toggle enable/disable (gratis vs berbayar)
+- [x] Sesi ujian khusus event (soal terpisah dari kelas regular)
+- [x] Hasil & ranking event (leaderboard, score, auto-rank setelah submit)
+- [x] Admin kelola peserta event (konfirmasi, tandai lunas, lihat skor)
 - [ ] E-sertifikat otomatis untuk peserta lomba
 - [ ] Notifikasi reminder event via email/WhatsApp
 
@@ -240,64 +242,64 @@
 - [x] Filter daftar user per cabang di `/admin/users`
 - [x] User create/edit: assign `defaultBranchId` (admin) + branch selector for super admin
 - [x] Non-super admin hanya bisa edit user di cabangnya sendiri
-- [ ] Parent-child linking scoped by branch
+- [x] Parent-child linking scoped by branch
 
 ### Modul 2: Kelas & Jadwal
 - [x] Filter daftar kelas per cabang di `/admin/classes`
 - [x] Create class dengan branch selector
-- [ ] Edit class: update branch + branch selector
-- [ ] Detail class: cek akses cabang, jadwal scoped by class branch
+- [x] Edit class: update branch + branch selector — `/admin/classes/[id]`
+- [x] Detail class: cek akses cabang, jadwal scoped by class branch — `/admin/classes/[id]` + API
 
 ### Modul 3: Materi
-- [ ] Filter materi per cabang (via class branch)
-- [ ] Guru hanya lihat materi kelas di cabangnya
+- [x] Filter materi per cabang (via class branch) — `/api/materi` + `/guru/materi`
+- [x] Guru hanya lihat materi kelas di cabangnya
 
 ### Modul 4: Tugas
-- [ ] Filter tugas per cabang (via class branch)
-- [ ] Guru hanya buat tugas untuk kelas di cabangnya
+- [x] Filter tugas per cabang (via class branch) — `/guru/tugas` + `/api/tugas`
+- [x] Guru hanya buat tugas untuk kelas di cabangnya — POST/PATCH/DELETE `/api/tugas/[id]`
 
 ### Modul 5: Ujian
-- [ ] Filter ujian per cabang (via class branch)
-- [ ] Bank soal scoped by branch
+- [x] Filter ujian per cabang (via class branch) — `/guru/ujian` + `/api/guru/ujian` + `/api/guru/ujian/[id]`
+- [x] Bank soal scoped by branch — `/guru/bank-soal` + `/api/guru/bank-soal`
 
 ### Modul 6: Absensi
-- [ ] Filter sesi absensi per cabang (via class branch)
-- [ ] QR scan validasi cabang siswa
+- [x] Filter sesi absensi per cabang (via class branch) — `/api/absensi` + `/api/absensi/[id]`
+- [x] QR scan validasi cabang siswa — `/api/absensi/qr/[token]`
 
 ### Modul 7: Nilai & Rapor
-- [ ] Filter nilai/rapor per cabang (via class branch)
-- [ ] Grafik nilai per cabang
+- [x] Filter nilai/rapor per cabang (via class branch) — `/guru/nilai` + `/api/nilai` + `/siswa/nilai`
+- [x] Grafik nilai per cabang — data pada `/siswa/nilai` dan `/siswa/nilai/grafik` otomatis scoped
 
 ### Modul 8: Analitik
-- [ ] Dashboard analitik filter by branch
-- [ ] Laporan per cabang
+- [x] Dashboard analitik filter by branch — `/admin/analytics`
+- [x] Laporan per cabang — `/admin/analytics/classes` + `/admin/analytics/teachers`
 
 ### Modul 9: Keuangan
 - [x] Filter tagihan per cabang
 - [x] Create invoice dengan branch selector
-- [ ] Detail tagihan: cek akses cabang
-- [ ] Laporan keuangan per cabang
-- [ ] Branch transaction (income/expense) CRUD
-- [ ] Branch cash transfer antar cabang
-- [ ] Settings QRIS per cabang
+- [x] Detail tagihan: cek akses cabang — `/admin/finance/[id]`
+- [x] Laporan keuangan per cabang — `/admin/finance/laporan`
+- [x] Branch transaction (income/expense) CRUD — `/admin/finance/transactions`
+- [x] Branch cash transfer antar cabang — `/admin/finance/transactions` + API `/admin/branches/transfers`
+- [x] Settings QRIS per cabang
 
 ### Modul 10: Notifikasi & Pengumuman
-- [ ] Broadcast pengumuman target by branch
-- [ ] Notifikasi tagihan per cabang
+- [x] Broadcast pengumuman target by branch
+- [x] Notifikasi tagihan per cabang
 
 ### Modul 11: Forum & Chat
-- [ ] Chat siswa-guru hanya dalam cabang yang sama
-- [ ] Forum thread scoped by class branch
+- [x] Chat siswa-guru hanya dalam cabang yang sama
+- [x] Forum thread scoped by class branch
 
 ### Modul 12: Kelas Online
-- [ ] Live session scoped by class branch
-- [ ] Siswa hanya lihat live di cabangnya
+- [x] Live session scoped by class branch
+- [x] Siswa hanya lihat live di cabangnya
 
 ### Modul 13: Gamifikasi
-- [ ] Leaderboard per cabang (toggle)
+- [x] Leaderboard per cabang (toggle)
 
 ### Modul 14: Portal Orang Tua
-- [ ] Ortu hanya lihat data anak di cabang terkait
+- [x] Ortu hanya lihat data anak di cabang terkait
 
 ### Modul 17: Event Berbayar
 - [ ] Event scoped by branch

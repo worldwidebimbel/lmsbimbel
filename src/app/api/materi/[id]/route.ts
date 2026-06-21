@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
+
+async function checkMaterialBranch(materialId: string) {
+  const { isSuperAdmin, branchId } = await getBranchScope();
+  const material = await db.material.findUnique({
+    where: { id: materialId },
+    include: { class: { select: { branchId: true } } },
+  });
+  if (!material) return { material: null, allowed: false };
+  if (!isSuperAdmin && branchId && material.class && material.class.branchId !== branchId) {
+    return { material, allowed: false };
+  }
+  return { material, allowed: true };
+}
 
 export async function GET(
   _req: NextRequest,
@@ -10,7 +24,11 @@ export async function GET(
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const material = await db.material.findUnique({
+  const { material, allowed } = await checkMaterialBranch(id);
+  if (!material) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const full = await db.material.findUnique({
     where: { id },
     include: {
       subject: true,
@@ -19,8 +37,7 @@ export async function GET(
     },
   });
 
-  if (!material) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(material);
+  return NextResponse.json(full);
 }
 
 export async function PATCH(
@@ -31,12 +48,12 @@ export async function PATCH(
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const existing = await db.material.findUnique({ where: { id } });
-  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const { material, allowed } = await checkMaterialBranch(id);
+  if (!material) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const isOwnerOrAdmin = existing.uploaderId === session.user.id ||
+  const isOwnerOrAdmin = material.uploaderId === session.user.id ||
     ["ADMIN", "SUPER_ADMIN"].includes(session.user.role);
-  if (!isOwnerOrAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!isOwnerOrAdmin || !allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
   const updated = await db.material.update({
@@ -59,12 +76,12 @@ export async function DELETE(
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const existing = await db.material.findUnique({ where: { id } });
-  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const { material, allowed } = await checkMaterialBranch(id);
+  if (!material) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const isOwnerOrAdmin = existing.uploaderId === session.user.id ||
+  const isOwnerOrAdmin = material.uploaderId === session.user.id ||
     ["ADMIN", "SUPER_ADMIN"].includes(session.user.role);
-  if (!isOwnerOrAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!isOwnerOrAdmin || !allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   await db.material.delete({ where: { id } });
   return NextResponse.json({ success: true });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 
 export async function GET() {
   const session = await auth();
@@ -8,6 +9,7 @@ export async function GET() {
 
   const userId = session.user.id;
   const role = session.user.role;
+  const { branchId, isSuperAdmin } = await getBranchScope();
 
   if (role === "SISWA") {
     const enrolled = await db.classStudent.findMany({
@@ -36,7 +38,10 @@ export async function GET() {
 
   if (role === "ORANG_TUA") {
     const children = await db.parentChild.findMany({
-      where: { parentId: userId },
+      where: {
+        parentId: userId,
+        child: branchId && !isSuperAdmin ? { defaultBranchId: branchId } : {},
+      },
       select: { childId: true },
     });
     const childIds = children.map((c) => c.childId);
@@ -46,6 +51,20 @@ export async function GET() {
     });
     const teacherMap = new Map(enrolled.map((e) => [e.class.teacherId, e.class.teacher]));
     return NextResponse.json(Array.from(teacherMap.values()));
+  }
+
+  if (role === "ADMIN" || role === "SUPER_ADMIN") {
+    const users = await db.user.findMany({
+      where: {
+        isActive: true,
+        id: { not: userId },
+        role: { in: ["ADMIN", "GURU", "SISWA", "ORANG_TUA"] },
+        ...(isSuperAdmin ? {} : branchId ? { defaultBranchId: branchId } : {}),
+      },
+      select: { id: true, name: true, avatar: true, role: true },
+      orderBy: { name: "asc" },
+    });
+    return NextResponse.json(users);
   }
 
   return NextResponse.json([]);

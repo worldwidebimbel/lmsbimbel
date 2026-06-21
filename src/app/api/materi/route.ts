@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -10,6 +11,7 @@ export async function GET(req: NextRequest) {
   const classId = searchParams.get("classId");
   const subjectId = searchParams.get("subjectId");
   const role = session.user.role;
+  const { isSuperAdmin, branchId } = await getBranchScope();
 
   let where: Record<string, unknown> = { isPublished: true };
 
@@ -27,6 +29,14 @@ export async function GET(req: NextRequest) {
 
   if (classId) where.classId = classId;
   if (subjectId) where.subjectId = subjectId;
+
+  if (!isSuperAdmin && branchId) {
+    const branchClassIds = (await db.class.findMany({ where: { branchId }, select: { id: true } })).map((c) => c.id);
+    where.OR = [
+      { classId: { in: branchClassIds } },
+      { classId: null },
+    ];
+  }
 
   const materials = await db.material.findMany({
     where,
@@ -49,11 +59,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const { isSuperAdmin, branchId } = await getBranchScope();
   const body = await req.json();
   const { title, description, classId, subjectId, type, fileUrl, fileSize, duration, order } = body;
 
   if (!title || !type) {
     return NextResponse.json({ error: "title dan type wajib diisi" }, { status: 400 });
+  }
+
+  if (classId && !isSuperAdmin) {
+    const cls = await db.class.findUnique({ where: { id: classId }, select: { branchId: true } });
+    if (!cls) return NextResponse.json({ error: "Kelas tidak ditemukan" }, { status: 404 });
+    if (branchId && cls.branchId !== branchId) {
+      return NextResponse.json({ error: "Forbidden: kelas di luar cabang" }, { status: 403 });
+    }
   }
 
   const material = await db.material.create({

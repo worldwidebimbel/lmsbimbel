@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -8,26 +9,39 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
+  const { branchId, isSuperAdmin } = await getBranchScope();
   const { searchParams } = new URL(req.url);
   const parentId = searchParams.get("parentId");
 
   if (parentId) {
     const children = await db.parentChild.findMany({
-      where: { parentId },
+      where: {
+        parentId,
+        child: branchId && !isSuperAdmin ? { defaultBranchId: branchId } : {},
+      },
       include: { child: { select: { id: true, name: true, email: true, avatar: true } } },
     });
     return NextResponse.json(children);
   }
 
   const parents = await db.user.findMany({
-    where: { role: "ORANG_TUA", isActive: true },
+    where: {
+      role: "ORANG_TUA",
+      isActive: true,
+      ...(branchId && !isSuperAdmin ? { defaultBranchId: branchId } : {}),
+    },
     select: { id: true, name: true, email: true, avatar: true },
     orderBy: { name: "asc" },
   });
 
   const parentsWithChildren = await Promise.all(
     parents.map(async (p) => {
-      const children = await db.parentChild.count({ where: { parentId: p.id } });
+      const children = await db.parentChild.count({
+        where: {
+          parentId: p.id,
+          child: branchId && !isSuperAdmin ? { defaultBranchId: branchId } : {},
+        },
+      });
       return { ...p, childrenCount: children };
     })
   );
@@ -41,6 +55,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
+  const { branchId, isSuperAdmin } = await getBranchScope();
   const body = await req.json();
   const { parentId, childId } = body;
   if (!parentId || !childId) return NextResponse.json({ error: "parentId dan childId wajib" }, { status: 400 });
@@ -49,6 +64,10 @@ export async function POST(req: NextRequest) {
   const child = await db.user.findUnique({ where: { id: childId } });
   if (!parent || parent.role !== "ORANG_TUA") return NextResponse.json({ error: "Parent bukan ORANG_TUA" }, { status: 400 });
   if (!child || child.role !== "SISWA") return NextResponse.json({ error: "Child bukan SISWA" }, { status: 400 });
+
+  if (!isSuperAdmin && branchId && (parent.defaultBranchId !== branchId || child.defaultBranchId !== branchId)) {
+    return NextResponse.json({ error: "Parent dan child harus di cabang yang sama" }, { status: 403 });
+  }
 
   const exists = await db.parentChild.findUnique({
     where: { parentId_childId: { parentId, childId } },

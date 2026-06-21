@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getDemoStatus } from "@/lib/demo-seeder";
+import { getBranchScope } from "@/lib/branch-context";
+import { getQrisSettings } from "@/lib/qris-settings";
 import SettingsClient from "@/components/admin/SettingsClient";
 import { Settings } from "lucide-react";
 
@@ -22,6 +24,7 @@ export default async function AdminSettingsPage() {
     redirect("/admin");
   }
 
+  const { isSuperAdmin, branchId, allBranches } = await getBranchScope();
   const [settingRows, demoStatus] = await Promise.all([
     db.appSetting.findMany(),
     getDemoStatus(),
@@ -29,6 +32,12 @@ export default async function AdminSettingsPage() {
 
   const settings = { ...DEFAULT_SETTINGS };
   for (const r of settingRows) settings[r.key] = r.value;
+
+  const branchQris = await getQrisSettings(branchId);
+  settings.qris_image_url = branchQris.imageUrl ?? "";
+  settings.qris_bank_name = branchQris.bankName ?? "";
+  settings.qris_account_name = branchQris.accountName ?? "";
+  settings.qris_account_number = branchQris.accountNumber ?? "";
 
   const smtpConfigured = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
   const appVersion = process.env.npm_package_version ?? "0.1.0";
@@ -50,6 +59,9 @@ export default async function AdminSettingsPage() {
         demoStatus={demoStatus}
         smtpConfigured={smtpConfigured}
         appVersion={appVersion}
+        branches={allBranches}
+        isSuperAdmin={isSuperAdmin}
+        defaultBranchId={branchId}
       />
     </div>
   );

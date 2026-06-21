@@ -247,6 +247,17 @@ const FEATURE_FLAGS = [
     sortOrder: 22,
   },
   {
+    code: "FEAT_EVENTS",
+    name: "Event Berbayar",
+    description: "Kelola tryout, olimpiade, workshop, dan event berbayar lainnya",
+    isActive: false,
+    tier: FeatureTier.PREMIUM,
+    category: "engagement",
+    icon: "Trophy",
+    affectedRoles: ["ADMIN", "SUPER_ADMIN", "SISWA"],
+    sortOrder: 23,
+  },
+  {
     code: "FEAT_PWA",
     name: "Mode Offline (PWA)",
     description: "Instalasi sebagai app dan akses materi offline",
@@ -255,7 +266,7 @@ const FEATURE_FLAGS = [
     category: "teknis",
     icon: "Smartphone",
     affectedRoles: ["SISWA", "GURU"],
-    sortOrder: 23,
+    sortOrder: 24,
   },
   {
     code: "FEAT_MULTI_BRANCH",

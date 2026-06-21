@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
 import { BarChart3, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -11,8 +12,11 @@ export default async function ClassAnalyticsPage() {
   const session = await auth();
   if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
 
+  const { branchId } = await getBranchScope();
+  const classWhere = branchId ? { isActive: true, branchId } : { isActive: true };
+
   const classes = await db.class.findMany({
-    where: { isActive: true },
+    where: classWhere,
     select: {
       id: true, name: true,
       subject: { select: { name: true, color: true } },

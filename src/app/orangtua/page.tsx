@@ -1,11 +1,15 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { Users2, GraduationCap, CheckSquare, Wallet } from "lucide-react";
 import { formatCurrency, getAttendanceStatusColor, getAttendanceStatusLabel, getInvoiceStatusColor, getInvoiceStatusLabel } from "@/lib/utils";
 
-async function getOrangtuaData(userId: string) {
+async function getOrangtuaData(userId: string, branchId: string | null) {
   const children = await db.parentChild.findMany({
-    where: { parentId: userId },
+    where: {
+      parentId: userId,
+      child: branchId ? { defaultBranchId: branchId } : {},
+    },
     include: {
       child: {
         include: {
@@ -21,7 +25,8 @@ async function getOrangtuaData(userId: string) {
 
 export default async function OrangtuaDashboard() {
   const session = await auth();
-  const children = await getOrangtuaData(session!.user!.id as string);
+  const { branchId } = await getBranchScope();
+  const children = await getOrangtuaData(session!.user!.id as string, branchId);
 
   return (
     <div className="space-y-6">

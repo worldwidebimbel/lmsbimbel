@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -8,12 +9,16 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const classId = searchParams.get("classId");
+  const { isSuperAdmin, branchId } = await getBranchScope();
 
   const where: Record<string, unknown> = {};
 
   if (session.user.role === "GURU") {
+    const classWhere = branchId
+      ? { teacherId: session.user.id, branchId }
+      : { teacherId: session.user.id };
     const classes = await db.class.findMany({
-      where: { teacherId: session.user.id },
+      where: classWhere,
       select: { id: true },
     });
     const ids = classes.map((c) => c.id);
@@ -24,6 +29,10 @@ export async function GET(req: NextRequest) {
       select: { classId: true },
     });
     where.classId = { in: enrolled.map((e) => e.classId) };
+  }
+
+  if (!isSuperAdmin && branchId) {
+    where.class = { branchId };
   }
 
   const attendances = await db.attendance.findMany({
@@ -44,11 +53,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const { isSuperAdmin, branchId } = await getBranchScope();
   const body = await req.json();
   const { classId, date } = body;
 
   if (!classId || !date) {
     return NextResponse.json({ error: "classId dan date wajib diisi" }, { status: 400 });
+  }
+
+  const cls = await db.class.findUnique({ where: { id: classId }, select: { branchId: true } });
+  if (!cls) return NextResponse.json({ error: "Kelas tidak ditemukan" }, { status: 404 });
+  if (!isSuperAdmin && branchId && cls.branchId !== branchId) {
+    return NextResponse.json({ error: "Forbidden: kelas di luar cabang" }, { status: 403 });
   }
 
   const parsedDate = new Date(date);

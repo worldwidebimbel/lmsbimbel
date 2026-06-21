@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { Wallet } from "lucide-react";
+import { getBranchScope } from "@/lib/branch-context";
+import { getQrisSettings } from "@/lib/qris-settings";
 import TagihanSiswaClient from "@/components/tagihan/TagihanSiswaClient";
 
 export const metadata = { title: "Tagihan" };
@@ -10,9 +12,11 @@ export default async function SiswaTagihanPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "SISWA") redirect("/siswa");
 
-  const [invoices, qrisSettings] = await Promise.all([
+  const { branchId } = await getBranchScope();
+
+  const [invoices, qris] = await Promise.all([
     db.invoice.findMany({
-      where: { studentId: session.user.id },
+      where: { studentId: session.user.id, ...(branchId ? { branchId } : {}) },
       select: {
         id: true,
         amount: true,
@@ -26,18 +30,8 @@ export default async function SiswaTagihanPage() {
       },
       orderBy: { createdAt: "desc" },
     }),
-    db.appSetting.findMany({
-      where: { key: { in: ["qris_image_url", "qris_bank_name", "qris_account_name", "qris_account_number"] } },
-    }),
+    getQrisSettings(branchId),
   ]);
-
-  const settingMap = Object.fromEntries(qrisSettings.map((s) => [s.key, s.value]));
-  const qris = {
-    imageUrl: settingMap["qris_image_url"] ?? null,
-    bankName: settingMap["qris_bank_name"] ?? null,
-    accountName: settingMap["qris_account_name"] ?? null,
-    accountNumber: settingMap["qris_account_number"] ?? null,
-  };
 
   const cloudinaryConfigured = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
 

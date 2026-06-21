@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getAdminIdsForBranch } from "@/lib/branch-context";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -40,12 +41,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }),
   ]);
 
-  // Buat notifikasi untuk admin
-  const admins = await db.user.findMany({ where: { role: { in: ["ADMIN", "SUPER_ADMIN"] } }, select: { id: true } });
-  if (admins.length > 0) {
+  // Buat notifikasi untuk admin cabang terkait
+  const adminIds = await getAdminIdsForBranch(invoice.branchId);
+  if (adminIds.length > 0) {
     await db.notification.createMany({
-      data: admins.map((a) => ({
-        userId: a.id,
+      data: adminIds.map((adminId) => ({
+        userId: adminId,
         type: "INFO",
         title: "Bukti Pembayaran Masuk",
         content: `${session.user.name} mengirimkan bukti pembayaran QRIS. Mohon dikonfirmasi.`,

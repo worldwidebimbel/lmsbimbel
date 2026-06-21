@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
 import NilaiGuruClient from "@/components/nilai/NilaiGuruClient";
 import { BarChart3 } from "lucide-react";
@@ -10,8 +11,13 @@ export default async function GuruNilaiPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "GURU") redirect("/guru");
 
+  const { branchId } = await getBranchScope();
+  const classWhere = branchId
+    ? { teacherId: session.user.id, isActive: true, branchId }
+    : { teacherId: session.user.id, isActive: true };
+
   const classes = await db.class.findMany({
-    where: { teacherId: session.user.id, isActive: true },
+    where: classWhere,
     select: {
       id: true,
       name: true,

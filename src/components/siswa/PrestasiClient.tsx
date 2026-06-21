@@ -23,6 +23,8 @@ interface Props {
   badges: Badge[];
   leaderboard: LeaderboardEntry[];
   myRank: number;
+  branchLeaderboard?: LeaderboardEntry[];
+  myBranchRank?: number;
   studentId: string;
 }
 
@@ -46,9 +48,14 @@ const MEDAL: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
 export default function PrestasiClient({
   totalPoints, level, levelName, levelColor, levelBg, nextLevelPoints,
-  progressToNextLevel, breakdown, badges, leaderboard, myRank, studentId,
+  progressToNextLevel, breakdown, badges, leaderboard, myRank,
+  branchLeaderboard = [], myBranchRank = 0, studentId,
 }: Props) {
   const [activeTab, setActiveTab] = useState("overview");
+  const [leaderboardScope, setLeaderboardScope] = useState<"class" | "branch">("class");
+  const activeLeaderboard = leaderboardScope === "branch" ? branchLeaderboard : leaderboard;
+  const activeRank = leaderboardScope === "branch" ? myBranchRank : myRank;
+  const hasBranchLeaderboard = branchLeaderboard.length > 0;
 
   const earnedBadges = badges.filter((b) => b.earned);
   const lockedBadges = badges.filter((b) => !b.earned);
@@ -200,14 +207,38 @@ export default function PrestasiClient({
       {/* Leaderboard Tab */}
       {activeTab === "leaderboard" && (
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-          <div className="border-b border-gray-100 px-5 py-3">
-            <h3 className="font-semibold text-gray-900">Peringkat Kelas</h3>
+          <div className="border-b border-gray-100 px-5 py-3 flex items-center justify-between">
+            <h3 className="font-semibold text-gray-900">
+              {leaderboardScope === "branch" ? "Peringkat Cabang" : "Peringkat Kelas"}
+            </h3>
+            {hasBranchLeaderboard && (
+              <div className="flex items-center rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setLeaderboardScope("class")}
+                  className={`px-3 py-1 text-xs rounded-md font-medium ${
+                    leaderboardScope === "class" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Kelas
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLeaderboardScope("branch")}
+                  className={`px-3 py-1 text-xs rounded-md font-medium ${
+                    leaderboardScope === "branch" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Cabang
+                </button>
+              </div>
+            )}
           </div>
-          {leaderboard.length === 0 ? (
+          {activeLeaderboard.length === 0 ? (
             <div className="py-12 text-center text-sm text-gray-400">Belum ada data leaderboard</div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {leaderboard.map((entry, idx) => {
+              {activeLeaderboard.map((entry, idx) => {
                 const rank = idx + 1;
                 const isMe = entry.id === studentId;
                 return (
