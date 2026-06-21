@@ -205,16 +205,15 @@
 - [x] CTA section + WhatsApp link
 - [x] Footer dengan kontak & links
 - [x] Tema dasar Tailwind (bisa di-override)
-- [ ] Branding: tone warna logo — Biru Navy, Kuning, Putih + warna minor harmonis
-- [ ] Hero / Banner slider configurable
-- [ ] Gallery prestasi siswa (foto, keterangan, periode)
-- [ ] Gallery aktivitas bimbel (event, lomba, outing, kelas)
-- [ ] Promo product per program: Kelas Reguler Offline & Kelas Online (LMS)
-- [ ] Promo event-event tertentu: lomba olimpiade, tryout, open house
-- [ ] Modal/popup promosi & CTA
-- [ ] Form pendaftaran siswa baru / inquiry (lead CRM)
+- [x] Branding: Warna primer/sekunder/aksen bisa diubah & disimpan di DB (SiteConfig) — `/admin/site`
+- [x] Hero / Banner slider configurable (tambah, urut, aktifkan/nonaktifkan) — `HeroBannerSlider.tsx`
+- [x] Gallery prestasi & aktivitas bimbel (kategori: PRESTASI, AKTIVITAS, EVENT, KELAS) — `/admin/site`
+- [x] Modal/popup promosi & CTA (toggle on/off, judul, pesan, link) — `PromoPopup.tsx`
+- [x] Form pendaftaran siswa baru / inquiry (lead CRM) — `/api/site/inquiry`, tabel pendaftaran di admin
+- [x] CMS admin untuk kelola konten frontpage, banner, gallery, popup, pendaftaran — `/admin/site`
+- [ ] Promo product per program (konten per program terpisah)
 - [ ] Blog / artikel pemasaran
-- [ ] CMS admin untuk kelola konten web frontpage, banner, promo, gallery, testimoni
+- [ ] Testimoni configurable (tambah/edit dari admin, bukan hardcode)
 
 ### 🎟️ Modul 17: Event Berbayar Online
 - [x] Manajemen event (tryout online, lomba olimpiade, workshop) — admin CRUD + multi-branch

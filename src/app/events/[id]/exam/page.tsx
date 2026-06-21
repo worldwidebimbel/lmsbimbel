@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import EventExamClient from "@/components/event/EventExamClient";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "Ujian Event" };
 
 export default async function EventExamPage({ params }: { params: Promise<{ id: string }> }) {

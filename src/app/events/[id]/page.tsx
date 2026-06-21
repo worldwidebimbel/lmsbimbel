@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import EventDetailClient from "@/components/event/EventDetailClient";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "Detail Event" };
 
 export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {

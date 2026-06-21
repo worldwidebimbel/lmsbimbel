@@ -9,7 +9,7 @@ import {
   FileCheck, CheckSquare, GraduationCap, BarChart3, Wallet, CreditCard,
   Megaphone, MessagesSquare, MessageSquare, Video, Gamepad2, Award,
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
-  Mail, Smartphone, TrendingUp, Building2,
+  Mail, Smartphone, TrendingUp, Building2, Globe,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -17,7 +17,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   FileCheck, CheckSquare, GraduationCap, BarChart3, Wallet, CreditCard,
   Megaphone, MessagesSquare, MessageSquare, Video, Gamepad2, Award,
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
-  Mail, Smartphone, TrendingUp, Building2,
+  Mail, Smartphone, TrendingUp, Building2, Globe,
 };
 
 interface NavItem {
@@ -38,6 +38,7 @@ const NAV_ADMIN: NavItem[] = [
   { title: "Analitik", href: "/admin/analytics", icon: "BarChart3", featureFlag: "FEAT_ANALYTICS" },
   { title: "Pengumuman", href: "/admin/announcements", icon: "Megaphone", featureFlag: "FEAT_ANNOUNCEMENTS" },
   { title: "Event Berbayar", href: "/admin/events", icon: "Trophy", featureFlag: "FEAT_EVENTS" },
+  { title: "CMS Landing Page", href: "/admin/site", icon: "Globe" },
   { title: "Pengaturan", href: "/admin/settings", icon: "Settings" },
 ];
 

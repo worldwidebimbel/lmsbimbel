@@ -1022,3 +1022,59 @@ model EventRegistration {
   @@index([eventId])
   @@index([userId])
 }
+
+// ============================
+// CMS / LANDING PAGE
+// ============================
+
+model SiteConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("site_configs")
+}
+
+model SiteBanner {
+  id          String   @id @default(cuid())
+  title       String
+  subtitle    String?
+  imageUrl    String?
+  linkUrl     String?
+  linkLabel   String?
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("site_banners")
+}
+
+model SiteGallery {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String
+  category    String   @default("AKTIVITAS")
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("site_gallery")
+}
+
+model SiteInquiry {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  program   String?
+  message   String?
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("site_inquiries")
+}

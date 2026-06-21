@@ -46,7 +46,7 @@ jobs:
             git pull origin main
             npm ci
             npx prisma generate
-            npx prisma migrate deploy
+            npx prisma db push --accept-data-loss
             npm run build
             pm2 restart lms-bimbel || pm2 start npm --name lms-bimbel -- start
             pm2 save

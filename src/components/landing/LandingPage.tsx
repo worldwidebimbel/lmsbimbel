@@ -1,30 +1,49 @@
 import Link from "next/link";
 import { GraduationCap, BookOpen, Users, Award, ArrowRight, CheckCircle, Star, Phone, Mail, MapPin } from "lucide-react";
 import { db } from "@/lib/db";
+import { getSiteConfig } from "@/lib/site-config";
+import LandingInquiryForm from "@/components/landing/LandingInquiryForm";
+import HeroBannerSlider from "@/components/landing/HeroBannerSlider";
+import PromoPopup from "@/components/landing/PromoPopup";
 
-async function getLandingStats() {
-  const [students, teachers, classes, subjects] = await Promise.all([
-    db.user.count({ where: { role: "SISWA", isActive: true } }),
-    db.user.count({ where: { role: "GURU", isActive: true } }),
-    db.class.count({ where: { isActive: true } }),
-    db.subject.count({ where: { isActive: true } }),
-  ]);
-  return { students, teachers, classes, subjects };
+async function getLandingData() {
+  try {
+    const [students, teachers, classes, subjects, banners, gallery] = await Promise.all([
+      db.user.count({ where: { role: "SISWA", isActive: true } }),
+      db.user.count({ where: { role: "GURU", isActive: true } }),
+      db.class.count({ where: { isActive: true } }),
+      db.subject.count({ where: { isActive: true } }),
+      db.siteBanner.findMany({ where: { isActive: true }, orderBy: { order: "asc" } }),
+      db.siteGallery.findMany({ where: { isActive: true }, orderBy: [{ category: "asc" }, { order: "asc" }] }),
+    ]);
+    return { students, teachers, classes, subjects, banners, gallery };
+  } catch {
+    return { students: 0, teachers: 0, classes: 0, subjects: 0, banners: [], gallery: [] };
+  }
 }
 
 export default async function LandingPage() {
-  const stats = await getLandingStats();
+  const [data, cfg] = await Promise.all([getLandingData(), getSiteConfig()]);
+  const { students, teachers, classes, subjects, banners, gallery } = data;
+
+  const groupedGallery: Record<string, typeof gallery> = {};
+  for (const item of gallery) {
+    if (!groupedGallery[item.category]) groupedGallery[item.category] = [];
+    groupedGallery[item.category].push(item);
+  }
 
   return (
     <div className="min-h-screen bg-white">
+      {cfg.popupEnabled === "true" && <PromoPopup config={cfg} />}
+
       {/* Header / Navbar */}
       <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ backgroundColor: cfg.colorPrimary }}>
               <GraduationCap className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">EduBimbel</span>
+            <span className="text-xl font-bold text-gray-900">{cfg.siteName}</span>
           </div>
           <nav className="hidden items-center gap-8 md:flex">
             <a href="#program" className="text-sm font-medium text-gray-600 hover:text-blue-600">Program</a>
@@ -36,90 +55,92 @@ export default async function LandingPage() {
             <Link href="/login" className="hidden text-sm font-medium text-gray-600 hover:text-blue-600 sm:block">
               Masuk
             </Link>
-            <Link href="/login" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+            <Link href="/login" className="rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors" style={{ backgroundColor: cfg.colorPrimary }}>
               Daftar Sekarang
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                <Star className="h-3.5 w-3.5" /> Bimbingan Belajar Terbaik
-              </div>
-              <h1 className="text-4xl font-extrabold leading-tight text-gray-900 sm:text-5xl lg:text-6xl">
-                Wujudkan Mimpi <br />
-                <span className="text-blue-600">Cemerlang</span> Bersama Kami
-              </h1>
-              <p className="text-lg text-gray-600 max-w-lg">
-                Program bimbingan belajar berkualitas dengan guru profesional, kurikulum terstruktur, dan teknologi pembelajaran modern untuk kesuksesan akademik Anda.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <Link href="/login" className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-base font-semibold text-white hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200">
-                  Mulai Belajar <ArrowRight className="h-4 w-4" />
-                </Link>
-                <a href="#program" className="inline-flex items-center gap-2 rounded-xl border-2 border-gray-200 px-6 py-3 text-base font-semibold text-gray-700 hover:border-blue-300 hover:text-blue-600 transition-colors">
-                  Lihat Program
-                </a>
-              </div>
-              <div className="flex items-center gap-4 pt-2">
-                <div className="flex -space-x-3">
-                  {[1,2,3,4].map(i => (
-                    <div key={i} className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-gray-200 text-xs font-bold text-gray-600">
-                      {String.fromCharCode(64+i)}
-                    </div>
-                  ))}
+      {/* Hero / Banner Slider */}
+      {banners.length > 0 ? (
+        <HeroBannerSlider banners={banners} colorPrimary={cfg.colorPrimary} />
+      ) : (
+        <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-20 sm:py-28">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="grid items-center gap-12 lg:grid-cols-2">
+              <div className="space-y-6">
+                <div className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold" style={{ color: cfg.colorPrimary }}>
+                  <Star className="h-3.5 w-3.5" /> Bimbingan Belajar Terbaik
                 </div>
-                <p className="text-sm text-gray-500">
-                  <span className="font-bold text-gray-900">{stats.students}+</span> siswa telah bergabung
-                </p>
+                <h1 className="text-4xl font-extrabold leading-tight text-gray-900 sm:text-5xl lg:text-6xl">
+                  {cfg.tagline.split(" ").slice(0, -2).join(" ")} <br />
+                  <span style={{ color: cfg.colorPrimary }}>{cfg.tagline.split(" ").slice(-2).join(" ")}</span>
+                </h1>
+                <p className="text-lg text-gray-600 max-w-lg">{cfg.description}</p>
+                <div className="flex flex-wrap gap-4">
+                  <Link href="/login" className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-base font-semibold text-white transition-colors" style={{ backgroundColor: cfg.colorPrimary }}>
+                    Mulai Belajar <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <a href="#program" className="inline-flex items-center gap-2 rounded-xl border-2 border-gray-200 px-6 py-3 text-base font-semibold text-gray-700 hover:border-blue-300 hover:text-blue-600 transition-colors">
+                    Lihat Program
+                  </a>
+                </div>
+                <div className="flex items-center gap-4 pt-2">
+                  <div className="flex -space-x-3">
+                    {[1,2,3,4].map(i => (
+                      <div key={i} className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-gray-200 text-xs font-bold text-gray-600">
+                        {String.fromCharCode(64+i)}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    <span className="font-bold text-gray-900">{students}+</span> siswa telah bergabung
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="relative hidden lg:block">
-              <div className="absolute -left-10 -top-10 h-72 w-72 rounded-full bg-blue-100 opacity-50 blur-3xl" />
-              <div className="absolute -bottom-10 -right-10 h-72 w-72 rounded-full bg-indigo-100 opacity-50 blur-3xl" />
-              <div className="relative rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 rounded-xl bg-blue-50 p-4">
-                    <BookOpen className="h-8 w-8 text-blue-600" />
-                    <div>
-                      <p className="font-semibold text-gray-900">Materi Lengkap</p>
-                      <p className="text-xs text-gray-500">Video, PDF, Quiz interaktif</p>
+              <div className="relative hidden lg:block">
+                <div className="absolute -left-10 -top-10 h-72 w-72 rounded-full bg-blue-100 opacity-50 blur-3xl" />
+                <div className="absolute -bottom-10 -right-10 h-72 w-72 rounded-full bg-indigo-100 opacity-50 blur-3xl" />
+                <div className="relative rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 rounded-xl bg-blue-50 p-4">
+                      <BookOpen className="h-8 w-8 text-blue-600" />
+                      <div>
+                        <p className="font-semibold text-gray-900">Materi Lengkap</p>
+                        <p className="text-xs text-gray-500">Video, PDF, Quiz interaktif</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3 rounded-xl bg-green-50 p-4">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
-                    <div>
-                      <p className="font-semibold text-gray-900">Tryout Berkala</p>
-                      <p className="text-xs text-gray-500">Simulasi ujian nasional</p>
+                    <div className="flex items-center gap-3 rounded-xl bg-green-50 p-4">
+                      <CheckCircle className="h-8 w-8 text-green-600" />
+                      <div>
+                        <p className="font-semibold text-gray-900">Tryout Berkala</p>
+                        <p className="text-xs text-gray-500">Simulasi ujian nasional</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3 rounded-xl bg-purple-50 p-4">
-                    <Users className="h-8 w-8 text-purple-600" />
-                    <div>
-                      <p className="font-semibold text-gray-900">Guru Berpengalaman</p>
-                      <p className="text-xs text-gray-500">{stats.teachers}+ pengajar profesional</p>
+                    <div className="flex items-center gap-3 rounded-xl bg-purple-50 p-4">
+                      <Users className="h-8 w-8 text-purple-600" />
+                      <div>
+                        <p className="font-semibold text-gray-900">Guru Berpengalaman</p>
+                        <p className="text-xs text-gray-500">{teachers}+ pengajar profesional</p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Stats Section */}
       <section id="statistik" className="border-y border-gray-100 bg-gray-50/50 py-14">
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            <StatBox number={`${stats.students}+`} label="Siswa Aktif" />
-            <StatBox number={`${stats.teachers}+`} label="Guru Profesional" />
-            <StatBox number={`${stats.classes}+`} label="Kelas Tersedia" />
-            <StatBox number={`${stats.subjects}+`} label="Mata Pelajaran" />
+            <StatBox number={`${students}+`} label="Siswa Aktif" color={cfg.colorPrimary} />
+            <StatBox number={`${teachers}+`} label="Guru Profesional" color={cfg.colorPrimary} />
+            <StatBox number={`${classes}+`} label="Kelas Tersedia" color={cfg.colorPrimary} />
+            <StatBox number={`${subjects}+`} label="Mata Pelajaran" color={cfg.colorPrimary} />
           </div>
         </div>
       </section>
@@ -214,16 +235,57 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* Gallery Section */}
+      {gallery.length > 0 && (
+        <section id="gallery" className="py-16 bg-white">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="mb-10 text-center">
+              <h2 className="text-3xl font-bold text-gray-900">Gallery</h2>
+              <p className="mt-2 text-gray-500">Momen berharga bersama siswa dan kegiatan kami</p>
+            </div>
+            {Object.entries(groupedGallery).map(([cat, items]) => (
+              <div key={cat} className="mb-10">
+                <h3 className="text-lg font-semibold text-gray-700 mb-4 capitalize">{cat.toLowerCase()}</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {items.map((item) => (
+                    <div key={item.id} className="group rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="aspect-square bg-gray-100 overflow-hidden">
+                        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
+                        {item.description && <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{item.description}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Inquiry / Registration Form */}
+      <section id="daftar" className="py-16 bg-gray-50">
+        <div className="mx-auto max-w-2xl px-6">
+          <div className="mb-8 text-center">
+            <h2 className="text-3xl font-bold text-gray-900">Daftar Sekarang</h2>
+            <p className="mt-2 text-gray-500">Isi form di bawah, tim kami akan menghubungi Anda segera.</p>
+          </div>
+          <LandingInquiryForm />
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="bg-blue-600 py-16">
+      <section className="py-16" style={{ backgroundColor: cfg.colorPrimary }}>
         <div className="mx-auto max-w-4xl px-6 text-center">
           <h2 className="text-3xl font-bold text-white sm:text-4xl">Siap Meraih Prestasi?</h2>
-          <p className="mt-4 text-lg text-blue-100">Daftar sekarang dan nikmati sesi trial gratis pertama Anda.</p>
+          <p className="mt-4 text-lg text-blue-100">{cfg.trialText}</p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Link href="/login" className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-base font-semibold text-blue-600 hover:bg-gray-100 transition-colors">
-              Daftar Gratis <ArrowRight className="h-4 w-4" />
-            </Link>
-            <a href="https://wa.me/6281234567890" target="_blank" className="inline-flex items-center gap-2 rounded-xl border-2 border-white px-6 py-3 text-base font-semibold text-white hover:bg-white/10 transition-colors">
+            <a href="#daftar" className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-base font-semibold transition-colors" style={{ color: cfg.colorPrimary }}>
+              Daftar Sekarang <ArrowRight className="h-4 w-4" />
+            </a>
+            <a href={`https://wa.me/${cfg.whatsapp}`} target="_blank" className="inline-flex items-center gap-2 rounded-xl border-2 border-white px-6 py-3 text-base font-semibold text-white hover:bg-white/10 transition-colors">
               <Phone className="h-4 w-4" /> Hubungi Kami
             </a>
           </div>
@@ -236,42 +298,42 @@ export default async function LandingPage() {
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ backgroundColor: cfg.colorPrimary }}>
                   <GraduationCap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-gray-900">EduBimbel</span>
+                <span className="text-xl font-bold text-gray-900">{cfg.siteName}</span>
               </div>
               <p className="mt-4 text-sm text-gray-500">Lembaga bimbingan belajar terpercaya dengan sistem pembelajaran modern dan guru berkualitas.</p>
             </div>
             <div>
               <h4 className="font-semibold text-gray-900">Program</h4>
               <ul className="mt-4 space-y-2 text-sm text-gray-500">
-                <li><a href="#" className="hover:text-blue-600">SD Kelas 4-6</a></li>
-                <li><a href="#" className="hover:text-blue-600">SMP Kelas 7-9</a></li>
-                <li><a href="#" className="hover:text-blue-600">SMA Kelas 10-12</a></li>
-                <li><a href="#" className="hover:text-blue-600">UTBK Preparation</a></li>
+                <li><a href="#program" className="hover:text-blue-600">SD Kelas 4-6</a></li>
+                <li><a href="#program" className="hover:text-blue-600">SMP Kelas 7-9</a></li>
+                <li><a href="#program" className="hover:text-blue-600">SMA Kelas 10-12</a></li>
+                <li><a href="#program" className="hover:text-blue-600">UTBK Preparation</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold text-gray-900">Tautan</h4>
               <ul className="mt-4 space-y-2 text-sm text-gray-500">
-                <li><a href="#" className="hover:text-blue-600">Tentang Kami</a></li>
-                <li><a href="#" className="hover:text-blue-600">Cara Daftar</a></li>
+                <li><a href="#statistik" className="hover:text-blue-600">Tentang Kami</a></li>
+                <li><a href="#daftar" className="hover:text-blue-600">Cara Daftar</a></li>
                 <li><Link href="/login" className="hover:text-blue-600">Masuk Akun</Link></li>
-                <li><a href="#" className="hover:text-blue-600">Kebijakan Privasi</a></li>
+                <li><Link href="/events" className="hover:text-blue-600">Event & Tryout</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold text-gray-900">Kontak</h4>
               <ul className="mt-4 space-y-3 text-sm text-gray-500">
-                <li className="flex items-center gap-2"><MapPin className="h-4 w-4 text-gray-400" /> Jl. Pendidikan No. 123, Jakarta</li>
-                <li className="flex items-center gap-2"><Phone className="h-4 w-4 text-gray-400" /> 0812-3456-7890</li>
-                <li className="flex items-center gap-2"><Mail className="h-4 w-4 text-gray-400" /> info@edubimbel.id</li>
+                <li className="flex items-center gap-2"><MapPin className="h-4 w-4 text-gray-400" /> {cfg.address}</li>
+                <li className="flex items-center gap-2"><Phone className="h-4 w-4 text-gray-400" /> {cfg.phone}</li>
+                <li className="flex items-center gap-2"><Mail className="h-4 w-4 text-gray-400" /> {cfg.email}</li>
               </ul>
             </div>
           </div>
           <div className="mt-12 border-t border-gray-200 pt-8 text-center text-sm text-gray-400">
-            &copy; {new Date().getFullYear()} EduBimbel LMS. All rights reserved.
+            &copy; {new Date().getFullYear()} {cfg.siteName} LMS. All rights reserved.
           </div>
         </div>
       </footer>
@@ -279,10 +341,10 @@ export default async function LandingPage() {
   );
 }
 
-function StatBox({ number, label }: { number: string; label: string }) {
+function StatBox({ number, label, color }: { number: string; label: string; color: string }) {
   return (
     <div className="text-center">
-      <p className="text-4xl font-extrabold text-blue-600">{number}</p>
+      <p className="text-4xl font-extrabold" style={{ color }}>{number}</p>
       <p className="mt-1 text-sm font-medium text-gray-500">{label}</p>
     </div>
   );

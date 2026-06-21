@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Trophy, Medal, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "Hasil Event" };
 
 export default async function EventResultsPage({ params }: { params: Promise<{ id: string }> }) {
