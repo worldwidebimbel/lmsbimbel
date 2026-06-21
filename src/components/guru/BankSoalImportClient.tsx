@@ -21,7 +21,7 @@ interface PreviewRow {
   raw: Record<string, string>;
 }
 
-const VALID_TYPES = ["PILGAN", "PILGAN_KOMPLEK", "BENAR_SALAH", "ESSAY", "ISIAN"];
+const VALID_TYPES = ["PILGAN", "PILGAN_KOMPLEK", "BENAR_SALAH", "MENJODOHKAN", "MENGURUTKAN", "SETUJU_TIDAK", "ESSAY", "ISIAN"];
 const DIFF_LABEL: Record<number, string> = { 1: "Mudah", 2: "Sedang", 3: "Sulit" };
 
 function validateRow(raw: Record<string, string>, idx: number): PreviewRow {
@@ -64,6 +64,21 @@ function validateRow(raw: Record<string, string>, idx: number): PreviewRow {
     if (!labels.includes(kunci.toUpperCase())) {
       return { ...base, status: "warn", message: `kunci "${kunci}" bukan A–E. Pastikan sesuai huruf opsi.` };
     }
+  }
+  if (tipe === "MENJODOHKAN") {
+    const pairs = [raw.opsi_a, raw.opsi_b].filter(Boolean);
+    if (pairs.length < 2) return { ...base, status: "error", message: "MENJODOHKAN butuh minimal 2 pasangan. Format opsi: kiri::kanan" };
+    if (!pairs.every((p) => p && p.includes("::")))
+      return { ...base, status: "warn", message: 'Beberapa opsi tidak mengandung "::" — pastikan format: kiri::kanan' };
+  }
+  if (tipe === "MENGURUTKAN" && !raw.opsi_a) {
+    return { ...base, status: "error", message: "MENGURUTKAN butuh minimal item di opsi_a" };
+  }
+  if (tipe === "SETUJU_TIDAK") {
+    const opts = [raw.opsi_a, raw.opsi_b].filter(Boolean);
+    if (opts.length < 1) return { ...base, status: "error", message: "SETUJU_TIDAK butuh minimal 1 pernyataan di opsi_a" };
+    if (!opts.every((o) => o && (o.includes("::Setuju") || o.includes("::Tidak"))))
+      return { ...base, status: "warn", message: 'Beberapa opsi tidak ada "::Setuju" atau "::Tidak" — jawaban default: Setuju' };
   }
   return { ...base, status: "ok" };
 }

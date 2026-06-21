@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import ExcelJS from "exceljs";
 
-const TYPES = ["PILGAN", "PILGAN_KOMPLEK", "BENAR_SALAH", "ESSAY", "ISIAN"];
+const TYPES = ["PILGAN", "PILGAN_KOMPLEK", "BENAR_SALAH", "MENJODOHKAN", "MENGURUTKAN", "SETUJU_TIDAK", "ESSAY", "ISIAN"];
 
 const COLUMNS = [
-  { key: "tipe", header: "tipe *", note: "PILGAN / PILGAN_KOMPLEK / BENAR_SALAH / ESSAY / ISIAN" },
+  { key: "tipe", header: "tipe *", note: "PILGAN / PILGAN_KOMPLEK / BENAR_SALAH / MENJODOHKAN / MENGURUTKAN / SETUJU_TIDAK / ESSAY / ISIAN" },
   { key: "soal", header: "soal *", note: "Teks soal. Untuk LaTeX: $\\frac{x}{y}$. Arab/Jawa: paste langsung." },
   { key: "soal_image_url", header: "soal_image_url", note: "URL gambar untuk soal (opsional)" },
-  { key: "opsi_a", header: "opsi_a", note: "Teks opsi A" },
+  { key: "opsi_a", header: "opsi_a", note: "PILGAN: teks opsi A | MENJODOHKAN: kiri::kanan | MENGURUTKAN: item urutan ke-1 | SETUJU_TIDAK: pernyataan::Setuju" },
   { key: "opsi_a_image_url", header: "opsi_a_image_url", note: "URL gambar opsi A (opsional)" },
   { key: "opsi_b", header: "opsi_b", note: "Teks opsi B" },
   { key: "opsi_b_image_url", header: "opsi_b_image_url", note: "URL gambar opsi B (opsional)" },
@@ -29,10 +29,14 @@ const COLUMNS = [
 const EXAMPLE_ROWS = [
   ["PILGAN", "Ibu kota Indonesia adalah...", "", "Jakarta", "", "Surabaya", "", "Bandung", "", "Medan", "", "", "", "A", "Jakarta adalah ibu kota Indonesia sejak kemerdekaan.", "", 1, 1, "Geografi,Indonesia"],
   ["PILGAN", "Nilai dari $\\frac{12}{4} + 3$ adalah...", "", "3", "", "6", "", "9", "", "12", "", "", "", "B", "12/4 = 3, ditambah 3 = 6.", "", 1, 2, "Matematika,Aritmatika"],
-  ["PILGAN_KOMPLEK", "Manakah yang termasuk bilangan prima?", "", "2", "", "3", "", "4", "", "5", "", "", "", "A|B|D", "2, 3, dan 5 adalah bilangan prima.", "", 2, 2, "Matematika"],
+  ["PILGAN_KOMPLEK", "Manakah yang termasuk bilangan prima?", "", "2", "", "3", "", "4", "", "5", "", "7", "", "A|B|D|E", "2, 3, 5, 7 adalah bilangan prima. 4 bukan.", "", 2, 2, "Matematika,Bilangan"],
   ["BENAR_SALAH", "Air mendidih pada suhu 100°C di tekanan normal.", "", "", "", "", "", "", "", "", "", "", "", "Benar", "Titik didih air = 100°C pada tekanan 1 atm.", "", 1, 1, "Fisika,Suhu"],
+  ["BENAR_SALAH", "Matahari berputar mengelilingi bumi.", "", "", "", "", "", "", "", "", "", "", "", "Salah", "Bumilah yang berputar mengelilingi matahari.", "", 1, 1, "IPA"],
   ["ESSAY", "Jelaskan proses fotosintesis!", "", "", "", "", "", "", "", "", "", "", "", "", "Fotosintesis adalah proses tumbuhan mengubah CO₂ + H₂O menjadi glukosa dengan bantuan cahaya matahari.", "", 5, 3, "Biologi"],
   ["ISIAN", "Rumus luas lingkaran adalah π × ___", "", "", "", "", "", "", "", "", "", "", "", "r²", "Luas lingkaran = π × r²", "", 2, 2, "Matematika,Geometri"],
+  ["MENJODOHKAN", "Jodohkan ibu kota dengan negaranya!", "", "Jakarta::Indonesia", "", "Paris::Prancis", "", "Tokyo::Jepang", "", "Berlin::Jerman", "", "", "", "", "Jakarta=Indonesia, Paris=Prancis, dst.", "", 4, 2, "Geografi"],
+  ["MENGURUTKAN", "Urutkan tahap metamorfosis kupu-kupu dari awal ke akhir!", "", "Telur", "", "Larva/Ulat", "", "Pupa/Kepompong", "", "Imago/Kupu-kupu", "", "", "", "", "Urutan: Telur → Larva → Pupa → Imago", "", 3, 2, "Biologi,Metamorfosis"],
+  ["SETUJU_TIDAK", "Tentukan pernyataan berikut Setuju atau Tidak!", "", "Bumi berputar mengelilingi matahari::Setuju", "", "Matahari adalah planet::Tidak", "", "Bulan memiliki gravitasi::Setuju", "", "", "", "", "", "", "", 3, 2, "IPA,Tata Surya"],
 ];
 
 export async function GET() {
@@ -54,11 +58,19 @@ export async function GET() {
   wsInfo.getCell("A7").value = "• Matematika/LaTeX: Tulis formula dalam tanda $...$. Contoh: $\\frac{x}{y}$  atau  $\\int_0^1 f(x)dx$";
   wsInfo.getCell("A8").value = "• Arab/Al-Quran: Paste teks Arab langsung di sel. Font akan dirender otomatis.";
   wsInfo.getCell("A9").value = "• Aksara Jawa (Hanacaraka): Paste aksara Unicode langsung. Font Noto Serif Javanese akan digunakan.";
-  wsInfo.getCell("A11").value = "Cara Upload Gambar:";
+  wsInfo.getCell("A11").value = "Format Tipe Khusus:";
   wsInfo.getCell("A11").font = { bold: true };
-  wsInfo.getCell("A12").value = "1. Upload gambar ke cloud storage (Cloudinary, Supabase, Google Drive, dll.)";
-  wsInfo.getCell("A13").value = "2. Copy URL gambar (harus bisa diakses publik)";
-  wsInfo.getCell("A14").value = "3. Paste URL di kolom *_image_url yang sesuai";
+  wsInfo.getCell("A12").value = "• MENJODOHKAN — Isi kolom opsi_a, opsi_b, dst. dengan format: bagian kiri :: bagian kanan";
+  wsInfo.getCell("A13").value = "  Contoh: Jakarta::Indonesia  |  Paris::Prancis  |  Tokyo::Jepang";
+  wsInfo.getCell("A14").value = "• MENGURUTKAN — Isi kolom opsi_a, opsi_b, dst. dengan item-item dalam URUTAN BENAR. kunci_jawaban dikosongkan.";
+  wsInfo.getCell("A15").value = "  Contoh: opsi_a=Telur  opsi_b=Larva  opsi_c=Pupa  opsi_d=Imago";
+  wsInfo.getCell("A16").value = "• SETUJU_TIDAK — Isi opsi_a, opsi_b, dst. dengan format: pernyataan::Setuju  atau  pernyataan::Tidak";
+  wsInfo.getCell("A17").value = "  Contoh: Bumi mengelilingi matahari::Setuju  |  Matahari adalah planet::Tidak";
+  wsInfo.getCell("A19").value = "Cara Upload Gambar:";
+  wsInfo.getCell("A19").font = { bold: true };
+  wsInfo.getCell("A20").value = "1. Upload gambar ke cloud storage (Cloudinary, Supabase, Google Drive, dll.)";
+  wsInfo.getCell("A21").value = "2. Copy URL gambar (harus bisa diakses publik)";
+  wsInfo.getCell("A22").value = "3. Paste URL di kolom *_image_url yang sesuai";
 
   const ws = wb.addWorksheet("SOAL", { properties: { tabColor: { argb: "FFEA580C" } } });
 

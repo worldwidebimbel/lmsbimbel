@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 
-const VALID_TYPES = ["PILGAN", "PILGAN_KOMPLEK", "BENAR_SALAH", "ESSAY", "ISIAN"] as const;
+const VALID_TYPES = ["PILGAN", "PILGAN_KOMPLEK", "BENAR_SALAH", "MENJODOHKAN", "MENGURUTKAN", "SETUJU_TIDAK", "ESSAY", "ISIAN"] as const;
 type ImportType = (typeof VALID_TYPES)[number];
 
 export interface ImportRow {
@@ -136,6 +136,39 @@ export async function POST(req: NextRequest) {
       options = ["Benar", "Salah"];
       const lower = kunci.toLowerCase();
       correctAnswer = lower === "benar" || lower === "b" ? "Benar" : "Salah";
+    } else if (tipe === "MENJODOHKAN") {
+      const rawOpts = [row.opsi_a, row.opsi_b, row.opsi_c, row.opsi_d, row.opsi_e];
+      const pairs = rawOpts
+        .filter(Boolean)
+        .map((o) => { const [left, right] = (o as string).split("::").map((s) => s.trim()); return { left: left ?? "", right: right ?? "" }; })
+        .filter((p) => p.left && p.right);
+      if (pairs.length < 2) {
+        results.push({ row: rowNum, status: "error", message: "MENJODOHKAN butuh minimal 2 pasangan (format: kiri::kanan)", soal });
+        continue;
+      }
+      options = pairs;
+      correctAnswer = null;
+    } else if (tipe === "MENGURUTKAN") {
+      const items = [row.opsi_a, row.opsi_b, row.opsi_c, row.opsi_d, row.opsi_e].filter(Boolean) as string[];
+      if (items.length < 2) {
+        results.push({ row: rowNum, status: "error", message: "MENGURUTKAN butuh minimal 2 item di opsi_a, opsi_b, dst.", soal });
+        continue;
+      }
+      options = items;
+      correctAnswer = items.join(",");
+    } else if (tipe === "SETUJU_TIDAK") {
+      const rawOpts = [row.opsi_a, row.opsi_b, row.opsi_c, row.opsi_d, row.opsi_e].filter(Boolean) as string[];
+      const stmts = rawOpts.map((o) => {
+        const sep = o.lastIndexOf("::");
+        if (sep === -1) return { text: o.trim(), answer: "Setuju" };
+        return { text: o.slice(0, sep).trim(), answer: o.slice(sep + 2).trim() };
+      }).filter((s) => s.text);
+      if (stmts.length < 1) {
+        results.push({ row: rowNum, status: "error", message: "SETUJU_TIDAK butuh minimal 1 pernyataan (format: pernyataan::Setuju atau ::Tidak)", soal });
+        continue;
+      }
+      options = stmts.map((s) => s.text);
+      correctAnswer = stmts.map((s) => s.answer).join(",");
     }
 
     const tags = row.tags

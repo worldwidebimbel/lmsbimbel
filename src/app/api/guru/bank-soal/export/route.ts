@@ -145,6 +145,9 @@ export async function GET(req: NextRequest) {
     ["ESSAY", "Jelaskan proses fotosintesis secara singkat!", "", "", "", "", "", "", "", "", "", "", "", "", "Fotosintesis: CO₂ + H₂O → glukosa + O₂ menggunakan energi cahaya matahari.", "", 5, 3, "Biologi,Tumbuhan", ""],
     ["ISIAN", "Rumus luas lingkaran adalah π × ___", "", "", "", "", "", "", "", "", "", "", "", "r²", "Luas = π × r²", "", 2, 2, "Matematika,Geometri", ""],
     ["ISIAN", "Tokoh proklamator kemerdekaan Indonesia adalah ___ dan ___", "", "", "", "", "", "", "", "", "", "", "", "Soekarno dan Hatta", "Proklamasi 17 Agustus 1945 dibacakan oleh Soekarno dan Hatta.", "", 2, 1, "Sejarah,Kemerdekaan", ""],
+    ["MENJODOHKAN", "Jodohkan ibu kota dengan negaranya!", "", "Jakarta::Indonesia", "", "Paris::Prancis", "", "Tokyo::Jepang", "", "Berlin::Jerman", "", "", "", "", "Jakarta=Indonesia, Paris=Prancis, Tokyo=Jepang, Berlin=Jerman", "", 4, 2, "Geografi", ""],
+    ["MENGURUTKAN", "Urutkan tahap metamorfosis kupu-kupu dari awal hingga akhir!", "", "Telur", "", "Larva/Ulat", "", "Pupa/Kepompong", "", "Imago/Kupu-kupu", "", "", "", "", "Urutan benar: Telur → Larva → Pupa → Imago", "", 3, 2, "Biologi,Metamorfosis", ""],
+    ["SETUJU_TIDAK", "Tentukan pernyataan berikut Setuju atau Tidak!", "", "Bumi berputar mengelilingi matahari::Setuju", "", "Matahari adalah planet::Tidak", "", "Bulan memiliki gravitasi::Setuju", "", "", "", "", "", "", "", 3, 2, "IPA,Tata Surya", ""],
   ];
 
   const noteStyle: Partial<ExcelJS.Style> = {
