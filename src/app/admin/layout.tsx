@@ -2,13 +2,14 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
+import { getSiteConfig } from "@/lib/site-config";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  const [session, cfg] = await Promise.all([auth(), getSiteConfig()]);
   if (!session) redirect("/login");
   if (!["SUPER_ADMIN", "ADMIN"].includes(session.user?.role as string)) {
     redirect("/login");
@@ -20,6 +21,8 @@ export default async function AdminLayout({
         role={session.user?.role as string}
         userName={session.user?.name ?? "Admin"}
         userEmail={session.user?.email ?? ""}
+        siteName={cfg.siteName}
+        logoUrl={cfg.logoUrl}
       />
       <div className="flex-1 flex flex-col ml-64">
         <Header

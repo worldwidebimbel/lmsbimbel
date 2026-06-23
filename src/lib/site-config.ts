@@ -18,6 +18,8 @@ export const SITE_DEFAULTS = {
   popupMessage: "",
   popupLinkUrl: "",
   popupLinkLabel: "Daftar Sekarang",
+  logoUrl: "",
+  faviconUrl: "",
 };
 
 export type SiteConfigKeys = keyof typeof SITE_DEFAULTS;

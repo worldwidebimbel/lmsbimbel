@@ -2,9 +2,10 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
+import { getSiteConfig } from "@/lib/site-config";
 
 export default async function NotifikasiLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
+  const [session, cfg] = await Promise.all([auth(), getSiteConfig()]);
   if (!session?.user) redirect("/login");
 
   const role = session.user.role as string;
@@ -13,7 +14,7 @@ export default async function NotifikasiLayout({ children }: { children: React.R
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar role={role} userName={name} userEmail={email} />
+      <Sidebar role={role} userName={name} userEmail={email} siteName={cfg.siteName} logoUrl={cfg.logoUrl} />
       <div className="flex-1 flex flex-col ml-64">
         <Header title="Notifikasi" userName={name} role={role} />
         <main className="flex-1 p-6">{children}</main>

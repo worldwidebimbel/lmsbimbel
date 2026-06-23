@@ -112,9 +112,11 @@ interface SidebarProps {
   role: string;
   userName: string;
   userEmail: string;
+  siteName?: string;
+  logoUrl?: string;
 }
 
-export function Sidebar({ role, userName, userEmail }: SidebarProps) {
+export function Sidebar({ role, userName, userEmail, siteName, logoUrl }: SidebarProps) {
   const pathname = usePathname();
   const { isFeatureActive, isLoading } = useFeatureFlags();
   const navItems = NAV_MAP[role] ?? [];
@@ -128,14 +130,20 @@ export function Sidebar({ role, userName, userEmail }: SidebarProps) {
   return (
     <aside className="fixed inset-y-0 left-0 w-64 bg-sidebar flex flex-col z-40 border-r border-sidebar-border">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 h-16 border-b border-sidebar-border shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-          <GraduationCap className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <p className="text-white text-sm font-bold leading-none">EduBimbel</p>
-          <p className="text-sidebar-foreground/50 text-[10px] mt-0.5">LMS</p>
-        </div>
+      <div className="flex items-center gap-3 px-5 h-16 border-b border-sidebar-border shrink-0">
+        {logoUrl ? (
+          <img src={logoUrl} alt={siteName ?? "LMS"} className="h-8 w-auto max-w-[140px] object-contain" />
+        ) : (
+          <>
+            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center shrink-0">
+              <GraduationCap className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="text-white text-sm font-bold leading-none">{siteName ?? "EduBimbel"}</p>
+              <p className="text-sidebar-foreground/50 text-[10px] mt-0.5">LMS</p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Navigation */}

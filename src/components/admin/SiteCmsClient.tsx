@@ -152,6 +152,57 @@ export default function SiteCmsClient({
           </div>
 
           <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+            <h2 className="font-semibold text-gray-900">Logo & Favicon</h2>
+            <div className="grid sm:grid-cols-2 gap-6">
+              {/* Logo */}
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">URL Logo</label>
+                  <input
+                    type="text"
+                    value={cfg.logoUrl ?? ""}
+                    onChange={(e) => setCfg((p) => ({ ...p, logoUrl: e.target.value }))}
+                    placeholder="https://cdn.contoh.com/logo.png"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                  />
+                  <p className="mt-1 text-xs text-gray-400">Format PNG/SVG transparan direkomendasikan. Tinggi otomatis 36px.</p>
+                </div>
+                <div className="flex items-center justify-center h-16 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50">
+                  {cfg.logoUrl ? (
+                    <img src={cfg.logoUrl} alt="Logo preview" className="h-10 w-auto max-w-[180px] object-contain" />
+                  ) : (
+                    <span className="text-xs text-gray-400">Preview logo akan muncul di sini</span>
+                  )}
+                </div>
+              </div>
+              {/* Favicon */}
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">URL Favicon</label>
+                  <input
+                    type="text"
+                    value={cfg.faviconUrl ?? ""}
+                    onChange={(e) => setCfg((p) => ({ ...p, faviconUrl: e.target.value }))}
+                    placeholder="https://cdn.contoh.com/favicon.ico"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                  />
+                  <p className="mt-1 text-xs text-gray-400">Format ICO, PNG 32×32, atau SVG. Tampil di tab browser.</p>
+                </div>
+                <div className="flex items-center gap-3 h-16 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 px-4">
+                  {cfg.faviconUrl ? (
+                    <>
+                      <img src={cfg.faviconUrl} alt="Favicon preview" className="h-8 w-8 object-contain" />
+                      <span className="text-xs text-gray-500">Akan tampil sebagai ikon tab browser setelah disimpan &amp; build ulang</span>
+                    </>
+                  ) : (
+                    <span className="text-xs text-gray-400">Preview favicon akan muncul di sini</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
             <h2 className="font-semibold text-gray-900">Warna Branding</h2>
             <div className="grid grid-cols-3 gap-4">
               {[["colorPrimary", "Warna Primer"], ["colorSecondary", "Warna Sekunder"], ["colorAccent", "Warna Aksen"]].map(([key, label]) => (

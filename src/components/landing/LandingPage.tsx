@@ -40,10 +40,16 @@ export default async function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ backgroundColor: cfg.colorPrimary }}>
-              <GraduationCap className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900">{cfg.siteName}</span>
+            {cfg.logoUrl ? (
+              <img src={cfg.logoUrl} alt={cfg.siteName} className="h-9 w-auto max-w-[140px] object-contain" />
+            ) : (
+              <>
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ backgroundColor: cfg.colorPrimary }}>
+                  <GraduationCap className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-xl font-bold text-gray-900">{cfg.siteName}</span>
+              </>
+            )}
           </div>
           <nav className="hidden items-center gap-8 md:flex">
             <a href="#program" className="text-sm font-medium text-gray-600 hover:text-blue-600">Program</a>
@@ -298,10 +304,16 @@ export default async function LandingPage() {
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ backgroundColor: cfg.colorPrimary }}>
-                  <GraduationCap className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900">{cfg.siteName}</span>
+                {cfg.logoUrl ? (
+                  <img src={cfg.logoUrl} alt={cfg.siteName} className="h-9 w-auto max-w-[160px] object-contain" />
+                ) : (
+                  <>
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ backgroundColor: cfg.colorPrimary }}>
+                      <GraduationCap className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-xl font-bold text-gray-900">{cfg.siteName}</span>
+                  </>
+                )}
               </div>
               <p className="mt-4 text-sm text-gray-500">Lembaga bimbingan belajar terpercaya dengan sistem pembelajaran modern dan guru berkualitas.</p>
             </div>
