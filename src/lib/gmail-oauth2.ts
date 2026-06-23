@@ -2,8 +2,10 @@
  * GmailOAuth2 — TypeScript Gmail API mailer
  * Source: https://github.com/digsanid-26/google-oauth2-smtp/blob/main/typescript/gmail-oauth2.ts
  *
- * Works in: Node.js 18+, Next.js (App Router). No dependencies.
+ * Token exchange uses node:https (bypasses Next.js fetch patching).
+ * Gmail API send uses native fetch.
  */
+import { request as httpsRequest } from "node:https";
 
 export interface GmailTokens {
   access_token: string;
@@ -135,14 +137,37 @@ export class GmailOAuth2 {
       .replace(/=+$/, "");
   }
 
-  private async postForm(url: string, data: Record<string, string>): Promise<GmailTokens> {
-    const response = await fetch(url, {
-      method:  "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body:    new URLSearchParams(data),
+  private postForm(url: string, data: Record<string, string>): Promise<GmailTokens> {
+    return new Promise((resolve, reject) => {
+      const body = new URLSearchParams(data).toString();
+      const { hostname, pathname, search } = new URL(url);
+      const req = httpsRequest(
+        {
+          hostname,
+          path: pathname + search,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Length": Buffer.byteLength(body),
+          },
+        },
+        (res) => {
+          let raw = "";
+          res.on("data", (chunk: Buffer) => { raw += chunk.toString(); });
+          res.on("end", () => {
+            try {
+              const json = JSON.parse(raw) as GmailTokens & { error?: string; error_description?: string };
+              if (json.error) reject(new Error(`OAuth error: ${json.error_description ?? json.error}`));
+              else resolve(json);
+            } catch {
+              reject(new Error(`Invalid JSON from Google: ${raw.slice(0, 300)}`));
+            }
+          });
+        }
+      );
+      req.on("error", (err) => reject(err));
+      req.write(body);
+      req.end();
     });
-    const json = await response.json() as GmailTokens & { error?: string; error_description?: string };
-    if (json.error) throw new Error(`OAuth error: ${json.error_description ?? json.error}`);
-    return json;
   }
 }

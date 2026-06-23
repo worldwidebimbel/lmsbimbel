@@ -74,11 +74,18 @@ GMAIL_FROM=akungmail@gmail.com</pre>
     `), { headers: { "Content-Type": "text/html; charset=utf-8" } });
 
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg   = err instanceof Error ? err.message : String(err);
+    const cause = err instanceof Error ? (err as Error & { cause?: unknown }).cause : undefined;
+    const causeMsg = cause instanceof Error ? cause.message : (cause ? String(cause) : "");
     return new NextResponse(htmlPage("❌ Gagal Tukar Token", `
       <p>Error saat menukar code dengan token:</p>
       <code class="error">${msg}</code>
-      <br><br>
+      ${causeMsg ? `<code class="error" style="margin-top:8px">Cause: ${causeMsg}</code>` : ""}
+      <br>
+      <p style="font-size:0.8rem;color:#6b7280;margin-top:12px">
+        Redirect URI yang dipakai: <code>${callbackUri}</code><br>
+        Pastikan URI ini sudah terdaftar persis di Google Cloud Console &rarr; OAuth 2.0 Client &rarr; Authorized redirect URIs.
+      </p>
       <a href="/admin/settings?tab=email" class="btn">← Kembali ke Settings</a>
     `), { headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
