@@ -5,6 +5,7 @@ import { getDemoStatus } from "@/lib/demo-seeder";
 import { getBranchScope } from "@/lib/branch-context";
 import { getQrisSettings } from "@/lib/qris-settings";
 import SettingsClient from "@/components/admin/SettingsClient";
+import { getActiveEmailMethod } from "@/lib/email";
 import { Settings } from "lucide-react";
 
 export const metadata = { title: "Pengaturan Sistem" };
@@ -40,6 +41,13 @@ export default async function AdminSettingsPage() {
   settings.qris_account_number = branchQris.accountNumber ?? "";
 
   const smtpConfigured = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
+  const oauth2Configured = !!(
+    process.env.GOOGLE_CLIENT_ID &&
+    process.env.GOOGLE_CLIENT_SECRET &&
+    process.env.GOOGLE_REFRESH_TOKEN &&
+    process.env.GMAIL_FROM
+  );
+  const activeEmailMethod = getActiveEmailMethod();
   const appVersion = process.env.npm_package_version ?? "0.1.0";
 
   return (
@@ -58,6 +66,8 @@ export default async function AdminSettingsPage() {
         initialSettings={settings}
         demoStatus={demoStatus}
         smtpConfigured={smtpConfigured}
+        oauth2Configured={oauth2Configured}
+        activeEmailMethod={activeEmailMethod}
         appVersion={appVersion}
         branches={allBranches}
         isSuperAdmin={isSuperAdmin}

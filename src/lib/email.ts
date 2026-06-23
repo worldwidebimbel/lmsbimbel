@@ -1,14 +1,5 @@
 import nodemailer from "nodemailer";
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST ?? "smtp.gmail.com",
-  port: Number(process.env.SMTP_PORT ?? 587),
-  secure: process.env.SMTP_SECURE === "true",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+import { GmailOAuth2 } from "@/lib/gmail-oauth2";
 
 interface MailOptions {
   to: string | string[];
@@ -16,18 +7,60 @@ interface MailOptions {
   html: string;
 }
 
-export async function sendEmail({ to, subject, html }: MailOptions) {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.warn("[email] SMTP not configured, skipping email:", subject);
-    return { skipped: true };
-  }
-  const info = await transporter.sendMail({
-    from: `"${process.env.APP_NAME ?? "EduBimbel"}" <${process.env.SMTP_USER}>`,
-    to: Array.isArray(to) ? to.join(", ") : to,
-    subject,
-    html,
+export type EmailMethod = "oauth2" | "smtp" | "none";
+
+export function getActiveEmailMethod(): EmailMethod {
+  if (
+    process.env.GOOGLE_CLIENT_ID &&
+    process.env.GOOGLE_CLIENT_SECRET &&
+    process.env.GOOGLE_REFRESH_TOKEN &&
+    process.env.GMAIL_FROM
+  ) return "oauth2";
+  if (process.env.SMTP_USER && process.env.SMTP_PASS) return "smtp";
+  return "none";
+}
+
+function getSmtpTransporter() {
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST ?? "smtp.gmail.com",
+    port: Number(process.env.SMTP_PORT ?? 587),
+    secure: process.env.SMTP_SECURE === "true",
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
   });
-  return info;
+}
+
+export async function sendEmail({ to, subject, html }: MailOptions) {
+  const method = getActiveEmailMethod();
+  const toAddr = Array.isArray(to) ? to.join(", ") : to;
+  const appName = process.env.APP_NAME ?? "EduBimbel";
+
+  if (method === "oauth2") {
+    const callbackUri = `${process.env.NEXTAUTH_URL ?? "http://localhost:3000"}/api/admin/email/callback`;
+    const mailer = new GmailOAuth2(
+      process.env.GOOGLE_CLIENT_ID!,
+      process.env.GOOGLE_CLIENT_SECRET!,
+      callbackUri,
+    );
+    return mailer.refreshAndSend(process.env.GOOGLE_REFRESH_TOKEN!, {
+      from: `"${appName}" <${process.env.GMAIL_FROM!}>`,
+      to: toAddr,
+      subject,
+      html,
+    });
+  }
+
+  if (method === "smtp") {
+    const transporter = getSmtpTransporter();
+    return transporter.sendMail({
+      from: `"${appName}" <${process.env.SMTP_USER}>`,
+      to: toAddr,
+      subject,
+      html,
+    });
+  }
+
+  console.warn("[email] No email method configured, skipping:", subject);
+  return { skipped: true };
 }
 
 export function emailInvoiceCreated(opts: {

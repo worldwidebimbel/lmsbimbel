@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Save, Database, Mail, Info, AlertTriangle, CheckCircle, Loader2, Trash2, Download, Globe, QrCode, Upload } from "lucide-react";
+import { Save, Database, Mail, Info, AlertTriangle, CheckCircle, Loader2, Trash2, Download, Globe, QrCode, Upload, ExternalLink, Key, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 type DemoType = "AKADEMIK" | "UTBK_SNBT" | "KEDINASAN" | "BAHASA";
@@ -16,6 +16,8 @@ interface Props {
   initialSettings: Record<string, string>;
   demoStatus: { exists: boolean; userCount: number; subjectCount: number };
   smtpConfigured: boolean;
+  oauth2Configured: boolean;
+  activeEmailMethod: "oauth2" | "smtp" | "none";
   appVersion: string;
   branches: { id: string; name: string; code: string }[];
   isSuperAdmin: boolean;
@@ -24,7 +26,7 @@ interface Props {
 
 type Tab = "umum" | "pembayaran" | "demo" | "email" | "info";
 
-export default function SettingsClient({ initialSettings, demoStatus, smtpConfigured, appVersion, branches, isSuperAdmin, defaultBranchId }: Props) {
+export default function SettingsClient({ initialSettings, demoStatus, smtpConfigured, oauth2Configured, activeEmailMethod, appVersion, branches, isSuperAdmin, defaultBranchId }: Props) {
   const [tab, setTab] = useState<Tab>("umum");
   const [settings, setSettings] = useState(initialSettings);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(defaultBranchId);
@@ -36,6 +38,7 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
   const [currentDemoStatus, setCurrentDemoStatus] = useState(demoStatus);
   const [testingEmail, setTestingEmail] = useState(false);
   const [testEmailTo, setTestEmailTo] = useState("");
+  const [loadingAuthUrl, setLoadingAuthUrl] = useState(false);
 
   const [uploadingQris, setUploadingQris] = useState(false);
 
@@ -171,6 +174,18 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
       }
     } finally {
       setTestingEmail(false);
+    }
+  }
+
+  async function handleGetAuthUrl() {
+    setLoadingAuthUrl(true);
+    try {
+      const res = await fetch("/api/admin/email/auth-url");
+      const data = await res.json();
+      if (!res.ok) return toast.error(data.error ?? "Gagal mendapatkan auth URL");
+      window.open(data.url, "_blank", "width=600,height=700");
+    } finally {
+      setLoadingAuthUrl(false);
     }
   }
 
@@ -398,56 +413,164 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
 
         {/* ── EMAIL ── */}
         {tab === "email" && (
-          <div className="space-y-5 max-w-xl">
-            <div>
-              <h3 className="mb-3 font-semibold text-gray-800">Status Konfigurasi SMTP</h3>
-              <div className={`flex items-center gap-3 rounded-xl border p-4 ${smtpConfigured ? "border-green-200 bg-green-50" : "border-amber-200 bg-amber-50"}`}>
-                {smtpConfigured
-                  ? <CheckCircle className="h-5 w-5 text-green-600" />
-                  : <AlertTriangle className="h-5 w-5 text-amber-600" />}
-                <div>
-                  <p className={`font-medium ${smtpConfigured ? "text-green-800" : "text-amber-800"}`}>
-                    {smtpConfigured ? "SMTP Terkonfigurasi" : "SMTP Belum Dikonfigurasi"}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {smtpConfigured ? "Email siap digunakan untuk notifikasi." : "Set SMTP_USER dan SMTP_PASS di .env.local"}
-                  </p>
-                </div>
+          <div className="space-y-6 max-w-xl">
+
+            {/* Active method banner */}
+            <div className={`flex items-center gap-3 rounded-xl border p-4 ${
+              activeEmailMethod === "oauth2" ? "border-blue-200 bg-blue-50" :
+              activeEmailMethod === "smtp"   ? "border-green-200 bg-green-50" :
+                                              "border-amber-200 bg-amber-50"
+            }`}>
+              {activeEmailMethod === "none"
+                ? <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+                : <CheckCircle className={`h-5 w-5 shrink-0 ${activeEmailMethod === "oauth2" ? "text-blue-600" : "text-green-600"}`} />}
+              <div>
+                <p className={`font-medium ${
+                  activeEmailMethod === "oauth2" ? "text-blue-800" :
+                  activeEmailMethod === "smtp"   ? "text-green-800" : "text-amber-800"
+                }`}>
+                  {activeEmailMethod === "oauth2" && "Aktif: Gmail OAuth2"}
+                  {activeEmailMethod === "smtp"   && "Aktif: SMTP"}
+                  {activeEmailMethod === "none"   && "Email Belum Dikonfigurasi"}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {activeEmailMethod === "oauth2" && "Email dikirim via Gmail API (OAuth2) — tanpa password, lebih aman."}
+                  {activeEmailMethod === "smtp"   && "Email dikirim via SMTP. Pertimbangkan OAuth2 untuk keamanan lebih baik."}
+                  {activeEmailMethod === "none"   && "Konfigurasi salah satu metode di bawah agar notifikasi email aktif."}
+                </p>
               </div>
             </div>
 
-            <div className="rounded-xl border border-gray-200 p-4 space-y-3">
-              <h4 className="text-sm font-semibold text-gray-700">Variabel Lingkungan SMTP</h4>
-              <table className="w-full text-xs">
-                <tbody>
-                  {[["SMTP_HOST", process.env.SMTP_HOST ?? "(tidak diset)"],
-                    ["SMTP_PORT", process.env.SMTP_PORT ?? "587"],
-                    ["SMTP_USER", process.env.SMTP_USER ? "✓ diset" : "(tidak diset)"],
-                    ["SMTP_PASS", process.env.SMTP_PASS ? "✓ diset" : "(tidak diset)"],
-                    ["APP_NAME", process.env.APP_NAME ?? "EduBimbel LMS"],
-                  ].map(([k, v]) => (
-                    <tr key={k} className="border-b border-gray-100 last:border-0">
-                      <td className="py-1.5 pr-4 font-mono text-gray-500">{k}</td>
-                      <td className={`py-1.5 font-mono ${v.startsWith("✓") ? "text-green-700" : v === "(tidak diset)" ? "text-red-500" : "text-gray-800"}`}>{v}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* ── SMTP ── */}
+            <div className="rounded-xl border border-gray-200 overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-gray-50">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-gray-500" />
+                  <h4 className="font-semibold text-gray-800 text-sm">Opsi 1 — SMTP</h4>
+                </div>
+                {smtpConfigured
+                  ? <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ Dikonfigurasi</span>
+                  : <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Belum diset</span>}
+              </div>
+              <div className="p-4 space-y-3">
+                <p className="text-xs text-gray-500">Set variabel berikut di <code className="bg-gray-100 px-1 rounded">.env.local</code>:</p>
+                <table className="w-full text-xs">
+                  <tbody>
+                    {[
+                      ["SMTP_HOST", "smtp.gmail.com"],
+                      ["SMTP_PORT", "587"],
+                      ["SMTP_USER", smtpConfigured ? "✓ diset" : "akunemail@gmail.com"],
+                      ["SMTP_PASS", smtpConfigured ? "✓ diset" : "app-password-gmail"],
+                    ].map(([k, v]) => (
+                      <tr key={k} className="border-b border-gray-100 last:border-0">
+                        <td className="py-1.5 pr-4 font-mono text-gray-500 w-2/5">{k}</td>
+                        <td className={`py-1.5 font-mono ${(v as string).startsWith("✓") ? "text-green-700" : "text-gray-400"}`}>{v}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="text-xs text-gray-400">Gmail: gunakan <strong>App Password</strong>, bukan password biasa. Aktifkan 2FA Gmail dulu.</p>
+              </div>
             </div>
 
+            {/* ── Gmail OAuth2 ── */}
+            <div className="rounded-xl border border-blue-200 overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-blue-100 bg-blue-50">
+                <div className="flex items-center gap-2">
+                  <Key className="h-4 w-4 text-blue-600" />
+                  <h4 className="font-semibold text-blue-900 text-sm">
+                    Opsi 2 — Gmail OAuth2
+                    <span className="ml-2 text-xs font-normal text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">Direkomendasikan</span>
+                  </h4>
+                </div>
+                {oauth2Configured
+                  ? <span className="text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">✓ Dikonfigurasi</span>
+                  : <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Belum diset</span>}
+              </div>
+              <div className="p-4 space-y-4">
+                <p className="text-xs text-gray-600">Mengirim email via <strong>Gmail API</strong> menggunakan OAuth2. Tidak memerlukan password SMTP — lebih aman dan tidak terpengaruh kebijakan Google App Password.</p>
+
+                <table className="w-full text-xs">
+                  <tbody>
+                    {[
+                      ["GOOGLE_CLIENT_ID",     oauth2Configured],
+                      ["GOOGLE_CLIENT_SECRET", oauth2Configured],
+                      ["GOOGLE_REFRESH_TOKEN", oauth2Configured],
+                      ["GMAIL_FROM",           oauth2Configured],
+                    ].map(([k, ok]) => (
+                      <tr key={k as string} className="border-b border-gray-100 last:border-0">
+                        <td className="py-1.5 pr-4 font-mono text-gray-500 w-2/5">{k}</td>
+                        <td className={`py-1.5 text-xs font-medium ${ok ? "text-green-700" : "text-red-400"}`}>
+                          {ok ? "✓ diset" : "(belum diset)"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-900 space-y-1.5">
+                  <p className="font-semibold">Cara setup (sekali saja):</p>
+                  <ol className="list-decimal pl-4 space-y-1">
+                    <li>Buat project & aktifkan <strong>Gmail API</strong> di <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer" className="underline">Google Cloud Console</a></li>
+                    <li>Buat <strong>OAuth 2.0 Client ID</strong> (tipe: Web application) → tambahkan Redirect URI di bawah</li>
+                    <li>Salin <code className="bg-blue-100 px-1 rounded">GOOGLE_CLIENT_ID</code> & <code className="bg-blue-100 px-1 rounded">GOOGLE_CLIENT_SECRET</code> ke <code className="bg-blue-100 px-1 rounded">.env.local</code> lalu restart server</li>
+                    <li>Klik <strong>"Mulai Otorisasi"</strong> → login Google → salin Refresh Token yang muncul</li>
+                    <li>Tambah <code className="bg-blue-100 px-1 rounded">GOOGLE_REFRESH_TOKEN</code> & <code className="bg-blue-100 px-1 rounded">GMAIL_FROM</code> ke <code className="bg-blue-100 px-1 rounded">.env.local</code> → restart</li>
+                  </ol>
+                </div>
+
+                <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs space-y-1">
+                  <p className="text-gray-500 font-medium">Authorized Redirect URI (daftarkan di Google Cloud Console):</p>
+                  <code className="text-gray-800 break-all select-all">
+                    {typeof window !== "undefined" ? `${window.location.origin}/api/admin/email/callback` : "[NEXTAUTH_URL]/api/admin/email/callback"}
+                  </code>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={handleGetAuthUrl}
+                    disabled={loadingAuthUrl}
+                    className="flex items-center gap-2 rounded-lg border border-blue-300 bg-white px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-50"
+                  >
+                    {loadingAuthUrl ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
+                    Mulai Otorisasi Gmail
+                  </button>
+                  {oauth2Configured && (
+                    <button
+                      onClick={handleGetAuthUrl}
+                      disabled={loadingAuthUrl}
+                      className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      <RefreshCw className="h-4 w-4" /> Perbarui Token
+                    </button>
+                  )}
+                </div>
+
+                {oauth2Configured && (
+                  <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700">
+                    <CheckCircle className="h-4 w-4 shrink-0" />
+                    Gmail OAuth2 aktif dan siap mengirim email.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Test email */}
             <div className="rounded-xl border border-gray-200 p-4 space-y-3">
               <h4 className="text-sm font-semibold text-gray-700">Kirim Email Test</h4>
               <div className="flex gap-2">
                 <input type="email" value={testEmailTo} onChange={(e) => setTestEmailTo(e.target.value)}
-                  placeholder="email@contoh.com" disabled={!smtpConfigured}
+                  placeholder="email@contoh.com" disabled={activeEmailMethod === "none"}
                   className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm disabled:bg-gray-50 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                <button onClick={handleTestEmail} disabled={!smtpConfigured || testingEmail || !testEmailTo}
+                <button onClick={handleTestEmail} disabled={activeEmailMethod === "none" || testingEmail || !testEmailTo}
                   className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-40 flex items-center gap-2">
                   {testingEmail ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
                   Kirim
                 </button>
               </div>
-              {!smtpConfigured && <p className="text-xs text-amber-600">Konfigurasi SMTP terlebih dahulu di .env.local</p>}
+              {activeEmailMethod === "none"
+                ? <p className="text-xs text-amber-600">Konfigurasi salah satu metode email terlebih dahulu.</p>
+                : <p className="text-xs text-gray-400">Mengirim via <strong>{activeEmailMethod === "oauth2" ? "Gmail OAuth2" : "SMTP"}</strong>.</p>}
             </div>
           </div>
         )}
