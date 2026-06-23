@@ -41,12 +41,13 @@ export default async function AdminSettingsPage() {
   settings.qris_account_number = branchQris.accountNumber ?? "";
 
   const smtpConfigured = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
-  const oauth2Configured = !!(
-    process.env.GOOGLE_CLIENT_ID &&
-    process.env.GOOGLE_CLIENT_SECRET &&
-    process.env.GOOGLE_REFRESH_TOKEN &&
-    process.env.GMAIL_FROM
-  );
+  const oauth2Vars = {
+    clientId:     !!process.env.GOOGLE_CLIENT_ID,
+    clientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+    refreshToken: !!process.env.GOOGLE_REFRESH_TOKEN,
+    gmailFrom:    !!process.env.GMAIL_FROM,
+  };
+  const oauth2Configured = Object.values(oauth2Vars).every(Boolean);
   const activeEmailMethod = getActiveEmailMethod();
   const appVersion = process.env.npm_package_version ?? "0.1.0";
 
@@ -67,6 +68,7 @@ export default async function AdminSettingsPage() {
         demoStatus={demoStatus}
         smtpConfigured={smtpConfigured}
         oauth2Configured={oauth2Configured}
+        oauth2Vars={oauth2Vars}
         activeEmailMethod={activeEmailMethod}
         appVersion={appVersion}
         branches={allBranches}

@@ -17,6 +17,7 @@ interface Props {
   demoStatus: { exists: boolean; userCount: number; subjectCount: number };
   smtpConfigured: boolean;
   oauth2Configured: boolean;
+  oauth2Vars: { clientId: boolean; clientSecret: boolean; refreshToken: boolean; gmailFrom: boolean };
   activeEmailMethod: "oauth2" | "smtp" | "none";
   appVersion: string;
   branches: { id: string; name: string; code: string }[];
@@ -26,7 +27,7 @@ interface Props {
 
 type Tab = "umum" | "pembayaran" | "demo" | "email" | "info";
 
-export default function SettingsClient({ initialSettings, demoStatus, smtpConfigured, oauth2Configured, activeEmailMethod, appVersion, branches, isSuperAdmin, defaultBranchId }: Props) {
+export default function SettingsClient({ initialSettings, demoStatus, smtpConfigured, oauth2Configured, oauth2Vars, activeEmailMethod, appVersion, branches, isSuperAdmin, defaultBranchId }: Props) {
   const [tab, setTab] = useState<Tab>("umum");
   const [settings, setSettings] = useState(initialSettings);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(defaultBranchId);
@@ -492,16 +493,19 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
 
                 <table className="w-full text-xs">
                   <tbody>
-                    {[
-                      ["GOOGLE_CLIENT_ID",     oauth2Configured],
-                      ["GOOGLE_CLIENT_SECRET", oauth2Configured],
-                      ["GOOGLE_REFRESH_TOKEN", oauth2Configured],
-                      ["GMAIL_FROM",           oauth2Configured],
-                    ].map(([k, ok]) => (
-                      <tr key={k as string} className="border-b border-gray-100 last:border-0">
-                        <td className="py-1.5 pr-4 font-mono text-gray-500 w-2/5">{k}</td>
-                        <td className={`py-1.5 text-xs font-medium ${ok ? "text-green-700" : "text-red-400"}`}>
-                          {ok ? "✓ diset" : "(belum diset)"}
+                    {([
+                      ["GOOGLE_CLIENT_ID",     oauth2Vars.clientId,     "Client ID dari Google Cloud Console"],
+                      ["GOOGLE_CLIENT_SECRET", oauth2Vars.clientSecret, "Client Secret dari Google Cloud Console"],
+                      ["GOOGLE_REFRESH_TOKEN", oauth2Vars.refreshToken, "Didapat setelah klik Mulai Otorisasi"],
+                      ["GMAIL_FROM",           oauth2Vars.gmailFrom,    "Alamat Gmail pengirim (mis. no-reply@gmail.com)"],
+                    ] as [string, boolean, string][]).map(([k, ok, hint]) => (
+                      <tr key={k} className="border-b border-gray-100 last:border-0">
+                        <td className="py-2 pr-3 font-mono text-gray-600 w-2/5 align-top">{k}</td>
+                        <td className="py-2 align-top">
+                          <span className={`font-medium ${ok ? "text-green-700" : "text-red-400"}`}>
+                            {ok ? "✓ diset" : "belum diset"}
+                          </span>
+                          {!ok && <p className="text-gray-400 mt-0.5">{hint}</p>}
                         </td>
                       </tr>
                     ))}
