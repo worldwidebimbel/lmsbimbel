@@ -9,14 +9,18 @@ interface MailOptions {
 
 export type EmailMethod = "oauth2" | "smtp" | "none";
 
+function env(key: string): string {
+  return (process.env[key] ?? "").replace(/^["']|["']$/g, "").trim();
+}
+
 export function getActiveEmailMethod(): EmailMethod {
   if (
-    process.env.GOOGLE_CLIENT_ID &&
-    process.env.GOOGLE_CLIENT_SECRET &&
-    process.env.GOOGLE_REFRESH_TOKEN &&
-    process.env.GMAIL_FROM
+    env("GOOGLE_CLIENT_ID") &&
+    env("GOOGLE_CLIENT_SECRET") &&
+    env("GOOGLE_REFRESH_TOKEN") &&
+    env("GMAIL_FROM")
   ) return "oauth2";
-  if (process.env.SMTP_USER && process.env.SMTP_PASS) return "smtp";
+  if (env("SMTP_USER") && env("SMTP_PASS")) return "smtp";
   return "none";
 }
 
@@ -35,14 +39,14 @@ export async function sendEmail({ to, subject, html }: MailOptions) {
   const appName = process.env.APP_NAME ?? "EduBimbel";
 
   if (method === "oauth2") {
-    const callbackUri = `${(process.env.NEXTAUTH_URL ?? "http://localhost:3000").replace(/["\']/g, "").replace(/\/$/, "")}/api/admin/email/callback`;
+    const callbackUri = `${env("NEXTAUTH_URL").replace(/\/$/, "") || "http://localhost:3000"}/api/admin/email/callback`;
     const mailer = new GmailOAuth2(
-      process.env.GOOGLE_CLIENT_ID!,
-      process.env.GOOGLE_CLIENT_SECRET!,
+      env("GOOGLE_CLIENT_ID"),
+      env("GOOGLE_CLIENT_SECRET"),
       callbackUri,
     );
-    return mailer.refreshAndSend(process.env.GOOGLE_REFRESH_TOKEN!, {
-      from: `"${appName}" <${process.env.GMAIL_FROM!}>`,
+    return mailer.refreshAndSend(env("GOOGLE_REFRESH_TOKEN"), {
+      from: `"${appName}" <${env("GMAIL_FROM")}>`,
       to: toAddr,
       subject,
       html,
@@ -52,7 +56,7 @@ export async function sendEmail({ to, subject, html }: MailOptions) {
   if (method === "smtp") {
     const transporter = getSmtpTransporter();
     return transporter.sendMail({
-      from: `"${appName}" <${process.env.SMTP_USER}>`,
+      from: `"${appName}" <${env("SMTP_USER")}>`,
       to: toAddr,
       subject,
       html,

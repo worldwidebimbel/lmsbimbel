@@ -22,8 +22,9 @@ export async function GET(req: NextRequest) {
     `), { headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
 
-  const clientId     = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const strip = (v?: string) => (v ?? "").replace(/^["']|["']$/g, "").trim();
+  const clientId     = strip(process.env.GOOGLE_CLIENT_ID);
+  const clientSecret = strip(process.env.GOOGLE_CLIENT_SECRET);
   if (!clientId || !clientSecret) {
     return new NextResponse(htmlPage("⚠️ Kredensial Tidak Lengkap", `
       <p>GOOGLE_CLIENT_ID atau GOOGLE_CLIENT_SECRET belum diset di .env.local</p>
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest) {
     `), { headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
 
-  const callbackUri = `${(process.env.NEXTAUTH_URL ?? "http://localhost:3000").replace(/["\']/g, "").replace(/\/$/, "")}/api/admin/email/callback`;
+  const callbackUri = `${strip(process.env.NEXTAUTH_URL).replace(/\/$/, "") || "http://localhost:3000"}/api/admin/email/callback`;
   const mailer = new GmailOAuth2(clientId, clientSecret, callbackUri);
 
   try {
