@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isCloudinaryConfigured, uploadToCloudinary } from "@/lib/cloudinary";
+import { db } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -51,6 +52,20 @@ export async function POST(req: NextRequest) {
 
   try {
     const result = await uploadToCloudinary(buffer, folder, filename, resourceType);
+    try {
+      await db.mediaFile.create({
+        data: {
+          name: file.name,
+          url: result.url,
+          publicId: result.publicId,
+          resourceType,
+          mimeType: file.type || null,
+          size: file.size || null,
+          folder,
+          uploadedById: session.user.id,
+        },
+      });
+    } catch { /* non-fatal: media tracking failed */ }
     return NextResponse.json({ url: result.url, publicId: result.publicId, name: file.name });
   } catch (err: unknown) {
     console.error("[Upload] Cloudinary error:", err);

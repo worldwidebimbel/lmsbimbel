@@ -197,6 +197,7 @@ model User {
   createdEvents    Event[]
   eventRegistrations EventRegistration[]
   certificates       Certificate[]
+  mediaFiles         MediaFile[]
 
   @@map("users")
 }
@@ -1110,4 +1111,24 @@ model SiteInquiry {
   updatedAt DateTime @updatedAt
 
   @@map("site_inquiries")
+}
+
+// ============================
+// MEDIA MANAGER
+// ============================
+
+model MediaFile {
+  id           String   @id @default(cuid())
+  name         String
+  url          String
+  publicId     String   @unique
+  resourceType String   @default("image")
+  mimeType     String?
+  size         Int?
+  folder       String   @default("general")
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@map("media_files")
 }
