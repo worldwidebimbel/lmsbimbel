@@ -407,3 +407,19 @@ pm2 restart lms-bimbel
 
 git pull && npm install && npx prisma generate && npx prisma db push && npm run build && pm2 restart lms-bimbel
 ```
+## Cara setup Gmail OAuth2 di server
+### Redirect URI yang harus didaftarkan di Google Cloud
+
+https://[domain-produksi]/api/admin/email/callback
+
+```bash
+# Tahap 1 (sebelum otorisasi)
+GOOGLE_CLIENT_ID=1234...apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-...
+
+# Tahap 2 (setelah klik "Mulai Otorisasi" di /admin/settings → Email)
+GOOGLE_REFRESH_TOKEN=1//0g...
+GMAIL_FROM=akungmail@gmail.com
+
+
+```

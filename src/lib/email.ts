@@ -35,7 +35,7 @@ export async function sendEmail({ to, subject, html }: MailOptions) {
   const appName = process.env.APP_NAME ?? "EduBimbel";
 
   if (method === "oauth2") {
-    const callbackUri = `${process.env.NEXTAUTH_URL ?? "http://localhost:3000"}/api/admin/email/callback`;
+    const callbackUri = `${(process.env.NEXTAUTH_URL ?? "http://localhost:3000").replace(/["\']/g, "").replace(/\/$/, "")}/api/admin/email/callback`;
     const mailer = new GmailOAuth2(
       process.env.GOOGLE_CLIENT_ID!,
       process.env.GOOGLE_CLIENT_SECRET!,

@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     `), { headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
 
-  const callbackUri = `${process.env.NEXTAUTH_URL ?? "http://localhost:3000"}/api/admin/email/callback`;
+  const callbackUri = `${(process.env.NEXTAUTH_URL ?? "http://localhost:3000").replace(/["\']/g, "").replace(/\/$/, "")}/api/admin/email/callback`;
   const mailer = new GmailOAuth2(clientId, clientSecret, callbackUri);
 
   try {
