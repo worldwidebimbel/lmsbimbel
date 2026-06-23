@@ -173,9 +173,9 @@
 - [x] Poin & badge prestasi (computed dari aktivitas, persist ke DB) — `/siswa/prestasi`
 - [x] Leaderboard siswa (rank per kelas berdasarkan poin)
 - [x] Level & XP system (5 level: Pemula → Master)
-- [ ] Streak belajar harian
-- [ ] E-sertifikat otomatis (PDF) untuk lomba & siswa yang menyelesaikan LMS
-- [ ] Template sertifikat yang bisa diganti-ganti (editor/admin)
+- [x] Streak belajar harian
+- [x] E-sertifikat otomatis (PDF) untuk lomba & siswa yang menyelesaikan LMS
+- [x] Template sertifikat yang bisa diganti-ganti (editor/admin)
 
 ### 👨‍👩‍👧 Modul 14: Portal Orang Tua
 - [x] Dashboard orang tua — `/orangtua`
@@ -225,7 +225,7 @@
 - [x] Sesi ujian khusus event (soal terpisah dari kelas regular)
 - [x] Hasil & ranking event (leaderboard, score, auto-rank setelah submit)
 - [x] Admin kelola peserta event (konfirmasi, tandai lunas, lihat skor)
-- [ ] E-sertifikat otomatis untuk peserta lomba
+- [x] E-sertifikat otomatis untuk peserta lomba
 - [ ] Notifikasi reminder event via email/WhatsApp
 
 ---
