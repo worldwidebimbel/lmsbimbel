@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Calendar, MapPin, Users, Trophy, Check, Loader2, ClipboardList, BarChart2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import EventRegisterForm from "./EventRegisterForm";
 
 interface EventPackage {
   id: string;
@@ -217,17 +218,22 @@ export default function EventDetailClient({
                   {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                   Daftar Sekarang
                 </button>
-              ) : (
-                <a
-                  href="/login"
-                  className="px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg"
-                >
-                  Login untuk Daftar
-                </a>
-              )}
+              ) : null}
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
+
+            {!isAuthenticated && !registered && !isDeadlinePassed && !isFull && (
+              <div className="border-t border-gray-100 pt-6">
+                <h3 className="font-semibold text-gray-900 mb-4">Daftar untuk Event Ini</h3>
+                <EventRegisterForm
+                  eventId={event.id}
+                  isPaid={event.isPaid}
+                  packages={event.packages}
+                  onSuccess={() => setRegistered(true)}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
