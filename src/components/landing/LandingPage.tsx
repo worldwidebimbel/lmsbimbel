@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GraduationCap, BookOpen, Users, Award, ArrowRight, CheckCircle, Star, Phone, Mail, MapPin } from "lucide-react";
+import { GraduationCap, BookOpen, Users, Award, ArrowRight, CheckCircle, Star, Phone } from "lucide-react";
 import { db } from "@/lib/db";
 import { getSiteConfig } from "@/lib/site-config";
 import LandingInquiryForm from "@/components/landing/LandingInquiryForm";
@@ -33,40 +33,8 @@ export default async function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <>
       {cfg.popupEnabled === "true" && <PromoPopup config={cfg} />}
-
-      {/* Header / Navbar */}
-      <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            {cfg.logoUrl ? (
-              <img src={cfg.logoUrl} alt={cfg.siteName} className="h-9 w-auto max-w-[140px] object-contain" />
-            ) : (
-              <>
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ backgroundColor: cfg.colorPrimary }}>
-                  <GraduationCap className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900">{cfg.siteName}</span>
-              </>
-            )}
-          </div>
-          <nav className="hidden items-center gap-8 md:flex">
-            <a href="#program" className="text-sm font-medium text-gray-600 hover:text-blue-600">Program</a>
-            <a href="#statistik" className="text-sm font-medium text-gray-600 hover:text-blue-600">Statistik</a>
-            <a href="#testimoni" className="text-sm font-medium text-gray-600 hover:text-blue-600">Testimoni</a>
-            <a href="#kontak" className="text-sm font-medium text-gray-600 hover:text-blue-600">Kontak</a>
-          </nav>
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="hidden text-sm font-medium text-gray-600 hover:text-blue-600 sm:block">
-              Masuk
-            </Link>
-            <Link href="/login" className="rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors" style={{ backgroundColor: cfg.colorPrimary }}>
-              Daftar Sekarang
-            </Link>
-          </div>
-        </div>
-      </header>
 
       {/* Hero / Banner Slider */}
       {banners.length > 0 ? (
@@ -299,57 +267,7 @@ export default async function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer id="kontak" className="border-t border-gray-100 bg-gray-50 py-14">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <div className="flex items-center gap-2">
-                {cfg.logoUrl ? (
-                  <img src={cfg.logoUrl} alt={cfg.siteName} className="h-9 w-auto max-w-[160px] object-contain" />
-                ) : (
-                  <>
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ backgroundColor: cfg.colorPrimary }}>
-                      <GraduationCap className="h-5 w-5 text-white" />
-                    </div>
-                    <span className="text-xl font-bold text-gray-900">{cfg.siteName}</span>
-                  </>
-                )}
-              </div>
-              <p className="mt-4 text-sm text-gray-500">Lembaga bimbingan belajar terpercaya dengan sistem pembelajaran modern dan guru berkualitas.</p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900">Program</h4>
-              <ul className="mt-4 space-y-2 text-sm text-gray-500">
-                <li><a href="#program" className="hover:text-blue-600">SD Kelas 4-6</a></li>
-                <li><a href="#program" className="hover:text-blue-600">SMP Kelas 7-9</a></li>
-                <li><a href="#program" className="hover:text-blue-600">SMA Kelas 10-12</a></li>
-                <li><a href="#program" className="hover:text-blue-600">UTBK Preparation</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900">Tautan</h4>
-              <ul className="mt-4 space-y-2 text-sm text-gray-500">
-                <li><a href="#statistik" className="hover:text-blue-600">Tentang Kami</a></li>
-                <li><a href="#daftar" className="hover:text-blue-600">Cara Daftar</a></li>
-                <li><Link href="/login" className="hover:text-blue-600">Masuk Akun</Link></li>
-                <li><Link href="/events" className="hover:text-blue-600">Event & Tryout</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900">Kontak</h4>
-              <ul className="mt-4 space-y-3 text-sm text-gray-500">
-                <li className="flex items-center gap-2"><MapPin className="h-4 w-4 text-gray-400" /> {cfg.address}</li>
-                <li className="flex items-center gap-2"><Phone className="h-4 w-4 text-gray-400" /> {cfg.phone}</li>
-                <li className="flex items-center gap-2"><Mail className="h-4 w-4 text-gray-400" /> {cfg.email}</li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-12 border-t border-gray-200 pt-8 text-center text-sm text-gray-400">
-            &copy; {new Date().getFullYear()} {cfg.siteName} LMS. All rights reserved.
-          </div>
-        </div>
-      </footer>
-    </div>
+    </>
   );
 }
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import LandingPage from "@/components/landing/LandingPage";
+import PublicShell from "@/components/landing/PublicShell";
 
 export const metadata: Metadata = {
   title: "EduBimbel - Bimbingan Belajar Terbaik",
@@ -28,5 +29,9 @@ export default async function HomePage() {
     redirect(roleRedirects[role] ?? "/login");
   }
 
-  return <LandingPage />;
+  return (
+    <PublicShell>
+      <LandingPage />
+    </PublicShell>
+  );
 }

@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import EventDetailClient from "@/components/event/EventDetailClient";
+import PublicShell from "@/components/landing/PublicShell";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Detail Event" };
@@ -44,11 +45,13 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   };
 
   return (
-    <EventDetailClient
-      event={serializedEvent}
-      isAuthenticated={isAuthenticated}
-      hasExam={!!exam}
-      isRegistered={!!registration}
-    />
+    <PublicShell>
+      <EventDetailClient
+        event={serializedEvent}
+        isAuthenticated={isAuthenticated}
+        hasExam={!!exam}
+        isRegistered={!!registration}
+      />
+    </PublicShell>
   );
 }
