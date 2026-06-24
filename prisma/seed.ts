@@ -408,6 +408,22 @@ async function main() {
     },
   });
 
+  // Seed Default Programs
+  console.log("🎯 Seeding default programs...");
+  const defaultPrograms = [
+    { title: "SD Kelas 4-6", description: "Persiapan ujian sekolah & OSN dengan pendekatan menyenangkan.", icon: "GraduationCap", color: "bg-orange-100 text-orange-700", linkUrl: "/login", order: 0, isActive: true },
+    { title: "SMP Kelas 7-9", description: "Penguatan konsep & persiapan UN SMP dengan latihan soal intensif.", icon: "BookOpen", color: "bg-blue-100 text-blue-700", linkUrl: "/login", order: 1, isActive: true },
+    { title: "SMA Kelas 10-12", description: "Persiapan UTBK-SNBT & ujian sekolah dengan strategi terbaik.", icon: "Award", color: "bg-purple-100 text-purple-700", linkUrl: "/login", order: 2, isActive: true },
+  ];
+  for (const program of defaultPrograms) {
+    await prisma.siteProgram.upsert({
+      where: { title: program.title },
+      update: program,
+      create: program,
+    });
+  }
+  console.log(`✅ ${defaultPrograms.length} programs seeded`);
+
   console.log(`✅ Users seeded: superadmin, admincabang, guru, siswa, orangtua`);
   console.log("\n📋 Demo Credentials:");
   console.log("  Super Admin  : admin@lmsbimbel.id / admin123");

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Save, Plus, Trash2, Loader2, Eye, EyeOff, Globe, Image, MessageSquare, Palette, Bell } from "lucide-react";
+import { Save, Plus, Trash2, Loader2, Eye, EyeOff, Globe, Image, MessageSquare, Palette, Bell, Layers } from "lucide-react";
 
-type Tab = "branding" | "banners" | "gallery" | "popup" | "inquiries";
+type Tab = "branding" | "banners" | "gallery" | "programs" | "popup" | "inquiries";
 
 interface Banner { id: string; title: string; subtitle: string | null; imageUrl: string | null; linkUrl: string | null; linkLabel: string | null; isActive: boolean; order: number; }
 interface Gallery { id: string; title: string; description: string | null; imageUrl: string; category: string; isActive: boolean; order: number; }
+interface Program { id: string; title: string; description: string | null; icon: string; color: string; linkUrl: string | null; isActive: boolean; order: number; }
 interface Inquiry { id: string; name: string; phone: string; email: string | null; program: string | null; message: string | null; status: string; createdAt: string; }
 
 const INQ_STATUS: Record<string, string> = { NEW: "Baru", CONTACTED: "Dihubungi", ENROLLED: "Terdaftar", CLOSED: "Ditutup" };
@@ -16,22 +17,26 @@ export default function SiteCmsClient({
   initialBanners,
   initialGallery,
   initialInquiries,
+  initialPrograms,
 }: {
   initialConfig: Record<string, string>;
   initialBanners: Banner[];
   initialGallery: Gallery[];
   initialInquiries: Inquiry[];
+  initialPrograms: Program[];
 }) {
   const [tab, setTab] = useState<Tab>("branding");
   const [cfg, setCfg] = useState(initialConfig);
   const [banners, setBanners] = useState(initialBanners);
   const [gallery, setGallery] = useState(initialGallery);
   const [inquiries, setInquiries] = useState(initialInquiries);
+  const [programs, setPrograms] = useState(initialPrograms);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
   const [newBanner, setNewBanner] = useState({ title: "", subtitle: "", imageUrl: "", linkUrl: "", linkLabel: "", order: 0 });
   const [newGallery, setNewGallery] = useState({ title: "", description: "", imageUrl: "", category: "AKTIVITAS", order: 0 });
+  const [newProgram, setNewProgram] = useState({ title: "", description: "", icon: "GraduationCap", color: "bg-blue-100 text-blue-700", linkUrl: "", order: 0 });
 
   async function saveCfg() {
     setSaving(true); setMsg("");
@@ -81,10 +86,38 @@ export default function SiteCmsClient({
     if (res.ok) setInquiries((items) => items.map((i) => i.id === id ? { ...i, status } : i));
   }
 
+  async function addProgram() {
+    if (!newProgram.title) return;
+    setSaving(true); setMsg("");
+    const res = await fetch("/api/admin/site/programs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(newProgram) });
+    if (res.ok) { const d = await res.json(); setPrograms((p) => [...p, d]); setNewProgram({ title: "", description: "", icon: "GraduationCap", color: "bg-blue-100 text-blue-700", linkUrl: "", order: 0 }); setMsg("Program ditambahkan"); }
+    else { setMsg("Gagal menambahkan program"); }
+    setSaving(false);
+  }
+
+  async function deleteProgram(id: string) {
+    if (!confirm("Hapus program ini?")) return;
+    setSaving(true);
+    const res = await fetch("/api/admin/site/programs", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    if (res.ok) setPrograms((p) => p.filter((x) => x.id !== id));
+    setSaving(false);
+  }
+
+  async function toggleProgram(program: Program) {
+    const res = await fetch("/api/admin/site/programs", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: program.id, isActive: !program.isActive }) });
+    if (res.ok) { const d = await res.json(); setPrograms((p) => p.map((x) => x.id === d.id ? d : x)); }
+  }
+
+  async function updateProgramField(id: string, key: keyof Program, value: unknown) {
+    const res = await fetch("/api/admin/site/programs", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, [key]: value }) });
+    if (res.ok) { const d = await res.json(); setPrograms((p) => p.map((x) => x.id === d.id ? d : x)); }
+  }
+
   const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: "branding", label: "Branding & Konten", icon: <Palette className="w-4 h-4" /> },
     { key: "banners", label: "Banner / Slider", icon: <Image className="w-4 h-4" /> },
     { key: "gallery", label: "Gallery", icon: <Globe className="w-4 h-4" /> },
+    { key: "programs", label: "Program", icon: <Layers className="w-4 h-4" /> },
     { key: "popup", label: "Popup Promo", icon: <Bell className="w-4 h-4" /> },
     { key: "inquiries", label: "Pendaftaran Masuk", icon: <MessageSquare className="w-4 h-4" /> },
   ];
@@ -314,6 +347,78 @@ export default function SiteCmsClient({
               </div>
             ))}
             {gallery.length === 0 && <div className="col-span-4 text-center py-10 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-xl">Belum ada foto gallery.</div>}
+          </div>
+        </div>
+      )}
+
+      {tab === "programs" && (
+        <div className="space-y-5">
+          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+            <h2 className="font-semibold text-gray-900">Tambah Program</h2>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div><label className="text-xs text-gray-600 mb-1 block">Judul *</label><input value={newProgram.title} onChange={(e) => setNewProgram((p) => ({ ...p, title: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="SD Kelas 4-6" /></div>
+              <div><label className="text-xs text-gray-600 mb-1 block">Icon</label>
+                <select value={newProgram.icon} onChange={(e) => setNewProgram((p) => ({ ...p, icon: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">
+                  {["GraduationCap", "BookOpen", "Users", "Award", "FlaskConical", "Calculator", "Monitor", "PenTool", "Layers", "Rocket"].map((i) => <option key={i} value={i}>{i}</option>)}
+                </select>
+              </div>
+              <div><label className="text-xs text-gray-600 mb-1 block">Warna</label>
+                <select value={newProgram.color} onChange={(e) => setNewProgram((p) => ({ ...p, color: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">
+                  {[
+                    { v: "bg-blue-100 text-blue-700", l: "Biru" },
+                    { v: "bg-orange-100 text-orange-700", l: "Oranye" },
+                    { v: "bg-purple-100 text-purple-700", l: "Ungu" },
+                    { v: "bg-green-100 text-green-700", l: "Hijau" },
+                    { v: "bg-red-100 text-red-700", l: "Merah" },
+                    { v: "bg-pink-100 text-pink-700", l: "Pink" },
+                    { v: "bg-indigo-100 text-indigo-700", l: "Indigo" },
+                    { v: "bg-teal-100 text-teal-700", l: "Teal" },
+                  ].map((c) => <option key={c.v} value={c.v}>{c.l}</option>)}
+                </select>
+              </div>
+              <div><label className="text-xs text-gray-600 mb-1 block">Urutan</label><input type="number" value={newProgram.order} onChange={(e) => setNewProgram((p) => ({ ...p, order: Number(e.target.value) }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" /></div>
+              <div className="sm:col-span-2"><label className="text-xs text-gray-600 mb-1 block">Deskripsi</label><input value={newProgram.description} onChange={(e) => setNewProgram((p) => ({ ...p, description: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="Deskripsi program" /></div>
+              <div className="sm:col-span-2"><label className="text-xs text-gray-600 mb-1 block">URL Link (opsional)</label><input value={newProgram.linkUrl} onChange={(e) => setNewProgram((p) => ({ ...p, linkUrl: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="/program/sd" /></div>
+            </div>
+            <button onClick={addProgram} disabled={saving || !newProgram.title} className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg disabled:opacity-50">
+              <Plus className="w-4 h-4" /> Tambah Program
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {programs.length === 0 && <p className="text-center py-8 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-xl">Belum ada program.</p>}
+            {programs.map((p) => (
+              <div key={p.id} className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <input value={p.title} onChange={(e) => updateProgramField(p.id, "title", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+                  <select value={p.icon} onChange={(e) => updateProgramField(p.id, "icon", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">
+                    {["GraduationCap", "BookOpen", "Users", "Award", "FlaskConical", "Calculator", "Monitor", "PenTool", "Layers", "Rocket"].map((i) => <option key={i} value={i}>{i}</option>)}
+                  </select>
+                  <select value={p.color} onChange={(e) => updateProgramField(p.id, "color", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">
+                    {[
+                      { v: "bg-blue-100 text-blue-700", l: "Biru" },
+                      { v: "bg-orange-100 text-orange-700", l: "Oranye" },
+                      { v: "bg-purple-100 text-purple-700", l: "Ungu" },
+                      { v: "bg-green-100 text-green-700", l: "Hijau" },
+                      { v: "bg-red-100 text-red-700", l: "Merah" },
+                      { v: "bg-pink-100 text-pink-700", l: "Pink" },
+                      { v: "bg-indigo-100 text-indigo-700", l: "Indigo" },
+                      { v: "bg-teal-100 text-teal-700", l: "Teal" },
+                    ].map((c) => <option key={c.v} value={c.v}>{c.l}</option>)}
+                  </select>
+                  <input type="number" value={p.order} onChange={(e) => updateProgramField(p.id, "order", Number(e.target.value))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+                  <input value={p.description ?? ""} onChange={(e) => updateProgramField(p.id, "description", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm sm:col-span-2" placeholder="Deskripsi" />
+                  <input value={p.linkUrl ?? ""} onChange={(e) => updateProgramField(p.id, "linkUrl", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm sm:col-span-2" placeholder="URL Link" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${p.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{p.isActive ? "Aktif" : "Nonaktif"}</span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => toggleProgram(p)} className="p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{p.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                    <button onClick={() => deleteProgram(p.id)} className="p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

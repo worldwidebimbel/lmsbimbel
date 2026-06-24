@@ -12,11 +12,12 @@ export default async function AdminSitePage() {
     redirect("/admin");
   }
 
-  const [configRows, banners, gallery, inquiries] = await Promise.all([
+  const [configRows, banners, gallery, inquiries, programs] = await Promise.all([
     db.siteConfig.findMany(),
     db.siteBanner.findMany({ orderBy: { order: "asc" } }),
     db.siteGallery.findMany({ orderBy: [{ category: "asc" }, { order: "asc" }] }),
     db.siteInquiry.findMany({ orderBy: { createdAt: "desc" }, take: 50 }),
+    db.siteProgram.findMany({ orderBy: { order: "asc" } }),
   ]);
 
   const config: Record<string, string> = { ...SITE_DEFAULTS };
@@ -39,6 +40,11 @@ export default async function AdminSitePage() {
         ...i,
         createdAt: i.createdAt.toISOString(),
         updatedAt: i.updatedAt.toISOString(),
+      }))}
+      initialPrograms={programs.map((p) => ({
+        ...p,
+        createdAt: p.createdAt.toISOString(),
+        updatedAt: p.updatedAt.toISOString(),
       }))}
     />
   );

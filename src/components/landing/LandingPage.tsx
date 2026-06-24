@@ -1,30 +1,44 @@
 import Link from "next/link";
-import { GraduationCap, BookOpen, Users, Award, ArrowRight, CheckCircle, Star, Phone } from "lucide-react";
+import { GraduationCap, BookOpen, Users, Award, ArrowRight, CheckCircle, Star, Phone, FlaskConical, Calculator, Monitor, PenTool, Layers, Rocket } from "lucide-react";
 import { db } from "@/lib/db";
 import { getSiteConfig } from "@/lib/site-config";
 import LandingInquiryForm from "@/components/landing/LandingInquiryForm";
 import HeroBannerSlider from "@/components/landing/HeroBannerSlider";
 import PromoPopup from "@/components/landing/PromoPopup";
 
+const PROGRAM_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  GraduationCap,
+  BookOpen,
+  Users,
+  Award,
+  FlaskConical,
+  Calculator,
+  Monitor,
+  PenTool,
+  Layers,
+  Rocket,
+};
+
 async function getLandingData() {
   try {
-    const [students, teachers, classes, subjects, banners, gallery] = await Promise.all([
+    const [students, teachers, classes, subjects, banners, gallery, programs] = await Promise.all([
       db.user.count({ where: { role: "SISWA", isActive: true } }),
       db.user.count({ where: { role: "GURU", isActive: true } }),
       db.class.count({ where: { isActive: true } }),
       db.subject.count({ where: { isActive: true } }),
       db.siteBanner.findMany({ where: { isActive: true }, orderBy: { order: "asc" } }),
       db.siteGallery.findMany({ where: { isActive: true }, orderBy: [{ category: "asc" }, { order: "asc" }] }),
+      db.siteProgram.findMany({ where: { isActive: true }, orderBy: { order: "asc" } }),
     ]);
-    return { students, teachers, classes, subjects, banners, gallery };
+    return { students, teachers, classes, subjects, banners, gallery, programs };
   } catch {
-    return { students: 0, teachers: 0, classes: 0, subjects: 0, banners: [], gallery: [] };
+    return { students: 0, teachers: 0, classes: 0, subjects: 0, banners: [], gallery: [], programs: [] };
   }
 }
 
 export default async function LandingPage() {
   const [data, cfg] = await Promise.all([getLandingData(), getSiteConfig()]);
-  const { students, teachers, classes, subjects, banners, gallery } = data;
+  const { students, teachers, classes, subjects, banners, gallery, programs } = data;
 
   const groupedGallery: Record<string, typeof gallery> = {};
   for (const item of gallery) {
@@ -127,24 +141,13 @@ export default async function LandingPage() {
             <p className="mt-3 text-gray-500">Pilih program yang sesuai dengan kebutuhan belajar Anda</p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <ProgramCard
-              title="SD Kelas 4-6"
-              desc="Persiapan ujian sekolah & OSN dengan pendekatan menyenangkan."
-              color="bg-orange-100 text-orange-700"
-              icon={<GraduationCap className="h-6 w-6" />}
-            />
-            <ProgramCard
-              title="SMP Kelas 7-9"
-              desc="Penguatan konsep & persiapan UN SMP dengan latihan soal intensif."
-              color="bg-blue-100 text-blue-700"
-              icon={<BookOpen className="h-6 w-6" />}
-            />
-            <ProgramCard
-              title="SMA Kelas 10-12"
-              desc="Persiapan UTBK-SNBT & ujian sekolah dengan strategi terbaik."
-              color="bg-purple-100 text-purple-700"
-              icon={<Award className="h-6 w-6" />}
-            />
+            {programs.length > 0 ? (
+              programs.map((program) => <ProgramCard key={program.id} program={program} />)
+            ) : (
+              <div className="col-span-full text-center text-sm text-gray-400">
+                Belum ada program yang dipublikasikan. Kelola program di menu Admin → CMS Landing Page.
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -280,15 +283,17 @@ function StatBox({ number, label, color }: { number: string; label: string; colo
   );
 }
 
-function ProgramCard({ title, desc, color, icon }: { title: string; desc: string; color: string; icon: React.ReactNode }) {
+function ProgramCard({ program }: { program: { id: string; title: string; description: string | null; icon: string; color: string; linkUrl: string | null } }) {
+  const Icon = PROGRAM_ICONS[program.icon] ?? GraduationCap;
+  const link = program.linkUrl || "/login";
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl ${color}`}>
-        {icon}
+      <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl ${program.color}`}>
+        <Icon className="h-6 w-6" />
       </div>
-      <h3 className="text-lg font-bold text-gray-900">{title}</h3>
-      <p className="mt-2 text-sm text-gray-500">{desc}</p>
-      <Link href="/login" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700">
+      <h3 className="text-lg font-bold text-gray-900">{program.title}</h3>
+      <p className="mt-2 text-sm text-gray-500">{program.description}</p>
+      <Link href={link} className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700">
         Info Lebih Lanjut <ArrowRight className="h-3.5 w-3.5" />
       </Link>
     </div>

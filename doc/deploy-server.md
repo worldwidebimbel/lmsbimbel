@@ -385,6 +385,7 @@ Akses di browser: **https://lmsbimbel.digsan.id**
 ### Update Manual (tanpa CI/CD)
 ```bash
 cd C:\Users\MANAKreatif\CascadeProjects\lms-bimbel
+git pull && npm run build && pm2 restart lms-bimbel
 git add -A; git commit -m "fix: allow public access to landing page (/) without auth"; git push origin main
 
 cd /var/www/lms-bimbel
