@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-25  
-**Commit:** `7ef1f9d` — feat: dynamic testimonials and blog (admin CMS + public pages)  
-**Build status:** ✅ Clean (tsc & prisma generate passed)  
+**Commit:** `80d37b5` — feat: add email diagnostics and logging for OAuth2/SMTP troubleshooting  
+**Build status:** ✅ Clean (tsc passed)  
 **Live:** https://lmsbimbel.digsan.id  
 
 **Scope baru:** Kebutuhan aplikasi berbasis web umum (company profile + LMS + ujian + event berbayar + sertifikat + administrasi multi-cabang + pembayaran otomatis).
