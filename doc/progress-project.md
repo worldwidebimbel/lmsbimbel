@@ -1,7 +1,7 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-25  
-**Commit:** `a16fb24` — feat: implement academic calendar (admin, student, teacher)  
+**Commit:** `89628c8` — feat: Google OAuth login & register, email/oauth docs, update auth config  
 **Build status:** ✅ Clean (tsc passed)  
 **Live:** https://lmsbimbel.digsan.id  
 
