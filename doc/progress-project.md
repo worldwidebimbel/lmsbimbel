@@ -1,7 +1,7 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-25  
-**Commit:** `80d37b5` — feat: add email diagnostics and logging for OAuth2/SMTP troubleshooting  
+**Commit:** `TBD` — feat: implement academic calendar (admin, student, teacher)  
 **Build status:** ✅ Clean (tsc passed)  
 **Live:** https://lmsbimbel.digsan.id  
 
@@ -57,7 +57,7 @@
 - [x] Kelola jadwal per kelas (tambah/hapus) — `/admin/classes/[id]/schedules`
 - [x] Siswa: jadwal mingguan visual per hari — `/siswa/jadwal`
 - [x] Guru: overview kelas diampu + jadwal — `/guru/kelas`
-- [ ] Kalender akademik
+- [x] Kalender akademik — `/admin/academic-calendar`, `/siswa/kalender`, `/guru/kalender`
 
 ### 📖 Modul 3: Materi Pembelajaran
 - [x] API CRUD materi (`GET/POST /api/materi`, `GET/PATCH/DELETE /api/materi/[id]`)

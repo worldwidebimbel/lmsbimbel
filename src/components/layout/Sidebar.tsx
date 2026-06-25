@@ -33,6 +33,7 @@ const NAV_ADMIN: NavItem[] = [
   { title: "Pengguna", href: "/admin/users", icon: "Users", featureFlag: "FEAT_USER_MANAGEMENT" },
   { title: "Orang Tua & Anak", href: "/admin/parents", icon: "Users2" },
   { title: "Kelas & Jadwal", href: "/admin/classes", icon: "CalendarDays", featureFlag: "FEAT_CLASS_SCHEDULE" },
+  { title: "Kalender Akademik", href: "/admin/academic-calendar", icon: "CalendarDays" },
   { title: "Keuangan", href: "/admin/finance", icon: "Wallet", featureFlag: "FEAT_PAYMENT_MANUAL" },
   { title: "Multi-Cabang", href: "/admin/branches", icon: "Building2", featureFlag: "FEAT_MULTI_BRANCH" },
   { title: "Analitik", href: "/admin/analytics", icon: "BarChart3", featureFlag: "FEAT_ANALYTICS" },
@@ -47,6 +48,7 @@ const NAV_ADMIN: NavItem[] = [
 const NAV_GURU: NavItem[] = [
   { title: "Dashboard", href: "/guru", icon: "LayoutDashboard" },
   { title: "Kelas Saya", href: "/guru/kelas", icon: "BookMarked", featureFlag: "FEAT_CLASS_SCHEDULE" },
+  { title: "Kalender Akademik", href: "/guru/kalender", icon: "CalendarDays" },
   { title: "Materi", href: "/guru/materi", icon: "BookOpen", featureFlag: "FEAT_MATERIALS" },
   { title: "Tugas", href: "/guru/tugas", icon: "ClipboardList", featureFlag: "FEAT_ASSIGNMENTS" },
   { title: "Ujian", href: "/guru/ujian", icon: "FileCheck" },
@@ -62,6 +64,7 @@ const NAV_SISWA: NavItem[] = [
   { title: "Dashboard", href: "/siswa", icon: "LayoutDashboard" },
   { title: "Progress", href: "/siswa/progress", icon: "TrendingUp" },
   { title: "Jadwal", href: "/siswa/jadwal", icon: "CalendarDays", featureFlag: "FEAT_CLASS_SCHEDULE" },
+  { title: "Kalender Akademik", href: "/siswa/kalender", icon: "CalendarDays" },
   { title: "Materi", href: "/siswa/materi", icon: "BookOpen", featureFlag: "FEAT_MATERIALS" },
   { title: "Tugas", href: "/siswa/tugas", icon: "ClipboardList", featureFlag: "FEAT_ASSIGNMENTS" },
   { title: "Ujian", href: "/siswa/ujian", icon: "FileCheck" },

@@ -144,6 +144,7 @@ model Branch {
   transfersFrom BranchCashTransfer[] @relation("TransferFrom")
   transfersTo   BranchCashTransfer[] @relation("TransferTo")
   events       Event[]
+  academicCalendarEvents AcademicCalendar[]
 
   @@map("branches")
 }
@@ -198,6 +199,7 @@ model User {
   eventRegistrations EventRegistration[]
   certificates       Certificate[]
   mediaFiles         MediaFile[]
+  academicCalendarEvents AcademicCalendar[]
 
   @@map("users")
 }
@@ -363,6 +365,39 @@ model ScheduleException {
   schedule        Schedule @relation(fields: [scheduleId], references: [id])
 
   @@map("schedule_exceptions")
+}
+
+enum CalendarEventType {
+  LIBURAN
+  UJIAN
+  TRYOUT
+  RAPAT
+  EVENT
+  PENTING
+  LAINNYA
+}
+
+model AcademicCalendar {
+  id          String           @id @default(cuid())
+  branchId    String?
+  title       String
+  description String?
+  type        CalendarEventType @default(LAINNYA)
+  startDate   DateTime
+  endDate     DateTime?
+  isAllDay    Boolean          @default(true)
+  color       String?
+  isActive    Boolean          @default(true)
+  createdBy   String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  branch      Branch?          @relation(fields: [branchId], references: [id])
+  creator     User             @relation(fields: [createdBy], references: [id])
+
+  @@map("academic_calendar")
+  @@index([branchId])
+  @@index([startDate])
 }
 
 // ============================
