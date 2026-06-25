@@ -1,7 +1,7 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-25  
-**Commit:** `1abfbd6` — feat: dynamic Program Unggulan homepage section with admin CMS  
+**Commit:** `7ef1f9d` — feat: dynamic testimonials and blog (admin CMS + public pages)  
 **Build status:** ✅ Clean (tsc & prisma generate passed)  
 **Live:** https://lmsbimbel.digsan.id  
 
