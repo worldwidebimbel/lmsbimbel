@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Save, Plus, Trash2, Loader2, Eye, EyeOff, Globe, Image, MessageSquare, Palette, Bell, Layers } from "lucide-react";
+import { Save, Plus, Trash2, Loader2, Eye, EyeOff, Globe, Image, MessageSquare, Palette, Bell, Layers, Quote, Newspaper } from "lucide-react";
 
-type Tab = "branding" | "banners" | "gallery" | "programs" | "popup" | "inquiries";
+type Tab = "branding" | "banners" | "gallery" | "programs" | "testimonials" | "blog" | "popup" | "inquiries";
 
 interface Banner { id: string; title: string; subtitle: string | null; imageUrl: string | null; linkUrl: string | null; linkLabel: string | null; isActive: boolean; order: number; }
 interface Gallery { id: string; title: string; description: string | null; imageUrl: string; category: string; isActive: boolean; order: number; }
 interface Program { id: string; title: string; description: string | null; icon: string; color: string; linkUrl: string | null; isActive: boolean; order: number; }
+interface Testimonial { id: string; name: string; role: string | null; text: string; avatarUrl: string | null; order: number; isActive: boolean; createdAt: string; updatedAt: string; }
+interface BlogPost { id: string; slug: string; title: string; excerpt: string | null; content: string; coverImage: string | null; author: string | null; category: string; tags: string[]; isPublished: boolean; publishedAt: string | null; createdAt: string; updatedAt: string; }
 interface Inquiry { id: string; name: string; phone: string; email: string | null; program: string | null; message: string | null; status: string; createdAt: string; }
 
 const INQ_STATUS: Record<string, string> = { NEW: "Baru", CONTACTED: "Dihubungi", ENROLLED: "Terdaftar", CLOSED: "Ditutup" };
@@ -18,12 +20,16 @@ export default function SiteCmsClient({
   initialGallery,
   initialInquiries,
   initialPrograms,
+  initialTestimonials,
+  initialBlogPosts,
 }: {
   initialConfig: Record<string, string>;
   initialBanners: Banner[];
   initialGallery: Gallery[];
   initialInquiries: Inquiry[];
   initialPrograms: Program[];
+  initialTestimonials: Testimonial[];
+  initialBlogPosts: BlogPost[];
 }) {
   const [tab, setTab] = useState<Tab>("branding");
   const [cfg, setCfg] = useState(initialConfig);
@@ -31,12 +37,16 @@ export default function SiteCmsClient({
   const [gallery, setGallery] = useState(initialGallery);
   const [inquiries, setInquiries] = useState(initialInquiries);
   const [programs, setPrograms] = useState(initialPrograms);
+  const [testimonials, setTestimonials] = useState(initialTestimonials);
+  const [blogPosts, setBlogPosts] = useState(initialBlogPosts);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
   const [newBanner, setNewBanner] = useState({ title: "", subtitle: "", imageUrl: "", linkUrl: "", linkLabel: "", order: 0 });
   const [newGallery, setNewGallery] = useState({ title: "", description: "", imageUrl: "", category: "AKTIVITAS", order: 0 });
   const [newProgram, setNewProgram] = useState({ title: "", description: "", icon: "GraduationCap", color: "bg-blue-100 text-blue-700", linkUrl: "", order: 0 });
+  const [newTestimonial, setNewTestimonial] = useState({ name: "", role: "", text: "", avatarUrl: "", order: 0 });
+  const [newBlog, setNewBlog] = useState({ title: "", slug: "", excerpt: "", content: "", coverImage: "", author: "", category: "Umum", tags: "", isPublished: false });
 
   async function saveCfg() {
     setSaving(true); setMsg("");
@@ -113,11 +123,74 @@ export default function SiteCmsClient({
     if (res.ok) { const d = await res.json(); setPrograms((p) => p.map((x) => x.id === d.id ? d : x)); }
   }
 
+  async function addTestimonial() {
+    if (!newTestimonial.name || !newTestimonial.text) return;
+    setSaving(true); setMsg("");
+    const res = await fetch("/api/admin/site/testimonials", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...newTestimonial, role: newTestimonial.role || null, avatarUrl: newTestimonial.avatarUrl || null }) });
+    if (res.ok) { const d = await res.json(); setTestimonials((t) => [...t, d]); setNewTestimonial({ name: "", role: "", text: "", avatarUrl: "", order: 0 }); setMsg("Testimoni ditambahkan"); }
+    else { setMsg("Gagal menambahkan testimoni"); }
+    setSaving(false);
+  }
+
+  async function deleteTestimonial(id: string) {
+    if (!confirm("Hapus testimoni ini?")) return;
+    setSaving(true);
+    const res = await fetch("/api/admin/site/testimonials", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    if (res.ok) setTestimonials((t) => t.filter((x) => x.id !== id));
+    setSaving(false);
+  }
+
+  async function toggleTestimonial(t: Testimonial) {
+    const res = await fetch("/api/admin/site/testimonials", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: t.id, isActive: !t.isActive }) });
+    if (res.ok) { const d = await res.json(); setTestimonials((items) => items.map((x) => x.id === d.id ? d : x)); }
+  }
+
+  async function updateTestimonialField(id: string, key: keyof Testimonial, value: unknown) {
+    const res = await fetch("/api/admin/site/testimonials", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, [key]: value }) });
+    if (res.ok) { const d = await res.json(); setTestimonials((items) => items.map((x) => x.id === d.id ? d : x)); }
+  }
+
+  async function addBlogPost() {
+    if (!newBlog.title || !newBlog.content) return;
+    setSaving(true); setMsg("");
+    const payload = {
+      ...newBlog,
+      excerpt: newBlog.excerpt || null,
+      coverImage: newBlog.coverImage || null,
+      author: newBlog.author || null,
+      tags: newBlog.tags.split(",").map((t) => t.trim()).filter(Boolean),
+    };
+    const res = await fetch("/api/admin/site/blog", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    if (res.ok) { const d = await res.json(); setBlogPosts((b) => [d, ...b]); setNewBlog({ title: "", slug: "", excerpt: "", content: "", coverImage: "", author: "", category: "Umum", tags: "", isPublished: false }); setMsg("Artikel ditambahkan"); }
+    else { setMsg("Gagal menambahkan artikel"); }
+    setSaving(false);
+  }
+
+  async function deleteBlogPost(id: string) {
+    if (!confirm("Hapus artikel ini?")) return;
+    setSaving(true);
+    const res = await fetch("/api/admin/site/blog", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    if (res.ok) setBlogPosts((b) => b.filter((x) => x.id !== id));
+    setSaving(false);
+  }
+
+  async function toggleBlogPost(b: BlogPost) {
+    const res = await fetch("/api/admin/site/blog", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: b.id, isPublished: !b.isPublished }) });
+    if (res.ok) { const d = await res.json(); setBlogPosts((items) => items.map((x) => x.id === d.id ? d : x)); }
+  }
+
+  async function updateBlogField(id: string, key: keyof BlogPost, value: unknown) {
+    const res = await fetch("/api/admin/site/blog", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, [key]: value }) });
+    if (res.ok) { const d = await res.json(); setBlogPosts((items) => items.map((x) => x.id === d.id ? d : x)); }
+  }
+
   const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: "branding", label: "Branding & Konten", icon: <Palette className="w-4 h-4" /> },
     { key: "banners", label: "Banner / Slider", icon: <Image className="w-4 h-4" /> },
     { key: "gallery", label: "Gallery", icon: <Globe className="w-4 h-4" /> },
     { key: "programs", label: "Program", icon: <Layers className="w-4 h-4" /> },
+    { key: "testimonials", label: "Testimoni", icon: <Quote className="w-4 h-4" /> },
+    { key: "blog", label: "Blog / Artikel", icon: <Newspaper className="w-4 h-4" /> },
     { key: "popup", label: "Popup Promo", icon: <Bell className="w-4 h-4" /> },
     { key: "inquiries", label: "Pendaftaran Masuk", icon: <MessageSquare className="w-4 h-4" /> },
   ];
@@ -415,6 +488,95 @@ export default function SiteCmsClient({
                   <div className="flex items-center gap-2">
                     <button onClick={() => toggleProgram(p)} className="p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{p.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
                     <button onClick={() => deleteProgram(p.id)} className="p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab === "testimonials" && (
+        <div className="space-y-5">
+          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+            <h2 className="font-semibold text-gray-900">Tambah Testimoni</h2>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div><label className="text-xs text-gray-600 mb-1 block">Nama *</label><input value={newTestimonial.name} onChange={(e) => setNewTestimonial((p) => ({ ...p, name: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="Andi Wijaya" /></div>
+              <div><label className="text-xs text-gray-600 mb-1 block">Peran / Kelas</label><input value={newTestimonial.role} onChange={(e) => setNewTestimonial((p) => ({ ...p, role: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="Orang Tua Siswa SMP" /></div>
+              <div><label className="text-xs text-gray-600 mb-1 block">URL Avatar</label><input value={newTestimonial.avatarUrl} onChange={(e) => setNewTestimonial((p) => ({ ...p, avatarUrl: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="https://..." /></div>
+              <div><label className="text-xs text-gray-600 mb-1 block">Urutan</label><input type="number" value={newTestimonial.order} onChange={(e) => setNewTestimonial((p) => ({ ...p, order: Number(e.target.value) }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" /></div>
+              <div className="sm:col-span-2"><label className="text-xs text-gray-600 mb-1 block">Testimoni *</label><textarea value={newTestimonial.text} onChange={(e) => setNewTestimonial((p) => ({ ...p, text: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" rows={3} placeholder="Tulis testimoni" /></div>
+            </div>
+            <button onClick={addTestimonial} disabled={saving || !newTestimonial.name || !newTestimonial.text} className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg disabled:opacity-50">
+              <Plus className="w-4 h-4" /> Tambah Testimoni
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {testimonials.length === 0 && <p className="text-center py-8 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-xl">Belum ada testimoni.</p>}
+            {testimonials.map((t) => (
+              <div key={t.id} className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <input value={t.name} onChange={(e) => updateTestimonialField(t.id, "name", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+                  <input value={t.role ?? ""} onChange={(e) => updateTestimonialField(t.id, "role", e.target.value || null)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="Peran / Kelas" />
+                  <input type="number" value={t.order} onChange={(e) => updateTestimonialField(t.id, "order", Number(e.target.value))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+                  <input value={t.avatarUrl ?? ""} onChange={(e) => updateTestimonialField(t.id, "avatarUrl", e.target.value || null)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="URL Avatar" />
+                  <textarea value={t.text} onChange={(e) => updateTestimonialField(t.id, "text", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm sm:col-span-2" rows={3} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${t.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{t.isActive ? "Aktif" : "Nonaktif"}</span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => toggleTestimonial(t)} className="p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{t.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                    <button onClick={() => deleteTestimonial(t.id)} className="p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab === "blog" && (
+        <div className="space-y-5">
+          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+            <h2 className="font-semibold text-gray-900">Tambah Artikel</h2>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div><label className="text-xs text-gray-600 mb-1 block">Judul *</label><input value={newBlog.title} onChange={(e) => setNewBlog((p) => ({ ...p, title: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="Judul artikel" /></div>
+              <div><label className="text-xs text-gray-600 mb-1 block">Slug (opsional, auto jika kosong)</label><input value={newBlog.slug} onChange={(e) => setNewBlog((p) => ({ ...p, slug: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="judul-artikel" /></div>
+              <div><label className="text-xs text-gray-600 mb-1 block">Kategori</label><input value={newBlog.category} onChange={(e) => setNewBlog((p) => ({ ...p, category: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" /></div>
+              <div><label className="text-xs text-gray-600 mb-1 block">Penulis</label><input value={newBlog.author} onChange={(e) => setNewBlog((p) => ({ ...p, author: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" /></div>
+              <div className="sm:col-span-2"><label className="text-xs text-gray-600 mb-1 block">URL Cover Gambar</label><input value={newBlog.coverImage} onChange={(e) => setNewBlog((p) => ({ ...p, coverImage: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="https://..." /></div>
+              <div className="sm:col-span-2"><label className="text-xs text-gray-600 mb-1 block">Tag (pisahkan koma)</label><input value={newBlog.tags} onChange={(e) => setNewBlog((p) => ({ ...p, tags: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="tips, utbk, sd" /></div>
+              <div className="sm:col-span-2"><label className="text-xs text-gray-600 mb-1 block">Ringkasan</label><input value={newBlog.excerpt} onChange={(e) => setNewBlog((p) => ({ ...p, excerpt: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" /></div>
+              <div className="sm:col-span-2"><label className="text-xs text-gray-600 mb-1 block">Konten *</label><textarea value={newBlog.content} onChange={(e) => setNewBlog((p) => ({ ...p, content: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" rows={6} placeholder="Konten artikel (HTML atau Markdown)" /></div>
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={newBlog.isPublished} onChange={(e) => setNewBlog((p) => ({ ...p, isPublished: e.target.checked }))} className="rounded border-gray-300" />
+              Publikasikan
+            </label>
+            <button onClick={addBlogPost} disabled={saving || !newBlog.title || !newBlog.content} className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg disabled:opacity-50">
+              <Plus className="w-4 h-4" /> Tambah Artikel
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {blogPosts.length === 0 && <p className="text-center py-8 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-xl">Belum ada artikel.</p>}
+            {blogPosts.map((b) => (
+              <div key={b.id} className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <input value={b.title} onChange={(e) => updateBlogField(b.id, "title", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+                  <input value={b.slug} onChange={(e) => updateBlogField(b.id, "slug", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="Slug" />
+                  <input value={b.category} onChange={(e) => updateBlogField(b.id, "category", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="Kategori" />
+                  <input value={b.author ?? ""} onChange={(e) => updateBlogField(b.id, "author", e.target.value || null)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="Penulis" />
+                  <input value={b.coverImage ?? ""} onChange={(e) => updateBlogField(b.id, "coverImage", e.target.value || null)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm sm:col-span-2" placeholder="URL Cover Gambar" />
+                  <input value={b.excerpt ?? ""} onChange={(e) => updateBlogField(b.id, "excerpt", e.target.value || null)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm sm:col-span-2" placeholder="Ringkasan" />
+                  <textarea value={b.content} onChange={(e) => updateBlogField(b.id, "content", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm sm:col-span-2" rows={4} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${b.isPublished ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{b.isPublished ? "Publik" : "Draft"}</span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => toggleBlogPost(b)} className="p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{b.isPublished ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                    <button onClick={() => deleteBlogPost(b.id)} className="p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>

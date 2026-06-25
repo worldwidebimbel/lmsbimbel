@@ -424,6 +424,59 @@ async function main() {
   }
   console.log(`✅ ${defaultPrograms.length} programs seeded`);
 
+  // Seed Default Testimonials
+  console.log("💬 Seeding default testimonials...");
+  const defaultTestimonials = [
+    { name: "Andi Wijaya", role: "Orang Tua Siswa SMP", text: "Anak saya jadi lebih rajin belajar sejak gabung EduBimbel. Sistem LMS-nya modern dan laporan perkembangannya sangat membantu.", order: 0, isActive: true },
+    { name: "Siti Rahmah", role: "Siswa SMA Kelas 12", text: "Tryout UTBK-nya sangat membantu! Soal-soalnya berkualitas dan pembahasannya detail. Alhamdulillah lolos PTN impian.", order: 1, isActive: true },
+    { name: "Budi Santoso", role: "Orang Tua Siswa SD", text: "Guru-gurunya sangat sabar dan profesional. Anak saya yang tadinya malas belajar matematika, sekarang jadi suka.", order: 2, isActive: true },
+  ];
+  for (const t of defaultTestimonials) {
+    await prisma.siteTestimonial.upsert({
+      where: { name: t.name },
+      update: t,
+      create: t,
+    });
+  }
+  console.log(`✅ ${defaultTestimonials.length} testimonials seeded`);
+
+  // Seed Sample Blog Posts
+  console.log("📝 Seeding sample blog posts...");
+  const samplePosts = [
+    {
+      slug: "tips-belajar-efektif-utbk",
+      title: "5 Tips Belajar Efektif untuk Persiapan UTBK",
+      excerpt: "Strategi belajar yang terbukti efektif untuk meningkatkan nilai UTBK dan ujian sekolah.",
+      content: "<p>UTBK merupakan salah satu ujian yang menentukan kelulusan masuk perguruan tinggi. Berikut tips belajar efektif:</p><ul><li>Buat jadwal belajar yang konsisten</li><li>Kerjakan latihan soal secara rutin</li><li>Review pembahasan dengan teliti</li><li>Istirahat cukup dan jaga kesehatan</li><li>Utamakan pemahaman konsep, bukan hafalan</li></ul>",
+      coverImage: null,
+      author: "Tim EduBimbel",
+      category: "Tips",
+      tags: ["utbk", "tips", "sma"],
+      isPublished: true,
+      publishedAt: new Date(),
+    },
+    {
+      slug: "cara-meningkatkan-minat-belajar-anak",
+      title: "Cara Meningkatkan Minat Belajar Anak di Rumah",
+      excerpt: "Panduan praktis bagi orang tua untuk membuat anak lebih antusias belajar.",
+      content: "<p>Minat belajar anak sangat dipengaruhi oleh lingkungan dan pendekatan orang tua. Beberapa cara yang bisa dilakukan:</p><ul><li>Buat suasana belajar yang nyaman</li><li>Berikan pujian atas progres kecil</li><li>Gunakan media belajar yang interaktif</li><li>Jadikan belajar sebagai kegiatan menyenangkan</li><li>Komunikasikan manfaat belajar dengan bahasa anak</li></ul>",
+      coverImage: null,
+      author: "Tim EduBimbel",
+      category: "Parenting",
+      tags: ["parenting", "sd", "motivasi"],
+      isPublished: true,
+      publishedAt: new Date(),
+    },
+  ];
+  for (const post of samplePosts) {
+    await prisma.blogPost.upsert({
+      where: { slug: post.slug },
+      update: post,
+      create: post,
+    });
+  }
+  console.log(`✅ ${samplePosts.length} blog posts seeded`);
+
   console.log(`✅ Users seeded: superadmin, admincabang, guru, siswa, orangtua`);
   console.log("\n📋 Demo Credentials:");
   console.log("  Super Admin  : admin@lmsbimbel.id / admin123");

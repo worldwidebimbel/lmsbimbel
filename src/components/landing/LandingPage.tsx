@@ -21,7 +21,7 @@ const PROGRAM_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 
 async function getLandingData() {
   try {
-    const [students, teachers, classes, subjects, banners, gallery, programs] = await Promise.all([
+    const [students, teachers, classes, subjects, banners, gallery, programs, testimonials] = await Promise.all([
       db.user.count({ where: { role: "SISWA", isActive: true } }),
       db.user.count({ where: { role: "GURU", isActive: true } }),
       db.class.count({ where: { isActive: true } }),
@@ -29,16 +29,17 @@ async function getLandingData() {
       db.siteBanner.findMany({ where: { isActive: true }, orderBy: { order: "asc" } }),
       db.siteGallery.findMany({ where: { isActive: true }, orderBy: [{ category: "asc" }, { order: "asc" }] }),
       db.siteProgram.findMany({ where: { isActive: true }, orderBy: { order: "asc" } }),
+      db.siteTestimonial.findMany({ where: { isActive: true }, orderBy: { order: "asc" } }),
     ]);
-    return { students, teachers, classes, subjects, banners, gallery, programs };
+    return { students, teachers, classes, subjects, banners, gallery, programs, testimonials };
   } catch {
-    return { students: 0, teachers: 0, classes: 0, subjects: 0, banners: [], gallery: [], programs: [] };
+    return { students: 0, teachers: 0, classes: 0, subjects: 0, banners: [], gallery: [], programs: [], testimonials: [] };
   }
 }
 
 export default async function LandingPage() {
   const [data, cfg] = await Promise.all([getLandingData(), getSiteConfig()]);
-  const { students, teachers, classes, subjects, banners, gallery, programs } = data;
+  const { students, teachers, classes, subjects, banners, gallery, programs, testimonials } = data;
 
   const groupedGallery: Record<string, typeof gallery> = {};
   for (const item of gallery) {
@@ -186,31 +187,21 @@ export default async function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section id="testimoni" className="py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Apa Kata Mereka?</h2>
-            <p className="mt-3 text-gray-500">Testimoni dari siswa & orang tua yang telah merasakan manfaatnya</p>
+      {testimonials.length > 0 && (
+        <section id="testimoni" className="py-20">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="mb-12 text-center">
+              <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Apa Kata Mereka?</h2>
+              <p className="mt-3 text-gray-500">Testimoni dari siswa & orang tua yang telah merasakan manfaatnya</p>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {testimonials.map((t) => (
+                <TestimonialCard key={t.id} name={t.name} role={t.role} text={t.text} avatarUrl={t.avatarUrl} />
+              ))}
+            </div>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <TestimonialCard
-              name="Andi Wijaya"
-              role="Orang Tua Siswa SMP"
-              text="Anak saya jadi lebih rajin belajar sejak gabung EduBimbel. Sistem LMS-nya modern dan laporan perkembangannya sangat membantu."
-            />
-            <TestimonialCard
-              name="Siti Rahmah"
-              role="Siswa SMA Kelas 12"
-              text="Tryout UTBK-nya sangat membantu! Soal-soalnya berkualitas dan pembahasannya detail. Alhamdulillah lolos PTN impian."
-            />
-            <TestimonialCard
-              name="Budi Santoso"
-              role="Orang Tua Siswa SD"
-              text="Guru-gurunya sangat sabar dan profesional. Anak saya yang tadinya malas belajar matematika, sekarang jadi suka."
-            />
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Gallery Section */}
       {gallery.length > 0 && (
@@ -310,7 +301,7 @@ function FeatureBox({ title, desc, color, iconColor }: { title: string; desc: st
   );
 }
 
-function TestimonialCard({ name, role, text }: { name: string; role: string; text: string }) {
+function TestimonialCard({ name, role, text, avatarUrl }: { name: string; role: string | null; text: string; avatarUrl: string | null }) {
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
       <div className="flex gap-1">
@@ -318,9 +309,13 @@ function TestimonialCard({ name, role, text }: { name: string; role: string; tex
       </div>
       <p className="mt-4 text-sm text-gray-600 leading-relaxed">&ldquo;{text}&rdquo;</p>
       <div className="mt-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
-          {name.charAt(0)}
-        </div>
+        {avatarUrl ? (
+          <img src={avatarUrl} alt={name} className="h-10 w-10 rounded-full object-cover" />
+        ) : (
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
+            {name.charAt(0)}
+          </div>
+        )}
         <div>
           <p className="text-sm font-semibold text-gray-900">{name}</p>
           <p className="text-xs text-gray-400">{role}</p>

@@ -212,8 +212,8 @@
 - [x] Form pendaftaran siswa baru / inquiry (lead CRM) — `/api/site/inquiry`, tabel pendaftaran di admin
 - [x] CMS admin untuk kelola konten frontpage, banner, gallery, program, popup, pendaftaran — `/admin/site`
 - [x] Promo product per program (konten per program terpisah) — model `SiteProgram` mendukung link, deskripsi, icon, dan warna per program
-- [ ] Blog / artikel pemasaran
-- [ ] Testimoni configurable (tambah/edit dari admin, bukan hardcode)
+- [x] Blog / artikel pemasaran
+- [x] Testimoni configurable (tambah/edit dari admin, bukan hardcode)
 
 ### 🎟️ Modul 17: Event Berbayar Online
 - [x] Manajemen event (tryout online, lomba olimpiade, workshop) — admin CRUD + multi-branch

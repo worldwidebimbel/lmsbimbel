@@ -12,12 +12,14 @@ export default async function AdminSitePage() {
     redirect("/admin");
   }
 
-  const [configRows, banners, gallery, inquiries, programs] = await Promise.all([
+  const [configRows, banners, gallery, inquiries, programs, testimonials, blogPosts] = await Promise.all([
     db.siteConfig.findMany(),
     db.siteBanner.findMany({ orderBy: { order: "asc" } }),
     db.siteGallery.findMany({ orderBy: [{ category: "asc" }, { order: "asc" }] }),
     db.siteInquiry.findMany({ orderBy: { createdAt: "desc" }, take: 50 }),
     db.siteProgram.findMany({ orderBy: { order: "asc" } }),
+    db.siteTestimonial.findMany({ orderBy: { order: "asc" } }),
+    db.blogPost.findMany({ orderBy: { createdAt: "desc" } }),
   ]);
 
   const config: Record<string, string> = { ...SITE_DEFAULTS };
@@ -45,6 +47,17 @@ export default async function AdminSitePage() {
         ...p,
         createdAt: p.createdAt.toISOString(),
         updatedAt: p.updatedAt.toISOString(),
+      }))}
+      initialTestimonials={testimonials.map((t) => ({
+        ...t,
+        createdAt: t.createdAt.toISOString(),
+        updatedAt: t.updatedAt.toISOString(),
+      }))}
+      initialBlogPosts={blogPosts.map((b) => ({
+        ...b,
+        createdAt: b.createdAt.toISOString(),
+        updatedAt: b.updatedAt.toISOString(),
+        publishedAt: b.publishedAt?.toISOString() ?? null,
       }))}
     />
   );
