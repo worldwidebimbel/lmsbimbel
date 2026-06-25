@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
-**Last updated:** 2026-06-19  
-**Commit:** `ea81e0f` — fix: QRIS upload settings, 5 tipe soal baru, fullstack question models  
-**Build status:** ✅ Clean (90+ routes)  
+**Last updated:** 2026-06-25  
+**Commit:** `TBD` — feat: dynamic Program Unggulan homepage section with admin CMS  
+**Build status:** ⏳ Pending tsc  
 **Live:** https://lmsbimbel.digsan.id  
 
 **Scope baru:** Kebutuhan aplikasi berbasis web umum (company profile + LMS + ujian + event berbayar + sertifikat + administrasi multi-cabang + pembayaran otomatis).
@@ -199,7 +199,7 @@
 - [x] SEO meta & Open Graph configuration
 - [x] Navigasi publik (home, program, tentang, kontak, daftar)
 - [x] Statistik real-time dari DB (siswa, guru, kelas, mapel)
-- [x] Program unggulan (SD, SMP, SMA)
+- [x] Program unggulan dinamis (SD, SMP, SMA) — data dari `SiteProgram`, diolah di CMS admin `/admin/site`
 - [x] Features & keunggulan
 - [x] Testimonial section
 - [x] CTA section + WhatsApp link
@@ -210,8 +210,8 @@
 - [x] Gallery prestasi & aktivitas bimbel (kategori: PRESTASI, AKTIVITAS, EVENT, KELAS) — `/admin/site`
 - [x] Modal/popup promosi & CTA (toggle on/off, judul, pesan, link) — `PromoPopup.tsx`
 - [x] Form pendaftaran siswa baru / inquiry (lead CRM) — `/api/site/inquiry`, tabel pendaftaran di admin
-- [x] CMS admin untuk kelola konten frontpage, banner, gallery, popup, pendaftaran — `/admin/site`
-- [ ] Promo product per program (konten per program terpisah)
+- [x] CMS admin untuk kelola konten frontpage, banner, gallery, program, popup, pendaftaran — `/admin/site`
+- [x] Promo product per program (konten per program terpisah) — model `SiteProgram` mendukung link, deskripsi, icon, dan warna per program
 - [ ] Blog / artikel pemasaran
 - [ ] Testimoni configurable (tambah/edit dari admin, bukan hardcode)
 

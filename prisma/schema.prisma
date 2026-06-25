@@ -1101,7 +1101,7 @@ model SiteGallery {
 
 model SiteProgram {
   id          String   @id @default(cuid())
-  title       String
+  title       String   @unique
   description String?
   icon        String   @default("GraduationCap")
   color       String   @default("bg-blue-100 text-blue-700")
