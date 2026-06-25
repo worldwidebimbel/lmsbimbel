@@ -7,45 +7,35 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Eye, EyeOff, GraduationCap, Loader2 } from "lucide-react";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const DEMO_ACCOUNTS = [
-    { label: "Super Admin", email: "admin@lmsbimbel.id", password: "admin123", color: "bg-red-100 text-red-700 border-red-200", desc: "Akses global semua cabang" },
-    { label: "Admin Cabang", email: "admincabang@lmsbimbel.id", password: "admincabang123", color: "bg-orange-100 text-orange-700 border-orange-200", desc: "Keuangan & ops per cabang" },
-    { label: "Guru", email: "guru@lmsbimbel.id", password: "guru123", color: "bg-yellow-100 text-yellow-700 border-yellow-200", desc: "Kelola kelas, soal, ujian" },
-    { label: "Siswa", email: "siswa@lmsbimbel.id", password: "siswa123", color: "bg-green-100 text-green-700 border-green-200", desc: "Akses materi & ujian" },
-    { label: "Orang Tua", email: "orangtua@lmsbimbel.id", password: "ortu123", color: "bg-blue-100 text-blue-700 border-blue-200", desc: "Pantau progress anak" },
-  ];
-
-  async function handleLogin(e: React.FormEvent) {
+  async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
       });
-      if (result?.error) {
-        toast.error("Email atau password salah");
-      } else {
-        toast.success("Login berhasil!");
-        router.push("/");
-        router.refresh();
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Registrasi gagal");
+        return;
       }
+      toast.success("Registrasi berhasil! Silakan masuk.");
+      router.push("/login");
+    } catch {
+      toast.error("Terjadi kesalahan jaringan");
     } finally {
       setIsLoading(false);
     }
-  }
-
-  function fillDemo(email: string, password: string) {
-    setEmail(email);
-    setPassword(password);
   }
 
   function handleGoogle() {
@@ -55,24 +45,33 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo & Heading */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-500 mb-4 shadow-lg shadow-blue-500/40">
             <GraduationCap className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white">EduBimbel LMS</h1>
-          <p className="text-blue-300 mt-1 text-sm">Sistem Manajemen Pembelajaran Bimbingan Belajar</p>
+          <p className="text-blue-300 mt-1 text-sm">Buat akun baru untuk mulai belajar</p>
         </div>
 
-        {/* Login Card */}
         <div className="bg-white rounded-2xl shadow-2xl shadow-black/30 p-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Masuk ke Akun</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Daftar Akun</h2>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleRegister} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Email
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama Lengkap</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                disabled={isLoading}
+                placeholder="Nama lengkap"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-50"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
               <input
                 type="email"
                 value={email}
@@ -85,15 +84,14 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Password
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  minLength={6}
                   disabled={isLoading}
                   placeholder="••••••••"
                   className="w-full px-4 py-2.5 pr-10 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-50"
@@ -116,10 +114,10 @@ export default function LoginPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Memproses...
+                  Mendaftar...
                 </>
               ) : (
-                "Masuk"
+                "Daftar"
               )}
             </button>
           </form>
@@ -144,32 +142,15 @@ export default function LoginPage() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
             </svg>
-            Masuk dengan Google
+            Daftar dengan Google
           </button>
 
           <p className="mt-6 text-center text-sm text-gray-500">
-            Belum punya akun?{" "}
-            <Link href="/register" className="text-blue-600 hover:underline font-medium">
-              Daftar di sini
+            Sudah punya akun?{" "}
+            <Link href="/login" className="text-blue-600 hover:underline font-medium">
+              Masuk di sini
             </Link>
           </p>
-
-          {/* Demo Accounts */}
-          <div className="mt-6 pt-6 border-t border-gray-100">
-            <p className="text-xs text-gray-500 mb-3 font-medium uppercase tracking-wide">Akun Demo</p>
-            <div className="grid grid-cols-2 gap-2">
-              {DEMO_ACCOUNTS.map((acc) => (
-                <button
-                  key={acc.email}
-                  onClick={() => fillDemo(acc.email, acc.password)}
-                  className={`text-xs px-3 py-2 rounded-lg border font-medium transition-opacity hover:opacity-80 text-left ${acc.color}`}
-                >
-                  <div className="font-semibold">{acc.label}</div>
-                  <div className="text-[10px] opacity-70 mt-0.5">{acc.desc}</div>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
 
         <p className="text-center text-blue-300/60 text-xs mt-6">

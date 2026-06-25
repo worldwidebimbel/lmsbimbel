@@ -406,12 +406,16 @@ npm run db:seed:default-branch  # assign default cabang ke data lama
 npm run build
 pm2 restart lms-bimbel
 
-git pull && npm install && npx prisma generate && npx prisma db push && npm run build && pm2 restart lms-bimbel
+git pull && npm install && npx prisma generate && npx prisma db push --accept-data-loss && npm run build && pm2 restart lms-bimbel
 ```
 ## Cara setup Gmail OAuth2 di server
 ### Redirect URI yang harus didaftarkan di Google Cloud
 
-https://[domain-produksi]/api/admin/email/callback
+Karena aplikasi ini pakai **satu Google Client ID** untuk login OAuth dan Gmail OAuth2, daftarkan semua redirect URI yang dipakai (WAJIB exact match):
+
+- Login OAuth: `https://[domain-produksi]/api/auth/callback/google`
+- Gmail OAuth2: `https://[domain-produksi]/api/admin/email/callback`
+- Localhost: `http://localhost:3000/api/auth/callback/google` dan `http://localhost:3000/api/admin/email/callback`
 
 ```bash
 # Tahap 1 (sebelum otorisasi)
@@ -421,6 +425,10 @@ GOOGLE_CLIENT_SECRET=GOCSPX-...
 # Tahap 2 (setelah klik "Mulai Otorisasi" di /admin/settings → Email)
 GOOGLE_REFRESH_TOKEN=1//0g...
 GMAIL_FROM=akungmail@gmail.com
-
-
 ```
+
+### Troubleshooting
+
+- **redirect_uri_mismatch**: pastikan URI di Google Cloud Console sama persis (https vs http, tanpa trailing slash).
+- **Tidak ada refresh_token**: cabut akses app di https://myaccount.google.com/permissions lalu otorisasi ulang.
+- **Test email gagal**: cek dulu `/api/admin/email/diagnose` untuk status kredensial.
