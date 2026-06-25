@@ -1,7 +1,7 @@
 # Progress Project — EduBimbel LMS
 
 **Last updated:** 2026-06-25  
-**Commit:** `TBD` — feat: implement academic calendar (admin, student, teacher)  
+**Commit:** `a16fb24` — feat: implement academic calendar (admin, student, teacher)  
 **Build status:** ✅ Clean (tsc passed)  
 **Live:** https://lmsbimbel.digsan.id  
 
