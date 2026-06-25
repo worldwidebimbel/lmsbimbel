@@ -24,6 +24,26 @@ export function getActiveEmailMethod(): EmailMethod {
   return "none";
 }
 
+export function getEmailConfig() {
+  return {
+    method: getActiveEmailMethod(),
+    oauth2: {
+      clientId: env("GOOGLE_CLIENT_ID"),
+      clientSecret: env("GOOGLE_CLIENT_SECRET"),
+      refreshToken: env("GOOGLE_REFRESH_TOKEN"),
+      gmailFrom: env("GMAIL_FROM"),
+      callbackUri: `${env("NEXTAUTH_URL").replace(/\/$/, "") || "http://localhost:3000"}/api/admin/email/callback`,
+    },
+    smtp: {
+      host: env("SMTP_HOST") || "smtp.gmail.com",
+      port: Number(env("SMTP_PORT") || 587),
+      secure: env("SMTP_SECURE") === "true",
+      user: env("SMTP_USER"),
+      pass: env("SMTP_PASS"),
+    },
+  };
+}
+
 function getSmtpTransporter() {
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST ?? "smtp.gmail.com",
@@ -39,28 +59,40 @@ export async function sendEmail({ to, subject, html }: MailOptions) {
   const appName = process.env.APP_NAME ?? "EduBimbel";
 
   if (method === "oauth2") {
-    const callbackUri = `${env("NEXTAUTH_URL").replace(/\/$/, "") || "http://localhost:3000"}/api/admin/email/callback`;
+    const cfg = getEmailConfig();
     const mailer = new GmailOAuth2(
-      env("GOOGLE_CLIENT_ID"),
-      env("GOOGLE_CLIENT_SECRET"),
-      callbackUri,
+      cfg.oauth2.clientId,
+      cfg.oauth2.clientSecret,
+      cfg.oauth2.callbackUri,
     );
-    return mailer.refreshAndSend(env("GOOGLE_REFRESH_TOKEN"), {
-      from: `"${appName}" <${env("GMAIL_FROM")}>`,
-      to: toAddr,
-      subject,
-      html,
-    });
+    try {
+      return await mailer.refreshAndSend(cfg.oauth2.refreshToken, {
+        from: `"${appName}" <${cfg.oauth2.gmailFrom}>`,
+        to: toAddr,
+        subject,
+        html,
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[email] OAuth2 send failed:", msg, err);
+      throw err;
+    }
   }
 
   if (method === "smtp") {
     const transporter = getSmtpTransporter();
-    return transporter.sendMail({
-      from: `"${appName}" <${env("SMTP_USER")}>`,
-      to: toAddr,
-      subject,
-      html,
-    });
+    try {
+      return await transporter.sendMail({
+        from: `"${appName}" <${env("SMTP_USER")}>`,
+        to: toAddr,
+        subject,
+        html,
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[email] SMTP send failed:", msg, err);
+      throw err;
+    }
   }
 
   console.warn("[email] No email method configured, skipping:", subject);

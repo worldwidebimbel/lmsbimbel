@@ -85,13 +85,20 @@ export class GmailOAuth2 {
       body: JSON.stringify({ raw }),
     });
     const data = await response.json() as GmailSendResult & { error?: unknown };
-    if (data.error) throw new Error(`Gmail API error: ${JSON.stringify(data.error)}`);
+    if (data.error) {
+      console.error("[GmailOAuth2] send failed:", response.status, data.error);
+      throw new Error(`Gmail API error: ${JSON.stringify(data.error)}`);
+    }
     return data;
   }
 
   async refreshAndSend(refreshToken: string, options: SendOptions): Promise<GmailSendResult> {
-    const { access_token } = await this.refreshAccessToken(refreshToken);
-    return this.send(access_token, options);
+    const tokens = await this.refreshAccessToken(refreshToken);
+    if (!tokens.access_token) {
+      console.error("[GmailOAuth2] refreshAccessToken did not return access_token:", tokens);
+      throw new Error("OAuth2 refresh failed: no access_token returned");
+    }
+    return this.send(tokens.access_token, options);
   }
 
   private buildMimeMessage({ from, to, subject, text = "", html = "", cc = "", bcc = "" }: SendOptions): string {
@@ -157,9 +164,14 @@ export class GmailOAuth2 {
           res.on("end", () => {
             try {
               const json = JSON.parse(raw) as GmailTokens & { error?: string; error_description?: string };
-              if (json.error) reject(new Error(`OAuth error: ${json.error_description ?? json.error}`));
-              else resolve(json);
+              if (json.error) {
+                console.error("[GmailOAuth2] refreshAccessToken error:", json.error, json.error_description);
+                reject(new Error(`OAuth error: ${json.error_description ?? json.error}`));
+              } else {
+                resolve(json);
+              }
             } catch {
+              console.error("[GmailOAuth2] refreshAccessToken invalid JSON:", raw.slice(0, 300));
               reject(new Error(`Invalid JSON from Google: ${raw.slice(0, 300)}`));
             }
           });

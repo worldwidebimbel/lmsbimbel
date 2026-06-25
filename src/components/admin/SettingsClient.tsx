@@ -40,6 +40,14 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
   const [testingEmail, setTestingEmail] = useState(false);
   const [testEmailTo, setTestEmailTo] = useState("");
   const [loadingAuthUrl, setLoadingAuthUrl] = useState(false);
+  const [diagnosing, setDiagnosing] = useState(false);
+  const [diagnosis, setDiagnosis] = useState<{
+    method: string;
+    callbackUri: string;
+    checks: Record<string, { ok: boolean; detail: string }>;
+    refreshTest: { ok: boolean; detail: string } | null;
+    commonIssues: string[];
+  } | null>(null);
 
   const [uploadingQris, setUploadingQris] = useState(false);
 
@@ -187,6 +195,22 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
       window.open(data.url, "_blank", "width=600,height=700");
     } finally {
       setLoadingAuthUrl(false);
+    }
+  }
+
+  async function handleDiagnose() {
+    setDiagnosing(true);
+    try {
+      const res = await fetch("/api/admin/email/diagnose");
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Gagal melakukan diagnosa");
+        return;
+      }
+      setDiagnosis(data);
+      toast.success("Diagnosa email selesai");
+    } finally {
+      setDiagnosing(false);
     }
   }
 
@@ -575,6 +599,52 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
               {activeEmailMethod === "none"
                 ? <p className="text-xs text-amber-600">Konfigurasi salah satu metode email terlebih dahulu.</p>
                 : <p className="text-xs text-gray-400">Mengirim via <strong>{activeEmailMethod === "oauth2" ? "Gmail OAuth2" : "SMTP"}</strong>.</p>}
+            </div>
+
+            {/* Diagnose email */}
+            <div className="rounded-xl border border-gray-200 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-gray-700">Diagnosa Email</h4>
+                <button onClick={handleDiagnose} disabled={diagnosing}
+                  className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+                  {diagnosing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                  {diagnosing ? "Memeriksa..." : "Periksa Sekarang"}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500">Memeriksa status env vars, koneksi ke Google OAuth2, dan menguji refresh token.</p>
+
+              {diagnosis && (
+                <div className="space-y-3 rounded-lg border border-gray-100 bg-gray-50 p-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Metode aktif</span>
+                    <span className={`font-medium ${diagnosis.method === "none" ? "text-amber-600" : "text-green-700"}`}>{diagnosis.method}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Redirect URI</span>
+                    <code className="max-w-[60%] break-all text-gray-700">{diagnosis.callbackUri}</code>
+                  </div>
+                  {Object.entries(diagnosis.checks).map(([key, value]) => (
+                    <div key={key} className="flex items-center justify-between">
+                      <span className="text-gray-500">{key}</span>
+                      <span className={`font-medium ${value.ok ? "text-green-700" : "text-red-500"}`}>{value.detail}</span>
+                    </div>
+                  ))}
+                  {diagnosis.refreshTest && (
+                    <div className="rounded-md border border-blue-100 bg-blue-50 p-2">
+                      <p className="font-medium text-blue-900 mb-1">Tes Refresh Token</p>
+                      <p className={`${diagnosis.refreshTest.ok ? "text-green-700" : "text-red-600"}`}>
+                        {diagnosis.refreshTest.ok ? "✓" : "✗"} {diagnosis.refreshTest.detail}
+                      </p>
+                    </div>
+                  )}
+                  <div className="rounded-md border border-amber-100 bg-amber-50 p-2">
+                    <p className="font-medium text-amber-900 mb-1">Kemungkinan kendala umum:</p>
+                    <ul className="list-disc pl-4 space-y-1 text-amber-800">
+                      {diagnosis.commonIssues.map((issue, i) => <li key={i}>{issue}</li>)}
+                    </ul>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
