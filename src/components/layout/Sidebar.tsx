@@ -9,7 +9,7 @@ import {
   FileCheck, CheckSquare, GraduationCap, BarChart3, Wallet, CreditCard,
   Megaphone, MessagesSquare, MessageSquare, Video, Gamepad2, Award,
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
-  Mail, Smartphone, TrendingUp, Building2, Globe, Image,
+  Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -17,7 +17,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   FileCheck, CheckSquare, GraduationCap, BarChart3, Wallet, CreditCard,
   Megaphone, MessagesSquare, MessageSquare, Video, Gamepad2, Award,
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
-  Mail, Smartphone, TrendingUp, Building2, Globe, Image,
+  Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
 };
 
 interface NavItem {
@@ -43,6 +43,7 @@ const NAV_ADMIN: NavItem[] = [
   { title: "Media Manager", href: "/admin/media", icon: "Image" },
   { title: "CMS Landing Page", href: "/admin/site", icon: "Globe" },
   { title: "Pengaturan", href: "/admin/settings", icon: "Settings" },
+  { title: "Profil Saya", href: "/profile", icon: "User" },
 ];
 
 const NAV_GURU: NavItem[] = [
@@ -58,6 +59,7 @@ const NAV_GURU: NavItem[] = [
   { title: "Forum", href: "/guru/forum", icon: "MessagesSquare", featureFlag: "FEAT_FORUM" },
   { title: "Chat", href: "/guru/chat", icon: "MessageSquare", featureFlag: "FEAT_CHAT" },
   { title: "Kelas Live", href: "/guru/live", icon: "Video", featureFlag: "FEAT_LIVE_CLASS" },
+  { title: "Profil Saya", href: "/profile", icon: "User" },
 ];
 
 const NAV_SISWA: NavItem[] = [
@@ -76,6 +78,7 @@ const NAV_SISWA: NavItem[] = [
   { title: "Chat", href: "/siswa/chat", icon: "MessageSquare", featureFlag: "FEAT_CHAT" },
   { title: "Prestasi", href: "/siswa/prestasi", icon: "Gamepad2", featureFlag: "FEAT_GAMIFICATION" },
   { title: "Kelas Live", href: "/siswa/live", icon: "Video", featureFlag: "FEAT_LIVE_CLASS" },
+  { title: "Profil Saya", href: "/profile", icon: "User" },
 ];
 
 const NAV_ORANGTUA: NavItem[] = [
@@ -86,6 +89,7 @@ const NAV_ORANGTUA: NavItem[] = [
   { title: "Nilai Anak", href: "/orangtua/nilai", icon: "GraduationCap", featureFlag: "FEAT_GRADES" },
   { title: "Tagihan", href: "/orangtua/tagihan", icon: "Wallet" },
   { title: "Chat dengan Guru", href: "/orangtua/chat", icon: "MessageSquare", featureFlag: "FEAT_CHAT" },
+  { title: "Profil Saya", href: "/profile", icon: "User" },
 ];
 
 const NAV_MAP: Record<string, NavItem[]> = {

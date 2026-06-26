@@ -1,7 +1,7 @@
 # Progress Project — EduBimbel LMS
 
-**Last updated:** 2026-06-25  
-**Commit:** `89628c8` — feat: Google OAuth login & register, email/oauth docs, update auth config  
+**Last updated:** 2026-06-26  
+**Commit:** TBD — feat: comprehensive user profiles (photo upload, personal details, education history, role-based profile card)  
 **Build status:** ✅ Clean (tsc passed)  
 **Live:** https://lmsbimbel.digsan.id  
 
@@ -44,7 +44,10 @@
 - [x] Form tambah pengguna — `/admin/users/new`
 - [x] Form edit + suspend pengguna — `/admin/users/[id]`
 - [x] API CRUD pengguna (`POST /api/admin/users`, `GET/PATCH/DELETE /api/admin/users/[id]`)
-- [x] Manajemen profil pengguna (edit nama, HP, alamat, ganti password) — `/profile`
+- [x] Manajemen profil pengguna lengkap (edit nama, foto profil upload, HP, alamat, TTL, jenis kelamin, agama, kewarganegaraan, NISN/NIK, sekolah/kelas, riwayat pendidikan, bio, golongan darah, hobi, kontak darurat, orang tua/wali, media sosial, ganti password) — `/profile`  
+- [x] API profil publik & role-based access — `/api/profile/[id]`  
+- [x] Komponen kartu / preview profil reusable — `ProfileCard`  
+- [x] Navigasi profil di sidebar semua role
 - [ ] Reset password via email
 - [ ] Import data siswa (CSV/Excel)
 - [ ] Kartu Siswa Digital (PDF)

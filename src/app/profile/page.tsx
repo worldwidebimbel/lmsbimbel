@@ -13,6 +13,29 @@ const ROLE_LABEL: Record<string, string> = {
   GURU: "Guru", SISWA: "Siswa", ORANG_TUA: "Orang Tua",
 };
 
+const profileSelect = {
+  phone: true,
+  address: true,
+  birthDate: true,
+  birthPlace: true,
+  gender: true,
+  religion: true,
+  nationality: true,
+  nisn: true,
+  nik: true,
+  schoolName: true,
+  gradeLevel: true,
+  educationHistory: true,
+  parentName: true,
+  parentPhone: true,
+  bio: true,
+  bloodType: true,
+  hobbies: true,
+  emergencyContact: true,
+  socialLinks: true,
+  profileComplete: true,
+};
+
 export default async function ProfilePage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
@@ -21,13 +44,13 @@ export default async function ProfilePage() {
     where: { id: session.user.id },
     select: {
       id: true, name: true, email: true, role: true, avatar: true, createdAt: true,
-      profile: { select: { phone: true, address: true } },
+      profile: { select: profileSelect },
     },
   });
   if (!user) redirect("/login");
 
   return (
-    <div className="max-w-lg space-y-6">
+    <div className="max-w-3xl space-y-6">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100">
           <User className="h-5 w-5 text-indigo-600" />
@@ -40,14 +63,7 @@ export default async function ProfilePage() {
         </div>
       </div>
 
-      <ProfileClient
-        user={{
-          id: user.id, name: user.name, email: user.email, role: user.role,
-          image: user.avatar,
-          phone: user.profile?.phone ?? null,
-          address: user.profile?.address ?? null,
-        }}
-      />
+      <ProfileClient user={{ ...user, image: user.avatar }} />
     </div>
   );
 }
