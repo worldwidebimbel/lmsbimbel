@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useSession } from "next-auth/react";
 import { Loader2, CheckCircle, Eye, EyeOff, Upload, X, Plus } from "lucide-react";
 
 interface EducationItem {
@@ -43,6 +44,7 @@ interface UserData {
 
 export default function ProfileClient({ user }: { user: UserData }) {
   const p = user.profile;
+  const { update } = useSession();
   const [name, setName] = useState(user.name);
   const [image, setImage] = useState(user.image);
   const [phone, setPhone] = useState(p?.phone ?? "");
@@ -137,6 +139,7 @@ export default function ProfileClient({ user }: { user: UserData }) {
       if (!res.ok) { setError(data.error ?? "Gagal memperbarui profil"); return; }
       setSuccess("Profil berhasil diperbarui!");
       setCurrentPassword(""); setNewPassword("");
+      await update({ name, image: image ?? null });
     });
   }
 

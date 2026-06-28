@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { FeatureFlagProvider } from "@/context/FeatureFlagContext";
+import { Providers } from "./providers";
 import { getSiteConfig } from "@/lib/site-config";
 
 const inter = localFont({
@@ -38,8 +39,10 @@ export default function RootLayout({
     <html lang="id" suppressHydrationWarning>
       <body className={inter.className}>
         <FeatureFlagProvider>
-          {children}
-          <Toaster position="top-right" richColors />
+          <Providers>
+            {children}
+            <Toaster position="top-right" richColors />
+          </Providers>
         </FeatureFlagProvider>
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in navigator) {

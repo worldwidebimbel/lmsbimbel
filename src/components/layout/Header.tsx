@@ -1,6 +1,6 @@
 "use client";
 
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { LogOut, User, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ interface HeaderProps {
   title: string;
   userName: string;
   role: string;
+  userImage?: string | null;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -21,8 +22,13 @@ const ROLE_LABELS: Record<string, string> = {
   ORANG_TUA: "Orang Tua",
 };
 
-export function Header({ title, userName, role }: HeaderProps) {
+export function Header({ title, userName, role, userImage }: HeaderProps) {
   const [showDropdown, setShowDropdown] = useState(false);
+  const { data: session } = useSession();
+
+  const displayName = session?.user?.name ?? userName;
+  const displayImage = session?.user?.image ?? userImage;
+  const displayRole = session?.user?.role ?? role;
 
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-30">
@@ -37,12 +43,16 @@ export function Header({ title, userName, role }: HeaderProps) {
             onClick={() => setShowDropdown(!showDropdown)}
             className="flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
-              {userName.slice(0, 2).toUpperCase()}
-            </div>
+            {displayImage ? (
+              <img src={displayImage} alt={displayName} className="w-7 h-7 rounded-full object-cover" />
+            ) : (
+              <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                {displayName.slice(0, 2).toUpperCase()}
+              </div>
+            )}
             <div className="text-left hidden sm:block">
-              <p className="text-sm font-medium text-gray-900 leading-none">{userName}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{ROLE_LABELS[role]}</p>
+              <p className="text-sm font-medium text-gray-900 leading-none">{displayName}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{ROLE_LABELS[displayRole]}</p>
             </div>
             <ChevronDown className={cn("w-4 h-4 text-gray-400 transition-transform", showDropdown && "rotate-180")} />
           </button>

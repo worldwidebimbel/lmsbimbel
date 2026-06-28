@@ -103,8 +103,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = user.role;
         token.defaultBranchId = user.defaultBranchId;
       }
-      if (trigger === "update" && session?.defaultBranchId) {
-        token.defaultBranchId = session.defaultBranchId;
+      if (trigger === "update" && session) {
+        if (session.name) token.name = session.name;
+        if (session.image !== undefined) token.picture = session.image;
+        if (session.defaultBranchId) token.defaultBranchId = session.defaultBranchId;
       }
       return token;
     },
@@ -113,6 +115,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.defaultBranchId = token.defaultBranchId as string | null;
+        if (token.name) session.user.name = token.name as string;
+        if (token.picture) session.user.image = token.picture as string;
       }
       return session;
     },

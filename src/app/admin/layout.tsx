@@ -29,6 +29,7 @@ export default async function AdminLayout({
           title="Admin Panel"
           userName={session.user?.name ?? "Admin"}
           role={session.user?.role as string}
+          userImage={session.user?.image}
         />
         <main className="flex-1 p-6">{children}</main>
       </div>
