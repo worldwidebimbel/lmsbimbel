@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
+import https from "node:https";
 import { auth } from "@/lib/auth";
 import { getEmailConfig } from "@/lib/email";
 import { GmailOAuth2 } from "@/lib/gmail-oauth2";
-import { Resend } from "resend";
 
 export async function GET() {
   const session = await auth();
@@ -28,17 +28,33 @@ export async function GET() {
   let resendTest: { ok: boolean; detail: string } | null = null;
 
   if (cfg.method === "resend" && cfg.resend.apiKey) {
-    const resend = new Resend(cfg.resend.apiKey);
-    try {
-      const { data, error } = await resend.apiKeys.list();
-      resendTest = {
-        ok: !error,
-        detail: error ? `Resend API error: ${error.message}` : `Resend API key valid (keys: ${data?.data?.length ?? 0})`,
-      };
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      resendTest = { ok: false, detail: msg };
-    }
+    resendTest = await new Promise<{ ok: boolean; detail: string }>((resolve) => {
+      const req = https.request(
+        {
+          hostname: "api.resend.com",
+          path: "/api-keys",
+          method: "GET",
+          headers: { Authorization: `Bearer ${cfg.resend.apiKey}` },
+        },
+        (res) => {
+          let raw = "";
+          res.on("data", (c) => (raw += c));
+          res.on("end", () => {
+            let parsed: Record<string, unknown> = {};
+            try { parsed = JSON.parse(raw); } catch { /* ignore */ }
+            const ok = (res.statusCode ?? 500) < 400;
+            const keys = Array.isArray(parsed.data) ? parsed.data.length : "?";
+            const errMsg = (parsed.message as string) ?? raw;
+            resolve({
+              ok,
+              detail: ok ? `API key valid — ${keys} API key terdaftar` : `Resend API error ${res.statusCode}: ${errMsg}`,
+            });
+          });
+        },
+      );
+      req.on("error", (err) => resolve({ ok: false, detail: err.message }));
+      req.end();
+    });
   }
 
   if (cfg.method === "oauth2" && cfg.oauth2.clientId && cfg.oauth2.clientSecret && cfg.oauth2.refreshToken) {

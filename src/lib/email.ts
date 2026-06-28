@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
+import https from "node:https";
 import { GmailOAuth2 } from "@/lib/gmail-oauth2";
-import { Resend } from "resend";
 
 interface MailOptions {
   to: string | string[];
@@ -59,6 +59,47 @@ function getSmtpTransporter() {
   });
 }
 
+function resendHttpSend(opts: {
+  apiKey: string;
+  from: string;
+  to: string[];
+  subject: string;
+  html: string;
+}): Promise<{ id: string }> {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({ from: opts.from, to: opts.to, subject: opts.subject, html: opts.html });
+    const req = https.request(
+      {
+        hostname: "api.resend.com",
+        path: "/emails",
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${opts.apiKey}`,
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(body),
+        },
+      },
+      (res) => {
+        let raw = "";
+        res.on("data", (chunk) => (raw += chunk));
+        res.on("end", () => {
+          let parsed: Record<string, unknown> = {};
+          try { parsed = JSON.parse(raw); } catch { /* ignore */ }
+          if ((res.statusCode ?? 500) >= 400) {
+            const msg = (parsed.message as string) ?? (parsed.name as string) ?? raw;
+            reject(new Error(`Resend API ${res.statusCode}: ${msg}`));
+          } else {
+            resolve(parsed as { id: string });
+          }
+        });
+      },
+    );
+    req.on("error", reject);
+    req.write(body);
+    req.end();
+  });
+}
+
 export async function sendEmail({ to, subject, html }: MailOptions) {
   const method = getActiveEmailMethod();
   const toAddr = Array.isArray(to) ? to.join(", ") : to;
@@ -66,19 +107,15 @@ export async function sendEmail({ to, subject, html }: MailOptions) {
 
   if (method === "resend") {
     const cfg = getEmailConfig();
-    const resend = new Resend(cfg.resend.apiKey);
     try {
-      const { data, error } = await resend.emails.send({
+      const result = await resendHttpSend({
+        apiKey: cfg.resend.apiKey,
         from: cfg.resend.from,
-        to: toAddr,
+        to: Array.isArray(to) ? to : [toAddr],
         subject,
         html,
       });
-      if (error) {
-        console.error("[email] Resend send failed:", error);
-        throw new Error(`Resend error: ${error.message ?? JSON.stringify(error)}`);
-      }
-      return { id: data?.id, provider: "resend" };
+      return { id: result.id, provider: "resend" };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("[email] Resend send failed:", msg, err);
