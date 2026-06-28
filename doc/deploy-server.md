@@ -175,6 +175,10 @@ NEXTAUTH_SECRET="isi-dengan-random-string-32-karakter"
 GOOGLE_CLIENT_ID="isi-dari-google-console"
 GOOGLE_CLIENT_SECRET="isi-dari-google-console"
 
+# Email via Resend (opsi termudah, cukup API key)
+RESEND_API_KEY="re_xxxxxxxxxxxx"
+RESEND_FROM="EduBimbel <no-reply@namadomain.com>"
+
 NEXT_PUBLIC_APP_URL="https://lmsbimbel.digsan.id"
 NEXT_PUBLIC_APP_NAME="EduBimbel LMS"
 ```

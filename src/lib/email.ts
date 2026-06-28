@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { GmailOAuth2 } from "@/lib/gmail-oauth2";
+import { Resend } from "resend";
 
 interface MailOptions {
   to: string | string[];
@@ -7,13 +8,14 @@ interface MailOptions {
   html: string;
 }
 
-export type EmailMethod = "oauth2" | "smtp" | "none";
+export type EmailMethod = "resend" | "oauth2" | "smtp" | "none";
 
 function env(key: string): string {
   return (process.env[key] ?? "").replace(/^["']|["']$/g, "").trim();
 }
 
 export function getActiveEmailMethod(): EmailMethod {
+  if (env("RESEND_API_KEY")) return "resend";
   if (
     env("GOOGLE_CLIENT_ID") &&
     env("GOOGLE_CLIENT_SECRET") &&
@@ -27,6 +29,10 @@ export function getActiveEmailMethod(): EmailMethod {
 export function getEmailConfig() {
   return {
     method: getActiveEmailMethod(),
+    resend: {
+      apiKey: env("RESEND_API_KEY"),
+      from: env("RESEND_FROM") || "EduBimbel <no-reply@resend.dev>",
+    },
     oauth2: {
       clientId: env("GOOGLE_CLIENT_ID"),
       clientSecret: env("GOOGLE_CLIENT_SECRET"),
@@ -57,6 +63,28 @@ export async function sendEmail({ to, subject, html }: MailOptions) {
   const method = getActiveEmailMethod();
   const toAddr = Array.isArray(to) ? to.join(", ") : to;
   const appName = process.env.APP_NAME ?? "EduBimbel";
+
+  if (method === "resend") {
+    const cfg = getEmailConfig();
+    const resend = new Resend(cfg.resend.apiKey);
+    try {
+      const { data, error } = await resend.emails.send({
+        from: cfg.resend.from,
+        to: toAddr,
+        subject,
+        html,
+      });
+      if (error) {
+        console.error("[email] Resend send failed:", error);
+        throw new Error(`Resend error: ${error.message ?? JSON.stringify(error)}`);
+      }
+      return { id: data?.id, provider: "resend" };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[email] Resend send failed:", msg, err);
+      throw err;
+    }
+  }
 
   if (method === "oauth2") {
     const cfg = getEmailConfig();

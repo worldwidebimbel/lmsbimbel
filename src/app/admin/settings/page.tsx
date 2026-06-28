@@ -41,6 +41,7 @@ export default async function AdminSettingsPage() {
   settings.qris_account_number = branchQris.accountNumber ?? "";
 
   const smtpConfigured = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
+  const resendConfigured = !!process.env.RESEND_API_KEY;
   const oauth2Vars = {
     clientId:     !!process.env.GOOGLE_CLIENT_ID,
     clientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
@@ -67,6 +68,7 @@ export default async function AdminSettingsPage() {
         initialSettings={settings}
         demoStatus={demoStatus}
         smtpConfigured={smtpConfigured}
+        resendConfigured={resendConfigured}
         oauth2Configured={oauth2Configured}
         oauth2Vars={oauth2Vars}
         activeEmailMethod={activeEmailMethod}

@@ -16,9 +16,10 @@ interface Props {
   initialSettings: Record<string, string>;
   demoStatus: { exists: boolean; userCount: number; subjectCount: number };
   smtpConfigured: boolean;
+  resendConfigured: boolean;
   oauth2Configured: boolean;
   oauth2Vars: { clientId: boolean; clientSecret: boolean; refreshToken: boolean; gmailFrom: boolean };
-  activeEmailMethod: "oauth2" | "smtp" | "none";
+  activeEmailMethod: "resend" | "oauth2" | "smtp" | "none";
   appVersion: string;
   branches: { id: string; name: string; code: string }[];
   isSuperAdmin: boolean;
@@ -27,7 +28,7 @@ interface Props {
 
 type Tab = "umum" | "pembayaran" | "demo" | "email" | "info";
 
-export default function SettingsClient({ initialSettings, demoStatus, smtpConfigured, oauth2Configured, oauth2Vars, activeEmailMethod, appVersion, branches, isSuperAdmin, defaultBranchId }: Props) {
+export default function SettingsClient({ initialSettings, demoStatus, smtpConfigured, resendConfigured, oauth2Configured, oauth2Vars, activeEmailMethod, appVersion, branches, isSuperAdmin, defaultBranchId }: Props) {
   const [tab, setTab] = useState<Tab>("umum");
   const [settings, setSettings] = useState(initialSettings);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(defaultBranchId);
@@ -442,27 +443,80 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
 
             {/* Active method banner */}
             <div className={`flex items-center gap-3 rounded-xl border p-4 ${
+              activeEmailMethod === "resend" ? "border-purple-200 bg-purple-50" :
               activeEmailMethod === "oauth2" ? "border-blue-200 bg-blue-50" :
               activeEmailMethod === "smtp"   ? "border-green-200 bg-green-50" :
                                               "border-amber-200 bg-amber-50"
             }`}>
               {activeEmailMethod === "none"
                 ? <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
-                : <CheckCircle className={`h-5 w-5 shrink-0 ${activeEmailMethod === "oauth2" ? "text-blue-600" : "text-green-600"}`} />}
+                : <CheckCircle className={`h-5 w-5 shrink-0 ${
+                    activeEmailMethod === "resend" ? "text-purple-600" :
+                    activeEmailMethod === "oauth2" ? "text-blue-600" : "text-green-600"}`} />}
               <div>
                 <p className={`font-medium ${
+                  activeEmailMethod === "resend" ? "text-purple-800" :
                   activeEmailMethod === "oauth2" ? "text-blue-800" :
                   activeEmailMethod === "smtp"   ? "text-green-800" : "text-amber-800"
                 }`}>
+                  {activeEmailMethod === "resend" && "Aktif: Resend"}
                   {activeEmailMethod === "oauth2" && "Aktif: Gmail OAuth2"}
                   {activeEmailMethod === "smtp"   && "Aktif: SMTP"}
                   {activeEmailMethod === "none"   && "Email Belum Dikonfigurasi"}
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5">
+                  {activeEmailMethod === "resend" && "Email dikirim via Resend API — cepat, andal, tanpa konfigurasi SMTP."}
                   {activeEmailMethod === "oauth2" && "Email dikirim via Gmail API (OAuth2) — tanpa password, lebih aman."}
-                  {activeEmailMethod === "smtp"   && "Email dikirim via SMTP. Pertimbangkan OAuth2 untuk keamanan lebih baik."}
+                  {activeEmailMethod === "smtp"   && "Email dikirim via SMTP. Pertimbangkan Resend atau OAuth2 untuk keamanan lebih baik."}
                   {activeEmailMethod === "none"   && "Konfigurasi salah satu metode di bawah agar notifikasi email aktif."}
                 </p>
+              </div>
+            </div>
+
+            {/* ── Resend ── */}
+            <div className="rounded-xl border border-purple-200 overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-purple-100 bg-purple-50">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-purple-600" />
+                  <h4 className="font-semibold text-purple-900 text-sm">
+                    Opsi 1 — Resend
+                    <span className="ml-2 text-xs font-normal text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded">Direkomendasikan</span>
+                  </h4>
+                </div>
+                {resendConfigured
+                  ? <span className="text-xs font-medium text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">✓ Dikonfigurasi</span>
+                  : <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Belum diset</span>}
+              </div>
+              <div className="p-4 space-y-3">
+                <p className="text-xs text-gray-600">Mengirim email via <strong>Resend API</strong>. Cukup set API key dan alamat from — tanpa perlu SMTP, OAuth, atau App Password.</p>
+                <table className="w-full text-xs">
+                  <tbody>
+                    {[
+                      ["RESEND_API_KEY", resendConfigured ? "✓ diset" : "re_xxxxxxxxxxxx"],
+                      ["RESEND_FROM", "EduBimbel <no-reply@namadomain.com>"],
+                    ].map(([k, v]) => (
+                      <tr key={k} className="border-b border-gray-100 last:border-0">
+                        <td className="py-1.5 pr-4 font-mono text-gray-500 w-2/5">{k}</td>
+                        <td className={`py-1.5 font-mono ${(v as string).startsWith("✓") ? "text-green-700" : "text-gray-400"}`}>{v}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="rounded-lg bg-purple-50 border border-purple-100 p-3 text-xs text-purple-900 space-y-1.5">
+                  <p className="font-semibold">Cara setup (sekali saja):</p>
+                  <ol className="list-decimal pl-4 space-y-1">
+                    <li>Buat akun di <a href="https://resend.com" target="_blank" rel="noreferrer" className="underline">resend.com</a> dan dapatkan API key</li>
+                    <li>(Opsional) Verifikasi domain Anda di dashboard Resend untuk mengirim dari domain sendiri</li>
+                    <li>Set <code className="bg-purple-100 px-1 rounded">RESEND_API_KEY</code> dan <code className="bg-purple-100 px-1 rounded">RESEND_FROM</code> di <code className="bg-purple-100 px-1 rounded">.env.local</code></li>
+                    <li>Restart server — email siap digunakan</li>
+                  </ol>
+                </div>
+                {resendConfigured && (
+                  <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700">
+                    <CheckCircle className="h-4 w-4 shrink-0" />
+                    Resend aktif dan siap mengirim email.
+                  </div>
+                )}
               </div>
             </div>
 
@@ -471,7 +525,7 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
               <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-gray-50">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-gray-500" />
-                  <h4 className="font-semibold text-gray-800 text-sm">Opsi 1 — SMTP</h4>
+                  <h4 className="font-semibold text-gray-800 text-sm">Opsi 2 — SMTP</h4>
                 </div>
                 {smtpConfigured
                   ? <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ Dikonfigurasi</span>
@@ -504,7 +558,7 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
                 <div className="flex items-center gap-2">
                   <Key className="h-4 w-4 text-blue-600" />
                   <h4 className="font-semibold text-blue-900 text-sm">
-                    Opsi 2 — Gmail OAuth2
+                    Opsi 3 — Gmail OAuth2
                     <span className="ml-2 text-xs font-normal text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">Direkomendasikan</span>
                   </h4>
                 </div>
@@ -598,7 +652,7 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
               </div>
               {activeEmailMethod === "none"
                 ? <p className="text-xs text-amber-600">Konfigurasi salah satu metode email terlebih dahulu.</p>
-                : <p className="text-xs text-gray-400">Mengirim via <strong>{activeEmailMethod === "oauth2" ? "Gmail OAuth2" : "SMTP"}</strong>.</p>}
+                : <p className="text-xs text-gray-400">Mengirim via <strong>{activeEmailMethod === "resend" ? "Resend" : activeEmailMethod === "oauth2" ? "Gmail OAuth2" : "SMTP"}</strong>.</p>}
             </div>
 
             {/* Diagnose email */}

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getEmailConfig } from "@/lib/email";
 import { GmailOAuth2 } from "@/lib/gmail-oauth2";
+import { Resend } from "resend";
 
 export async function GET() {
   const session = await auth();
@@ -12,6 +13,8 @@ export async function GET() {
   const cfg = getEmailConfig();
   const checks: Record<string, { ok: boolean; detail: string }> = {
     method: { ok: cfg.method !== "none", detail: cfg.method },
+    resend_api_key: { ok: !!cfg.resend.apiKey, detail: cfg.resend.apiKey ? "✓ diset" : "belum diset" },
+    resend_from: { ok: !!cfg.resend.from, detail: cfg.resend.from || "belum diset" },
     client_id: { ok: !!cfg.oauth2.clientId, detail: cfg.oauth2.clientId ? "✓ diset" : "belum diset" },
     client_secret: { ok: !!cfg.oauth2.clientSecret, detail: cfg.oauth2.clientSecret ? "✓ diset" : "belum diset" },
     refresh_token: { ok: !!cfg.oauth2.refreshToken, detail: cfg.oauth2.refreshToken ? "✓ diset" : "belum diset" },
@@ -22,6 +25,22 @@ export async function GET() {
   };
 
   let refreshTest: { ok: boolean; detail: string } | null = null;
+  let resendTest: { ok: boolean; detail: string } | null = null;
+
+  if (cfg.method === "resend" && cfg.resend.apiKey) {
+    const resend = new Resend(cfg.resend.apiKey);
+    try {
+      const { data, error } = await resend.apiKeys.list();
+      resendTest = {
+        ok: !error,
+        detail: error ? `Resend API error: ${error.message}` : `Resend API key valid (keys: ${data?.data?.length ?? 0})`,
+      };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      resendTest = { ok: false, detail: msg };
+    }
+  }
+
   if (cfg.method === "oauth2" && cfg.oauth2.clientId && cfg.oauth2.clientSecret && cfg.oauth2.refreshToken) {
     const mailer = new GmailOAuth2(cfg.oauth2.clientId, cfg.oauth2.clientSecret, cfg.oauth2.callbackUri);
     try {
@@ -43,7 +62,10 @@ export async function GET() {
     callbackUri: cfg.oauth2.callbackUri,
     checks,
     refreshTest,
+    resendTest,
     commonIssues: [
+      "Resend: pastikan RESEND_API_KEY sudah benar dan domain sudah diverifikasi di dashboard Resend.",
+      "Resend: untuk production, gunakan domain sendiri (bukan onboarding@resend.dev).",
       "Pastikan redirect URI di Google Cloud Console mencakup callbackUri di atas (persis, termasuk https/http).",
       "Gmail OAuth2 dan NextAuth Google login memakai client ID yang sama. Keduanya harus memiliki authorized redirect URIs masing-masing.",
       "OAuth consent screen minimal dalam mode Testing dan user pengirim sudah ditambahkan sebagai Test User.",
