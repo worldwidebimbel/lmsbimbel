@@ -119,8 +119,7 @@ export default function ProfileClient({ user }: { user: UserData }) {
         schoolName,
         gradeLevel,
         educationHistory,
-        parentName,
-        parentPhone,
+        ...(isStudent && { parentName, parentPhone }),
         bio,
         bloodType,
         hobbies,
@@ -340,18 +339,20 @@ export default function ProfileClient({ user }: { user: UserData }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Nama Orang Tua / Wali</label>
-              <input value={parentName} onChange={(e) => setParentName(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none" />
+          {isStudent && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">Nama Orang Tua / Wali</label>
+                <input value={parentName} onChange={(e) => setParentName(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none" />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">Telepon Orang Tua / Wali</label>
+                <input value={parentPhone} onChange={(e) => setParentPhone(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none" />
+              </div>
             </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Telepon Orang Tua / Wali</label>
-              <input value={parentPhone} onChange={(e) => setParentPhone(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none" />
-            </div>
-          </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
