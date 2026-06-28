@@ -35,6 +35,7 @@ export async function GET() {
           path: "/api-keys",
           method: "GET",
           headers: { Authorization: `Bearer ${cfg.resend.apiKey}` },
+          timeout: 8000,
         },
         (res) => {
           let raw = "";
@@ -53,6 +54,7 @@ export async function GET() {
         },
       );
       req.on("error", (err) => resolve({ ok: false, detail: err.message }));
+      req.on("timeout", () => { req.destroy(); resolve({ ok: false, detail: "Timeout: VPS tidak dapat menjangkau api.resend.com. Cek firewall/outbound HTTPS." }); });
       req.end();
     });
   }

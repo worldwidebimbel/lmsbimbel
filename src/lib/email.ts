@@ -78,6 +78,7 @@ function resendHttpSend(opts: {
           "Content-Type": "application/json",
           "Content-Length": Buffer.byteLength(body),
         },
+        timeout: 10000,
       },
       (res) => {
         let raw = "";
@@ -95,6 +96,7 @@ function resendHttpSend(opts: {
       },
     );
     req.on("error", reject);
+    req.on("timeout", () => { req.destroy(); reject(new Error("Resend API timeout: server tidak dapat menjangkau api.resend.com. Cek firewall/network VPS.")); });
     req.write(body);
     req.end();
   });

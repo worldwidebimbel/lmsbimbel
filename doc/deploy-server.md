@@ -410,6 +410,7 @@ npm run db:seed:default-branch  # assign default cabang ke data lama
 npm run build
 pm2 restart lms-bimbel
 
+git pull && npm install && npx prisma generate && npm run build && pm2 restart lms-bimbel
 git pull && npm install && npx prisma generate && npx prisma db push --accept-data-loss && npm run build && pm2 restart lms-bimbel
 ```
 
