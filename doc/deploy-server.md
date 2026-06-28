@@ -412,6 +412,16 @@ pm2 restart lms-bimbel
 
 git pull && npm install && npx prisma generate && npx prisma db push --accept-data-loss && npm run build && pm2 restart lms-bimbel
 ```
+
+> **Jika build gagal** dengan error `Cannot find module '.../jest-worker/processChild.js'` atau sejenisnya, lakukan clean install:
+> ```bash
+> rm -rf node_modules .next
+> npm install
+> npx prisma generate
+> npm run build
+> pm2 restart lms-bimbel
+> ```
+
 ## Cara setup Gmail OAuth2 di server
 ### Redirect URI yang harus didaftarkan di Google Cloud
 
