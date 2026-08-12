@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight, Loader2, ArrowUp, ArrowDown } from "lucide-react";
 import Link from "next/link";
 import { normalizeOptions } from "@/lib/question-options";
+import MathRenderer from "@/components/ui/MathRenderer";
 
 interface Question { id: string; type: string; content: string; imageUrl?: string | null; audioUrl?: string | null; videoUrl?: string | null; options: unknown; score: number }
 interface Exam {
@@ -180,7 +181,7 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
           <span className="text-xs text-gray-400">{q.score} poin</span>
         </div>
 
-        <div className="text-base text-gray-900 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: q.content }} />
+        <div className="text-base text-gray-900 whitespace-pre-wrap"><MathRenderer content={q.content} /></div>
 
         <MediaDisplay question={q} />
 

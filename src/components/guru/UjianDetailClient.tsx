@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Trash2, Loader2, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
 import ImageUploadButton from "./ImageUploadButton";
 import { normalizeOptions, optionText, toOptionPayload } from "@/lib/question-options";
+import MathRenderer from "@/components/ui/MathRenderer";
 
 interface Question {
   id: string; type: string; content: string; imageUrl?: string | null; audioUrl?: string | null; videoUrl?: string | null; options: string[] | null;
@@ -144,7 +145,7 @@ export default function UjianDetailClient({ exam: initial, attempts }: { exam: E
                     </span>
                     <span className="ml-auto text-xs text-gray-400">{q.score} poin</span>
                   </div>
-                  <div className="text-sm text-gray-800 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: q.content }} />
+                  <div className="text-sm text-gray-800 whitespace-pre-wrap"><MathRenderer content={q.content} /></div>
                   {q.options && (
                     <div className="mt-2 grid gap-1">
                       {normalizeOptions(q.options).map((opt, oi) => (

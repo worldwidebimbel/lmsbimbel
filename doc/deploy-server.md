@@ -448,3 +448,156 @@ GMAIL_FROM=akungmail@gmail.com
 - **redirect_uri_mismatch**: pastikan URI di Google Cloud Console sama persis (https vs http, tanpa trailing slash).
 - **Tidak ada refresh_token**: cabut akses app di https://myaccount.google.com/permissions lalu otorisasi ulang.
 - **Test email gagal**: cek dulu `/api/admin/email/diagnose` untuk status kredensial.
+
+---
+
+## Panduan Recovery: Server Terhenti & Error "Client-side exception"
+
+### Gejala
+
+Server sempat berhenti (VPS reboot, PM2 crash, OOM, dll). Setelah start ulang, halaman menampilkan:
+
+> **Application error: a client-side exception has occurred while loading lmsbimbel.digsan.id (see the browser console for more information).**
+
+### Penyebab Umum
+
+1. **Build `.next` korup/hilang** — folder `.next` tidak lengkap setelah crash
+2. **Prisma client tidak ter-generate** — `node_modules/.prisma/client` hilang setelah `npm install` gagal
+3. **Environment variables tidak terbaca** — `.env.local` hilang atau tidak ter-load
+4. **Database connection pool exhausted** — PostgreSQL belum siap saat app start
+5. **PM2 menjalankan versi lama** — cache PM2 masih referensi build sebelumnya
+
+### Langkah Recovery (Urut dari Cepat ke Menyeluruh)
+
+#### Langkah 1: Cek status dasar (30 detik)
+
+```bash
+# Cek PM2 status
+pm2 status
+
+# Cek log error terakhir
+pm2 logs lms-bimbel --lines 30 --err
+
+# Cek PostgreSQL
+systemctl status postgresql
+
+# Cek port 3000
+ss -tlnp | grep 3000
+```
+
+#### Langkah 2: Restart cepat (1 menit)
+
+```bash
+cd /var/www/lms-bimbel
+
+# Pastikan .env.local ada dan lengkap
+cat .env.local | grep DATABASE_URL
+
+# Regenerate Prisma client (sering hilang setelah crash)
+npx prisma generate
+
+# Restart PM2 dengan flush cache
+pm2 restart lms-bimbel --update-env
+
+# Tunggu 10 detik lalu cek
+sleep 10 && pm2 logs lms-bimbel --lines 10
+```
+
+#### Langkah 3: Rebuild jika Langkah 2 tidak cukup (3-5 menit)
+
+```bash
+cd /var/www/lms-bimbel
+
+# Hentikan app
+pm2 stop lms-bimbel
+
+# Bersihkan build lama
+rm -rf .next
+
+# Regenerate Prisma client
+npx prisma generate
+
+# Build ulang
+npm run build
+
+# Start dengan env refresh
+pm2 restart lms-bimbel --update-env
+
+# Cek log
+pm2 logs lms-bimbel --lines 20
+```
+
+#### Langkah 4: Clean install jika Langkah 3 gagal (5-10 menit)
+
+```bash
+cd /var/www/lms-bimbel
+
+pm2 stop lms-bimbel
+
+# Backup .env.local
+cp .env.local /tmp/.env.local.backup
+
+# Clean install
+rm -rf node_modules .next
+npm install
+
+# Restore .env.local jika hilang
+cp /tmp/.env.local.backup .env.local
+
+# Full rebuild
+npx prisma generate
+npx prisma migrate deploy
+npm run build
+
+# Restart
+pm2 restart lms-bimbel --update-env
+sleep 10 && pm2 logs lms-bimbel --lines 20
+```
+
+#### Langkah 5: Cek database jika masih error
+
+```bash
+# Test koneksi DB
+psql -U lmsuser -d lmsbimbel -h localhost -c "SELECT 1;"
+
+# Jika gagal, restart PostgreSQL
+systemctl restart postgresql
+sleep 5
+
+# Cek koneksi pool
+pm2 logs lms-bimbel --lines 30 | grep -i "database\|prisma\|connection"
+```
+
+### Verifikasi Setelah Recovery
+
+```bash
+# 1. Cek app respond
+curl -s -o /dev/null -w "%{http_code}" http://localhost:3000
+# Expected: 200
+
+# 2. Cek dari luar
+curl -s -o /dev/null -w "%{http_code}" https://lmsbimbel.digsan.id
+# Expected: 200
+
+# 3. Cek log tidak ada error
+pm2 logs lms-bimbel --lines 10 --err
+# Expected: (kosong)
+
+# 4. Buka di browser
+# https://lmsbimbel.digsan.id
+```
+
+### Pencegahan
+
+- **PM2 auto-restart:** pastikan `pm2 startup` sudah dijalankan agar PM2 start otomatis saat VPS reboot
+- **Save PM2 list:** jalankan `pm2 save` setelah konfigurasi stabil
+- **Max memory restart:** set limit agar PM2 restart sebelum OOM:
+  ```bash
+  pm2 restart lms-bimbel --max-memory-restart 500M
+  pm2 save
+  ```
+- **Health check endpoint:** akses `/api/health` secara berkala untuk monitoring
+- **Backup .env.local:** simpan copy di `/root/.env.local.backup`:
+  ```bash
+  cp /var/www/lms-bimbel/.env.local /root/.env.local.backup
+  ```

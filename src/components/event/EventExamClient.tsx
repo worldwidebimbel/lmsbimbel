@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Clock, ChevronLeft, ChevronRight, Send, Check, AlertCircle, Loader2 } from "lucide-react";
+import MathRenderer from "@/components/ui/MathRenderer";
 
 interface Question {
   id: string;
@@ -170,7 +171,7 @@ export default function EventExamClient({ eventId, data }: { eventId: string; da
             </span>
             <span className="text-xs text-gray-400">{q.score} poin</span>
           </div>
-          <p className="text-gray-900 font-medium leading-relaxed">{q.content}</p>
+          <p className="text-gray-900 font-medium leading-relaxed"><MathRenderer content={q.content} /></p>
 
           <MediaDisplay question={q} />
 

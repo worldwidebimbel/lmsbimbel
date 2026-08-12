@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Video, Link2, BookOpen, Youtube, CheckCircle, ExternalLink, Loader2 } from "lucide-react";
+import { FileText, Video, Link2, BookOpen, Youtube, CheckCircle, ExternalLink, Loader2, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
 
 type Subject = { id: string; name: string; color: string; code: string };
@@ -161,6 +162,13 @@ export function MaterialCard({ material, isCompleted: initialCompleted, studentI
               Selesai
             </button>
           )}
+
+          <Link
+            href={`/siswa/materi/${material.id}`}
+            className="flex items-center gap-1 px-3 py-2 text-xs font-medium text-gray-600 hover:text-indigo-600 transition-colors"
+          >
+            Detail <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       </div>
     </div>
