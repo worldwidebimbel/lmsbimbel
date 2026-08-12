@@ -388,11 +388,11 @@
       <tr><td>2</td><td>Modul PPDB</td><td style="text-align:center">38</td><td style="text-align:center">32</td><td style="text-align:center">6</td><td style="text-align:center"><span class="badge badge-green">✅ 32/38</span></td></tr>
       <tr><td>3</td><td>Modul Afiliator</td><td style="text-align:center">32</td><td style="text-align:center">27</td><td style="text-align:center">5</td><td style="text-align:center"><span class="badge badge-yellow">🔄 27/32</span></td></tr>
       <tr><td>4</td><td>Role & Permission</td><td style="text-align:center">18</td><td style="text-align:center">0</td><td style="text-align:center">18</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/18</span></td></tr>
-      <tr><td>5</td><td>Upgrade CBT</td><td style="text-align:center">35</td><td style="text-align:center">0</td><td style="text-align:center">35</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/35</span></td></tr>
+      <tr><td>5</td><td>Upgrade CBT</td><td style="text-align:center">35</td><td style="text-align:center">9</td><td style="text-align:center">26</td><td style="text-align:center"><span class="badge badge-yellow">🔄 9/35</span></td></tr>
       <tr><td>6</td><td>Sertifikat, Payment, Export</td><td style="text-align:center">28</td><td style="text-align:center">0</td><td style="text-align:center">28</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/28</span></td></tr>
-      <tr><td>7</td><td>Website, Automation, Security</td><td style="text-align:center">30</td><td style="text-align:center">0</td><td style="text-align:center">30</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/30</span></td></tr>
+      <tr><td>7</td><td>Website, Automation, Security</td><td style="text-align:center">30</td><td style="text-align:center">12</td><td style="text-align:center">18</td><td style="text-align:center"><span class="badge badge-yellow">🔄 12/30</span></td></tr>
       <tr><td>8</td><td>Jurnal Mengajar, Raport & Absensi Tutor</td><td style="text-align:center">28</td><td style="text-align:center">0</td><td style="text-align:center">28</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/28</span></td></tr>
-      <tr><td colspan="2"><strong>Total</strong></td><td style="text-align:center"><strong>251</strong></td><td style="text-align:center"><strong>96</strong></td><td style="text-align:center"><strong>155</strong></td><td style="text-align:center"><span class="badge badge-blue">38% selesai</span></td></tr>
+      <tr><td colspan="2"><strong>Total</strong></td><td style="text-align:center"><strong>251</strong></td><td style="text-align:center"><strong>117</strong></td><td style="text-align:center"><strong>134</strong></td><td style="text-align:center"><span class="badge badge-blue">47% selesai</span></td></tr>
     </tbody>
   </table>
 
@@ -487,15 +487,15 @@
     <div class="jalur-section">
       <h3>Jalur C — CBT Bagian 1 (Tahap 5.1-5.2) · 14 item</h3>
       <ul class="task-list">
-        <li><span class="ref">5.1</span> Tambah <code>Question.imageUrl/audioUrl/videoUrl</code> + upload ke Cloudinary</li>
-        <li><span class="ref">5.1</span> Editor soal sisip media + player audio/video di halaman siswa</li>
-        <li><span class="ref">5.1</span> Aktifkan <code>katex</code> untuk rumus matematika</li>
-        <li class="fire"><span class="ref">5.2</span> <code>Exam.materialId</code>, <code>Exam.maxAttempts</code>, <code>ExamAttempt.attemptNumber</code></li>
-        <li class="fire"><span class="ref">5.2</span> Hapus <code>@@unique([examId, studentId])</code> → ganti <code>[examId, studentId, attemptNumber]</code></li>
-        <li class="fire"><span class="ref">5.2</span> Perbaiki 7 pemakaian <code>examId_studentId</code> di 5 file</li>
-        <li><span class="ref">5.2</span> Ganti pola <code>upsert</code> → cek <code>maxAttempts</code> + <code>create</code></li>
-        <li><span class="ref">5.2</span> Tolak attempt > <code>maxAttempts</code> + <code>Exam.scoringMode</code></li>
-        <li><span class="ref">5.2</span> UI quiz di detail materi siswa</li>
+        <li class="done"><span class="ref">5.1</span> Tambah <code>Question.imageUrl/audioUrl/videoUrl</code> + upload ke Cloudinary</li>
+        <li class="done"><span class="ref">5.1</span> Editor soal sisip media + player audio/video di halaman siswa</li>
+        <li class="done"><span class="ref">5.1</span> Aktifkan <code>katex</code> untuk rumus matematika</li>
+        <li class="fire done"><span class="ref">5.2</span> <code>Exam.materialId</code>, <code>Exam.maxAttempts</code>, <code>ExamAttempt.attemptNumber</code></li>
+        <li class="fire done"><span class="ref">5.2</span> Hapus <code>@@unique([examId, studentId])</code> → ganti <code>[examId, studentId, attemptNumber]</code></li>
+        <li class="fire done"><span class="ref">5.2</span> Perbaiki 7 pemakaian <code>examId_studentId</code> di 5 file</li>
+        <li class="done"><span class="ref">5.2</span> Ganti pola <code>upsert</code> → cek <code>maxAttempts</code> + <code>create</code></li>
+        <li class="done"><span class="ref">5.2</span> Tolak attempt > <code>maxAttempts</code> + <code>Exam.scoringMode</code></li>
+        <li class="done"><span class="ref">5.2</span> UI quiz di detail materi siswa</li>
       </ul>
     </div>
 
@@ -520,18 +520,18 @@
     <div class="jalur-section">
       <h3>Jalur E — Website & CMS Awal (Tahap 7.1-7.2) · 13 item</h3>
       <ul class="task-list">
-        <li><span class="ref">7.1</span> <code>model LandingPage</code> — slug, title, sections, meta, CTA, viewCount</li>
-        <li><span class="ref">7.1</span> Route publik <code>/lp/[slug]</code> + generateMetadata SEO</li>
-        <li><span class="ref">7.1</span> <code>/admin/landing-pages</code> — builder berbasis blok (hero, fitur, testimoni, FAQ, CTA, form)</li>
-        <li><span class="ref">7.1</span> CTA terhubung ke PPDB / Event / Inquiry + hitung viewCount</li>
-        <li><span class="ref">7.2</span> <code>model SiteFaq</code> — FAQ dengan kategori</li>
-        <li><span class="ref">7.2</span> <code>model SiteTeamMember</code> — profil tim/tutor publik</li>
-        <li><span class="ref">7.2</span> Struktur organisasi + legalitas lembaga</li>
-        <li><span class="ref">7.2</span> Kategori "PRESTASI" pada <code>SiteGallery</code> + halaman galeri prestasi</li>
-        <li><span class="ref">7.2</span> Halaman publik daftar cabang/lokasi</li>
-        <li><span class="ref">7.2</span> Halaman detail program publik <code>/program/[slug]</code></li>
-        <li><span class="ref">7.2</span> Halaman visi/misi & profil lembaga</li>
-        <li><span class="ref">7.2</span> Audit SEO: sitemap.xml, robots.txt, metadata semua halaman publik</li>
+        <li class="done"><span class="ref">7.1</span> <code>model LandingPage</code> — slug, title, sections, meta, CTA, viewCount</li>
+        <li class="done"><span class="ref">7.1</span> Route publik <code>/lp/[slug]</code> + generateMetadata SEO</li>
+        <li class="done"><span class="ref">7.1</span> <code>/admin/landing-pages</code> — builder berbasis blok (hero, fitur, testimoni, FAQ, CTA, form)</li>
+        <li class="done"><span class="ref">7.1</span> CTA terhubung ke PPDB / Event / Inquiry + hitung viewCount</li>
+        <li class="done"><span class="ref">7.2</span> <code>model SiteFaq</code> — FAQ dengan kategori</li>
+        <li class="done"><span class="ref">7.2</span> <code>model SiteTeamMember</code> — profil tim/tutor publik</li>
+        <li class="done"><span class="ref">7.2</span> Struktur organisasi + legalitas lembaga</li>
+        <li class="done"><span class="ref">7.2</span> Kategori "PRESTASI" pada <code>SiteGallery</code> + halaman galeri prestasi</li>
+        <li class="done"><span class="ref">7.2</span> Halaman publik daftar cabang/lokasi</li>
+        <li class="done"><span class="ref">7.2</span> Halaman detail program publik <code>/program/[slug]</code></li>
+        <li class="done"><span class="ref">7.2</span> Halaman visi/misi & profil lembaga</li>
+        <li class="done"><span class="ref">7.2</span> Audit SEO: sitemap.xml, robots.txt, metadata semua halaman publik</li>
       </ul>
     </div>
 
