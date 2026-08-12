@@ -18,11 +18,11 @@
 | 2 | Modul PPDB | 38 | 32 | 6 |
 | 3 | Modul Afiliator | 32 | 27 | 5 |
 | 4 | Role & Permission | 18 | 0 | 18 |
-| 5 | Upgrade CBT | 35 | 0 | 35 |
+| 5 | Upgrade CBT | 35 | 9 | 26 |
 | 6 | Sertifikat, Payment, Export | 28 | 0 | 28 |
-| 7 | Website, Automation, Security | 30 | 0 | 30 |
+| 7 | Website, Automation, Security | 30 | 12 | 18 |
 | 8 | Jurnal Mengajar, Raport & Absensi Tutor | 28 | 0 | 28 |
-| **Total** | | **251** | **96** | **155** |
+| **Total** | | **251** | **117** | **134** |
 
 ---
 

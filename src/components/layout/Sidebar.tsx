@@ -49,7 +49,9 @@ const NAV_ADMIN: NavItem[] = [
   { title: "Event Berbayar", href: "/admin/events", icon: "Trophy", featureFlag: "FEAT_EVENTS" },
   { title: "Sertifikat", href: "/admin/sertifikat", icon: "Award" },
   { title: "Media Manager", href: "/admin/media", icon: "Image" },
-  { title: "CMS Landing Page", href: "/admin/site", icon: "Globe" },
+  { title: "CMS Landing Page", href: "/admin/landing-pages", icon: "Globe" },
+  { title: "FAQ & Tim", href: "/admin/faq", icon: "FileText" },
+  { title: "Site Gallery", href: "/admin/site", icon: "Image" },
   { title: "Pengaturan", href: "/admin/settings", icon: "Settings" },
   { title: "Profil Saya", href: "/profile", icon: "User" },
 ];

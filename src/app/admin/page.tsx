@@ -4,18 +4,33 @@ import { formatCurrency } from "@/lib/utils";
 import {
   Users, BookOpen, CalendarDays, TrendingUp,
   GraduationCap, CheckSquare, Wallet, ArrowUpRight,
+  UserCheck, Share2, FileText, Globe,
 } from "lucide-react";
 
 async function getDashboardStats() {
-  const [totalStudents, totalTeachers, totalClasses, unpaidInvoices, activeFlags] = await Promise.all([
+  const [
+    totalStudents, totalTeachers, totalClasses, unpaidInvoices, activeFlags,
+    pendingPpdb, totalAffiliates, pendingCommissions, activeLandingPages, totalFaqs,
+  ] = await Promise.all([
     db.user.count({ where: { role: "SISWA", isActive: true } }),
     db.user.count({ where: { role: "GURU", isActive: true } }),
     db.class.count({ where: { isActive: true } }),
     db.invoice.aggregate({ where: { status: "UNPAID" }, _sum: { amount: true } }),
     db.featureFlag.count({ where: { isActive: true } }),
+    db.registration.count({ where: { status: { in: ["SUBMITTED", "WAITING_VERIFICATION"] } } }),
+    db.affiliate.count({ where: { isActive: true } }),
+    db.commission.count({ where: { status: "PENDING" } }),
+    db.landingPage.count({ where: { isPublished: true } }),
+    db.siteFaq.count({ where: { isActive: true } }),
   ]);
 
-  return { totalStudents, totalTeachers, totalClasses, unpaidAmount: unpaidInvoices._sum.amount ?? 0, activeFlags };
+  return {
+    totalStudents, totalTeachers, totalClasses,
+    unpaidAmount: unpaidInvoices._sum.amount ?? 0,
+    activeFlags,
+    pendingPpdb, totalAffiliates, pendingCommissions,
+    activeLandingPages, totalFaqs,
+  };
 }
 
 export default async function AdminDashboard() {
@@ -27,7 +42,15 @@ export default async function AdminDashboard() {
     { label: "Total Guru", value: stats.totalTeachers, icon: GraduationCap, color: "text-purple-600", bg: "bg-purple-50", trend: "+2%" },
     { label: "Kelas Aktif", value: stats.totalClasses, icon: BookOpen, color: "text-green-600", bg: "bg-green-50", trend: "+5%" },
     { label: "Tagihan Belum Bayar", value: formatCurrency(stats.unpaidAmount), icon: Wallet, color: "text-orange-600", bg: "bg-orange-50", trend: "IDR" },
-    { label: "Fitur Aktif", value: `${stats.activeFlags} / 23`, icon: CheckSquare, color: "text-teal-600", bg: "bg-teal-50", trend: "modul" },
+    { label: "Fitur Aktif", value: `${stats.activeFlags} / 29`, icon: CheckSquare, color: "text-teal-600", bg: "bg-teal-50", trend: "modul" },
+  ];
+
+  const moduleCards = [
+    { label: "PPDB Pending", value: stats.pendingPpdb, href: "/admin/ppdb", icon: UserCheck, color: "text-indigo-600", bg: "bg-indigo-50" },
+    { label: "Afiliator Aktif", value: stats.totalAffiliates, href: "/admin/afiliator", icon: Share2, color: "text-pink-600", bg: "bg-pink-50" },
+    { label: "Komisi Pending", value: stats.pendingCommissions, href: "/admin/afiliator/komisi", icon: Wallet, color: "text-yellow-600", bg: "bg-yellow-50" },
+    { label: "Landing Pages", value: stats.activeLandingPages, href: "/admin/landing-pages", icon: Globe, color: "text-cyan-600", bg: "bg-cyan-50" },
+    { label: "FAQ Aktif", value: stats.totalFaqs, href: "/admin/faq", icon: FileText, color: "text-slate-600", bg: "bg-slate-50" },
   ];
 
   return (
@@ -59,6 +82,29 @@ export default async function AdminDashboard() {
         })}
       </div>
 
+      {/* Module Stats */}
+      <div>
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Statistik Modul</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {moduleCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <a
+                key={card.label}
+                href={card.href}
+                className="bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:shadow-sm transition-all group"
+              >
+                <div className={`w-9 h-9 rounded-lg ${card.bg} flex items-center justify-center mb-3`}>
+                  <Icon className={`w-4 h-4 ${card.color}`} />
+                </div>
+                <p className="text-xl font-bold text-gray-900">{card.value}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{card.label}</p>
+              </a>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -69,6 +115,8 @@ export default async function AdminDashboard() {
               { label: "Buat Kelas Baru", href: "/admin/classes/new", icon: CalendarDays },
               { label: "Kelola Fitur & Modul", href: "/admin/features", icon: CheckSquare },
               { label: "Lihat Laporan Keuangan", href: "/admin/finance", icon: TrendingUp },
+              { label: "Review PPDB", href: "/admin/ppdb", icon: UserCheck },
+              { label: "Kelola Landing Page", href: "/admin/landing-pages", icon: Globe },
             ].map((action) => {
               const Icon = action.icon;
               return (
@@ -101,10 +149,10 @@ export default async function AdminDashboard() {
             {[
               { name: "Materi Pembelajaran", active: true },
               { name: "Ujian Online", active: true },
-              { name: "Absensi QR Code", active: false },
+              { name: "PPDB Online", active: true },
+              { name: "Sistem Afiliator", active: true },
               { name: "Pembayaran Online", active: false },
               { name: "Kelas Live", active: false },
-              { name: "Portal Orang Tua", active: true },
             ].map((item) => (
               <div key={item.name} className="flex items-center justify-between py-1.5">
                 <span className="text-sm text-gray-700">{item.name}</span>
