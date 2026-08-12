@@ -1,11 +1,12 @@
-export type UserRole = "SUPER_ADMIN" | "ADMIN" | "GURU" | "SISWA" | "ORANG_TUA";
+export type UserRole = "SUPER_ADMIN" | "ADMIN" | "GURU" | "SISWA" | "ORANG_TUA" | "AFILIATOR";
 export type FeatureTier = "BASIC" | "STANDARD" | "PREMIUM";
 export type ClassType = "REGULER" | "PRIVAT" | "ONLINE";
 export type MaterialType = "PDF" | "VIDEO" | "YOUTUBE" | "PRESENTATION" | "DOCUMENT" | "LINK" | "TEXT";
 export type QuestionType = "PILGAN" | "ESSAY" | "BENAR_SALAH" | "ISIAN";
 export type AttendanceStatus = "HADIR" | "SAKIT" | "IZIN" | "ALPHA";
 export type InvoiceStatus = "UNPAID" | "PAID" | "OVERDUE" | "CANCELLED";
-export type NotifType = "INFO" | "SUCCESS" | "WARNING" | "ERROR" | "PAYMENT" | "ATTENDANCE" | "GRADE" | "ASSIGNMENT" | "EXAM";
+export type NotifType = "INFO" | "SUCCESS" | "WARNING" | "ERROR" | "PAYMENT" | "ATTENDANCE" | "GRADE" | "ASSIGNMENT" | "EXAM" | "PPDB" | "AFFILIATE";
+export type StudentStatus = "AKTIF" | "TUNGGAKAN" | "NONAKTIF" | "LULUS" | "BERHENTI";
 
 export interface FeatureFlag {
   id: string;
@@ -177,4 +178,5 @@ export interface NavItem {
   featureFlag?: string;
   badge?: string | number;
   children?: NavItem[];
+  superAdminOnly?: boolean;
 }

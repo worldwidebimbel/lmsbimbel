@@ -24,6 +24,7 @@ export default async function HomePage() {
       GURU: "/guru",
       SISWA: "/siswa",
       ORANG_TUA: "/orangtua",
+      AFILIATOR: "/afiliator",
     };
     const role = session.user?.role as string;
     redirect(roleRedirects[role] ?? "/login");

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
+import { updateStudentStatus } from "@/lib/student-status";
+import { advanceCommissionStatus } from "@/lib/commission";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -31,7 +34,28 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }),
   ]);
 
-  // Notifikasi ke siswa
+  await logAudit({
+    entity: "Invoice",
+    entityId: id,
+    action: "APPROVE_PAYMENT",
+    before: { status: invoice.status },
+    after: { status: "PAID", paymentId: pendingPayment.id },
+  });
+
+  await updateStudentStatus(invoice.studentId);
+
+  // Trigger affiliate commission advancement on payment approval
+  const registration = await db.registration.findFirst({
+    where: { convertedUserId: invoice.studentId },
+    select: { id: true },
+  });
+  if (registration) {
+    await advanceCommissionStatus({
+      registrationId: registration.id,
+      trigger: "PAYMENT_VERIFIED",
+    });
+  }
+
   await db.notification.create({
     data: {
       userId: invoice.studentId,

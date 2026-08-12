@@ -10,8 +10,11 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:default-branch": "tsx scripts/seed-default-branch.ts",
+    "db:seed:master-data": "tsx scripts/seed-master-data.ts",
+    "db:migrate-rooms": "tsx scripts/migrate-rooms.ts",
     "db:studio": "prisma studio"
   },
   "prisma": {

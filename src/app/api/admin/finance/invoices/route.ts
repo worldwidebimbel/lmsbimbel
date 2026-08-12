@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -55,6 +56,13 @@ export async function POST(req: NextRequest) {
       plan: { select: { id: true, name: true, type: true, meetingCount: true } },
       branch: { select: { id: true, name: true, code: true } },
     },
+  });
+
+  await logAudit({
+    entity: "Invoice",
+    entityId: invoice.id,
+    action: "CREATE",
+    after: { studentId, amount: Number(amount), dueDate, branchId: assignedBranchId, planId: planId || null },
   });
 
   return NextResponse.json(invoice, { status: 201 });

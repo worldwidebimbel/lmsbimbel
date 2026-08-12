@@ -229,10 +229,12 @@ npx prisma generate
 ### Database & Build
 
 ```bash
-npx prisma db push
+npx prisma migrate deploy
 npm run db:seed
 npm run build
 ```
+
+> ⚠️ **Penting:** Sejak Tahap 0, deploy menggunakan `prisma migrate deploy` (bukan `db push`). Pastikan folder `prisma/migrations/` selalu di-commit ke git. Lihat `doc/timeline-4-minggu.md` Tahap 0 untuk detail.
 
 > `db:seed` akan membuat:
 > - Semua feature flags
@@ -401,8 +403,7 @@ pm2 restart lms-bimbel
 git checkout -- package-lock.json && git pull origin main
 npm install          # nodemailer sudah v7.0.7, tidak ada error
 npx prisma generate  # regenerate client
-npx prisma db push   # buat tabel Branch, BranchTransaction, BranchCashTransfer
-npx prisma db push --accept-data-los
+npx prisma migrate deploy  # jalankan semua migration yang belum di-applied
 
 npm run db:seed                  # seed flag FEAT_MULTI_BRANCH + default cabang
 npm run db:seed:default-branch  # assign default cabang ke data lama
@@ -411,7 +412,7 @@ npm run build
 pm2 restart lms-bimbel
 
 git pull && npm install && npx prisma generate && npm run build && pm2 restart lms-bimbel
-git pull && npm install && npx prisma generate && npx prisma db push --accept-data-loss && npm run build && pm2 restart lms-bimbel
+git pull && npm install && npx prisma generate && npx prisma migrate deploy && npm run build && pm2 restart lms-bimbel
 ```
 
 > **Jika build gagal** dengan error `Cannot find module '.../jest-worker/processChild.js'` atau sejenisnya, lakukan clean install:

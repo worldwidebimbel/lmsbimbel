@@ -10,6 +10,7 @@ import {
   Megaphone, MessagesSquare, MessageSquare, Video, Gamepad2, Award,
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
   Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
+  DoorOpen, ScrollText, Share2, DollarSign, UserCheck,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -18,6 +19,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Megaphone, MessagesSquare, MessageSquare, Video, Gamepad2, Award,
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
   Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
+  DoorOpen, ScrollText, Share2, DollarSign, UserCheck,
 };
 
 interface NavItem {
@@ -25,6 +27,7 @@ interface NavItem {
   href: string;
   icon: string;
   featureFlag?: string;
+  superAdminOnly?: boolean;
 }
 
 const NAV_ADMIN: NavItem[] = [
@@ -36,7 +39,12 @@ const NAV_ADMIN: NavItem[] = [
   { title: "Kalender Akademik", href: "/admin/academic-calendar", icon: "CalendarDays" },
   { title: "Keuangan", href: "/admin/finance", icon: "Wallet", featureFlag: "FEAT_PAYMENT_MANUAL" },
   { title: "Multi-Cabang", href: "/admin/branches", icon: "Building2", featureFlag: "FEAT_MULTI_BRANCH" },
+  { title: "PPDB", href: "/admin/ppdb", icon: "UserCheck", featureFlag: "FEAT_PPDB" },
+  { title: "Afiliator", href: "/admin/afiliator", icon: "Share2", featureFlag: "FEAT_AFFILIATE" },
+  { title: "Program & Jenjang", href: "/admin/master/programs", icon: "GraduationCap" },
+  { title: "Gedung & Ruangan", href: "/admin/master/ruangan", icon: "DoorOpen", featureFlag: "FEAT_ROOM_MANAGEMENT" },
   { title: "Analitik", href: "/admin/analytics", icon: "BarChart3", featureFlag: "FEAT_ANALYTICS" },
+  { title: "Audit Log", href: "/admin/audit-log", icon: "ScrollText", superAdminOnly: true },
   { title: "Pengumuman", href: "/admin/announcements", icon: "Megaphone", featureFlag: "FEAT_ANNOUNCEMENTS" },
   { title: "Event Berbayar", href: "/admin/events", icon: "Trophy", featureFlag: "FEAT_EVENTS" },
   { title: "Sertifikat", href: "/admin/sertifikat", icon: "Award" },
@@ -92,12 +100,18 @@ const NAV_ORANGTUA: NavItem[] = [
   { title: "Profil Saya", href: "/profile", icon: "User" },
 ];
 
+const NAV_AFILIATOR: NavItem[] = [
+  { title: "Dashboard", href: "/afiliator", icon: "LayoutDashboard" },
+  { title: "Profil Saya", href: "/profile", icon: "User" },
+];
+
 const NAV_MAP: Record<string, NavItem[]> = {
   SUPER_ADMIN: NAV_ADMIN,
   ADMIN: NAV_ADMIN,
   GURU: NAV_GURU,
   SISWA: NAV_SISWA,
   ORANG_TUA: NAV_ORANGTUA,
+  AFILIATOR: NAV_AFILIATOR,
 };
 
 const ROLE_LABELS: Record<string, string> = {
@@ -106,6 +120,7 @@ const ROLE_LABELS: Record<string, string> = {
   GURU: "Guru",
   SISWA: "Siswa",
   ORANG_TUA: "Orang Tua",
+  AFILIATOR: "Afiliator",
 };
 
 const ROLE_COLORS: Record<string, string> = {
@@ -114,6 +129,7 @@ const ROLE_COLORS: Record<string, string> = {
   GURU: "bg-yellow-500",
   SISWA: "bg-green-500",
   ORANG_TUA: "bg-blue-500",
+  AFILIATOR: "bg-purple-500",
 };
 
 interface SidebarProps {
@@ -130,6 +146,7 @@ export function Sidebar({ role, userName, userEmail, siteName, logoUrl }: Sideba
   const navItems = NAV_MAP[role] ?? [];
 
   const visibleItems = navItems.filter((item) => {
+    if (item.superAdminOnly && role !== "SUPER_ADMIN") return false;
     if (!item.featureFlag) return true;
     if (isLoading) return false;
     return isFeatureActive(item.featureFlag);

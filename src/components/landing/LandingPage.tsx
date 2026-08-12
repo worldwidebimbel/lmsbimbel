@@ -68,8 +68,8 @@ export default async function LandingPage() {
                 </h1>
                 <p className="text-lg text-gray-600 max-w-lg">{cfg.description}</p>
                 <div className="flex flex-wrap gap-4">
-                  <Link href="/login" className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-base font-semibold text-white transition-colors" style={{ backgroundColor: cfg.colorPrimary }}>
-                    Mulai Belajar <ArrowRight className="h-4 w-4" />
+                  <Link href="/daftar" className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-base font-semibold text-white transition-colors" style={{ backgroundColor: cfg.colorPrimary }}>
+                    Daftar Sekarang <ArrowRight className="h-4 w-4" />
                   </Link>
                   <a href="#program" className="inline-flex items-center gap-2 rounded-xl border-2 border-gray-200 px-6 py-3 text-base font-semibold text-gray-700 hover:border-blue-300 hover:text-blue-600 transition-colors">
                     Lihat Program
@@ -276,7 +276,7 @@ function StatBox({ number, label, color }: { number: string; label: string; colo
 
 function ProgramCard({ program }: { program: { id: string; title: string; description: string | null; icon: string; color: string; linkUrl: string | null } }) {
   const Icon = PROGRAM_ICONS[program.icon] ?? GraduationCap;
-  const link = program.linkUrl || "/login";
+  const link = program.linkUrl || "/daftar";
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
       <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl ${program.color}`}>
@@ -284,9 +284,11 @@ function ProgramCard({ program }: { program: { id: string; title: string; descri
       </div>
       <h3 className="text-lg font-bold text-gray-900">{program.title}</h3>
       <p className="mt-2 text-sm text-gray-500">{program.description}</p>
-      <Link href={link} className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700">
-        Info Lebih Lanjut <ArrowRight className="h-3.5 w-3.5" />
-      </Link>
+      <div className="mt-4 flex items-center gap-3">
+        <Link href={link} className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700">
+          Daftar Sekarang <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
     </div>
   );
 }

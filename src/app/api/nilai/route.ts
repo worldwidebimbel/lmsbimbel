@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -70,6 +71,15 @@ export async function POST(req: NextRequest) {
       })
     )
   );
+
+  for (const g of grades) {
+    await logAudit({
+      entity: "Grade",
+      entityId: `${g.studentId}_${g.componentId}`,
+      action: "UPSERT",
+      after: { studentId: g.studentId, componentId: g.componentId, score: g.score },
+    });
+  }
 
   return NextResponse.json({ count: results.length });
 }

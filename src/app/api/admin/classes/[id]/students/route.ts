@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -25,6 +26,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     include: { student: { select: { id: true, name: true, email: true } } },
   });
 
+  await logAudit({
+    entity: "ClassStudent",
+    entityId: `${id}_${studentId}`,
+    action: "ENROLL",
+    after: { classId: id, studentId },
+  });
+
   return NextResponse.json(record, { status: 201 });
 }
 
@@ -40,5 +48,13 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   if (!studentId) return NextResponse.json({ error: "studentId required" }, { status: 400 });
 
   await db.classStudent.delete({ where: { classId_studentId: { classId: id, studentId } } });
+
+  await logAudit({
+    entity: "ClassStudent",
+    entityId: `${id}_${studentId}`,
+    action: "UNENROLL",
+    before: { classId: id, studentId },
+  });
+
   return NextResponse.json({ success: true });
 }

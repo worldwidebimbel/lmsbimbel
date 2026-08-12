@@ -18,6 +18,7 @@ enum UserRole {
   GURU
   SISWA
   ORANG_TUA
+  AFILIATOR
 }
 
 enum ClassType {
@@ -96,6 +97,16 @@ enum NotifType {
   GRADE
   ASSIGNMENT
   EXAM
+  PPDB
+  AFFILIATE
+}
+
+enum StudentStatus {
+  AKTIF
+  TUNGGAKAN
+  NONAKTIF
+  LULUS
+  BERHENTI
 }
 
 // ============================
@@ -145,6 +156,10 @@ model Branch {
   transfersTo   BranchCashTransfer[] @relation("TransferTo")
   events       Event[]
   academicCalendarEvents AcademicCalendar[]
+  programs     Program[]
+  buildings    Building[]
+  rooms        Room[]
+  registrations Registration[]
 
   @@map("branches")
 }
@@ -193,6 +208,9 @@ model User {
   sentMessages     Message[]     @relation("SentMessages")
   receivedMessages Message[]     @relation("ReceivedMessages")
   liveSessions     LiveSession[] @relation("TeacherLiveSessions")
+  schedules        Schedule[]     @relation("ScheduleTeacher")
+  auditLogs        AuditLog[]
+  affiliate        Affiliate?
   branchTransactions BranchTransaction[]
   requestedTransfers BranchCashTransfer[]
   createdEvents    Event[]
@@ -227,6 +245,7 @@ model UserProfile {
   emergencyContact  Json?     @default("{}")
   socialLinks       Json?     @default("{}")
   profileComplete   Boolean   @default(false)
+  studentStatus     StudentStatus @default(AKTIF)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -310,6 +329,10 @@ model Class {
   type        ClassType @default(REGULER)
   maxStudents Int       @default(30)
   room        String?
+  roomId      String?
+  programId   String?
+  levelId     String?
+  academicYearId String?
   isActive    Boolean   @default(true)
   startDate   DateTime?
   endDate     DateTime?
@@ -319,6 +342,10 @@ model Class {
   subject     Subject   @relation(fields: [subjectId], references: [id])
   teacher     User      @relation("TeacherClasses", fields: [teacherId], references: [id])
   branch      Branch?   @relation(fields: [branchId], references: [id])
+  roomRel     Room?     @relation(fields: [roomId], references: [id])
+  program     Program?  @relation(fields: [programId], references: [id])
+  level       Level?    @relation(fields: [levelId], references: [id])
+  academicYear AcademicYear? @relation(fields: [academicYearId], references: [id])
   students    ClassStudent[]
   schedules   Schedule[]
   materials   Material[]
@@ -331,6 +358,7 @@ model Class {
 
   @@map("classes")
   @@index([branchId])
+  @@index([programId])
 }
 
 model ClassStudent {
@@ -352,6 +380,8 @@ model Schedule {
   startTime      String
   endTime        String
   room           String?
+  roomId         String?
+  teacherId      String?
   isRecurring    Boolean     @default(true)
   startDate      DateTime?
   endDate        DateTime?
@@ -359,10 +389,14 @@ model Schedule {
   updatedAt      DateTime    @updatedAt
 
   class          Class       @relation(fields: [classId], references: [id])
+  roomRel        Room?       @relation(fields: [roomId], references: [id])
+  teacher        User?       @relation("ScheduleTeacher", fields: [teacherId], references: [id])
   attendances    Attendance[]
   exceptions     ScheduleException[]
 
   @@map("schedules")
+  @@index([roomId])
+  @@index([teacherId])
 }
 
 model ScheduleException {
@@ -665,16 +699,19 @@ model Invoice {
   meetingUsage        Int             @default(0)
   enableOnlinePayment Boolean         @default(false)
   onlinePaymentMethod String?
+  programId           String?
   createdAt           DateTime        @default(now())
   updatedAt     DateTime      @updatedAt
 
   student    User          @relation(fields: [studentId], references: [id])
   plan       BillingPlan?  @relation(fields: [planId], references: [id])
   branch     Branch?       @relation(fields: [branchId], references: [id])
+  program    Program?      @relation(fields: [programId], references: [id])
   payments   Payment[]
 
   @@map("invoices")
   @@index([branchId])
+  @@index([programId])
 }
 
 model Payment {
@@ -709,22 +746,25 @@ enum BranchTransactionType {
 model BranchTransaction {
   id          String                @id @default(cuid())
   branchId    String
-  type        BranchTransactionType
-  category    String
-  amount      Float
-  date        DateTime              @default(now())
-  note        String?
+  type         BranchTransactionType
+  category     String
+  categoryId   String?
+  amount       Float
+  date         DateTime              @default(now())
+  note         String?
   attachmentUrl String?
-  createdBy   String
-  createdAt   DateTime              @default(now())
-  updatedAt   DateTime              @updatedAt
+  createdBy    String
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
 
-  branch      Branch   @relation(fields: [branchId], references: [id])
-  creator     User     @relation(fields: [createdBy], references: [id])
+  branch       Branch              @relation(fields: [branchId], references: [id])
+  creator      User                @relation(fields: [createdBy], references: [id])
+  categoryRel  TransactionCategory? @relation(fields: [categoryId], references: [id])
 
   @@map("branch_transactions")
   @@index([branchId])
   @@index([date])
+  @@index([categoryId])
 }
 
 enum BranchTransferStatus {
@@ -1224,4 +1264,434 @@ model MediaFile {
   createdAt    DateTime @default(now())
 
   @@map("media_files")
+}
+
+// ============================
+// MASTER DATA AKADEMIK
+// ============================
+
+model EducationLevel {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  code      String   @unique
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  programs  Program[]
+  registrations Registration[]
+
+  @@map("education_levels")
+}
+
+model Program {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  name           String
+  description    String?  @db.Text
+  targetAudience String?
+  materials      String?  @db.Text
+  benefits       Json?
+  duration       String?
+  price          Float    @default(0)
+  promoPrice     Float?
+  promoUntil     DateTime?
+  isActive       Boolean  @default(true)
+  order          Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  branches       Branch[]
+  educationLevels EducationLevel[]
+  levels         Level[]
+  classes        Class[]
+  invoices       Invoice[]
+  registrations  Registration[]
+  commissionRules CommissionRule[]
+  referrals      Referral[]
+
+  @@map("programs")
+}
+
+model Level {
+  id        String   @id @default(cuid())
+  programId String
+  name      String
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  program   Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  classes   Class[]
+
+  @@map("program_levels")
+  @@index([programId])
+}
+
+model AcademicYear {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  classes   Class[]
+
+  @@map("academic_years")
+}
+
+// ============================
+// GEDUNG & RUANGAN
+// ============================
+
+model Building {
+  id        String   @id @default(cuid())
+  branchId  String
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  rooms     Room[]
+
+  @@map("buildings")
+  @@index([branchId])
+}
+
+model Room {
+  id          String   @id @default(cuid())
+  buildingId  String
+  branchId    String
+  name        String
+  roomNumber  String?
+  capacity    Int      @default(30)
+  floor       String?
+  facilities  Json?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  building    Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  classes     Class[]
+  schedules   Schedule[]
+
+  @@map("rooms")
+  @@index([branchId])
+  @@index([buildingId])
+}
+
+// ============================
+// KATEGORI TRANSAKSI
+// ============================
+
+model TransactionCategory {
+  id        String                @id @default(cuid())
+  name      String
+  code      String                @unique
+  type      BranchTransactionType
+  isActive  Boolean               @default(true)
+  order     Int                   @default(0)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  transactions BranchTransaction[]
+
+  @@map("transaction_categories")
+  @@index([type])
+}
+
+// ============================
+// AUDIT LOG
+// ============================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorName  String
+  action     String
+  entity     String
+  entityId   String
+  before     Json?
+  after      Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId])
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ============================
+// PPDB — PENERIMAAN SISWA BARU
+// ============================
+
+enum RegistrationStatus {
+  DRAFT
+  SUBMITTED
+  WAITING_VERIFICATION
+  VERIFIED
+  WAITING_PAYMENT
+  PAYMENT_VERIFIED
+  ACCEPTED
+  CLASS_PLACEMENT
+  ACTIVE_STUDENT
+  REJECTED
+  CANCELLED
+}
+
+enum Gender {
+  L
+  P
+}
+
+model DocumentType {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  isRequired   Boolean  @default(true)
+  maxSizeMb    Int      @default(2)
+  allowedTypes String[]
+  isActive     Boolean  @default(true)
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  documents    RegistrationDocument[]
+
+  @@map("document_types")
+}
+
+model Registration {
+  id                  String              @id @default(cuid())
+  registrationNo      String              @unique
+  fullName            String
+  nik                 String?
+  birthPlace          String
+  birthDate           DateTime
+  gender              Gender
+  educationLevelId    String?
+  schoolName          String?
+  gradeLevel          String?
+  address             String?
+  whatsapp            String?
+  email               String?
+  parentName          String?
+  parentPhone         String?
+  parentEmail         String?
+  parentJob           String?
+  programId           String?
+  branchId            String?
+  preferredClassId    String?
+  preferredScheduleNote String?
+  infoSource          String?
+  referralCode        String?
+  status              RegistrationStatus  @default(DRAFT)
+  rejectionReason     String?
+  adminNote           String?
+  convertedUserId     String?
+  convertedAt         DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  program             Program?            @relation(fields: [programId], references: [id])
+  branch              Branch?             @relation(fields: [branchId], references: [id])
+  educationLevel      EducationLevel?     @relation(fields: [educationLevelId], references: [id])
+  documents           RegistrationDocument[]
+  statusLogs          RegistrationStatusLog[]
+  referral            Referral?
+
+  @@index([status])
+  @@index([branchId])
+  @@index([programId])
+  @@index([referralCode])
+  @@map("registrations")
+}
+
+model RegistrationDocument {
+  id              String   @id @default(cuid())
+  registrationId  String
+  documentTypeId  String
+  fileUrl         String
+  isVerified      Boolean  @default(false)
+  note            String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  registration    Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  documentType    DocumentType @relation(fields: [documentTypeId], references: [id])
+
+  @@map("registration_documents")
+  @@index([registrationId])
+}
+
+model RegistrationStatusLog {
+  id              String              @id @default(cuid())
+  registrationId  String
+  fromStatus      RegistrationStatus?
+  toStatus        RegistrationStatus
+  note            String?
+  actorId         String?
+  createdAt       DateTime            @default(now())
+
+  registration    Registration        @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  @@index([registrationId])
+  @@map("registration_status_logs")
+}
+
+// ============================
+// AFILIATOR / REFERRAL
+// ============================
+
+enum AffiliateCategory {
+  SISWA
+  ALUMNI
+  TUTOR
+  ORANG_TUA
+  PARTNER
+  UMUM
+}
+
+enum CommissionStatus {
+  PENDING
+  REGISTRATION_VERIFIED
+  PAYMENT_VERIFIED
+  VALID
+  READY_PAYOUT
+  PAID
+  CANCELLED
+}
+
+enum CommissionRuleType {
+  NOMINAL
+  PERCENTAGE
+  PER_PROGRAM
+  TIERED
+}
+
+enum PayoutStatus {
+  REQUESTED
+  APPROVED
+  PAID
+  REJECTED
+}
+
+model Affiliate {
+  id           String             @id @default(cuid())
+  code         String             @unique
+  userId       String?  @unique
+  name         String
+  whatsapp     String
+  email        String?
+  category     AffiliateCategory  @default(UMUM)
+  bankName     String?
+  bankAccount  String?
+  bankHolder   String?
+  isActive     Boolean            @default(true)
+  clickCount   Int                @default(0)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  user         User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  referrals    Referral[]
+  payouts      CommissionPayout[]
+
+  @@index([userId])
+  @@map("affiliates")
+}
+
+model CommissionRule {
+  id          String              @id @default(cuid())
+  type        CommissionRuleType
+  programId   String?
+  nominal     Float?
+  percentage  Float?
+  stage       String?
+  priority    Int                 @default(0)
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  program     Program?            @relation(fields: [programId], references: [id])
+  commissions Commission[]
+
+  @@map("commission_rules")
+}
+
+model Referral {
+  id              String              @id @default(cuid())
+  affiliateId     String
+  registrationId  String?  @unique
+  studentId       String?
+  programId       String?
+  transactionValue Float?
+  status          CommissionStatus    @default(PENDING)
+  fraudFlag       Boolean             @default(false)
+  fraudReason     String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  affiliate       Affiliate           @relation(fields: [affiliateId], references: [id])
+  registration    Registration?       @relation(fields: [registrationId], references: [id])
+  program         Program?            @relation(fields: [programId], references: [id])
+  commissions     Commission[]
+
+  @@unique([affiliateId, registrationId])
+  @@index([affiliateId])
+  @@index([status])
+  @@map("referrals")
+}
+
+model Commission {
+  id              String              @id @default(cuid())
+  referralId      String
+  ruleId          String
+  amount          Float
+  status          CommissionStatus    @default(PENDING)
+  validatedAt     DateTime?
+  cancelledReason String?
+  payoutId        String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  referral        Referral            @relation(fields: [referralId], references: [id], onDelete: Cascade)
+  rule            CommissionRule      @relation(fields: [ruleId], references: [id])
+  payout          CommissionPayout?   @relation(fields: [payoutId], references: [id])
+
+  @@index([referralId])
+  @@index([status])
+  @@map("commissions")
+}
+
+model CommissionPayout {
+  id           String        @id @default(cuid())
+  affiliateId  String
+  amount       Float
+  bankName     String?
+  bankAccount  String?
+  bankHolder   String?
+  proofUrl     String?
+  status       PayoutStatus  @default(REQUESTED)
+  requestedAt  DateTime      @default(now())
+  verifiedBy   String?
+  paidAt       DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  affiliate    Affiliate     @relation(fields: [affiliateId], references: [id])
+  commissions  Commission[]
+
+  @@index([affiliateId])
+  @@index([status])
+  @@map("commission_payouts")
 }

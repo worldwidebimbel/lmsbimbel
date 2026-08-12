@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -30,7 +31,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }),
   ]);
 
-  // Notifikasi ke siswa
+  await logAudit({
+    entity: "Invoice",
+    entityId: id,
+    action: "REJECT_PAYMENT",
+    before: { status: invoice.status },
+    after: { status: "UNPAID", reason },
+  });
+
   await db.notification.create({
     data: {
       userId: invoice.studentId,

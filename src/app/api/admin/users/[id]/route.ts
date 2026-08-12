@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 import bcrypt from "bcryptjs";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -50,6 +51,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     select: { id: true, name: true, email: true, role: true, isActive: true, defaultBranchId: true, createdAt: true },
   });
 
+  await logAudit({
+    entity: "User",
+    entityId: id,
+    action: "UPDATE",
+    after: data,
+  });
+
   return NextResponse.json(updated);
 }
 
@@ -65,5 +73,14 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   }
 
   await db.user.update({ where: { id }, data: { isActive: false } });
+
+  await logAudit({
+    entity: "User",
+    entityId: id,
+    action: "DEACTIVATE",
+    before: { isActive: true },
+    after: { isActive: false },
+  });
+
   return NextResponse.json({ success: true });
 }

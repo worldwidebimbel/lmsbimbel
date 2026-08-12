@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeline 4 Minggu — Worldwide Global Education</title>
+<style>
+  :root {
+    --blue-950: #172554;
+    --blue-900: #1e3a8a;
+    --blue-800: #1e40af;
+    --blue-700: #1d4ed8;
+    --blue-600: #2563eb;
+    --blue-500: #3b82f6;
+    --blue-100: #dbeafe;
+    --blue-50: #eff6ff;
+    --gray-900: #111827;
+    --gray-700: #374151;
+    --gray-600: #4b5563;
+    --gray-500: #6b7280;
+    --gray-400: #9ca3af;
+    --gray-300: #d1d5db;
+    --gray-200: #e5e7eb;
+    --gray-100: #f3f4f6;
+    --gray-50: #f9fafb;
+    --green-600: #16a34a;
+    --green-100: #dcfce7;
+    --red-600: #dc2626;
+    --red-100: #fee2e2;
+    --orange-600: #ea580c;
+    --orange-100: #ffedd5;
+    --yellow-600: #ca8a04;
+    --yellow-100: #fef9c3;
+    --purple-600: #9333ea;
+    --purple-100: #f3e8ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-900);
+    line-height: 1.6;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--blue-950), var(--blue-800), var(--blue-700));
+    color: white;
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+  .header h3 {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--blue-300, #93c5fd);
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+  .header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+  .header h6 {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.8);
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* Container */
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* Intro box */
+  .intro-box {
+    background: var(--blue-50);
+    border: 1px solid var(--blue-100);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+    color: var(--gray-700);
+  }
+  .intro-box strong { color: var(--blue-800); }
+
+  /* Progress table */
+  .progress-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .progress-table th {
+    background: var(--gray-100);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .progress-table td {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--gray-200);
+    font-size: 0.9rem;
+  }
+  .progress-table tr:last-child td {
+    background: var(--blue-50);
+    font-weight: 700;
+    color: var(--blue-800);
+  }
+  .badge { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .badge-green { background: var(--green-100); color: var(--green-600); }
+  .badge-yellow { background: var(--yellow-100); color: var(--yellow-600); }
+  .badge-red { background: var(--red-100); color: var(--red-600); }
+  .badge-blue { background: var(--blue-100); color: var(--blue-700); }
+
+  /* Jalur cards */
+  .jalur-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  .jalur-card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .jalur-card .letter {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--blue-600);
+    margin-bottom: 0.25rem;
+  }
+  .jalur-card .focus { font-size: 0.8rem; color: var(--gray-600); }
+  .jalur-card .tahap { font-size: 0.7rem; color: var(--gray-400); margin-top: 0.25rem; }
+
+  /* Week summary */
+  .week-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .week-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    border-left: 4px solid var(--blue-500);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .week-card.w1 { border-left-color: var(--blue-600); }
+  .week-card.w2 { border-left-color: var(--green-600); }
+  .week-card.w3 { border-left-color: var(--purple-600); }
+  .week-card.w4 { border-left-color: var(--orange-600); }
+  .week-card .week-num { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-400); }
+  .week-card .week-theme { font-size: 1.1rem; font-weight: 700; color: var(--gray-900); margin: 0.25rem 0 0.5rem; }
+  .week-card .week-milestone { font-size: 0.85rem; color: var(--gray-600); }
+
+  /* Week section */
+  .week-section {
+    background: white;
+    border-radius: 14px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .week-section h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--gray-900);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .week-section .milestone {
+    background: var(--gray-50);
+    border-left: 3px solid var(--blue-500);
+    padding: 0.75rem 1rem;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin-bottom: 1.5rem;
+  }
+
+  /* Jalur section */
+  .jalur-section { margin-bottom: 1.5rem; }
+  .jalur-section h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--blue-700);
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--blue-100);
+  }
+  .jalur-section h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin: 1rem 0 0.5rem;
+  }
+
+  /* Task list */
+  .task-list { list-style: none; padding: 0; }
+  .task-list li {
+    padding: 0.4rem 0;
+    font-size: 0.875rem;
+    color: var(--gray-700);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .task-list li::before {
+    content: "☐";
+    color: var(--gray-300);
+    flex-shrink: 0;
+    font-size: 1rem;
+  }
+  .task-list li.fire::before { content: "🔥"; font-size: 0.875rem; }
+  .task-list li.done { color: var(--gray-400); text-decoration: line-through; }
+  .task-list li.done::before { content: "✅"; font-size: 0.875rem; color: var(--green-600); }
+  .task-list li.done .ref { opacity: 0.6; }
+  .task-list li .ref {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.78rem;
+    background: var(--gray-100);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    color: var(--gray-600);
+    flex-shrink: 0;
+  }
+
+  /* Sync point */
+  .sync-point {
+    background: linear-gradient(135deg, var(--blue-50), var(--blue-100));
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+  }
+  .sync-point h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--blue-700);
+    margin-bottom: 0.5rem;
+  }
+
+  /* Calendar table */
+  .calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+    font-size: 0.8rem;
+  }
+  .calendar-table th {
+    background: var(--blue-800);
+    color: white;
+    padding: 0.6rem;
+    text-align: center;
+    font-weight: 600;
+  }
+  .calendar-table td {
+    padding: 0.6rem;
+    border: 1px solid var(--gray-200);
+    text-align: center;
+    background: white;
+  }
+  .calendar-table td:first-child {
+    font-weight: 700;
+    background: var(--gray-50);
+    color: var(--blue-700);
+  }
+
+  /* Rules section */
+  .rules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .rule-card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 1.25rem;
+  }
+  .rule-card h4 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 0.75rem;
+  }
+  .rule-card ul { list-style: none; padding: 0; }
+  .rule-card li {
+    font-size: 0.825rem;
+    color: var(--gray-600);
+    padding: 0.3rem 0;
+    padding-left: 1.2rem;
+    position: relative;
+  }
+  .rule-card li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--blue-500);
+  }
+
+  /* Risk table */
+  .risk-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+    font-size: 0.85rem;
+  }
+  .risk-table th {
+    background: var(--gray-100);
+    padding: 0.6rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--gray-600);
+  }
+  .risk-table td {
+    padding: 0.6rem 1rem;
+    border-top: 1px solid var(--gray-200);
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--gray-400);
+    font-size: 0.8rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .header h1 { font-size: 1.75rem; }
+    .header h6 { font-size: 0.8rem; }
+    .week-section { padding: 1.25rem; }
+    .calendar-table { font-size: 0.7rem; }
+    .calendar-table th, .calendar-table td { padding: 0.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h3>PEMBUATAN WEBAPP BIMBEL</h3>
+  <h1>WORLDWIDE GLOBAL EDUCATION</h1>
+  <h6>Website Aplikasi berbasis web Worldwide Global Education merupakan sistem terintegrasi untuk mengelola promosi, penerimaan siswa, pembelajaran offline dan online, ujian, event, administrasi, keuangan, pembayaran, jadwal kelas, serta sistem afiliator.</h6>
+</div>
+
+<div class="container">
+
+  <div class="intro-box">
+    <strong>
+    Referensi nomor bagian (mis. <code>2.7</code>) mengacu ke <code>build-roadmap-checklist.md</code>.
+    <br><br>
+    <strong>Dibuat:</strong> 9 Agustus 2026 · <strong>Revisi:</strong> 11 Agustus 2026
+  </div>
+
+  <!-- Progress Table -->
+  <table class="progress-table">
+    <thead>
+      <tr>
+        <th>Tahap</th>
+        <th>Nama</th>
+        <th style="text-align:center">Item</th>
+        <th style="text-align:center">Selesai</th>
+        <th style="text-align:center">Sisa</th>
+        <th style="text-align:center">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>0</td><td>Persiapan Infrastruktur</td><td style="text-align:center">8</td><td style="text-align:center">4</td><td style="text-align:center">4</td><td style="text-align:center"><span class="badge badge-yellow">🔄 4/8</span></td></tr>
+      <tr><td>1</td><td>Fondasi Data Master & Ruangan</td><td style="text-align:center">34</td><td style="text-align:center">32</td><td style="text-align:center">2</td><td style="text-align:center"><span class="badge badge-yellow">🔄 32/34</span></td></tr>
+      <tr><td>2</td><td>Modul PPDB</td><td style="text-align:center">38</td><td style="text-align:center">32</td><td style="text-align:center">6</td><td style="text-align:center"><span class="badge badge-green">✅ 32/38</span></td></tr>
+      <tr><td>3</td><td>Modul Afiliator</td><td style="text-align:center">32</td><td style="text-align:center">27</td><td style="text-align:center">5</td><td style="text-align:center"><span class="badge badge-yellow">🔄 27/32</span></td></tr>
+      <tr><td>4</td><td>Role & Permission</td><td style="text-align:center">18</td><td style="text-align:center">0</td><td style="text-align:center">18</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/18</span></td></tr>
+      <tr><td>5</td><td>Upgrade CBT</td><td style="text-align:center">35</td><td style="text-align:center">0</td><td style="text-align:center">35</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/35</span></td></tr>
+      <tr><td>6</td><td>Sertifikat, Payment, Export</td><td style="text-align:center">28</td><td style="text-align:center">0</td><td style="text-align:center">28</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/28</span></td></tr>
+      <tr><td>7</td><td>Website, Automation, Security</td><td style="text-align:center">30</td><td style="text-align:center">0</td><td style="text-align:center">30</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/30</span></td></tr>
+      <tr><td>8</td><td>Jurnal Mengajar, Raport & Absensi Tutor</td><td style="text-align:center">28</td><td style="text-align:center">0</td><td style="text-align:center">28</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/28</span></td></tr>
+      <tr><td colspan="2"><strong>Total</strong></td><td style="text-align:center"><strong>251</strong></td><td style="text-align:center"><strong>96</strong></td><td style="text-align:center"><strong>155</strong></td><td style="text-align:center"><span class="badge badge-blue">38% selesai</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- Jalur Kerja -->
+  <h2 style="font-size:1.25rem; font-weight:700; margin-bottom:1rem;">Pembagian Jalur Kerja (6 jalur paralel)</h2>
+  <div class="jalur-grid">
+    <div class="jalur-card"><div class="letter">A</div><div class="focus">Infrastruktur & Master Data</div><div class="tahap">Tahap 0, 1 (sisa)</div></div>
+    <div class="jalur-card"><div class="letter">B</div><div class="focus">PPDB & Afiliator (sisa)</div><div class="tahap">Tahap 2, 3 (sisa)</div></div>
+    <div class="jalur-card"><div class="letter">C</div><div class="focus">CBT / Ujian Online</div><div class="tahap">Tahap 5</div></div>
+    <div class="jalur-card"><div class="letter">D</div><div class="focus">Payment, Sertifikat & Export</div><div class="tahap">Tahap 6</div></div>
+    <div class="jalur-card"><div class="letter">E</div><div class="focus">Website, CMS & Security</div><div class="tahap">Tahap 7</div></div>
+    <div class="jalur-card"><div class="letter">F</div><div class="focus">Role, Jurnal, Raport & Absensi Tutor</div><div class="tahap">Tahap 4, 8</div></div>
+  </div>
+
+  <!-- Week Summary -->
+  <h2 style="font-size:1.25rem; font-weight:700; margin-bottom:1rem;">Ringkasan per Minggu</h2>
+  <div class="week-summary">
+    <div class="week-card w1">
+      <div class="week-num">Minggu 1</div>
+      <div class="week-theme">Fondasi & Sisa Tahap 1-3</div>
+      <div class="week-milestone">Migration aktif, master data lengkap, PPDB & afiliator selesai</div>
+    </div>
+    <div class="week-card w2">
+      <div class="week-num">Minggu 2</div>
+      <div class="week-theme">CBT, Payment & Sertifikat</div>
+      <div class="week-milestone">Media soal, multi-attempt, TOEFL, payment gateway, sertifikat, export</div>
+    </div>
+    <div class="week-card w3">
+      <div class="week-num">Minggu 3</div>
+      <div class="week-theme">Role, Website & Akademik</div>
+      <div class="week-milestone">Permission granular, landing page, CMS, jurnal mengajar, raport, absensi tutor</div>
+    </div>
+    <div class="week-card w4">
+      <div class="week-num">Minggu 4</div>
+      <div class="week-theme">Integrasi, Security & Rilis</div>
+      <div class="week-milestone">Security hardening, notifikasi, leaderboard, dashboard final, smoke test, deploy</div>
+    </div>
+  </div>
+
+  <!-- MINGGU 1 -->
+  <div class="week-section">
+    <h2>📅 Minggu 1 — Fondasi & Penyelesaian Tahap 1-3</h2>
+    <div class="milestone">🎯 <strong>Milestone:</strong> Migration files aktif, semua sisa Tahap 1-3 selesai, fondasi siap untuk modul besar.</div>
+
+    <div class="jalur-section">
+      <h3>Jalur A — Infrastruktur & Master Data (Tahap 0 + sisa Tahap 1) · 12 item</h3>
+      <h4>Hari 1 — Setup Infrastruktur (Tahap 0)</h4>
+      <ul class="task-list">
+        <li class="fire"><span class="ref">0.1</span> Backup penuh database produksi (<code>pg_dump</code>)</li>
+        <li class="fire done"><span class="ref">0.1</span> Buat baseline migration + <code>migrate resolve --applied 0_init</code></li>
+        <li class="fire"><span class="ref">0.1</span> Verifikasi <code>prisma migrate status</code> bersih</li>
+        <li class="fire done"><span class="ref">0.1</span> Ganti alur deploy <code>db push</code> → <code>migrate deploy</code></li>
+        <li class="done"><span class="ref">0.1</span> Tambah script <code>db:deploy</code> ke <code>package.json</code></li>
+        <li class="fire"><span class="ref">0.2</span> Siapkan database staging</li>
+        <li><span class="ref">0.2</span> Uji outbound HTTPS VPS (<code>curl -I https://api.resend.com</code>)</li>
+        <li class="fire done"><span class="ref">0.2</span> Buat branch <code>feat/worldwide-upgrade</code> + sepakati konvensi commit</li>
+      </ul>
+      <h4>Hari 2-5 — Sisa Tahap 1</h4>
+      <ul class="task-list">
+        <li class="done"><span class="ref">1.1</span> Jalankan migration <code>add_program_master</code> + backfill <code>Invoice.programId</code></li>
+        <li class="done"><span class="ref">1.1</span> Halaman <code>/admin/master/academic-years</code></li>
+        <li><span class="ref">1.2</span> Migration 1 (tambah kolom) + verifikasi + Migration 2 (drop kolom lama)</li>
+        <li><span class="ref">1.2</span> Update form kelas & jadwal → dropdown ruangan</li>
+        <li class="done"><span class="ref">1.3</span> Pasang validator di POST/PATCH jadwal → <code>409</code> + detail bentrok</li>
+        <li><span class="ref">1.3</span> UI peringatan bentrok real-time + unit test 4 skenario</li>
+        <li class="done"><span class="ref">1.4</span> Logic set <code>TUNGGAKAN</code> otomatis saat invoice <code>OVERDUE</code></li>
+        <li class="done"><span class="ref">1.5</span> Pasang <code>logAudit()</code> di mutasi: Invoice, Payment, Grade, Schedule, User, ClassStudent</li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Jalur B — Penyelesaian PPDB & Afiliator (sisa Tahap 2 + 3) · 11 item</h3>
+      <h4>PPDB sisa (Tahap 2)</h4>
+      <ul class="task-list">
+        <li><span class="ref">2.2</span> Test 50 request paralel → 50 nomor unik</li>
+        <li class="done"><span class="ref">2.3</span> Validasi Zod di client & server</li>
+        <li class="done"><span class="ref">2.3</span> Tombol "Daftar" di halaman program & landing page → <code>/daftar?program={slug}</code></li>
+        <li class="done"><span class="ref">2.4</span> <code>/api/ppdb/upload</code> — validasi MIME & ukuran di server + Cloudinary + rate limit</li>
+        <li class="done"><span class="ref">2.7</span> Kirim kredensial login ke email & WA siswa + orang tua</li>
+        <li class="done"><span class="ref">2.8</span> Template notifikasi tiap transisi status + notif ke admin cabang</li>
+      </ul>
+      <h4>Afiliator sisa (Tahap 3)</h4>
+      <ul class="task-list">
+        <li class="done"><span class="ref">3.3</span> Trigger komisi dari verifikasi pembayaran invoice (bukan cuma PPDB)</li>
+        <li class="done"><span class="ref">3.4</span> Batasi jumlah referral per IP per hari</li>
+        <li class="done"><span class="ref">3.4</span> Dedupe <code>clickCount</code> per IP dalam jendela waktu</li>
+        <li class="done"><span class="ref">3.7</span> Notifikasi: referral baru, komisi valid, pencairan disetujui/ditolak/dibayar</li>
+        <li class="done"><span class="ref">3.6</span> Laporan komisi masuk ke laporan keuangan (Bab 9F)</li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Jalur C — CBT Bagian 1 (Tahap 5.1-5.2) · 14 item</h3>
+      <ul class="task-list">
+        <li><span class="ref">5.1</span> Tambah <code>Question.imageUrl/audioUrl/videoUrl</code> + upload ke Cloudinary</li>
+        <li><span class="ref">5.1</span> Editor soal sisip media + player audio/video di halaman siswa</li>
+        <li><span class="ref">5.1</span> Aktifkan <code>katex</code> untuk rumus matematika</li>
+        <li class="fire"><span class="ref">5.2</span> <code>Exam.materialId</code>, <code>Exam.maxAttempts</code>, <code>ExamAttempt.attemptNumber</code></li>
+        <li class="fire"><span class="ref">5.2</span> Hapus <code>@@unique([examId, studentId])</code> → ganti <code>[examId, studentId, attemptNumber]</code></li>
+        <li class="fire"><span class="ref">5.2</span> Perbaiki 7 pemakaian <code>examId_studentId</code> di 5 file</li>
+        <li><span class="ref">5.2</span> Ganti pola <code>upsert</code> → cek <code>maxAttempts</code> + <code>create</code></li>
+        <li><span class="ref">5.2</span> Tolak attempt > <code>maxAttempts</code> + <code>Exam.scoringMode</code></li>
+        <li><span class="ref">5.2</span> UI quiz di detail materi siswa</li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Jalur D — Payment & Export Helper (Tahap 6.2-6.3) · 12 item</h3>
+      <ul class="task-list">
+        <li class="fire"><span class="ref">6.2</span> Refactor <code>event-payment.ts</code> → <code>src/lib/payment-gateway.ts</code> generik</li>
+        <li class="fire"><span class="ref">6.2</span> <code>POST /api/payments/invoice/[id]/checkout</code></li>
+        <li class="fire"><span class="ref">6.2</span> <code>POST /api/payments/webhook/midtrans</code> terpusat</li>
+        <li class="fire"><span class="ref">6.2</span> Verifikasi signature webhook + idempotent</li>
+        <li><span class="ref">6.2</span> Webhook update Invoice + Payment + BranchTransaction + notifikasi</li>
+        <li><span class="ref">6.2</span> Pembayaran PPDB lewat gateway</li>
+        <li><span class="ref">6.2</span> Instruksi pembayaran manual yang bisa diatur admin</li>
+        <li><span class="ref">6.2</span> Toggle gateway di <code>/admin/settings</code></li>
+        <li><span class="ref">6.3</span> <code>src/lib/export-excel.ts</code> (pakai <code>exceljs</code>)</li>
+        <li><span class="ref">6.3</span> <code>src/lib/export-pdf.ts</code> (install <code>pdf-lib</code>)</li>
+        <li><span class="ref">6.3</span> Hapus duplikat <code>xlsx</code> dari <code>package.json</code></li>
+        <li><span class="ref">6.3</span> Import data siswa dari Excel/CSV + preview + template unduhan</li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Jalur E — Website & CMS Awal (Tahap 7.1-7.2) · 13 item</h3>
+      <ul class="task-list">
+        <li><span class="ref">7.1</span> <code>model LandingPage</code> — slug, title, sections, meta, CTA, viewCount</li>
+        <li><span class="ref">7.1</span> Route publik <code>/lp/[slug]</code> + generateMetadata SEO</li>
+        <li><span class="ref">7.1</span> <code>/admin/landing-pages</code> — builder berbasis blok (hero, fitur, testimoni, FAQ, CTA, form)</li>
+        <li><span class="ref">7.1</span> CTA terhubung ke PPDB / Event / Inquiry + hitung viewCount</li>
+        <li><span class="ref">7.2</span> <code>model SiteFaq</code> — FAQ dengan kategori</li>
+        <li><span class="ref">7.2</span> <code>model SiteTeamMember</code> — profil tim/tutor publik</li>
+        <li><span class="ref">7.2</span> Struktur organisasi + legalitas lembaga</li>
+        <li><span class="ref">7.2</span> Kategori "PRESTASI" pada <code>SiteGallery</code> + halaman galeri prestasi</li>
+        <li><span class="ref">7.2</span> Halaman publik daftar cabang/lokasi</li>
+        <li><span class="ref">7.2</span> Halaman detail program publik <code>/program/[slug]</code></li>
+        <li><span class="ref">7.2</span> Halaman visi/misi & profil lembaga</li>
+        <li><span class="ref">7.2</span> Audit SEO: sitemap.xml, robots.txt, metadata semua halaman publik</li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Jalur F — Role & Permission (Tahap 4.1-4.2) · 9 item</h3>
+      <ul class="task-list">
+        <li class="fire"><span class="ref">4.1</span> <code>model Permission</code> — code, name, module, description</li>
+        <li class="fire"><span class="ref">4.1</span> <code>model RolePermission</code> — role, permissionCode</li>
+        <li><span class="ref">4.1</span> Tambah role baru: <code>ADMIN_CABANG</code>, <code>ADMIN_KEUANGAN</code>, <code>ADMIN_AKADEMIK</code></li>
+        <li><span class="ref">4.1</span> Seed permission per modul + mapping default role</li>
+        <li><span class="ref">4.1</span> <code>src/lib/permission.ts</code> — <code>hasPermission()</code>, <code>requirePermission()</code> + cache</li>
+        <li class="fire"><span class="ref">4.2</span> Inventarisasi semua cek role (grep <code>SUPER_ADMIN</code>)</li>
+        <li><span class="ref">4.2</span> Ganti guard hardcode → <code>requirePermission()</code>, pastikan backward compatible</li>
+        <li><span class="ref">4.2</span> Update <code>src/lib/auth.ts</code> — permission di session</li>
+        <li><span class="ref">4.2</span> Pastikan <code>ADMIN</code> lama tetap punya semua permission</li>
+      </ul>
+    </div>
+
+    <div class="sync-point">
+      <h4>🔄 Sync Point Jumat Minggu 1</h4>
+      <ul class="task-list">
+        <li><code>npm run build</code> + <code>npm run lint</code> bersih</li>
+        <li>Semua migration jalan berurutan di staging</li>
+        <li>Demo: PPDB end-to-end + afiliator referral → komisi</li>
+        <li>Demo: payment gateway sandbox → webhook update</li>
+        <li><strong>DoD Tahap 0, 1, 2, 3 tercentang</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MINGGU 2 -->
+  <div class="week-section">
+    <h2>📅 Minggu 2 — CBT Lengkap, Sertifikat & Export</h2>
+    <div class="milestone">🎯 <strong>Milestone:</strong> TOEFL berjalan, bank soal reusable, sertifikat ber-QR & PDF, export semua modul, laporan keuangan lengkap.</div>
+
+    <div class="jalur-section">
+      <h3>Jalur C — CBT Bagian 2 (Tahap 5.3-5.7) · 21 item</h3>
+      <ul class="task-list">
+        <li class="fire"><span class="ref">5.3</span> <code>StimulusType</code>, <code>QuestionGroup</code>, <code>Question.groupId</code></li>
+        <li class="fire"><span class="ref">5.3</span> <code>ExamSection</code> + <code>Question.sectionId</code></li>
+        <li class="fire"><span class="ref">5.3</span> UI admin: 1 audio / 1 passage untuk banyak soal</li>
+        <li class="fire"><span class="ref">5.3</span> UI siswa: split view passage + soal</li>
+        <li class="fire"><span class="ref">5.3</span> Audio: batasi <code>maxPlayCount</code>, tidak bisa di-seek</li>
+        <li class="fire"><span class="ref">5.3</span> Timer per section + auto-lanjut</li>
+        <li class="fire"><span class="ref">5.3</span> Simpan sisa waktu di server (cegah manipulasi client)</li>
+        <li><span class="ref">5.4</span> Relasi soal↔ujian → M:N (<code>ExamQuestion</code>) + migrasi data</li>
+        <li><span class="ref">5.4</span> Halaman <code>/admin/bank-soal</code> + pilih soal dari bank</li>
+        <li><span class="ref">5.4</span> Statistik soal (tingkat kesulitan aktual)</li>
+        <li><span class="ref">5.5</span> Template Word/Excel soal yang bisa diunduh</li>
+        <li><span class="ref">5.5</span> Parser <code>.docx</code> pakai <code>mammoth</code> + parser <code>.xlsx</code> pakai <code>exceljs</code></li>
+        <li><span class="ref">5.5</span> Preview hasil parsing + laporan baris gagal</li>
+        <li><span class="ref">5.5</span> Export bank soal ke Excel & PDF</li>
+        <li><span class="ref">5.6</span> Pilih provider AI (Gemini/OpenAI) + simpan API key di env</li>
+        <li><span class="ref">5.6</span> <code>POST /api/admin/ujian/ai-generate</code> — input topik, mapel, jumlah, tipe</li>
+        <li><span class="ref">5.6</span> Output draft yang wajib direview admin + rate limit + logging</li>
+        <li><span class="ref">5.6</span> Tambah <code>FEAT_AI_QUESTION</code> ke <code>FEATURE_CODES</code></li>
+        <li><span class="ref">5.7</span> <code>Exam.shuffleOptions</code> — acak pilihan jawaban</li>
+        <li><span class="ref">5.7</span> Antarmuka penilaian essay manual per soal</li>
+        <li><span class="ref">5.7</span> Analisis hasil belajar + generate rapor PDF + auto-submit saat waktu habis</li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Jalur D — Sertifikat & Laporan (Tahap 6.1, 6.4) · 16 item</h3>
+      <ul class="task-list">
+        <li class="fire"><span class="ref">6.1</span> <code>CertificateTemplate</code> + <code>Certificate.templateId</code> & <code>certificateNo @unique</code></li>
+        <li><span class="ref">6.1</span> Generator nomor sertifikat otomatis</li>
+        <li><span class="ref">6.1</span> QR Code (pakai <code>qrcode.react</code> + <code>qrcode</code> server-side)</li>
+        <li><span class="ref">6.1</span> Generate PDF (<code>pdf-lib</code>) + tombol download di dashboard siswa</li>
+        <li><span class="ref">6.1</span> Editor posisi field di atas template</li>
+        <li><span class="ref">6.1</span> Perkaya <code>/sertifikat/[code]</code> + <code>/admin/sertifikat/templates</code></li>
+        <li><span class="ref">6.1</span> Trigger otomatis saat syarat LMS terpenuhi</li>
+        <li><span class="ref">6.4</span> Laporan harian, mingguan, tahunan</li>
+        <li><span class="ref">6.4</span> Pendapatan per program (pakai <code>Invoice.programId</code>) + per cabang</li>
+        <li><span class="ref">6.4</span> Pengeluaran per kategori + laba/rugi + piutang</li>
+        <li><span class="ref">6.4</span> Komisi afiliator masuk laporan</li>
+        <li><span class="ref">6.3</span> Pasang tombol Export Excel/PDF di semua modul utama</li>
+        <li><span class="ref">6.3</span> Export menghormati filter & scope cabang</li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Jalur E — Absensi Tutor & Payroll (Tahap 7.3) · 6 item</h3>
+      <ul class="task-list">
+        <li><span class="ref">7.3</span> <code>model TeacherAttendance</code> — teacherId, classId, scheduleId, date, checkIn/out, status</li>
+        <li><span class="ref">7.3</span> UI absensi tutor + rekap kehadiran</li>
+        <li><span class="ref">7.3</span> Absensi via QR Code (<code>FEAT_ATTENDANCE_QR</code> sudah ada)</li>
+        <li><span class="ref">7.3</span> Absensi via kode kelas</li>
+        <li><span class="ref">7.3</span> <code>model TeacherPayroll</code> — rate per pertemuan/jam × kehadiran</li>
+        <li><span class="ref">7.3</span> Laporan honor tutor + export</li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Jalur F — Scope Cabang & Dashboard Role (Tahap 4.3-4.4) · 9 item</h3>
+      <ul class="task-list">
+        <li class="fire"><span class="ref">4.3</span> Audit semua query lintas cabang</li>
+        <li class="fire"><span class="ref">4.3</span> <code>ADMIN_CABANG</code> terisolasi (siswa, kelas, jadwal, invoice, PPDB, transaksi)</li>
+        <li class="fire"><span class="ref">4.3</span> Tolak akses <code>[id]</code> lintas cabang (detail/PATCH/DELETE)</li>
+        <li class="fire"><span class="ref">4.3</span> Test: login admin cabang A, akses ID cabang B → 403</li>
+        <li><span class="ref">4.4</span> Dashboard Admin Cabang — siswa, pendaftaran, kelas, jadwal, tutor, pembayaran</li>
+        <li><span class="ref">4.4</span> Dashboard Admin Keuangan — fokus pembayaran, pemasukan, pengeluaran, laporan</li>
+        <li><span class="ref">4.4</span> Dashboard Admin Akademik — program, kelas, tutor, jadwal, siswa</li>
+        <li><span class="ref">4.4</span> Menu sidebar dinamis per permission</li>
+        <li><span class="ref">4.4</span> Halaman <code>/admin/users</code> — pilihan role diperluas + assign cabang</li>
+      </ul>
+    </div>
+
+    <div class="sync-point">
+      <h4>🔄 Sync Point Jumat Minggu 2</h4>
+      <ul class="task-list">
+        <li>Demo TOEFL: 1 audio untuk 5 soal, batas 1× putar, timer per section</li>
+        <li>Demo sertifikat: generate PDF dengan QR Code</li>
+        <li>Demo AI Question Generator: generate 10 soal dari topik</li>
+        <li>Demo export Excel/PDF di modul siswa & keuangan</li>
+        <li><strong>DoD Tahap 4 & 5 tercentang</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MINGGU 3 -->
+  <div class="week-section">
+    <h2>📅 Minggu 3 — Website, Automation & Akademik</h2>
+    <div class="milestone">🎯 <strong>Milestone:</strong> Notifikasi terjadwal, announcement diperluas, leaderboard event, jurnal mengajar, raport & absensi tutor lengkap.</div>
+
+    <div class="jalur-section">
+      <h3>Jalur E — Notifikasi, Announcement & Leaderboard (Tahap 7.4-7.6, 7.8) · 18 item</h3>
+      <ul class="task-list">
+        <li><span class="ref">7.4</span> <code>model NotificationTemplate</code> — template WA & Email yang bisa diedit admin</li>
+        <li><span class="ref">7.4</span> Scheduler (cron / node-cron) untuk reminder pembayaran (H-3, H-1, H+1)</li>
+        <li><span class="ref">7.4</span> Scheduler reminder jadwal kelas + update <code>StudentStatus</code> → <code>TUNGGAKAN</code> otomatis</li>
+        <li><span class="ref">7.4</span> Trigger notifikasi: perubahan jadwal, hasil ujian, sertifikat tersedia</li>
+        <li><span class="ref">7.4</span> Halaman <code>/admin/notifications/templates</code> + log pengiriman</li>
+        <li><span class="ref">7.5</span> Tambah <code>Announcement</code>: targetBranchIds, targetProgramIds, targetClassIds, imageUrl, attachmentUrl, startDate, endDate</li>
+        <li><span class="ref">7.5</span> Filter penerima berdasarkan target gabungan + kedaluwarsa otomatis</li>
+        <li><span class="ref">7.6</span> Tambah <code>Event</code>: rankingCriteria, autoRanking</li>
+        <li><span class="ref">7.6</span> Mesin ranking dengan tie-breaker (nilai → waktu → kriteria lain)</li>
+        <li><span class="ref">7.6</span> Penentuan otomatis Juara 1/2/3 & Top 10</li>
+        <li><span class="ref">7.6</span> Halaman leaderboard publik per event</li>
+        <li><span class="ref">7.6</span> Pengumuman pemenang + trigger sertifikat pemenang</li>
+        <li><span class="ref">7.8</span> Dashboard Super Admin lengkap: total cabang, calon siswa, komisi, event, piutang, tunggakan</li>
+        <li><span class="ref">7.8</span> Grafik pertumbuhan siswa & pendapatan (pakai <code>recharts</code>)</li>
+        <li><span class="ref">7.8</span> Perbandingan performa antar cabang</li>
+        <li><span class="ref">7.8</span> Dashboard siswa: tambah kartu sertifikat & referral</li>
+        <li><span class="ref">7.8</span> Automatic reporting (laporan periodik via email)</li>
+        <li><span class="ref">7.8</span> Dashboard Admin Cabang final (Bab 11)</li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Jalur F — Jurnal Mengajar (Tahap 8.1) · 11 item</h3>
+      <ul class="task-list">
+        <li><span class="ref">8.1</span> <code>model TeachingJournal</code> — classId, scheduleId, teacherId, date, materialCovered, methodology, studentResponse, challenges, reflection, nextPlan, status</li>
+        <li><span class="ref">8.1</span> Migration <code>add_teaching_journal</code></li>
+        <li><span class="ref">8.1</span> <code>GET /api/guru/jurnal</code> — list jurnal tutor (scoped per kelas/tanggal)</li>
+        <li><span class="ref">8.1</span> <code>POST /api/guru/jurnal</code> — buat/edit jurnal per pertemuan</li>
+        <li><span class="ref">8.1</span> <code>PATCH /api/guru/jurnal/[id]</code> — update jurnal (hanya pemilik atau admin)</li>
+        <li><span class="ref">8.1</span> <code>GET /api/admin/jurnal</code> — admin lihat semua jurnal</li>
+        <li><span class="ref">8.1</span> <code>GET /api/orangtua/jurnal</code> — orang tua lihat jurnal kelas anak</li>
+        <li><span class="ref">8.1</span> Halaman <code>/guru/jurnal</code> — form input jurnal + riwayat</li>
+        <li><span class="ref">8.1</span> Halaman <code>/admin/jurnal</code> — tabel rekap jurnal semua tutor</li>
+        <li><span class="ref">8.1</span> Widget jurnal terbaru di dashboard admin akademik</li>
+        <li><span class="ref">8.1</span> Orang tua lihat jurnal kelas anak + <code>FEAT_TEACHING_JOURNAL</code></li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Jalur F — Raport & Laporan Siswa (Tahap 8.2) · 17 item</h3>
+      <ul class="task-list">
+        <li><span class="ref">8.2</span> <code>model ReportPeriod</code> — name, academicYearId, startDate, endDate, isActive</li>
+        <li><span class="ref">8.2</span> <code>model ReportCard</code> — studentId, classId, periodId, homeroomTeacherId, homeroomComment, attendanceSummary, overallScore, rank, status</li>
+        <li><span class="ref">8.2</span> <code>model ReportCardDetail</code> — reportCardId, subjectName, averageScore, gradeLetter, teacherComment, components</li>
+        <li><span class="ref">8.2</span> Migration <code>add_report_card</code></li>
+        <li><span class="ref">8.2</span> <code>GET/POST /api/admin/report-periods</code> — CRUD periode rapor</li>
+        <li><span class="ref">8.2</span> <code>POST /api/admin/raport/generate</code> — generate rapor massal per kelas + periode</li>
+        <li><span class="ref">8.2</span> <code>GET /api/admin/raport</code> — list rapor (filter kelas/periode/siswa)</li>
+        <li><span class="ref">8.2</span> <code>GET /api/admin/raport/[id]</code> — detail rapor + semua mata pelajaran</li>
+        <li><span class="ref">8.2</span> <code>PATCH /api/admin/raport/[id]</code> — edit komentar wali kelas + komentar per mapel</li>
+        <li><span class="ref">8.2</span> <code>POST /api/admin/raport/[id]/publish</code> — publish rapor</li>
+        <li><span class="ref">8.2</span> <code>GET /api/orangtua/raport</code> — list rapor anak yang dipublish</li>
+        <li><span class="ref">8.2</span> <code>GET /api/orangtua/raport/[id]</code> — detail rapor anak</li>
+        <li><span class="ref">8.2</span> <code>GET /api/siswa/raport</code> — siswa lihat rapor sendiri</li>
+        <li><span class="ref">8.2</span> <code>GET /api/admin/raport/[id]/pdf</code> — generate PDF rapor (pakai <code>pdf-lib</code>)</li>
+        <li><span class="ref">8.2</span> <code>GET /api/admin/raport/export</code> — export Excel rekap nilai</li>
+        <li><span class="ref">8.2</span> Halaman <code>/admin/raport/periode</code> + <code>/admin/raport</code> + <code>/admin/raport/[id]</code></li>
+        <li><span class="ref">8.2</span> Halaman <code>/orangtua/raport</code> + <code>/siswa/raport</code> + <code>FEAT_REPORT_CARD</code></li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Jalur F — Absensi Tutor & Payroll (Tahap 8.3) · 11 item</h3>
+      <ul class="task-list">
+        <li><span class="ref">8.3</span> <code>model TeacherAttendance</code> (diperluas dari 7.3) + <code>model TeacherPayroll</code></li>
+        <li><span class="ref">8.3</span> Migration <code>add_teacher_attendance_payroll</code></li>
+        <li><span class="ref">8.3</span> <code>POST /api/guru/absensi-tutor</code> — check-in/check-out (manual/QR/kode)</li>
+        <li><span class="ref">8.3</span> <code>GET /api/guru/absensi-tutor</code> — riwayat absensi sendiri</li>
+        <li><span class="ref">8.3</span> <code>GET /api/admin/absensi-tutor</code> — admin lihat semua absensi tutor</li>
+        <li><span class="ref">8.3</span> <code>POST /api/admin/absensi-tutor/[id]/verify</code> — verifikasi absensi</li>
+        <li><span class="ref">8.3</span> <code>POST /api/admin/payroll/generate</code> — generate payroll per tutor + periode</li>
+        <li><span class="ref">8.3</span> <code>GET /api/admin/payroll</code> + <code>PATCH /api/admin/payroll/[id]</code> + <code>GET /api/admin/payroll/[id]/pdf</code></li>
+        <li><span class="ref">8.3</span> <code>GET /api/admin/payroll/export</code> — export Excel rekap honor</li>
+        <li><span class="ref">8.3</span> Halaman <code>/guru/absensi-tutor</code> + QR code + <code>/admin/absensi-tutor</code> + <code>/admin/payroll</code> + <code>/admin/payroll/[id]</code></li>
+        <li><span class="ref">8.3</span> <code>FEAT_TEACHER_ATTENDANCE</code> & <code>FEAT_PAYROLL</code> ke <code>FEATURE_CODES</code></li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Jalur F — Notifikasi Terkait (Tahap 8.4) · 4 item</h3>
+      <ul class="task-list">
+        <li><span class="ref">8.4</span> Notifikasi ke orang tua saat rapor dipublish (WA + Email + in-app)</li>
+        <li><span class="ref">8.4</span> Notifikasi ke admin saat tutor belum isi jurnal setelah pertemuan</li>
+        <li><span class="ref">8.4</span> Notifikasi ke tutor saat payroll disetujui/dibayar</li>
+        <li><span class="ref">8.4</span> Notifikasi ke admin saat tutor tidak hadir (ALPHA)</li>
+      </ul>
+    </div>
+
+    <div class="sync-point">
+      <h4>🔄 Sync Point Jumat Minggu 3</h4>
+      <ul class="task-list">
+        <li>Demo jurnal mengajar: tutor input → admin lihat → orang tua lihat</li>
+        <li>Demo raport: generate massal → edit komentar → publish → orang tua lihat → cetak PDF</li>
+        <li>Demo absensi tutor QR + payroll generate → slip PDF</li>
+        <li>Demo notifikasi terjadwal: reminder pembayaran</li>
+        <li>Demo leaderboard event: ranking otomatis + sertifikat pemenang</li>
+        <li><strong>DoD Tahap 7 & 8 tercentang</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MINGGU 4 -->
+  <div class="week-section">
+    <h2>📅 Minggu 4 — Integrasi, Security & Rilis</h2>
+    <div class="milestone">🎯 <strong>Milestone:</strong> Security hardening, smoke test seluruh alur, deploy ke produksi.</div>
+
+    <div class="jalur-section">
+      <h3>Hari 1-2 — Security Hardening (Tahap 7.7) · 7 item</h3>
+      <ul class="task-list">
+        <li class="fire"><span class="ref">7.7</span> Rate limiting untuk login, register, form publik, upload, AI generator</li>
+        <li class="fire"><span class="ref">7.7</span> Validasi upload file ketat di server (MIME asli, bukan hanya ekstensi)</li>
+        <li class="fire"><span class="ref">7.7</span> Script backup database otomatis + cron + uji restore</li>
+        <li><span class="ref">7.7</span> Lock nilai final (butuh permission khusus, tercatat di audit log)</li>
+        <li><span class="ref">7.7</span> Review header keamanan di <code>next.config.ts</code> (CSP, X-Frame-Options)</li>
+        <li><span class="ref">7.7</span> Kebijakan kekuatan password + fitur lupa password</li>
+        <li><span class="ref">7.7</span> Uji akses lintas cabang & lintas role menyeluruh</li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Hari 2-3 — Integrasi & Polish · semua jalur</h3>
+      <ul class="task-list">
+        <li>Integrasi PPDB ↔ Afiliator: referral → verifikasi → bayar → komisi VALID</li>
+        <li>Integrasi Payment ↔ Afiliator: webhook pembayaran → advance komisi</li>
+        <li>Integrasi Sertifikat ↔ Event: pemenang event → sertifikat otomatis</li>
+        <li>Integrasi Raport ↔ Absensi: rekap absensi masuk raport</li>
+        <li>Integrasi Jurnal ↔ Absensi Tutor: jurnal terisi → absensi terverifikasi</li>
+        <li>Integrasi Landing Page ↔ PPDB: CTA → form daftar</li>
+        <li>Pasang audit log di semua mutasi tersisa</li>
+        <li>Pasang export Excel/PDF di modul yang belum (afiliator, jurnal, raport, payroll)</li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Hari 3-4 — Smoke Test Menyeluruh</h3>
+      <ul class="task-list">
+        <li>Alur PPDB: daftar → upload dokumen → verifikasi → bayar → konversi siswa → kelas → jadwal</li>
+        <li>Alur Afiliator: klik link → daftar → verifikasi → bayar → komisi VALID → pencairan</li>
+        <li>Alur CBT: buat soal media → susun ujian → TOEFL (audio + section timer) → multi-attempt → nilai</li>
+        <li>Alur Sertifikat: syarat terpenuhi → generate PDF + QR → siswa download → verifikasi publik</li>
+        <li>Alur Akademik: jurnal mengajar → raport generate → publish → orang tua lihat → cetak PDF</li>
+        <li>Alur Payroll: absensi tutor → generate payroll → approve → slip PDF</li>
+        <li>Alur Keuangan: invoice → bayar online → webhook → laporan pendapatan per program</li>
+        <li>Alur Website: landing page → CTA daftar → PPDB</li>
+        <li>Uji anti-fraud: self-referral ditolak, duplikasi terdeteksi</li>
+        <li>Uji isolasi cabang: admin cabang A tidak bisa akses data cabang B</li>
+        <li>Uji permission: setiap role hanya melihat menu & data yang berhak</li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Hari 4-5 — Deploy ke Produksi</h3>
+      <ul class="task-list">
+        <li>Checklist Rilis (Lampiran E <code>build-roadmap-checklist.md</code>) tercentang penuh</li>
+        <li>Backup produksi sebelum deploy</li>
+        <li><code>prisma migrate deploy</code> di produksi (semua migration berurutan)</li>
+        <li>Smoke test di produksi: PPDB → siswa → kelas → ujian → nilai → sertifikat</li>
+        <li>Smoke test: afiliator → referral → komisi → pencairan</li>
+        <li>Smoke test: TOEFL → multi-attempt → nilai</li>
+        <li>Smoke test: raport → publish → orang tua lihat</li>
+        <li>Smoke test: payroll → slip PDF</li>
+        <li>Cek <code>pm2 logs</code> bersih</li>
+        <li>Verifikasi backup otomatis berjalan</li>
+      </ul>
+    </div>
+
+    <div class="sync-point">
+      <h4>🔄 Sync Point Jumat Minggu 4 — RILIS</h4>
+      <ul class="task-list">
+        <li><strong>DoD Tahap 6 tercentang</strong></li>
+        <li>Semua 8 tahap selesai</li>
+        <li>251 item tercentang</li>
+        <li>Sistem live di produksi</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Calendar -->
+  <h2 style="font-size:1.25rem; font-weight:700; margin-bottom:1rem;">Kalender Ringkas</h2>
+  <table class="calendar-table">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Jalur A</th>
+        <th>Jalur B</th>
+        <th>Jalur C</th>
+        <th>Jalur D</th>
+        <th>Jalur E</th>
+        <th>Jalur F</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>M1</td>
+        <td>Infra + Master</td>
+        <td>PPDB + Afiliator sisa</td>
+        <td>CBT media + multi-attempt</td>
+        <td>Payment + Export</td>
+        <td>Landing page + CMS</td>
+        <td>Role & permission</td>
+      </tr>
+      <tr>
+        <td>M2</td>
+        <td>—</td>
+        <td>—</td>
+        <td>TOEFL + bank soal + AI</td>
+        <td>Sertifikat + laporan</td>
+        <td>Absensi tutor + payroll</td>
+        <td>Scope cabang + dashboard</td>
+      </tr>
+      <tr>
+        <td>M3</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>Notifikasi + leaderboard + dashboard final</td>
+        <td>Jurnal + raport + absensi tutor + payroll</td>
+      </tr>
+      <tr>
+        <td>M4</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>Security + integrasi + smoke test + deploy</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Rules -->
+  <h2 style="font-size:1.25rem; font-weight:700; margin-bottom:1rem;">Aturan Operasional</h2>
+  <div class="rules-grid">
+    <div class="rule-card">
+      <h4> Ritme Harian</h4>
+      <ul>
+        <li>Standup 15 menit pagi: kemarin / hari ini / blocker</li>
+        <li>Push ke branch masing-masing minimal 1× sehari</li>
+        <li>Merge ke <code>feat/worldwide-upgrade</code> minimal 2× seminggu</li>
+      </ul>
+    </div>
+    <div class="rule-card">
+      <h4>🔥 Aturan Migration</h4>
+      <ul>
+        <li>Satu migration per hari per developer maksimal</li>
+        <li>Sebelum bikin migration: <code>git pull</code> + <code>prisma migrate dev</code></li>
+        <li>Umumkan di grup sebelum migration destruktif</li>
+        <li>Migration destruktif hanya hari Selasa/Rabu</li>
+      </ul>
+    </div>
+    <div class="rule-card">
+      <h4>✅ Definition of Done per Item</h4>
+      <ul>
+        <li>Kode jalan di lokal + <code>npm run build</code> lolos</li>
+        <li>Guard role/permission terpasang</li>
+        <li><code>logAudit()</code> dipanggil bila mutasi penting</li>
+        <li>Diuji di staging</li>
+        <li>Feature flag dibuat bila fitur baru</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Risk -->
+  <h2 style="font-size:1.25rem; font-weight:700; margin-bottom:1rem;">Risiko & Mitigasi</h2>
+  <table class="risk-table">
+    <thead>
+      <tr><th>Risiko</th><th>Dampak</th><th>Mitigasi</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>5.3</code> TOEFL meledak jadi 6-7 hari</td><td>Jalur C slip</td><td>Mulai desain di Minggu 1, coding di Minggu 2</td></tr>
+      <tr><td>Konflik migration antar banyak dev</td><td>Build rusak berhari-hari</td><td>Aturan 1 migration/hari/dev + pull sebelum bikin</td></tr>
+      <tr><td><code>4.2</code> guard hardcode lebih banyak dari perkiraan</td><td>Role migration tidak selesai</td><td>Inventarisasi grep di awal Minggu 1</td></tr>
+      <tr><td>Migrasi <code>room</code> gagal map sebagian</td><td>Data jadwal kacau</td><td>Script cetak laporan gagal + jangan drop kolom lama sampai terverifikasi</td></tr>
+      <tr><td><code>8.2</code> raport generate kompleks</td><td>Jalur F slip Minggu 3</td><td>Mulai schema raport di Minggu 2 paralel</td></tr>
+      <tr><td>Integrasi antar modul di Minggu 4 terlalu padat</td><td>Rilis slip</td><td>Mulai integrasi bertahap di akhir Minggu 3</td></tr>
+    </tbody>
+  </table>
+
+</div>
+
+<div class="footer">
+  © 2026 Worldwide Global Education · EduBimbel LMS · lmsbimbel.digsan.id
+</div>
+
+</body>
+</html>

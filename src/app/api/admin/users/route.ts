@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 import bcrypt from "bcryptjs";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -26,6 +27,13 @@ export async function POST(req: NextRequest) {
   const user = await db.user.create({
     data: { name, email, password: hashed, role, defaultBranchId: targetBranchId },
     select: { id: true, name: true, email: true, role: true, isActive: true, defaultBranchId: true, createdAt: true },
+  });
+
+  await logAudit({
+    entity: "User",
+    entityId: user.id,
+    action: "CREATE",
+    after: { name, email, role, branchId: targetBranchId },
   });
 
   return NextResponse.json(user, { status: 201 });

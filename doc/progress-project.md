@@ -1,8 +1,8 @@
 # Progress Project — EduBimbel LMS
 
-**Last updated:** 2026-06-26  
-**Commit:** TBD — feat: comprehensive user profiles (photo upload, personal details, education history, role-based profile card)  
-**Build status:** ✅ Clean (tsc passed)  
+**Last updated:** 2026-08-12  
+**Commit:** feat: PPDB + Afiliator completion (Tahap 2-3 sisa) + Tahap 1.1/1.3-1.5 done  
+**Build status:** ✅ Clean (tsc --noEmit passed)  
 **Live:** https://lmsbimbel.digsan.id  
 
 **Scope baru:** Kebutuhan aplikasi berbasis web umum (company profile + LMS + ujian + event berbayar + sertifikat + administrasi multi-cabang + pembayaran otomatis).
@@ -335,6 +335,65 @@
 ---
 
 ## 📝 Changelog
+
+### 2026-08-11 — Tahap 1-3: Master Data, PPDB, Affiliate Schema
+
+**Tahap 1 — Fondasi Data Master & Ruangan (30/34 ✅)**
+- **Schema:** `EducationLevel`, `Program` (slug, price, promo), `Level`, `AcademicYear`, `Building`, `Room` (capacity, facilities), `TransactionCategory`, `AuditLog`, `StudentStatus` enum
+- **Relations:** Program↔Branch M:N, Program↔EducationLevel M:N, Class.roomId, Schedule.roomId, Schedule.teacherId, Invoice.programId
+- **Lib:** `src/lib/schedule-conflict.ts` (anti-bentrok: tutor, ruangan, kelas, kapasitas), `src/lib/audit.ts` (logAudit helper)
+- **API:** `/api/admin/programs`, `/api/admin/education-levels`, `/api/admin/academic-years`, `/api/admin/buildings`, `/api/admin/rooms`, `/api/admin/transaction-categories`, `/api/admin/audit-log`
+- **UI:** `/admin/master/programs` (ProgramsManager), `/admin/master/ruangan` (RoomsManager), `/admin/audit-log` (AuditLogViewer)
+- **Scripts:** `scripts/seed-master-data.ts`, `scripts/migrate-rooms.ts`
+- **Feature flags:** `FEAT_ROOM_MANAGEMENT`, `FEAT_AUDIT_LOG` added to `FEATURE_CODES`
+- **Sidebar:** nav items for Programs, Ruangan, Audit Log, PPDB added
+- **Pending:** Run migrations, halaman academic-years, dropdown ruangan di form kelas, pasang audit di mutasi kritikal, unit test schedule-conflict
+
+**Tahap 2 — Modul PPDB (32/38 ✅)**
+- **Schema:** `RegistrationStatus` enum (11 status), `DocumentType`, `Registration`, `RegistrationDocument`, `RegistrationStatusLog`
+- **Lib:** `src/lib/registration-number.ts` (atomic generator WW-YYYY-000123), `src/lib/ppdb-status.ts` (state machine + transitions + labels + colors)
+- **API publik:** `POST /api/ppdb/register`, `GET /api/ppdb/status/[no]`
+- **API admin:** `GET /api/admin/ppdb` (filter+pagination), `GET /api/admin/ppdb/[id]`, `PATCH /api/admin/ppdb/[id]/status`, `PATCH /api/admin/ppdb/[id]/document/[docId]`, `POST /api/admin/ppdb/[id]/convert`, `/api/admin/document-types`
+- **UI publik:** `/daftar` (multi-step form: program→data diri→orang tua→dokumen→review), `/daftar/status` (cek status by nomor)
+- **UI admin:** `/admin/ppdb` (tabel+filter+badge), `/admin/ppdb/[id]` (detail+aksi: verifikasi/tolak/konversi)
+- **Konversi:** Transactional create User siswa + UserProfile + User orang tua + ParentChild + Invoice + ClassStudent
+- **Feature flag:** `FEAT_PPDB` added to `FEATURE_CODES`
+- **Pending:** Upload API with MIME validation, Zod validation, notifikasi PPDB, document-types UI, widget dashboard, kirim kredensial, tombol daftar di landing page
+
+**Tahap 3 — Modul Afiliator (27/32 🔄)**
+- **Schema:** `AffiliateCategory`, `CommissionStatus`, `CommissionRuleType`, `PayoutStatus` enums; `Affiliate`, `CommissionRule`, `Referral`, `Commission`, `CommissionPayout` models
+- **UserRole:** Added `AFILIATOR` to Prisma enum + TypeScript types + root redirect + sidebar nav
+- **Lib:** `src/lib/affiliate-code.ts` (generate + validate), `src/lib/commission.ts` (resolveCommissionRule, calculateCommission, createReferral, advanceCommissionStatus, markReadyPayout), `src/lib/affiliate-fraud.ts` (self-referral, duplicate registrant, duplicate referral checks)
+- **API publik:** `GET /api/ref/[code]` (increment click, set cookie, redirect), `GET /api/afiliator/dashboard`, `POST /api/afiliator/payout`
+- **API admin:** `/api/admin/affiliate` (GET+POST), `/api/admin/affiliate/[id]` (GET+PATCH+DELETE), `/api/admin/affiliate/rules` (GET+POST), `/api/admin/affiliate/referrals` (GET+PATCH cancel), `/api/admin/affiliate/payouts` (GET+PATCH approve/pay/reject)
+- **UI afiliator:** `/afiliator` (dashboard with referral link, stats, referral history, payout form+history), `src/app/afiliator/layout.tsx`
+- **UI admin:** `/admin/afiliator` (CRUD affiliates), `/admin/afiliator/aturan-komisi` (commission rules), `/admin/afiliator/referral` (all referrals + cancel), `/admin/afiliator/pencairan` (verify payouts)
+- **Integration:** PPDB register calls `createReferral()`, PPDB status change calls `advanceCommissionStatus()`, PPDB convert calls `advanceCommissionStatus(CONVERTED)`
+- **Feature flag:** `FEAT_AFFILIATE` added to `FEATURE_CODES`
+- **Pending:** IP-based fraud limits, invoice payment trigger, notifikasi afiliator, laporan komisi ke keuangan, migration
+
+**Dokumentasi:**
+- `doc/build-roadmap-checklist.md` — updated dengan Tahap 8 (Jurnal Mengajar, Raport & Absensi Tutor, 28 item), progress table, dependency diagram
+- `doc/gap-analysis-spesifikasi-new.md` — updated dengan item #11 (Jurnal Mengajar) dan #12 (Raport + Cetak PDF), Tahap 8 summary
+- Total roadmap: 8 tahap, 251 item
+
+**Build:** ✅ `npm run build` passed (Next.js 15.5.19, TypeScript clean)
+
+### 2026-08-12 — PPDB & Afiliator Completion (Tahap 1-3 sisa)
+- **Tahap 1.1:** Halaman `/admin/master/academic-years` (CRUD tahun ajaran)
+- **Tahap 1.3:** `checkScheduleConflict` validator di POST/PATCH schedule API → 409 + detail bentrok
+- **Tahap 1.4:** Logic set `TUNGGAKAN` otomatis saat invoice `OVERDUE`
+- **Tahap 1.5:** `logAudit()` dipasang di mutasi kritikal (Invoice, Payment, Grade, Schedule, User, ClassStudent)
+- **Tahap 2.3:** Shared Zod schema `src/lib/ppdb-validation.ts` — validasi client & server
+- **Tahap 2.3:** Tombol "Daftar Sekarang" di landing page hero + program cards → `/daftar?program={slug}`
+- **Tahap 2.4:** `/api/ppdb/upload` — validasi MIME & ukuran per DocumentType, Cloudinary upload, rate limit 10/min/IP
+- **Tahap 2.7:** `notifyCredentials()` — kirim email + WA kredensial login saat konversi PPDB → siswa
+- **Tahap 2.8:** `notifyPPDBStatus()` — template notifikasi untuk tiap transisi status PPDB (email + WA)
+- **Tahap 3.3:** Trigger `advanceCommissionStatus(PAYMENT_VERIFIED)` di invoice confirm & approve route
+- **Tahap 3.4:** Rate limit referral click per IP per hari (max 20) + dedupe `clickCount`
+- **Tahap 3.7:** `src/lib/afiliator-notifications.ts` — notifikasi referral baru, komisi status change, payout (email + WA + in-app)
+- **Tahap 3.6:** Laporan komisi afiliator masuk ke laporan keuangan (`/admin/finance/laporan`)
+- **Build:** ✅ `tsc --noEmit` clean
 
 ### 2026-06-19 — Multi-Cabang (progress update)
 - **Modul 9:** implementasi dasar multi-cabang

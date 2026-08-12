@@ -43,7 +43,7 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
   const items = periods[selectedPeriod] ?? periods.monthly;
   const branchFilter = selectedBranch ? { branchId: selectedBranch } : {};
 
-  const [allInvoices, allPayments, branchTransactions] = await Promise.all([
+  const [allInvoices, allPayments, branchTransactions, allCommissions, allPayouts] = await Promise.all([
     db.invoice.findMany({
       where: branchFilter,
       include: { student: { select: { name: true, email: true } }, plan: { select: { name: true } } },
@@ -57,6 +57,16 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
     db.branchTransaction.findMany({
       where: selectedBranch ? { branchId: selectedBranch } : {},
       orderBy: { date: "desc" },
+    }),
+    db.commission.findMany({
+      where: { status: { notIn: ["CANCELLED"] } },
+      include: { referral: { select: { affiliate: { select: { code: true, name: true } }, registration: { select: { fullName: true } } } } },
+      orderBy: { createdAt: "desc" },
+    }),
+    db.commissionPayout.findMany({
+      where: { status: { in: ["REQUESTED", "APPROVED", "PAID"] } },
+      include: { affiliate: { select: { code: true, name: true } } },
+      orderBy: { createdAt: "desc" },
     }),
   ]);
 
@@ -87,6 +97,11 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
     methodStats[p.method] = (methodStats[p.method] ?? 0) + p.amount;
   }
   const METHOD_LABEL: Record<string, string> = { TRANSFER: "Transfer Bank", CASH: "Tunai", QRIS: "QRIS", MIDTRANS: "Midtrans", XENDIT: "Xendit" };
+
+  const totalCommissionValid = allCommissions.filter((c) => ["VALID", "READY_PAYOUT", "PAID"].includes(c.status)).reduce((s, c) => s + c.amount, 0);
+  const totalCommissionPaid = allCommissions.filter((c) => c.status === "PAID").reduce((s, c) => s + c.amount, 0);
+  const totalCommissionPending = allCommissions.filter((c) => ["PENDING", "REGISTRATION_VERIFIED", "PAYMENT_VERIFIED"].includes(c.status)).reduce((s, c) => s + c.amount, 0);
+  const pendingPayouts = allPayouts.filter((p) => p.status === "REQUESTED");
 
   const branchName = selectedBranch ? allBranches.find((b) => b.id === selectedBranch)?.name ?? "Cabang" : "Semua Cabang";
 
@@ -196,6 +211,52 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Commission Summary */}
+      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+        <div className="border-b border-gray-100 px-5 py-3">
+          <h2 className="font-semibold text-gray-900">Komisi Afiliator</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 p-5">
+          <div>
+            <p className="text-xs text-gray-500">Total Komisi Aktif</p>
+            <p className="mt-1 text-lg font-bold text-indigo-600">{formatCurrency(totalCommissionValid)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">Sudah Dibayar</p>
+            <p className="mt-1 text-lg font-bold text-green-600">{formatCurrency(totalCommissionPaid)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">Pending</p>
+            <p className="mt-1 text-lg font-bold text-orange-600">{formatCurrency(totalCommissionPending)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">Pencairan Diajukan</p>
+            <p className="mt-1 text-lg font-bold text-blue-600">{pendingPayouts.length}</p>
+          </div>
+        </div>
+        {pendingPayouts.length > 0 && (
+          <div className="border-t border-gray-100">
+            <div className="px-5 py-2 bg-blue-50">
+              <p className="text-xs font-medium text-blue-700">Menunggu Persetujuan Pencairan</p>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {pendingPayouts.map((p) => (
+                <div key={p.id} className="flex items-center justify-between px-5 py-3">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{p.affiliate.name} ({p.affiliate.code})</p>
+                    <p className="text-xs text-gray-400">Diajukan: {format(new Date(p.createdAt), "d MMM yyyy", { locale: localeId })}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-gray-900">{formatCurrency(p.amount)}</p>
+                    <Link href="/admin/afiliator/pencairan" className="text-xs text-blue-600 hover:underline print:hidden">Proses →</Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Pending QRIS table */}
