@@ -601,3 +601,32 @@ pm2 logs lms-bimbel --lines 10 --err
   ```bash
   cp /var/www/lms-bimbel/.env.local /root/.env.local.backup
   ```
+
+  ### Fix VPS
+
+ ```bash
+ cd /var/www/lms-bimbel
+
+# 1. Buat folder migration baseline
+mkdir -p prisma/migrations/0_init
+
+# 2. Generate SQL dari schema saat ini
+npx prisma migrate diff \
+  --from-empty \
+  --to-schema-datamodel prisma/schema.prisma \
+  --script > prisma/migrations/0_init/migration.sql
+
+# 3. Tandai migration sebagai sudah di-applied (tanpa eksekusi SQL)
+npx prisma migrate resolve --applied 0_init
+
+# 4. Verifikasi
+npx prisma migrate status
+
+# 5. Deploy Update
+git pull origin feat/worldwide-upgrade
+npm install
+npx prisma generate
+npx prisma migrate deploy
+npm run build
+pm2 restart lms-bimbel --update-env
+```

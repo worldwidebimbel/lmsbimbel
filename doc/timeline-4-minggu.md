@@ -119,18 +119,18 @@
 - [ ] `6.3` Import data siswa dari Excel/CSV + preview + template unduhan
 
 ## Jalur E — Website & CMS Awal (Tahap 7.1-7.2) · 13 item
-- [ ] `7.1` `model LandingPage` — slug, title, sections, meta, CTA, viewCount
-- [ ] `7.1` Route publik `/lp/[slug]` + generateMetadata SEO
-- [ ] `7.1` `/admin/landing-pages` — builder berbasis blok (hero, fitur, testimoni, FAQ, CTA, form)
-- [ ] `7.1` CTA terhubung ke PPDB / Event / Inquiry + hitung viewCount
-- [ ] `7.2` `model SiteFaq` — FAQ dengan kategori
-- [ ] `7.2` `model SiteTeamMember` — profil tim/tutor publik
-- [ ] `7.2` Struktur organisasi + legalitas lembaga
-- [ ] `7.2` Kategori "PRESTASI" pada `SiteGallery` + halaman galeri prestasi
-- [ ] `7.2` Halaman publik daftar cabang/lokasi
-- [ ] `7.2` Halaman detail program publik `/program/[slug]` (deskripsi, target, jadwal, harga, tombol daftar)
-- [ ] `7.2` Halaman visi/misi & profil lembaga
-- [ ] `7.2` Audit SEO: sitemap.xml, robots.txt, metadata semua halaman publik
+- [x] `7.1` `model LandingPage` — slug, title, sections, meta, CTA, viewCount — schema + migration created
+- [x] `7.1` Route publik `/lp/[slug]` + generateMetadata SEO — `LandingPageView` dengan 6 section types
+- [x] `7.1` `/admin/landing-pages` — builder berbasis blok (hero, fitur, testimoni, FAQ, CTA, form) — `LandingPageBuilder` + list + new/edit pages
+- [x] `7.1` CTA terhubung ke PPDB / Event / Inquiry + hitung viewCount — viewCount increment di route, CTA type configurable
+- [x] `7.2` `model SiteFaq` — FAQ dengan kategori — schema + API + admin manager
+- [x] `7.2` `model SiteTeamMember` — profil tim/tutor publik — schema + API + admin manager
+- [x] `7.2` Struktur organisasi + legalitas lembaga — via `SiteConfig` (visi, misi, profil_lembaga) di halaman `/tentang`
+- [x] `7.2` Kategori "PRESTASI" pada `SiteGallery` + halaman galeri prestasi — halaman `/galeri` dengan section prestasi & kegiatan
+- [x] `7.2` Halaman publik daftar cabang/lokasi — `/cabang` dengan data Branch
+- [x] `7.2` Halaman detail program publik `/program/[slug]` (deskripsi, target, jadwal, harga, tombol daftar) — `slug` added to `SiteProgram`
+- [x] `7.2` Halaman visi/misi & profil lembaga — `/tentang` dengan SiteConfig + SiteTeamMember
+- [x] `7.2` Audit SEO: sitemap.xml, robots.txt, metadata semua halaman publik — `sitemap.ts` + `robots.ts` + `generateMetadata`
 
 ## Jalur F — Role & Permission (Tahap 4.1-4.2) · 9 item
 - [ ] 🔥 `4.1` `model Permission` — code, name, module, description
