@@ -15,7 +15,7 @@ export default async function TakeExamPage({ params }: { params: Promise<{ id: s
     include: {
       class: { select: { name: true, subject: { select: { name: true, color: true } } } },
       questions: {
-        select: { id: true, type: true, content: true, options: true, score: true },
+        select: { id: true, type: true, content: true, imageUrl: true, audioUrl: true, videoUrl: true, options: true, score: true },
         orderBy: { createdAt: "asc" },
       },
     },
@@ -23,9 +23,11 @@ export default async function TakeExamPage({ params }: { params: Promise<{ id: s
 
   if (!exam) notFound();
 
-  const attempt = await db.examAttempt.findUnique({
-    where: { examId_studentId: { examId: id, studentId: session.user.id } },
+  const attempts = await db.examAttempt.findMany({
+    where: { examId: id, studentId: session.user.id },
+    orderBy: { attemptNumber: "desc" },
   });
+  const latestAttempt = attempts[0] ?? null;
 
   const questions = exam.isRandomized
     ? [...exam.questions].sort(() => Math.random() - 0.5)
@@ -34,7 +36,9 @@ export default async function TakeExamPage({ params }: { params: Promise<{ id: s
   return (
     <TakeExamClient
       exam={{ ...JSON.parse(JSON.stringify(exam)), questions }}
-      existingAttempt={attempt ? JSON.parse(JSON.stringify(attempt)) : null}
+      existingAttempt={latestAttempt ? JSON.parse(JSON.stringify(latestAttempt)) : null}
+      maxAttempts={exam.maxAttempts}
+      completedAttempts={attempts.filter((a) => a.isCompleted).length}
     />
   );
 }

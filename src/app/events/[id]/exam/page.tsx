@@ -20,7 +20,7 @@ export default async function EventExamPage({ params }: { params: Promise<{ id: 
     where: { eventId: id, isPublished: true },
     include: {
       questions: {
-        select: { id: true, type: true, content: true, options: true, score: true },
+        select: { id: true, type: true, content: true, imageUrl: true, audioUrl: true, videoUrl: true, options: true, score: true },
         orderBy: { createdAt: "asc" },
       },
     },
@@ -28,9 +28,12 @@ export default async function EventExamPage({ params }: { params: Promise<{ id: 
 
   if (!exam) redirect(`/events/${id}`);
 
-  const attempt = await db.examAttempt.findUnique({
-    where: { examId_studentId: { examId: exam.id, studentId: session.user.id } },
+  const attempts = await db.examAttempt.findMany({
+    where: { examId: exam.id, studentId: session.user.id },
+    orderBy: { attemptNumber: "desc" },
   });
+  const latestAttempt = attempts[0] ?? null;
+  const completedCount = attempts.filter((a) => a.isCompleted).length;
 
   const data = {
     exam: {
@@ -42,13 +45,16 @@ export default async function EventExamPage({ params }: { params: Promise<{ id: 
       questionCount: exam.questions.length,
     },
     questions: exam.isRandomized ? [...exam.questions].sort(() => Math.random() - 0.5) : exam.questions,
-    attempt: attempt
+    attempt: latestAttempt
       ? {
-          isCompleted: attempt.isCompleted,
-          score: attempt.score,
-          submittedAt: attempt.submittedAt?.toISOString() ?? null,
+          isCompleted: latestAttempt.isCompleted,
+          score: latestAttempt.score,
+          submittedAt: latestAttempt.submittedAt?.toISOString() ?? null,
+          attemptNumber: latestAttempt.attemptNumber,
         }
       : null,
+    maxAttempts: exam.maxAttempts,
+    completedAttempts: completedCount,
   };
 
   return <EventExamClient eventId={id} data={data} />;

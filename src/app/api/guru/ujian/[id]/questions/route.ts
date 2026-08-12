@@ -10,7 +10,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { id } = await params;
   const body = await req.json();
-  const { type, content, options, correctAnswer, explanation, score, difficulty } = body;
+  const { type, content, imageUrl, audioUrl, videoUrl, options, correctAnswer, explanation, score, difficulty } = body;
 
   if (!content) return NextResponse.json({ error: "content wajib diisi" }, { status: 400 });
 
@@ -19,6 +19,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       examId: id,
       type: type ?? "PILGAN",
       content,
+      imageUrl: imageUrl ?? null,
+      audioUrl: audioUrl ?? null,
+      videoUrl: videoUrl ?? null,
       options: options ?? null,
       correctAnswer: correctAnswer ?? null,
       explanation: explanation ?? null,

@@ -15,23 +15,28 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     include: {
       class: { select: { name: true, subject: { select: { name: true, color: true } } } },
       questions: {
-        select: { id: true, type: true, content: true, options: true, score: true },
+        select: { id: true, type: true, content: true, imageUrl: true, audioUrl: true, videoUrl: true, options: true, score: true },
         orderBy: { createdAt: "asc" },
       },
       attempts: {
         where: { studentId: session.user.id },
-        select: { id: true, score: true, isCompleted: true, submittedAt: true, answers: true },
+        select: { id: true, score: true, isCompleted: true, submittedAt: true, answers: true, attemptNumber: true },
+        orderBy: { attemptNumber: "desc" },
       },
     },
   });
 
   if (!exam) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  // Check max attempts
+  const completedCount = exam.attempts.filter((a) => a.isCompleted).length;
+  const hasActiveAttempt = exam.attempts.some((a) => !a.isCompleted);
+
   if (exam.isRandomized) {
     exam.questions = exam.questions.sort(() => Math.random() - 0.5);
   }
 
-  return NextResponse.json(exam);
+  return NextResponse.json({ ...exam, maxAttemptsReached: completedCount >= exam.maxAttempts, hasActiveAttempt });
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -51,11 +56,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   if (!exam) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const existing = await db.examAttempt.findUnique({
-    where: { examId_studentId: { examId: id, studentId: session.user.id } },
+  // Check max attempts
+  const completedAttempts = await db.examAttempt.count({
+    where: { examId: id, studentId: session.user.id, isCompleted: true },
   });
-  if (existing?.isCompleted) {
-    return NextResponse.json({ error: "Ujian sudah dikerjakan" }, { status: 400 });
+  if (completedAttempts >= exam.maxAttempts) {
+    return NextResponse.json({ error: `Maksimal ${exam.maxAttempts} percobaan tercapai` }, { status: 403 });
   }
 
   let totalScore = 0;
@@ -122,17 +128,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const percentScore = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
 
-  const attempt = await db.examAttempt.upsert({
-    where: { examId_studentId: { examId: id, studentId: session.user.id } },
-    create: {
+  const attempt = await db.examAttempt.create({
+    data: {
       examId: id,
       studentId: session.user.id,
-      answers: answers ?? {},
-      score: percentScore,
-      isCompleted: true,
-      submittedAt: new Date(),
-    },
-    update: {
+      attemptNumber: completedAttempts + 1,
       answers: answers ?? {},
       score: percentScore,
       isCompleted: true,

@@ -469,6 +469,7 @@ model Material {
   subject     Subject?     @relation(fields: [subjectId], references: [id])
   uploader    User         @relation(fields: [uploaderId], references: [id])
   progress    MaterialProgress[]
+  exams       Exam[]
 
   @@map("materials")
 }
@@ -538,17 +539,21 @@ model Exam {
   description  String?
   classId      String?
   eventId      String?
+  materialId   String?
   duration     Int
   startTime    DateTime?
   endTime      DateTime?
   isRandomized Boolean   @default(false)
   passingScore Float     @default(60)
+  maxAttempts  Int       @default(1)
+  scoringMode  String    @default("SUM")
   isPublished  Boolean   @default(false)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
   class        Class?    @relation(fields: [classId], references: [id])
   event        Event?    @relation(fields: [eventId], references: [id])
+  material     Material? @relation(fields: [materialId], references: [id])
   questions    Question[]
   attempts     ExamAttempt[]
 
@@ -561,6 +566,9 @@ model Question {
   subjectId     String?
   type          QuestionType @default(PILGAN)
   content       String
+  imageUrl      String?
+  audioUrl      String?
+  videoUrl      String?
   options       Json?
   correctAnswer String?
   explanation   String?
@@ -577,19 +585,20 @@ model Question {
 }
 
 model ExamAttempt {
-  id          String    @id @default(cuid())
-  examId      String
-  studentId   String
-  startedAt   DateTime  @default(now())
-  submittedAt DateTime?
-  score       Float?
-  answers     Json?
-  isCompleted Boolean   @default(false)
+  id             String    @id @default(cuid())
+  examId         String
+  studentId      String
+  attemptNumber  Int       @default(1)
+  startedAt      DateTime  @default(now())
+  submittedAt    DateTime?
+  score          Float?
+  answers        Json?
+  isCompleted    Boolean   @default(false)
 
-  exam        Exam      @relation(fields: [examId], references: [id])
-  student     User      @relation(fields: [studentId], references: [id])
+  exam           Exam      @relation(fields: [examId], references: [id])
+  student        User      @relation(fields: [studentId], references: [id])
 
-  @@unique([examId, studentId])
+  @@unique([examId, studentId, attemptNumber])
   @@map("exam_attempts")
 }
 

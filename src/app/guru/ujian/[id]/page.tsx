@@ -18,7 +18,7 @@ export default async function UjianDetailPage({ params }: { params: Promise<{ id
       class: { select: { name: true, subject: { select: { name: true, color: true } } } },
       questions: {
         orderBy: { createdAt: "asc" },
-        select: { id: true, type: true, content: true, options: true, correctAnswer: true, explanation: true, score: true, difficulty: true },
+        select: { id: true, type: true, content: true, imageUrl: true, audioUrl: true, videoUrl: true, options: true, correctAnswer: true, explanation: true, score: true, difficulty: true },
       },
       _count: { select: { attempts: true } },
     },

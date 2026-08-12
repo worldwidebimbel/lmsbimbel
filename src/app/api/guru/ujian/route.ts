@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
   const { isSuperAdmin, branchId } = await getBranchScope();
   const body = await req.json();
-  const { title, description, classId, duration, startTime, endTime, isRandomized, passingScore } = body;
+  const { title, description, classId, duration, startTime, endTime, isRandomized, passingScore, maxAttempts, scoringMode, materialId } = body;
 
   if (!title || !classId || !duration) {
     return NextResponse.json({ error: "title, classId, duration wajib diisi" }, { status: 400 });
@@ -51,11 +51,14 @@ export async function POST(req: NextRequest) {
       title,
       description: description ?? null,
       classId,
+      materialId: materialId ?? null,
       duration: Number(duration),
       startTime: startTime ? new Date(startTime) : null,
       endTime: endTime ? new Date(endTime) : null,
       isRandomized: Boolean(isRandomized),
       passingScore: Number(passingScore ?? 60),
+      maxAttempts: Number(maxAttempts ?? 1),
+      scoringMode: scoringMode ?? "SUM",
     },
   });
 

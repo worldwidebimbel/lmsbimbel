@@ -18,11 +18,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   });
   if (!exam) return NextResponse.json({ error: "Ujian tidak ditemukan" }, { status: 404 });
 
-  const existing = await db.examAttempt.findUnique({
-    where: { examId_studentId: { examId: exam.id, studentId: session.user.id } },
+  // Check max attempts
+  const completedAttempts = await db.examAttempt.count({
+    where: { examId: exam.id, studentId: session.user.id, isCompleted: true },
   });
-  if (existing?.isCompleted) {
-    return NextResponse.json({ error: "Sudah mengumpulkan ujian" }, { status: 409 });
+  if (completedAttempts >= exam.maxAttempts) {
+    return NextResponse.json({ error: `Maksimal ${exam.maxAttempts} percobaan tercapai` }, { status: 403 });
   }
 
   const body = await req.json();
@@ -42,17 +43,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const pct = totalScore > 0 ? (earnedScore / totalScore) * 100 : 0;
   const score = Math.round(pct * 10) / 10;
 
-  const attempt = await db.examAttempt.upsert({
-    where: { examId_studentId: { examId: exam.id, studentId: session.user.id } },
-    create: {
+  const attempt = await db.examAttempt.create({
+    data: {
       examId: exam.id,
       studentId: session.user.id,
-      answers,
-      score,
-      isCompleted: true,
-      submittedAt: new Date(),
-    },
-    update: {
+      attemptNumber: completedAttempts + 1,
       answers,
       score,
       isCompleted: true,

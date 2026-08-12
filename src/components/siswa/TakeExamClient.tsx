@@ -6,14 +6,35 @@ import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight, Loader2, ArrowUp, A
 import Link from "next/link";
 import { normalizeOptions } from "@/lib/question-options";
 
-interface Question { id: string; type: string; content: string; options: unknown; score: number }
+interface Question { id: string; type: string; content: string; imageUrl?: string | null; audioUrl?: string | null; videoUrl?: string | null; options: unknown; score: number }
 interface Exam {
   id: string; title: string; duration: number; passingScore: number;
   description: string | null; isRandomized: boolean;
   class: { name: string; subject: { name: string; color: string } };
   questions: Question[];
 }
-interface Attempt { id: string; score: number | null; isCompleted: boolean; answers: Record<string, string> | null }
+interface Attempt { id: string; score: number | null; isCompleted: boolean; answers: Record<string, string> | null; attemptNumber?: number }
+
+function MediaDisplay({ question }: { question: Question }) {
+  if (!question.imageUrl && !question.audioUrl && !question.videoUrl) return null;
+  return (
+    <div className="mt-3 space-y-2">
+      {question.imageUrl && (
+        <img src={question.imageUrl} alt="Soal" className="max-w-full rounded-lg border border-gray-200" />
+      )}
+      {question.audioUrl && (
+        <audio controls className="w-full">
+          <source src={question.audioUrl} />
+        </audio>
+      )}
+      {question.videoUrl && (
+        <video controls className="max-w-full rounded-lg border border-gray-200">
+          <source src={question.videoUrl} />
+        </video>
+      )}
+    </div>
+  );
+}
 
 function shuffleArr<T>(arr: T[], seed: string): T[] {
   const result = [...arr];
@@ -27,7 +48,7 @@ function shuffleArr<T>(arr: T[], seed: string): T[] {
   return result;
 }
 
-export default function TakeExamClient({ exam, existingAttempt }: { exam: Exam; existingAttempt: Attempt | null }) {
+export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1, completedAttempts = 0 }: { exam: Exam; existingAttempt: Attempt | null; maxAttempts?: number; completedAttempts?: number }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [answers, setAnswers] = useState<Record<string, string>>(existingAttempt?.answers ?? {});
@@ -76,6 +97,7 @@ export default function TakeExamClient({ exam, existingAttempt }: { exam: Exam; 
   const isLow = timeLeft < 120;
 
   if (submitted && result) {
+    const canRetry = completedAttempts < maxAttempts;
     return (
       <div className="mx-auto max-w-lg space-y-6 py-8 text-center">
         <div className={`mx-auto flex h-24 w-24 items-center justify-center rounded-full ${result.passed ? "bg-green-100" : "bg-red-100"}`}>
@@ -87,6 +109,9 @@ export default function TakeExamClient({ exam, existingAttempt }: { exam: Exam; 
         <div>
           <h2 className="text-2xl font-bold text-gray-900">{result.passed ? "Selamat, Kamu Lulus!" : "Belum Lulus"}</h2>
           <p className="mt-1 text-gray-500">{exam.title}</p>
+          {maxAttempts > 1 && (
+            <p className="mt-1 text-xs text-gray-400">Percobaan ke-{(existingAttempt?.attemptNumber ?? completedAttempts)} dari {maxAttempts}</p>
+          )}
         </div>
         <div className="grid grid-cols-3 gap-4">
           {[
@@ -100,9 +125,19 @@ export default function TakeExamClient({ exam, existingAttempt }: { exam: Exam; 
             </div>
           ))}
         </div>
-        <Link href="/siswa/ujian" className="inline-block rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-indigo-700">
-          Kembali ke Daftar Ujian
-        </Link>
+        <div className="flex items-center justify-center gap-3">
+          <Link href="/siswa/ujian" className="inline-block rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-indigo-700">
+            Kembali ke Daftar Ujian
+          </Link>
+          {canRetry && !result.passed && (
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-block rounded-lg border border-indigo-200 px-6 py-2.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
+            >
+              Coba Lagi ({maxAttempts - completedAttempts} tersisa)
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -146,6 +181,8 @@ export default function TakeExamClient({ exam, existingAttempt }: { exam: Exam; 
         </div>
 
         <div className="text-base text-gray-900 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: q.content }} />
+
+        <MediaDisplay question={q} />
 
         {/* Pilihan Ganda Tunggal */}
         {q.type === "PILGAN" && Array.isArray(q.options) && (

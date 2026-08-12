@@ -23,6 +23,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
           id: true,
           type: true,
           content: true,
+          imageUrl: true,
+          audioUrl: true,
+          videoUrl: true,
           options: true,
           score: true,
         },
@@ -41,9 +44,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Ujian sudah ditutup" }, { status: 410 });
   }
 
-  const attempt = await db.examAttempt.findUnique({
-    where: { examId_studentId: { examId: exam.id, studentId: session.user.id } },
+  const attempts = await db.examAttempt.findMany({
+    where: { examId: exam.id, studentId: session.user.id },
+    orderBy: { attemptNumber: "desc" },
   });
+  const completedAttempts = attempts.filter((a) => a.isCompleted);
+  const latestAttempt = attempts[0] ?? null;
 
   const questions = exam.isRandomized
     ? [...exam.questions].sort(() => Math.random() - 0.5)
@@ -59,12 +65,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       questionCount: questions.length,
     },
     questions,
-    attempt: attempt
+    attempt: latestAttempt
       ? {
-          isCompleted: attempt.isCompleted,
-          score: attempt.score,
-          submittedAt: attempt.submittedAt,
+          isCompleted: latestAttempt.isCompleted,
+          score: latestAttempt.score,
+          submittedAt: latestAttempt.submittedAt,
+          attemptNumber: latestAttempt.attemptNumber,
         }
       : null,
+    maxAttempts: exam.maxAttempts,
+    completedAttempts: completedAttempts.length,
   });
 }

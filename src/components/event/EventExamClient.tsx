@@ -7,6 +7,9 @@ interface Question {
   id: string;
   type: string;
   content: string;
+  imageUrl?: string | null;
+  audioUrl?: string | null;
+  videoUrl?: string | null;
   options: unknown;
   score: number;
 }
@@ -25,7 +28,31 @@ interface ExamData {
     isCompleted: boolean;
     score: number | null;
     submittedAt: string | null;
+    attemptNumber?: number;
   } | null;
+  maxAttempts?: number;
+  completedAttempts?: number;
+}
+
+function MediaDisplay({ question }: { question: Question }) {
+  if (!question.imageUrl && !question.audioUrl && !question.videoUrl) return null;
+  return (
+    <div className="mt-3 space-y-2">
+      {question.imageUrl && (
+        <img src={question.imageUrl} alt="Soal" className="max-w-full rounded-lg border border-gray-200" />
+      )}
+      {question.audioUrl && (
+        <audio controls className="w-full">
+          <source src={question.audioUrl} />
+        </audio>
+      )}
+      {question.videoUrl && (
+        <video controls className="max-w-full rounded-lg border border-gray-200">
+          <source src={question.videoUrl} />
+        </video>
+      )}
+    </div>
+  );
 }
 
 export default function EventExamClient({ eventId, data }: { eventId: string; data: ExamData }) {
@@ -144,6 +171,8 @@ export default function EventExamClient({ eventId, data }: { eventId: string; da
             <span className="text-xs text-gray-400">{q.score} poin</span>
           </div>
           <p className="text-gray-900 font-medium leading-relaxed">{q.content}</p>
+
+          <MediaDisplay question={q} />
 
           {q.type === "PILGAN" && Array.isArray(q.options) && (
             <div className="space-y-2">

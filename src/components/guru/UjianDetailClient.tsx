@@ -7,7 +7,7 @@ import ImageUploadButton from "./ImageUploadButton";
 import { normalizeOptions, optionText, toOptionPayload } from "@/lib/question-options";
 
 interface Question {
-  id: string; type: string; content: string; options: string[] | null;
+  id: string; type: string; content: string; imageUrl?: string | null; audioUrl?: string | null; videoUrl?: string | null; options: string[] | null;
   correctAnswer: string | null; explanation: string | null; score: number; difficulty: number;
 }
 interface Attempt { id: string; student: { name: string }; score: number | null; submittedAt: string | null }
@@ -29,6 +29,7 @@ export default function UjianDetailClient({ exam: initial, attempts }: { exam: E
   const [error, setError] = useState("");
   const [newQ, setNewQ] = useState({
     type: "PILGAN", content: "", contentImageUrl: "",
+    audioUrl: "", videoUrl: "",
     options: ["", "", "", ""], optionImages: ["", "", "", ""],
     correctAnswer: "", explanation: "", score: "1", difficulty: "2",
   });
@@ -57,6 +58,9 @@ export default function UjianDetailClient({ exam: initial, attempts }: { exam: E
         : newQ.content;
       const payload: Record<string, unknown> = {
         type: newQ.type, content,
+        imageUrl: newQ.contentImageUrl || null,
+        audioUrl: newQ.audioUrl || null,
+        videoUrl: newQ.videoUrl || null,
         score: Number(newQ.score), difficulty: Number(newQ.difficulty),
         explanation: newQ.explanation || null,
         correctAnswer: newQ.correctAnswer || null,
@@ -76,7 +80,7 @@ export default function UjianDetailClient({ exam: initial, attempts }: { exam: E
       if (!res.ok) { const d = await res.json(); setError(d.error ?? "Gagal"); return; }
       const q = await res.json();
       setExam((p) => ({ ...p, questions: [...p.questions, q] }));
-      setNewQ({ type: "PILGAN", content: "", contentImageUrl: "", options: ["", "", "", ""], optionImages: ["", "", "", ""], correctAnswer: "", explanation: "", score: "1", difficulty: "2" });
+      setNewQ({ type: "PILGAN", content: "", contentImageUrl: "", audioUrl: "", videoUrl: "", options: ["", "", "", ""], optionImages: ["", "", "", ""], correctAnswer: "", explanation: "", score: "1", difficulty: "2" });
       setShowForm(false);
     });
   }
@@ -224,6 +228,23 @@ export default function UjianDetailClient({ exam: initial, attempts }: { exam: E
                     label="Gambar soal"
                     size="md"
                   />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Audio Soal (opsional)</label>
+                  <input type="url" value={newQ.audioUrl}
+                    onChange={(e) => setNewQ((p) => ({ ...p, audioUrl: e.target.value }))}
+                    placeholder="URL audio (mp3, wav)..."
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Video Soal (opsional)</label>
+                  <input type="url" value={newQ.videoUrl}
+                    onChange={(e) => setNewQ((p) => ({ ...p, videoUrl: e.target.value }))}
+                    placeholder="URL video (mp4, youtube)..."
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none" />
                 </div>
               </div>
 

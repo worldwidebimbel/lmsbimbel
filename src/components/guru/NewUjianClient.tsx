@@ -14,6 +14,7 @@ export default function NewUjianClient({ classes }: { classes: Class[] }) {
   const [form, setForm] = useState({
     title: "", description: "", classId: "", duration: "60",
     startTime: "", endTime: "", isRandomized: false, passingScore: "60",
+    maxAttempts: "1", scoringMode: "SUM",
   });
 
   function update(k: string, v: string | boolean) { setForm((p) => ({ ...p, [k]: v })); }
@@ -60,7 +61,7 @@ export default function NewUjianClient({ classes }: { classes: Class[] }) {
           className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none" />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">Durasi (menit) *</label>
           <input required type="number" min={1} value={form.duration} onChange={(e) => update("duration", e.target.value)}
@@ -69,6 +70,11 @@ export default function NewUjianClient({ classes }: { classes: Class[] }) {
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">Nilai Lulus (%)</label>
           <input type="number" min={0} max={100} value={form.passingScore} onChange={(e) => update("passingScore", e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none" />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">Maks. Percobaan</label>
+          <input type="number" min={1} max={10} value={form.maxAttempts} onChange={(e) => update("maxAttempts", e.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none" />
         </div>
       </div>
@@ -91,6 +97,17 @@ export default function NewUjianClient({ classes }: { classes: Class[] }) {
           className="h-4 w-4 rounded border-gray-300 text-indigo-600" />
         <span className="text-sm text-gray-700">Acak urutan soal</span>
       </label>
+
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700">Mode Skor</label>
+        <select value={form.scoringMode} onChange={(e) => update("scoringMode", e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none">
+          <option value="SUM">Total Skor (sum per soal)</option>
+          <option value="AVG">Rata-rata Skor</option>
+          <option value="BEST">Skor Terbaik (dari semua percobaan)</option>
+          <option value="LAST">Skor Percobaan Terakhir</option>
+        </select>
+      </div>
 
       <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
         <Link href="/guru/ujian" className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Batal</Link>

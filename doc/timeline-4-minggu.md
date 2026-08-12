@@ -94,14 +94,14 @@
 - [x] `3.6` Laporan komisi masuk ke laporan keuangan — section "Komisi Afiliator" di `/admin/finance/laporan`
 
 ## Jalur C — CBT Bagian 1 (Tahap 5.1-5.2) · 14 item
-- [ ] `5.1` Tambah `Question.imageUrl/audioUrl/videoUrl` + upload ke Cloudinary
-- [ ] `5.1` Editor soal sisip media + player audio/video di halaman siswa
+- [x] `5.1` Tambah `Question.imageUrl/audioUrl/videoUrl` + upload ke Cloudinary — schema + API create question updated
+- [x] `5.1` Editor soal sisip media + player audio/video di halaman siswa — `MediaDisplay` di `TakeExamClient` & `EventExamClient`, form upload di `UjianDetailClient`
 - [ ] `5.1` Aktifkan `katex` untuk rumus matematika
-- [ ] 🔥 `5.2` `Exam.materialId`, `Exam.maxAttempts`, `ExamAttempt.attemptNumber`
-- [ ] 🔥 `5.2` Hapus `@@unique([examId, studentId])` → ganti `[examId, studentId, attemptNumber]`
-- [ ] 🔥 `5.2` Perbaiki 7 pemakaian `examId_studentId` di 5 file
-- [ ] `5.2` Ganti pola `upsert` → cek `maxAttempts` + `create`
-- [ ] `5.2` Tolak attempt > `maxAttempts` + `Exam.scoringMode`
+- [x] 🔥 `5.2` `Exam.materialId`, `Exam.maxAttempts`, `ExamAttempt.attemptNumber` — schema updated, `scoringMode` juga ditambah
+- [x] 🔥 `5.2` Hapus `@@unique([examId, studentId])` → ganti `[examId, studentId, attemptNumber]`
+- [x] 🔥 `5.2` Perbaiki 7 pemakaian `examId_studentId` di 5 file — semua diganti `findMany`/`count` + `create`
+- [x] `5.2` Ganti pola `upsert` → cek `maxAttempts` + `create` dengan `attemptNumber`
+- [x] `5.2` Tolak attempt > `maxAttempts` + `Exam.scoringMode` — 403 + pilihan SUM/AVG/BEST/LAST di form
 - [ ] `5.2` UI quiz di detail materi siswa
 
 ## Jalur D — Payment & Export Helper (Tahap 6.2-6.3) · 12 item
