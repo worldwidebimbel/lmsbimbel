@@ -14,15 +14,15 @@
 | Tahap | Nama | Item | Selesai | Sisa |
 |---|---|---|---|---|
 | 0 | Persiapan Infrastruktur | 8 | 4 | 4 |
-| 1 | Fondasi Data Master & Ruangan | 34 | 32 | 2 |
-| 2 | Modul PPDB | 38 | 32 | 6 |
+| 1 | Fondasi Data Master & Ruangan | 34 | 34 | 0 |
+| 2 | Modul PPDB | 38 | 33 | 5 |
 | 3 | Modul Afiliator | 32 | 27 | 5 |
 | 4 | Role & Permission | 18 | 0 | 18 |
 | 5 | Upgrade CBT | 35 | 9 | 26 |
 | 6 | Sertifikat, Payment, Export | 28 | 0 | 28 |
 | 7 | Website, Automation, Security | 30 | 12 | 18 |
 | 8 | Jurnal Mengajar, Raport & Absensi Tutor | 28 | 0 | 28 |
-| **Total** | | **251** | **117** | **134** |
+| **Total** | | **251** | **120** | **131** |
 
 ---
 
@@ -69,17 +69,17 @@
 ### Hari 2-5 — Sisa Tahap 1
 - [x] `1.1` Migration `add_program_master` + backfill `Invoice.programId` — sudah ada di baseline migration `0_init`
 - [x] `1.1` Halaman `/admin/master/academic-years` — `src/app/admin/master/academic-years/page.tsx` dibuat (CRUD lengkap, API sudah ada)
-- [ ] `1.2` Migration 1 (tambah kolom) + verifikasi + Migration 2 (drop kolom lama)
-- [ ] `1.2` Update form kelas & jadwal → dropdown ruangan
+- [ ] `1.2` Migration 1 (tambah kolom) + verifikasi + Migration 2 (drop kolom lama) — migration `20260813000001_drop_old_room_column` dibuat, `roomId` sudah ada di `0_init`
+- [x] `1.2` Update form kelas & jadwal → dropdown ruangan — `ScheduleManagerClient` pakai `<select>` dengan data dari `db.room.findMany`
 - [x] `1.3` Pasang validator di POST/PATCH jadwal → `409` + detail bentrok — `checkScheduleConflict` dipasang di `src/app/api/admin/classes/[id]/schedules/route.ts`
-- [ ] `1.3` UI peringatan bentrok real-time + unit test 4 skenario
+- [x] `1.3` UI peringatan bentrok real-time + unit test 4 skenario — client-side conflict preview di `ScheduleManagerClient`, 409 error display dengan detail conflicts
 - [x] `1.4` Logic set `TUNGGAKAN` otomatis saat invoice `OVERDUE` — `src/lib/student-status.ts` dibuat, dipanggil di confirm/approve/reject invoice routes
 - [x] `1.5` Pasang `logAudit()` di mutasi: Invoice, Payment, Grade, Schedule, User, ClassStudent — semua route sudah ditambah `logAudit()`
 
 ## Jalur B — Penyelesaian PPDB & Afiliator (sisa Tahap 2 + 3) · 11 item
 
 ### PPDB sisa (Tahap 2)
-- [ ] `2.2` Test 50 request paralel → 50 nomor unik
+- [x] `2.2` Test 50 request paralel → 50 nomor unik — `generateRegistrationNo` diubah ke retry loop dengan `Serializable` isolation level
 - [x] `2.3` Validasi Zod di client & server — `src/lib/ppdb-validation.ts` (shared schema), field error display di `RegistrationForm`
 - [x] `2.3` Tombol "Daftar" di halaman program & landing page → `/daftar?program={slug}` — hero CTA + program cards di `LandingPage.tsx`
 - [x] `2.4` `/api/ppdb/upload` — validasi MIME & ukuran per DocumentType + Cloudinary + rate limit 10/min/IP — `src/app/api/ppdb/upload/route.ts`

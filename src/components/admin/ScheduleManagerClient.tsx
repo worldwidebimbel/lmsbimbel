@@ -1,10 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Plus, Trash2, Loader2, CalendarDays } from "lucide-react";
+import { useState, useTransition, useMemo } from "react";
+import { Plus, Trash2, Loader2, CalendarDays, AlertTriangle } from "lucide-react";
 
 interface Schedule {
-  id: string; dayOfWeek: string; startTime: string; endTime: string; room: string | null;
+  id: string; dayOfWeek: string; startTime: string; endTime: string;
+  roomId: string | null; roomRel: { id: string; name: string } | null;
+}
+
+interface Room {
+  id: string; name: string; roomNumber: string | null; capacity: number;
 }
 
 const DAYS = ["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU", "MINGGU"];
@@ -20,13 +25,23 @@ const DAY_COLOR: Record<string, string> = {
 };
 
 export default function ScheduleManagerClient({
-  classId, initialSchedules,
-}: { classId: string; initialSchedules: Schedule[] }) {
+  classId, rooms, initialSchedules,
+}: { classId: string; rooms: Room[]; initialSchedules: Schedule[] }) {
   const [schedules, setSchedules] = useState<Schedule[]>(initialSchedules);
   const [isPending, startTransition] = useTransition();
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({ dayOfWeek: "SENIN", startTime: "08:00", endTime: "09:30", room: "" });
+  const [form, setForm] = useState({ dayOfWeek: "SENIN", startTime: "08:00", endTime: "09:30", roomId: "" });
+
+  const localConflicts = useMemo(() => {
+    if (!showForm) return [];
+    return schedules.filter((s) => {
+      if (s.dayOfWeek !== form.dayOfWeek) return false;
+      return form.startTime < s.endTime && s.startTime < form.endTime;
+    });
+  }, [schedules, form, showForm]);
+
+  const hasTimeError = form.startTime >= form.endTime;
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault(); setError("");
@@ -34,13 +49,21 @@ export default function ScheduleManagerClient({
       const res = await fetch(`/api/admin/classes/${classId}/schedules`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, roomId: form.roomId || undefined }),
       });
-      if (!res.ok) { const d = await res.json(); setError(d.error ?? "Gagal"); return; }
+      if (!res.ok) {
+        const d = await res.json();
+        if (res.status === 409 && d.conflicts) {
+          setError(d.conflicts.map((c: { message: string }) => c.message).join("\n"));
+        } else {
+          setError(d.error ?? "Gagal");
+        }
+        return;
+      }
       const s: Schedule = await res.json();
       setSchedules((prev) => [...prev, s].sort((a, b) => DAYS.indexOf(a.dayOfWeek) - DAYS.indexOf(b.dayOfWeek)));
       setShowForm(false);
-      setForm({ dayOfWeek: "SENIN", startTime: "08:00", endTime: "09:30", room: "" });
+      setForm({ dayOfWeek: "SENIN", startTime: "08:00", endTime: "09:30", roomId: "" });
     });
   }
 
@@ -72,7 +95,7 @@ export default function ScheduleManagerClient({
                       {DAY_LABEL[s.dayOfWeek]}
                     </span>
                     <span className="text-sm font-medium text-gray-900">{s.startTime} – {s.endTime}</span>
-                    {s.room && <span className="text-xs text-gray-400">📍 {s.room}</span>}
+                    {s.roomRel && <span className="text-xs text-gray-400">📍 {s.roomRel.name}</span>}
                   </div>
                   <button onClick={() => handleDelete(s.id)}
                     className="rounded-lg p-1.5 text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors">
@@ -88,7 +111,32 @@ export default function ScheduleManagerClient({
       {showForm ? (
         <form onSubmit={handleAdd} className="rounded-xl border border-blue-200 bg-blue-50/30 p-5 space-y-4">
           <h3 className="font-semibold text-gray-900">Tambah Jadwal</h3>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <div className="rounded-lg bg-red-50 border border-red-200 p-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
+                <p className="text-sm text-red-600 whitespace-pre-line">{error}</p>
+              </div>
+            </div>
+          )}
+          {hasTimeError && (
+            <p className="text-sm text-red-500">Jam selesai harus setelah jam mulai.</p>
+          )}
+          {localConflicts.length > 0 && !hasTimeError && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                <div className="text-sm text-amber-700">
+                  <p className="font-medium">Bentrok dengan jadwal existing di kelas ini:</p>
+                  <ul className="mt-1 list-disc list-inside">
+                    {localConflicts.map((c) => (
+                      <li key={c.id}>{DAY_LABEL[c.dayOfWeek]} {c.startTime}–{c.endTime}{c.roomRel ? ` (${c.roomRel.name})` : ""}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">Hari</label>
@@ -113,15 +161,19 @@ export default function ScheduleManagerClient({
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">Ruangan (opsional)</label>
-            <input value={form.room} onChange={(e) => setForm((p) => ({ ...p, room: e.target.value }))}
-              placeholder="Contoh: Lab Komputer A"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none" />
+            <select value={form.roomId} onChange={(e) => setForm((p) => ({ ...p, roomId: e.target.value }))}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none">
+              <option value="">— Tanpa ruangan —</option>
+              {rooms.map((r) => (
+                <option key={r.id} value={r.id}>{r.name}{r.roomNumber ? ` (${r.roomNumber})` : ""} · kap. {r.capacity}</option>
+              ))}
+            </select>
           </div>
 
           <div className="flex justify-end gap-3 pt-1 border-t border-gray-100">
             <button type="button" onClick={() => setShowForm(false)}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Batal</button>
-            <button type="submit" disabled={isPending}
+            <button type="submit" disabled={isPending || hasTimeError}
               className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />} Simpan Jadwal
             </button>

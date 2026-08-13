@@ -379,7 +379,6 @@ model Schedule {
   dayOfWeek      ScheduleDay
   startTime      String
   endTime        String
-  room           String?
   roomId         String?
   teacherId      String?
   isRecurring    Boolean     @default(true)

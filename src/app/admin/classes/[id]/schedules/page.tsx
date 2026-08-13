@@ -12,15 +12,25 @@ export default async function SchedulesPage({ params }: { params: Promise<{ id: 
   if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
 
   const { id } = await params;
-  const cls = await db.class.findUnique({
-    where: { id },
-    select: {
-      id: true, name: true,
-      subject: { select: { name: true, color: true } },
-      teacher: { select: { name: true } },
-      schedules: { orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }] },
-    },
-  });
+  const [cls, rooms] = await Promise.all([
+    db.class.findUnique({
+      where: { id },
+      select: {
+        id: true, name: true, branchId: true,
+        subject: { select: { name: true, color: true } },
+        teacher: { select: { name: true } },
+        schedules: {
+          orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+          include: { roomRel: { select: { id: true, name: true } } },
+        },
+      },
+    }),
+    db.room.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, roomNumber: true, capacity: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   if (!cls) notFound();
 
@@ -41,6 +51,7 @@ export default async function SchedulesPage({ params }: { params: Promise<{ id: 
 
       <ScheduleManagerClient
         classId={id}
+        rooms={JSON.parse(JSON.stringify(rooms))}
         initialSchedules={JSON.parse(JSON.stringify(cls.schedules))}
       />
     </div>
