@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { DoorOpen, Building2, Plus } from "lucide-react";
@@ -8,7 +9,7 @@ export const metadata = { title: "Gedung & Ruangan" };
 
 export default async function RoomsPage() {
   const session = await auth();
-  if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
+  if (!session?.user || !isAdminRole(session.user.role)) {
     redirect("/admin");
   }
 

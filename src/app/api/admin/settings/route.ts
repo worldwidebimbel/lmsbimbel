@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 import { getBranchQrisKey } from "@/lib/qris-settings";
@@ -20,7 +21,7 @@ const DEFAULT_SETTINGS: Record<string, string> = {
 const QRIS_KEYS = ["qris_image_url", "qris_bank_name", "qris_account_name", "qris_account_number"];
 
 function isAdmin(role: string) {
-  return ["ADMIN", "SUPER_ADMIN"].includes(role);
+  return isAdminRole(role);
 }
 
 export async function GET(req: NextRequest) {

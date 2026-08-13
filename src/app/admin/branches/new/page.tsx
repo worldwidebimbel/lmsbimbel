@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { redirect } from "next/navigation";
 import NewBranchClient from "@/components/admin/NewBranchClient";
 import { Building2, ArrowLeft } from "lucide-react";
@@ -8,7 +9,7 @@ export const metadata = { title: "Tambah Cabang" };
 
 export default async function NewBranchPage() {
   const session = await auth();
-  if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
+  if (!session?.user || !isAdminRole(session.user.role)) redirect("/admin");
 
   return (
     <div className="max-w-lg space-y-6">

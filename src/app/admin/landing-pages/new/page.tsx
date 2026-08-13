@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, LayoutTemplate } from "lucide-react";
@@ -8,7 +9,7 @@ export const metadata = { title: "Buat Landing Page" };
 
 export default async function NewLandingPagePage() {
   const session = await auth();
-  if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
+  if (!session?.user || !isAdminRole(session.user.role)) redirect("/admin");
 
   return (
     <div className="max-w-3xl space-y-6">

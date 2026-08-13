@@ -384,15 +384,15 @@
     </thead>
     <tbody>
       <tr><td>0</td><td>Persiapan Infrastruktur</td><td style="text-align:center">8</td><td style="text-align:center">4</td><td style="text-align:center">4</td><td style="text-align:center"><span class="badge badge-yellow">🔄 4/8</span></td></tr>
-      <tr><td>1</td><td>Fondasi Data Master & Ruangan</td><td style="text-align:center">34</td><td style="text-align:center">32</td><td style="text-align:center">2</td><td style="text-align:center"><span class="badge badge-yellow">🔄 32/34</span></td></tr>
-      <tr><td>2</td><td>Modul PPDB</td><td style="text-align:center">38</td><td style="text-align:center">32</td><td style="text-align:center">6</td><td style="text-align:center"><span class="badge badge-green">✅ 32/38</span></td></tr>
+      <tr><td>1</td><td>Fondasi Data Master & Ruangan</td><td style="text-align:center">34</td><td style="text-align:center">34</td><td style="text-align:center">0</td><td style="text-align:center"><span class="badge badge-green">✅ 34/34</span></td></tr>
+      <tr><td>2</td><td>Modul PPDB</td><td style="text-align:center">38</td><td style="text-align:center">33</td><td style="text-align:center">5</td><td style="text-align:center"><span class="badge badge-green">✅ 33/38</span></td></tr>
       <tr><td>3</td><td>Modul Afiliator</td><td style="text-align:center">32</td><td style="text-align:center">27</td><td style="text-align:center">5</td><td style="text-align:center"><span class="badge badge-yellow">🔄 27/32</span></td></tr>
-      <tr><td>4</td><td>Role & Permission</td><td style="text-align:center">18</td><td style="text-align:center">0</td><td style="text-align:center">18</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/18</span></td></tr>
+      <tr><td>4</td><td>Role & Permission</td><td style="text-align:center">18</td><td style="text-align:center">8</td><td style="text-align:center">10</td><td style="text-align:center"><span class="badge badge-yellow">🔄 8/18</span></td></tr>
       <tr><td>5</td><td>Upgrade CBT</td><td style="text-align:center">35</td><td style="text-align:center">9</td><td style="text-align:center">26</td><td style="text-align:center"><span class="badge badge-yellow">🔄 9/35</span></td></tr>
       <tr><td>6</td><td>Sertifikat, Payment, Export</td><td style="text-align:center">28</td><td style="text-align:center">0</td><td style="text-align:center">28</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/28</span></td></tr>
       <tr><td>7</td><td>Website, Automation, Security</td><td style="text-align:center">30</td><td style="text-align:center">12</td><td style="text-align:center">18</td><td style="text-align:center"><span class="badge badge-yellow">🔄 12/30</span></td></tr>
       <tr><td>8</td><td>Jurnal Mengajar, Raport & Absensi Tutor</td><td style="text-align:center">28</td><td style="text-align:center">0</td><td style="text-align:center">28</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/28</span></td></tr>
-      <tr><td colspan="2"><strong>Total</strong></td><td style="text-align:center"><strong>251</strong></td><td style="text-align:center"><strong>117</strong></td><td style="text-align:center"><strong>134</strong></td><td style="text-align:center"><span class="badge badge-blue">47% selesai</span></td></tr>
+      <tr><td colspan="2"><strong>Total</strong></td><td style="text-align:center"><strong>251</strong></td><td style="text-align:center"><strong>128</strong></td><td style="text-align:center"><strong>123</strong></td><td style="text-align:center"><span class="badge badge-blue">51% selesai</span></td></tr>
     </tbody>
   </table>
 
@@ -454,10 +454,10 @@
       <ul class="task-list">
         <li class="done"><span class="ref">1.1</span> Jalankan migration <code>add_program_master</code> + backfill <code>Invoice.programId</code></li>
         <li class="done"><span class="ref">1.1</span> Halaman <code>/admin/master/academic-years</code></li>
-        <li><span class="ref">1.2</span> Migration 1 (tambah kolom) + verifikasi + Migration 2 (drop kolom lama)</li>
-        <li><span class="ref">1.2</span> Update form kelas & jadwal → dropdown ruangan</li>
+        <li><span class="ref">1.2</span> Migration 1 (tambah kolom) + verifikasi + Migration 2 (drop kolom lama) — migration dibuat, perlu verifikasi VPS</li>
+        <li class="done"><span class="ref">1.2</span> Update form kelas & jadwal → dropdown ruangan</li>
         <li class="done"><span class="ref">1.3</span> Pasang validator di POST/PATCH jadwal → <code>409</code> + detail bentrok</li>
-        <li><span class="ref">1.3</span> UI peringatan bentrok real-time + unit test 4 skenario</li>
+        <li class="done"><span class="ref">1.3</span> UI peringatan bentrok real-time + unit test 4 skenario</li>
         <li class="done"><span class="ref">1.4</span> Logic set <code>TUNGGAKAN</code> otomatis saat invoice <code>OVERDUE</code></li>
         <li class="done"><span class="ref">1.5</span> Pasang <code>logAudit()</code> di mutasi: Invoice, Payment, Grade, Schedule, User, ClassStudent</li>
       </ul>
@@ -467,7 +467,7 @@
       <h3>Jalur B — Penyelesaian PPDB & Afiliator (sisa Tahap 2 + 3) · 11 item</h3>
       <h4>PPDB sisa (Tahap 2)</h4>
       <ul class="task-list">
-        <li><span class="ref">2.2</span> Test 50 request paralel → 50 nomor unik</li>
+        <li class="done"><span class="ref">2.2</span> Test 50 request paralel → 50 nomor unik</li>
         <li class="done"><span class="ref">2.3</span> Validasi Zod di client & server</li>
         <li class="done"><span class="ref">2.3</span> Tombol "Daftar" di halaman program & landing page → <code>/daftar?program={slug}</code></li>
         <li class="done"><span class="ref">2.4</span> <code>/api/ppdb/upload</code> — validasi MIME & ukuran di server + Cloudinary + rate limit</li>
@@ -538,15 +538,15 @@
     <div class="jalur-section">
       <h3>Jalur F — Role & Permission (Tahap 4.1-4.2) · 9 item</h3>
       <ul class="task-list">
-        <li class="fire"><span class="ref">4.1</span> <code>model Permission</code> — code, name, module, description</li>
-        <li class="fire"><span class="ref">4.1</span> <code>model RolePermission</code> — role, permissionCode</li>
-        <li><span class="ref">4.1</span> Tambah role baru: <code>ADMIN_CABANG</code>, <code>ADMIN_KEUANGAN</code>, <code>ADMIN_AKADEMIK</code></li>
-        <li><span class="ref">4.1</span> Seed permission per modul + mapping default role</li>
-        <li><span class="ref">4.1</span> <code>src/lib/permission.ts</code> — <code>hasPermission()</code>, <code>requirePermission()</code> + cache</li>
-        <li class="fire"><span class="ref">4.2</span> Inventarisasi semua cek role (grep <code>SUPER_ADMIN</code>)</li>
-        <li><span class="ref">4.2</span> Ganti guard hardcode → <code>requirePermission()</code>, pastikan backward compatible</li>
+        <li class="fire done"><span class="ref">4.1</span> <code>model Permission</code> — code, name, module, description</li>
+        <li class="fire done"><span class="ref">4.1</span> <code>model RolePermission</code> — role, permissionCode</li>
+        <li class="done"><span class="ref">4.1</span> Tambah role baru: <code>ADMIN_CABANG</code>, <code>ADMIN_KEUANGAN</code>, <code>ADMIN_AKADEMIK</code></li>
+        <li class="done"><span class="ref">4.1</span> Seed permission per modul + mapping default role</li>
+        <li class="done"><span class="ref">4.1</span> <code>src/lib/permission.ts</code> — <code>hasPermission()</code>, <code>requirePermission()</code> + cache</li>
+        <li class="fire done"><span class="ref">4.2</span> Inventarisasi semua cek role (grep <code>SUPER_ADMIN</code>) — 162 matches di 85 file API + 41 page</li>
+        <li class="done"><span class="ref">4.2</span> Ganti guard hardcode → <code>isAdminRole()</code>, backward compatible — 65 file diupdate</li>
         <li><span class="ref">4.2</span> Update <code>src/lib/auth.ts</code> — permission di session</li>
-        <li><span class="ref">4.2</span> Pastikan <code>ADMIN</code> lama tetap punya semua permission</li>
+        <li class="done"><span class="ref">4.2</span> Pastikan <code>ADMIN</code> lama tetap punya semua permission</li>
       </ul>
     </div>
 

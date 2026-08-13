@@ -86,6 +86,32 @@ export class PermissionDeniedError extends Error {
   }
 }
 
+// All admin-level roles
+export const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_KEUANGAN", "ADMIN_AKADEMIK"] as const;
+
+// Check if role is any admin variant
+export function isAdminRole(role: string): boolean {
+  return ADMIN_ROLES.includes(role as never);
+}
+
+// Guard for API routes — returns session or 403 response
+export async function guardAdmin(role: string | undefined): Promise<boolean> {
+  if (!role) return false;
+  return isAdminRole(role);
+}
+
+// Check permission and return NextResponse 403 if denied
+export async function checkPermission(
+  role: string | undefined,
+  permissionCode: string
+): Promise<{ ok: true } | { ok: false; status: 403; error: string }> {
+  if (!role) return { ok: false, status: 403, error: "Unauthorized" };
+  if (role === "SUPER_ADMIN" || role === "ADMIN") return { ok: true };
+  const has = await hasPermission(role, permissionCode);
+  if (!has) return { ok: false, status: 403, error: "Permission denied" };
+  return { ok: true };
+}
+
 // Permission code constants
 export const PERM = {
   // User management

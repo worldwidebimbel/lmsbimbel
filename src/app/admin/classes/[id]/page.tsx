@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { redirect, notFound } from "next/navigation";
 import { getBranchScope } from "@/lib/branch-context";
@@ -10,7 +11,7 @@ export const metadata = { title: "Detail Kelas" };
 
 export default async function ClassDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
-  if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
+  if (!session?.user || !isAdminRole(session.user.role)) redirect("/admin");
 
   const { id } = await params;
   const { isSuperAdmin, branchId, allBranches } = await getBranchScope();

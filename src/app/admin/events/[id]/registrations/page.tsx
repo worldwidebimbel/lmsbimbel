@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { getBranchScope } from "@/lib/branch-context";
@@ -9,7 +10,7 @@ export const metadata = { title: "Peserta Event" };
 export default async function AdminEventRegistrationsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
-  if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
+  if (!session?.user || !isAdminRole(session.user.role)) {
     redirect("/admin");
   }
 

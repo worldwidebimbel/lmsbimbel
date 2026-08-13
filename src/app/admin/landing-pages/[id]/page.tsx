@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function EditLandingPagePage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
-  if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
+  if (!session?.user || !isAdminRole(session.user.role)) redirect("/admin");
 
   const { id } = await params;
   const page = await db.landingPage.findUnique({ where: { id } });

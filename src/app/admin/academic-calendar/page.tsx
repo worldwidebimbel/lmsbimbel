@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { CalendarDays } from "lucide-react";
@@ -8,7 +9,7 @@ export const metadata = { title: "Kalender Akademik" };
 
 export default async function AdminAcademicCalendarPage() {
   const session = await auth();
-  if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
+  if (!session?.user || !isAdminRole(session.user.role)) redirect("/admin");
 
   const branches = await db.branch.findMany({
     where: { isActive: true },

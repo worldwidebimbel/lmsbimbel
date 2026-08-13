@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
@@ -8,7 +9,7 @@ export const metadata = { title: "Tambah Pengguna" };
 
 export default async function NewUserPage() {
   const session = await auth();
-  if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
+  if (!session?.user || !isAdminRole(session.user.role)) redirect("/admin");
 
   const { isSuperAdmin, allBranches, branchId } = await getBranchScope();
   const branches = await db.branch.findMany({

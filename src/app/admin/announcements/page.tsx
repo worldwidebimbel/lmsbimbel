@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { redirect } from "next/navigation";
 import { getBranchScope } from "@/lib/branch-context";
 import AnnouncementsClient from "@/components/admin/AnnouncementsClient";
@@ -8,7 +9,7 @@ export const metadata = { title: "Pengumuman" };
 
 export default async function AnnouncementsPage() {
   const session = await auth();
-  if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
+  if (!session?.user || !isAdminRole(session.user.role)) redirect("/admin");
 
   const { isSuperAdmin, branchId, allBranches } = await getBranchScope();
 

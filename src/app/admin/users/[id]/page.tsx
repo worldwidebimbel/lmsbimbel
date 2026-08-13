@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 import { redirect, notFound } from "next/navigation";
@@ -10,7 +11,7 @@ export const metadata = { title: "Edit Pengguna" };
 
 export default async function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
-  if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
+  if (!session?.user || !isAdminRole(session.user.role)) redirect("/admin");
 
   const { id } = await params;
   const { isSuperAdmin, allBranches, branchId } = await getBranchScope();

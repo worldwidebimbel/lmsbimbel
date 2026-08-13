@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { clearDemoData, getDemoStatus, importDemoData, DemoType } from "@/lib/demo-seeder";
 
 function isAdmin(role: string) {
-  return ["ADMIN", "SUPER_ADMIN"].includes(role);
+  return isAdminRole(role);
 }
 
 export async function GET() {

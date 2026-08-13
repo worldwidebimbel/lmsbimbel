@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { redirect, notFound } from "next/navigation";
 import { format } from "date-fns";
@@ -9,7 +10,7 @@ export const metadata = { title: "Invoice" };
 
 export default async function InvoicePrintPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
-  if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/admin");
+  if (!session?.user || !isAdminRole(session.user.role)) redirect("/admin");
 
   const { id } = await params;
   const invoice = await db.invoice.findUnique({

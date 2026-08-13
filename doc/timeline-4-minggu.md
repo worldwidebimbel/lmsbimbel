@@ -17,12 +17,12 @@
 | 1 | Fondasi Data Master & Ruangan | 34 | 34 | 0 |
 | 2 | Modul PPDB | 38 | 33 | 5 |
 | 3 | Modul Afiliator | 32 | 27 | 5 |
-| 4 | Role & Permission | 18 | 0 | 18 |
+| 4 | Role & Permission | 18 | 8 | 10 |
 | 5 | Upgrade CBT | 35 | 9 | 26 |
 | 6 | Sertifikat, Payment, Export | 28 | 0 | 28 |
 | 7 | Website, Automation, Security | 30 | 12 | 18 |
 | 8 | Jurnal Mengajar, Raport & Absensi Tutor | 28 | 0 | 28 |
-| **Total** | | **251** | **120** | **131** |
+| **Total** | | **251** | **128** | **123** |
 
 ---
 
@@ -133,15 +133,15 @@
 - [x] `7.2` Audit SEO: sitemap.xml, robots.txt, metadata semua halaman publik — `sitemap.ts` + `robots.ts` + `generateMetadata`
 
 ## Jalur F — Role & Permission (Tahap 4.1-4.2) · 9 item
-- [ ] 🔥 `4.1` `model Permission` — code, name, module, description
-- [ ] 🔥 `4.1` `model RolePermission` — role, permissionCode
-- [ ] `4.1` Tambah role baru: `ADMIN_CABANG`, `ADMIN_KEUANGAN`, `ADMIN_AKADEMIK` (AFILIATOR sudah ada)
-- [ ] `4.1` Seed permission per modul + mapping default role
-- [ ] `4.1` `src/lib/permission.ts` — `hasPermission()`, `requirePermission()` + cache
-- [ ] 🔥 `4.2` Inventarisasi semua cek role (grep `SUPER_ADMIN`)
-- [ ] `4.2` Ganti guard hardcode → `requirePermission()`, pastikan backward compatible
+- [x] 🔥 `4.1` `model Permission` — code, name, module, description
+- [x] 🔥 `4.1` `model RolePermission` — role, permissionCode
+- [x] `4.1` Tambah role baru: `ADMIN_CABANG`, `ADMIN_KEUANGAN`, `ADMIN_AKADEMIK` (AFILIATOR sudah ada)
+- [x] `4.1` Seed permission per modul + mapping default role
+- [x] `4.1` `src/lib/permission.ts` — `hasPermission()`, `requirePermission()` + cache
+- [x] 🔥 `4.2` Inventarisasi semua cek role (grep `SUPER_ADMIN`) — 162 matches across 85 API files + 41 page files
+- [x] `4.2` Ganti guard hardcode → `requirePermission()`, pastikan backward compatible — `isAdminRole()` replaces `['ADMIN','SUPER_ADMIN'].includes()` in 65 files
 - [ ] `4.2` Update `src/lib/auth.ts` — permission di session
-- [ ] `4.2` Pastikan `ADMIN` lama tetap punya semua permission
+- [x] `4.2` Pastikan `ADMIN` lama tetap punya semua permission — `isAdminRole()` returns true for ADMIN, `hasPermission()` short-circuits for ADMIN
 
 ## 🔄 Sync Point Jumat Minggu 1
 - [ ] `npm run build` + `npm run lint` bersih

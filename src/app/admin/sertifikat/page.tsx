@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import SertifikatTemplateClient from "@/components/admin/SertifikatTemplateClient";
@@ -13,7 +14,7 @@ const CERT_KEYS = [
 
 export default async function SertifikatTemplatePage() {
   const session = await auth();
-  if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/");
+  if (!session?.user || !isAdminRole(session.user.role)) redirect("/");
 
   const configs = await db.siteConfig.findMany({ where: { key: { in: CERT_KEYS } } });
   const map: Record<string, string> = {};

@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getDemoStatus } from "@/lib/demo-seeder";
@@ -21,7 +22,7 @@ const DEFAULT_SETTINGS: Record<string, string> = {
 
 export default async function AdminSettingsPage() {
   const session = await auth();
-  if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
+  if (!session?.user || !isAdminRole(session.user.role)) {
     redirect("/admin");
   }
 
