@@ -15,6 +15,9 @@ datasource db {
 enum UserRole {
   SUPER_ADMIN
   ADMIN
+  ADMIN_CABANG
+  ADMIN_KEUANGAN
+  ADMIN_AKADEMIK
   GURU
   SISWA
   ORANG_TUA
@@ -129,6 +132,36 @@ model FeatureFlag {
   updatedAt    DateTime    @updatedAt
 
   @@map("feature_flags")
+}
+
+// ============================
+// PERMISSIONS (Tahap 4.1)
+// ============================
+
+model Permission {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  module      String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id             String   @id @default(cuid())
+  role           UserRole
+  permissionCode String
+  createdAt      DateTime @default(now())
+
+  permission     Permission @relation(fields: [permissionCode], references: [code], onDelete: Cascade)
+
+  @@unique([role, permissionCode])
+  @@map("role_permissions")
 }
 
 // ============================
@@ -328,7 +361,6 @@ model Class {
   branchId    String?
   type        ClassType @default(REGULER)
   maxStudents Int       @default(30)
-  room        String?
   roomId      String?
   programId   String?
   levelId     String?

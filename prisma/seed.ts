@@ -1,5 +1,6 @@
 import { PrismaClient, UserRole, FeatureTier } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { ALL_PERMISSIONS, DEFAULT_ROLE_PERMISSIONS } from "../src/lib/permission";
 
 const prisma = new PrismaClient();
 
@@ -360,6 +361,32 @@ async function main() {
     });
   }
   console.log(`✅ ${FEATURE_FLAGS.length} feature flags seeded`);
+
+  // Seed Permissions
+  console.log("🔐 Seeding permissions...");
+  for (const perm of ALL_PERMISSIONS) {
+    await prisma.permission.upsert({
+      where: { code: perm.code },
+      update: { name: perm.name, module: perm.module },
+      create: perm,
+    });
+  }
+  console.log(`✅ ${ALL_PERMISSIONS.length} permissions seeded`);
+
+  // Seed Role Permissions
+  console.log("🔑 Seeding role permissions...");
+  let rolePermCount = 0;
+  for (const [role, perms] of Object.entries(DEFAULT_ROLE_PERMISSIONS)) {
+    for (const permCode of perms) {
+      await prisma.rolePermission.upsert({
+        where: { role_permissionCode: { role: role as UserRole, permissionCode: permCode } },
+        update: {},
+        create: { role: role as UserRole, permissionCode: permCode },
+      });
+      rolePermCount++;
+    }
+  }
+  console.log(`✅ ${rolePermCount} role permissions seeded`);
 
   // Seed Subjects
   console.log("📚 Seeding subjects...");

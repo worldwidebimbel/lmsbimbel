@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { name, description, subjectId, teacherId, branchId, type, maxStudents, room, startDate, endDate } = body;
+  const { name, description, subjectId, teacherId, branchId, type, maxStudents, roomId, startDate, endDate } = body;
 
   if (!name || !subjectId || !teacherId) {
     return NextResponse.json({ error: "name, subjectId, teacherId wajib diisi" }, { status: 400 });
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       branchId: assignedBranchId,
       type: type ?? "REGULER",
       maxStudents: maxStudents ?? 30,
-      room,
+      roomId: roomId || null,
       startDate: startDate ? new Date(startDate) : null,
       endDate: endDate ? new Date(endDate) : null,
     },

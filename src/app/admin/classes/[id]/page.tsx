@@ -15,18 +15,19 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const { isSuperAdmin, branchId, allBranches } = await getBranchScope();
 
-  const [cls, allStudents, subjects, teachers] = await Promise.all([
+  const [cls, allStudents, subjects, teachers, rooms] = await Promise.all([
     db.class.findUnique({
       where: { id },
       include: {
         subject: { select: { id: true, name: true, code: true, color: true } },
         teacher: { select: { id: true, name: true } },
         branch: { select: { id: true, name: true, code: true } },
+        roomRel: { select: { id: true, name: true } },
         students: {
           include: { student: { select: { id: true, name: true, email: true } } },
           orderBy: { student: { name: "asc" } },
         },
-        schedules: { orderBy: { dayOfWeek: "asc" } },
+        schedules: { orderBy: { dayOfWeek: "asc" }, include: { roomRel: { select: { name: true } } } },
         _count: { select: { materials: true, assignments: true } },
       },
     }),
@@ -39,6 +40,11 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
     db.user.findMany({
       where: { role: "GURU", isActive: true, ...(branchId ? { defaultBranchId: branchId } : {}) },
       select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    db.room.findMany({
+      where: { isActive: true, ...(branchId ? { branchId } : {}) },
+      select: { id: true, name: true, roomNumber: true },
       orderBy: { name: "asc" },
     }),
   ]);
@@ -67,6 +73,7 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
         subjects={JSON.parse(JSON.stringify(subjects))}
         teachers={JSON.parse(JSON.stringify(teachers))}
         branches={JSON.parse(JSON.stringify(allBranches))}
+        rooms={JSON.parse(JSON.stringify(rooms))}
         isSuperAdmin={isSuperAdmin}
       />
     </div>

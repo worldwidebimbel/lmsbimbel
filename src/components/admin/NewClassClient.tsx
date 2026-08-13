@@ -8,8 +8,9 @@ import Link from "next/link";
 interface Subject { id: string; name: string; code: string; color: string }
 interface Teacher { id: string; name: string }
 interface Branch { id: string; name: string; code: string }
+interface Room { id: string; name: string; roomNumber: string | null }
 
-export default function NewClassClient({ subjects, teachers, branches, defaultBranchId, isSuperAdmin }: { subjects: Subject[]; teachers: Teacher[]; branches: Branch[]; defaultBranchId: string | null; isSuperAdmin: boolean }) {
+export default function NewClassClient({ subjects, teachers, branches, rooms, defaultBranchId, isSuperAdmin }: { subjects: Subject[]; teachers: Teacher[]; branches: Branch[]; rooms: Room[]; defaultBranchId: string | null; isSuperAdmin: boolean }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
@@ -35,7 +36,7 @@ export default function NewClassClient({ subjects, teachers, branches, defaultBr
       const res = await fetch("/api/admin/classes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, maxStudents: Number(form.maxStudents) }),
+        body: JSON.stringify({ ...form, roomId: form.room || null, maxStudents: Number(form.maxStudents) }),
       });
       if (!res.ok) {
         const d = await res.json();
@@ -132,12 +133,14 @@ export default function NewClassClient({ subjects, teachers, branches, defaultBr
 
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">Ruangan</label>
-          <input
+          <select
             value={form.room}
             onChange={(e) => update("room", e.target.value)}
-            placeholder="Contoh: R-101"
             className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
-          />
+          >
+            <option value="">— Tanpa ruangan —</option>
+            {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}{r.roomNumber ? ` (${r.roomNumber})` : ""}</option>)}
+          </select>
         </div>
 
         <div>

@@ -114,9 +114,9 @@ export async function seedAkademik() {
 
   // Classes
   const [cMtk, cIpa, cBin] = await Promise.all([
-    db.class.create({ data: { name: "Kelas 7A Matematika", subjectId: sMtk.id, teacherId: gMtk.id, maxStudents: 15, room: "Ruang A1", isActive: true } }),
-    db.class.create({ data: { name: "Kelas 8B IPA", subjectId: sIpa.id, teacherId: gIpa.id, maxStudents: 15, room: "Ruang A2", isActive: true } }),
-    db.class.create({ data: { name: "Kelas 9A Bahasa Indonesia", subjectId: sBin.id, teacherId: gBin.id, maxStudents: 15, room: "Ruang B1", isActive: true } }),
+    db.class.create({ data: { name: "Kelas 7A Matematika", subjectId: sMtk.id, teacherId: gMtk.id, maxStudents: 15, isActive: true } }),
+    db.class.create({ data: { name: "Kelas 8B IPA", subjectId: sIpa.id, teacherId: gIpa.id, maxStudents: 15, isActive: true } }),
+    db.class.create({ data: { name: "Kelas 9A Bahasa Indonesia", subjectId: sBin.id, teacherId: gBin.id, maxStudents: 15, isActive: true } }),
   ]);
 
   // Enroll all students

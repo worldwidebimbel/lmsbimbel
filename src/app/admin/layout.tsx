@@ -11,7 +11,7 @@ export default async function AdminLayout({
 }) {
   const [session, cfg] = await Promise.all([auth(), getSiteConfig()]);
   if (!session) redirect("/login");
-  if (!["SUPER_ADMIN", "ADMIN"].includes(session.user?.role as string)) {
+  if (!["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_KEUANGAN", "ADMIN_AKADEMIK"].includes(session.user?.role as string)) {
     redirect("/login");
   }
 

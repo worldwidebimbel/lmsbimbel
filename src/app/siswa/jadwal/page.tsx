@@ -35,7 +35,7 @@ export default async function SiswaJadwalPage() {
           name: true,
           subject: { select: { name: true, color: true } },
           teacher: { select: { name: true } },
-          schedules: { orderBy: { startTime: "asc" } },
+          schedules: { orderBy: { startTime: "asc" }, include: { roomRel: { select: { name: true } } } },
         },
       },
     },
@@ -65,7 +65,7 @@ export default async function SiswaJadwalPage() {
         teacherName: ec.class.teacher.name,
         startTime: s.startTime,
         endTime: s.endTime,
-        room: s.room,
+        room: s.roomRel?.name ?? null,
       });
     }
   }

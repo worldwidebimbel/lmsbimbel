@@ -5,17 +5,19 @@ import { Users, Loader2, Trash2, UserPlus, BookOpen, ClipboardList, ToggleLeft, 
 
 interface Student { id: string; name: string; email: string }
 interface ClassStudent { student: Student }
-interface Schedule { id: string; dayOfWeek: string; startTime: string; endTime: string; room: string | null }
+interface Schedule { id: string; dayOfWeek: string; startTime: string; endTime: string; roomRel: { name: string } | null }
 interface Subject { id: string; name: string; code: string; color: string }
 interface Teacher { id: string; name: string }
 interface Branch { id: string; name: string; code: string }
+interface Room { id: string; name: string; roomNumber: string | null }
 interface ClassData {
   id: string;
   name: string;
   description: string | null;
   type: string;
   maxStudents: number;
-  room: string | null;
+  roomId: string | null;
+  roomRel: { id: string; name: string } | null;
   isActive: boolean;
   subjectId: string;
   teacherId: string;
@@ -33,7 +35,7 @@ const DAY_LABEL: Record<string, string> = {
   JUMAT: "Jumat", SABTU: "Sabtu", MINGGU: "Minggu",
 };
 
-export default function ClassDetailClient({ cls, allStudents, subjects, teachers, branches, isSuperAdmin }: { cls: ClassData; allStudents: Student[]; subjects: Subject[]; teachers: Teacher[]; branches: Branch[]; isSuperAdmin: boolean }) {
+export default function ClassDetailClient({ cls, allStudents, subjects, teachers, branches, rooms, isSuperAdmin }: { cls: ClassData; allStudents: Student[]; subjects: Subject[]; teachers: Teacher[]; branches: Branch[]; rooms: Room[]; isSuperAdmin: boolean }) {
   const [students, setStudents] = useState<ClassStudent[]>(cls.students);
   const [isActive, setIsActive] = useState(cls.isActive);
   const [selectedStudent, setSelectedStudent] = useState("");
@@ -48,7 +50,7 @@ export default function ClassDetailClient({ cls, allStudents, subjects, teachers
     branchId: cls.branchId ?? "",
     type: cls.type,
     maxStudents: cls.maxStudents,
-    room: cls.room ?? "",
+    room: cls.roomId ?? "",
   });
   const [editError, setEditError] = useState("");
   const [editPending, startEditTransition] = useTransition();
@@ -103,6 +105,7 @@ export default function ClassDetailClient({ cls, allStudents, subjects, teachers
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...editForm,
+          roomId: editForm.room || null,
           maxStudents: Number(editForm.maxStudents),
           branchId: isSuperAdmin ? editForm.branchId : cls.branchId,
         }),
@@ -179,7 +182,12 @@ export default function ClassDetailClient({ cls, allStudents, subjects, teachers
               </div>
               <div>
                 <label className="text-xs text-gray-500">Ruangan</label>
-                <input value={editForm.room} onChange={(e) => handleEditChange("room", e.target.value)} className="w-full rounded border border-gray-200 px-2 py-1 text-sm" />
+                <select value={editForm.room} onChange={(e) => handleEditChange("room", e.target.value)} className="w-full rounded border border-gray-200 px-2 py-1 text-sm">
+                  <option value="">— Tanpa ruangan —</option>
+                  {rooms.map((r) => (
+                    <option key={r.id} value={r.id}>{r.name}{r.roomNumber ? ` (${r.roomNumber})` : ""}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="text-xs text-gray-500">Deskripsi</label>
@@ -213,10 +221,10 @@ export default function ClassDetailClient({ cls, allStudents, subjects, teachers
                 <span className="text-gray-500">Kapasitas</span>
                 <span className="text-gray-700">{students.length}/{cls.maxStudents}</span>
               </div>
-              {cls.room && (
+              {cls.roomRel && (
                 <div className="flex justify-between">
                   <span className="text-gray-500">Ruangan</span>
-                  <span className="text-gray-700">{cls.room}</span>
+                  <span className="text-gray-700">{cls.roomRel.name}</span>
                 </div>
               )}
               <div className="flex justify-between">

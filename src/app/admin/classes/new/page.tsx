@@ -15,9 +15,10 @@ export default async function NewClassPage() {
   const { isSuperAdmin, allBranches, branchId } = await getBranchScope();
   const branchFilter = session.user.role === "SUPER_ADMIN" ? {} : { defaultBranchId: branchId };
 
-  const [subjects, teachers] = await Promise.all([
+  const [subjects, teachers, rooms] = await Promise.all([
     db.subject.findMany({ orderBy: { name: "asc" } }),
     db.user.findMany({ where: { role: "GURU", isActive: true, ...branchFilter }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    db.room.findMany({ where: { isActive: true, ...(branchId ? { branchId } : {}) }, select: { id: true, name: true, roomNumber: true }, orderBy: { name: "asc" } }),
   ]);
 
   return (
@@ -39,6 +40,7 @@ export default async function NewClassPage() {
         subjects={JSON.parse(JSON.stringify(subjects))}
         teachers={teachers}
         branches={allBranches}
+        rooms={JSON.parse(JSON.stringify(rooms))}
         defaultBranchId={branchId}
         isSuperAdmin={isSuperAdmin}
       />

@@ -110,6 +110,9 @@ const NAV_AFILIATOR: NavItem[] = [
 const NAV_MAP: Record<string, NavItem[]> = {
   SUPER_ADMIN: NAV_ADMIN,
   ADMIN: NAV_ADMIN,
+  ADMIN_CABANG: NAV_ADMIN,
+  ADMIN_KEUANGAN: NAV_ADMIN,
+  ADMIN_AKADEMIK: NAV_ADMIN,
   GURU: NAV_GURU,
   SISWA: NAV_SISWA,
   ORANG_TUA: NAV_ORANGTUA,
@@ -119,6 +122,9 @@ const NAV_MAP: Record<string, NavItem[]> = {
 const ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN: "Super Admin",
   ADMIN: "Admin",
+  ADMIN_CABANG: "Admin Cabang",
+  ADMIN_KEUANGAN: "Admin Keuangan",
+  ADMIN_AKADEMIK: "Admin Akademik",
   GURU: "Guru",
   SISWA: "Siswa",
   ORANG_TUA: "Orang Tua",
@@ -128,6 +134,9 @@ const ROLE_LABELS: Record<string, string> = {
 const ROLE_COLORS: Record<string, string> = {
   SUPER_ADMIN: "bg-red-500",
   ADMIN: "bg-orange-500",
+  ADMIN_CABANG: "bg-amber-500",
+  ADMIN_KEUANGAN: "bg-emerald-500",
+  ADMIN_AKADEMIK: "bg-indigo-500",
   GURU: "bg-yellow-500",
   SISWA: "bg-green-500",
   ORANG_TUA: "bg-blue-500",
