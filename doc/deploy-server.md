@@ -629,4 +629,6 @@ npx prisma generate
 npx prisma migrate deploy
 npm run build
 pm2 restart lms-bimbel --update-env
+
+git pull origin feat/worldwide-upgrade && npm install && npx prisma generate && npx prisma migrate deploy && npm run build && pm2 restart lms-bimbel
 ```

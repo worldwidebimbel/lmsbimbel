@@ -1,5 +1,23 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { GmailOAuth2 } from "@/lib/gmail-oauth2";
+import { db } from "@/lib/db";
+import { clearOAuth2Cache } from "@/lib/email";
+
+function strip(v?: string) {
+  return (v ?? "").replace(/^["']|["']$/g, "").trim();
+}
+
+async function getOAuth2Creds(): Promise<{ clientId: string; clientSecret: string } | null> {
+  const rows = await db.appSetting.findMany({
+    where: { key: { in: ["gmail_client_id", "gmail_client_secret"] } },
+  });
+  const map: Record<string, string> = {};
+  for (const r of rows) map[r.key] = r.value;
+  const clientId = map.gmail_client_id || strip(process.env.GOOGLE_CLIENT_ID);
+  const clientSecret = map.gmail_client_secret || strip(process.env.GOOGLE_CLIENT_SECRET);
+  if (!clientId || !clientSecret) return null;
+  return { clientId, clientSecret };
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -22,18 +40,16 @@ export async function GET(req: NextRequest) {
     `), { headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
 
-  const strip = (v?: string) => (v ?? "").replace(/^["']|["']$/g, "").trim();
-  const clientId     = strip(process.env.GOOGLE_CLIENT_ID);
-  const clientSecret = strip(process.env.GOOGLE_CLIENT_SECRET);
-  if (!clientId || !clientSecret) {
+  const creds = await getOAuth2Creds();
+  if (!creds) {
     return new NextResponse(htmlPage("⚠️ Kredensial Tidak Lengkap", `
-      <p>GOOGLE_CLIENT_ID atau GOOGLE_CLIENT_SECRET belum diset di .env.local</p>
+      <p>Client ID atau Client Secret belum diset. Masukkan kredensial di Settings → Email → Gmail OAuth2 terlebih dahulu.</p>
       <a href="/admin/settings?tab=email" class="btn">← Kembali ke Settings</a>
     `), { headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
 
   const callbackUri = `${strip(process.env.NEXTAUTH_URL).replace(/\/$/, "") || "http://localhost:3000"}/api/admin/email/callback`;
-  const mailer = new GmailOAuth2(clientId, clientSecret, callbackUri);
+  const mailer = new GmailOAuth2(creds.clientId, creds.clientSecret, callbackUri);
 
   try {
     const tokens = await mailer.exchangeCode(code);
@@ -52,26 +68,37 @@ export async function GET(req: NextRequest) {
       `), { headers: { "Content-Type": "text/html; charset=utf-8" } });
     }
 
-    return new NextResponse(htmlPage("✅ Berhasil! Salin Refresh Token", `
-      <p>Otorisasi Gmail berhasil. Salin nilai <code>GOOGLE_REFRESH_TOKEN</code> di bawah dan tambahkan ke file <code>.env.local</code> di server.</p>
-      <div class="token-box" id="tokenBox">${refreshToken}</div>
+    let connectedEmail = "";
+    try {
+      connectedEmail = await mailer.getConnectedEmail(tokens.access_token) ?? "";
+    } catch { /* ignore */ }
+
+    await db.appSetting.upsert({
+      where: { key: "gmail_refresh_token" },
+      create: { key: "gmail_refresh_token", value: refreshToken },
+      update: { value: refreshToken },
+    });
+    if (connectedEmail) {
+      await db.appSetting.upsert({
+        where: { key: "gmail_connected_email" },
+        create: { key: "gmail_connected_email", value: connectedEmail },
+        update: { value: connectedEmail },
+      });
+      await db.appSetting.upsert({
+        where: { key: "gmail_from" },
+        create: { key: "gmail_from", value: connectedEmail },
+        update: { value: connectedEmail },
+      });
+    }
+    clearOAuth2Cache();
+
+    return new NextResponse(htmlPage("✅ Berhasil! Gmail Terhubung", `
+      <p>Otorisasi Gmail berhasil! Refresh token dan email terhubung telah disimpan otomatis ke database.</p>
+      ${connectedEmail ? `<p>Email terhubung: <strong>${connectedEmail}</strong></p>` : ""}
       <div class="actions">
-        <button onclick="copyToken()" class="btn btn-primary">📋 Salin Token</button>
-        <a href="/admin/settings?tab=email" class="btn">← Kembali ke Settings</a>
+        <a href="/admin/settings?tab=email" class="btn btn-primary">← Kembali ke Settings</a>
       </div>
-      <div class="env-block">
-        <p>Tambahkan baris ini ke <code>.env.local</code>:</p>
-        <pre>GOOGLE_REFRESH_TOKEN=${refreshToken}
-GMAIL_FROM=akungmail@gmail.com</pre>
-        <p>Setelah itu <strong>restart server</strong> agar perubahan env aktif.</p>
-      </div>
-      <script>
-        function copyToken() {
-          navigator.clipboard.writeText(document.getElementById('tokenBox').textContent ?? '');
-          event.target.textContent = '✅ Tersalin!';
-          setTimeout(() => event.target.textContent = '📋 Salin Token', 2000);
-        }
-      </script>
+      <p style="margin-top:16px;font-size:0.8rem;color:#6b7280">Tidak perlu menyalin token manual atau mengedit .env.local. Konfigurasi sudah aktif.</p>
     `), { headers: { "Content-Type": "text/html; charset=utf-8" } });
 
   } catch (err: unknown) {

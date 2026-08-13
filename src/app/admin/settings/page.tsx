@@ -6,7 +6,7 @@ import { getDemoStatus } from "@/lib/demo-seeder";
 import { getBranchScope } from "@/lib/branch-context";
 import { getQrisSettings } from "@/lib/qris-settings";
 import SettingsClient from "@/components/admin/SettingsClient";
-import { getActiveEmailMethod } from "@/lib/email";
+import { getActiveEmailMethodAsync } from "@/lib/email";
 import { Settings } from "lucide-react";
 
 export const metadata = { title: "Pengaturan Sistem" };
@@ -43,14 +43,27 @@ export default async function AdminSettingsPage() {
 
   const smtpConfigured = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
   const resendConfigured = !!process.env.RESEND_API_KEY;
+
+  const gmailClientId = settings.gmail_client_id ?? "";
+  const gmailClientSecret = settings.gmail_client_secret ?? "";
+  const gmailRefreshToken = settings.gmail_refresh_token ?? "";
+  const gmailConnectedEmail = settings.gmail_connected_email ?? "";
+  const gmailFrom = settings.gmail_from ?? "";
+
+  const oauth2Configured = !!(gmailClientId && gmailClientSecret && gmailRefreshToken);
   const oauth2Vars = {
-    clientId:     !!process.env.GOOGLE_CLIENT_ID,
-    clientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
-    refreshToken: !!process.env.GOOGLE_REFRESH_TOKEN,
-    gmailFrom:    !!process.env.GMAIL_FROM,
+    clientId: !!gmailClientId,
+    clientSecret: !!gmailClientSecret,
+    refreshToken: !!gmailRefreshToken,
+    gmailFrom: !!gmailFrom,
   };
-  const oauth2Configured = Object.values(oauth2Vars).every(Boolean);
-  const activeEmailMethod = getActiveEmailMethod();
+  const oauth2DbConfig = {
+    clientId: gmailClientId,
+    clientSecret: gmailClientSecret,
+    connectedEmail: gmailConnectedEmail,
+    hasRefreshToken: !!gmailRefreshToken,
+  };
+  const activeEmailMethod = await getActiveEmailMethodAsync();
   const appVersion = process.env.npm_package_version ?? "0.1.0";
 
   return (
@@ -72,6 +85,7 @@ export default async function AdminSettingsPage() {
         resendConfigured={resendConfigured}
         oauth2Configured={oauth2Configured}
         oauth2Vars={oauth2Vars}
+        oauth2DbConfig={oauth2DbConfig}
         activeEmailMethod={activeEmailMethod}
         appVersion={appVersion}
         branches={allBranches}

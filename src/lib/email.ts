@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import https from "node:https";
 import { GmailOAuth2 } from "@/lib/gmail-oauth2";
+import { db } from "@/lib/db";
 
 interface MailOptions {
   to: string | string[];
@@ -12,6 +13,51 @@ export type EmailMethod = "resend" | "oauth2" | "smtp" | "none";
 
 function env(key: string): string {
   return (process.env[key] ?? "").replace(/^["']|["']$/g, "").trim();
+}
+
+// Cache for DB-stored OAuth2 settings (refreshed every 60s)
+let dbOAuth2Cache: { data: Record<string, string>; ts: number } | null = null;
+const DB_CACHE_TTL = 60_000;
+
+async function getDbOAuth2Settings(): Promise<Record<string, string>> {
+  if (dbOAuth2Cache && Date.now() - dbOAuth2Cache.ts < DB_CACHE_TTL) {
+    return dbOAuth2Cache.data;
+  }
+  try {
+    const rows = await db.appSetting.findMany({
+      where: {
+        key: {
+          in: [
+            "gmail_client_id",
+            "gmail_client_secret",
+            "gmail_refresh_token",
+            "gmail_from",
+            "gmail_connected_email",
+          ],
+        },
+      },
+    });
+    const data: Record<string, string> = {};
+    for (const r of rows) data[r.key] = r.value;
+    dbOAuth2Cache = { data, ts: Date.now() };
+    return data;
+  } catch {
+    return {};
+  }
+}
+
+export function clearOAuth2Cache() {
+  dbOAuth2Cache = null;
+}
+
+export async function getActiveEmailMethodAsync(): Promise<EmailMethod> {
+  if (env("RESEND_API_KEY")) return "resend";
+  const dbCfg = await getDbOAuth2Settings();
+  const hasOAuth2Db = !!(dbCfg.gmail_client_id && dbCfg.gmail_client_secret && dbCfg.gmail_refresh_token && dbCfg.gmail_from);
+  const hasOAuth2Env = !!(env("GOOGLE_CLIENT_ID") && env("GOOGLE_CLIENT_SECRET") && env("GOOGLE_REFRESH_TOKEN") && env("GMAIL_FROM"));
+  if (hasOAuth2Db || hasOAuth2Env) return "oauth2";
+  if (env("SMTP_USER") && env("SMTP_PASS")) return "smtp";
+  return "none";
 }
 
 export function getActiveEmailMethod(): EmailMethod {
@@ -26,18 +72,26 @@ export function getActiveEmailMethod(): EmailMethod {
   return "none";
 }
 
-export function getEmailConfig() {
+export async function getEmailConfigAsync() {
+  const dbCfg = await getDbOAuth2Settings();
+  const clientId = dbCfg.gmail_client_id || env("GOOGLE_CLIENT_ID");
+  const clientSecret = dbCfg.gmail_client_secret || env("GOOGLE_CLIENT_SECRET");
+  const refreshToken = dbCfg.gmail_refresh_token || env("GOOGLE_REFRESH_TOKEN");
+  const gmailFrom = dbCfg.gmail_from || env("GMAIL_FROM");
+  const connectedEmail = dbCfg.gmail_connected_email || "";
+
   return {
-    method: getActiveEmailMethod(),
+    method: await getActiveEmailMethodAsync(),
     resend: {
       apiKey: env("RESEND_API_KEY"),
       from: env("RESEND_FROM") || "EduBimbel <no-reply@resend.dev>",
     },
     oauth2: {
-      clientId: env("GOOGLE_CLIENT_ID"),
-      clientSecret: env("GOOGLE_CLIENT_SECRET"),
-      refreshToken: env("GOOGLE_REFRESH_TOKEN"),
-      gmailFrom: env("GMAIL_FROM"),
+      clientId,
+      clientSecret,
+      refreshToken,
+      gmailFrom,
+      connectedEmail,
       callbackUri: `${env("NEXTAUTH_URL").replace(/\/$/, "") || "http://localhost:3000"}/api/admin/email/callback`,
     },
     smtp: {
@@ -103,12 +157,12 @@ function resendHttpSend(opts: {
 }
 
 export async function sendEmail({ to, subject, html }: MailOptions) {
-  const method = getActiveEmailMethod();
+  const method = await getActiveEmailMethodAsync();
   const toAddr = Array.isArray(to) ? to.join(", ") : to;
   const appName = process.env.APP_NAME ?? "EduBimbel";
 
   if (method === "resend") {
-    const cfg = getEmailConfig();
+    const cfg = await getEmailConfigAsync();
     try {
       const result = await resendHttpSend({
         apiKey: cfg.resend.apiKey,
@@ -126,7 +180,7 @@ export async function sendEmail({ to, subject, html }: MailOptions) {
   }
 
   if (method === "oauth2") {
-    const cfg = getEmailConfig();
+    const cfg = await getEmailConfigAsync();
     const mailer = new GmailOAuth2(
       cfg.oauth2.clientId,
       cfg.oauth2.clientSecret,

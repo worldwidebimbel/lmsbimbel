@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server";
 import https from "node:https";
 import { auth } from "@/lib/auth";
-import { getEmailConfig } from "@/lib/email";
+import { isAdminRole } from "@/lib/permission";
+import { getEmailConfigAsync } from "@/lib/email";
 import { GmailOAuth2 } from "@/lib/gmail-oauth2";
 
 export async function GET() {
   const session = await auth();
-  if (!session?.user || !["SUPER_ADMIN", "ADMIN"].includes(session.user.role)) {
+  if (!session?.user || !isAdminRole(session.user.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const cfg = getEmailConfig();
+  const cfg = await getEmailConfigAsync();
   const checks: Record<string, { ok: boolean; detail: string }> = {
     method: { ok: cfg.method !== "none", detail: cfg.method },
     resend_api_key: { ok: !!cfg.resend.apiKey, detail: cfg.resend.apiKey ? "✓ diset" : "belum diset" },

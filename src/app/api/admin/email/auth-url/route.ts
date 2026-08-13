@@ -1,19 +1,30 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/permission";
 import { GmailOAuth2 } from "@/lib/gmail-oauth2";
+import { db } from "@/lib/db";
+
+function strip(v?: string) {
+  return (v ?? "").replace(/^["']|["']$/g, "").trim();
+}
 
 export async function GET() {
   const session = await auth();
-  if (!session?.user || !["SUPER_ADMIN", "ADMIN"].includes(session.user.role)) {
+  if (!session?.user || !isAdminRole(session.user.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const strip = (v?: string) => (v ?? "").replace(/^["']|["']$/g, "").trim();
-  const clientId     = strip(process.env.GOOGLE_CLIENT_ID);
-  const clientSecret = strip(process.env.GOOGLE_CLIENT_SECRET);
+  const rows = await db.appSetting.findMany({
+    where: { key: { in: ["gmail_client_id", "gmail_client_secret"] } },
+  });
+  const map: Record<string, string> = {};
+  for (const r of rows) map[r.key] = r.value;
+
+  const clientId = map.gmail_client_id || strip(process.env.GOOGLE_CLIENT_ID);
+  const clientSecret = map.gmail_client_secret || strip(process.env.GOOGLE_CLIENT_SECRET);
   if (!clientId || !clientSecret) {
     return NextResponse.json(
-      { error: "GOOGLE_CLIENT_ID dan GOOGLE_CLIENT_SECRET belum diset di .env.local" },
+      { error: "Client ID dan Client Secret belum diset. Masukkan kredensial di form Gmail OAuth2 di bawah." },
       { status: 503 }
     );
   }

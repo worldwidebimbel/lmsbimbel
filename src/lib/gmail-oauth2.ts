@@ -101,6 +101,19 @@ export class GmailOAuth2 {
     return this.send(tokens.access_token, options);
   }
 
+  async getConnectedEmail(accessToken: string): Promise<string | null> {
+    try {
+      const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/profile", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const data = await res.json() as { emailAddress?: string; error?: unknown };
+      if (data.error) return null;
+      return data.emailAddress ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   private buildMimeMessage({ from, to, subject, text = "", html = "", cc = "", bcc = "" }: SendOptions): string {
     const boundary = `boundary_${Date.now()}`;
     const lines: string[] = [

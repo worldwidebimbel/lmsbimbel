@@ -19,6 +19,7 @@ interface Props {
   resendConfigured: boolean;
   oauth2Configured: boolean;
   oauth2Vars: { clientId: boolean; clientSecret: boolean; refreshToken: boolean; gmailFrom: boolean };
+  oauth2DbConfig: { clientId: string; clientSecret: string; connectedEmail: string; hasRefreshToken: boolean };
   activeEmailMethod: "resend" | "oauth2" | "smtp" | "none";
   appVersion: string;
   branches: { id: string; name: string; code: string }[];
@@ -28,7 +29,7 @@ interface Props {
 
 type Tab = "umum" | "pembayaran" | "demo" | "email" | "info";
 
-export default function SettingsClient({ initialSettings, demoStatus, smtpConfigured, resendConfigured, oauth2Configured, oauth2Vars, activeEmailMethod, appVersion, branches, isSuperAdmin, defaultBranchId }: Props) {
+export default function SettingsClient({ initialSettings, demoStatus, smtpConfigured, resendConfigured, oauth2Configured, oauth2Vars, oauth2DbConfig, activeEmailMethod, appVersion, branches, isSuperAdmin, defaultBranchId }: Props) {
   const [tab, setTab] = useState<Tab>("umum");
   const [settings, setSettings] = useState(initialSettings);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(defaultBranchId);
@@ -41,6 +42,11 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
   const [testingEmail, setTestingEmail] = useState(false);
   const [testEmailTo, setTestEmailTo] = useState("");
   const [loadingAuthUrl, setLoadingAuthUrl] = useState(false);
+  const [savingCreds, setSavingCreds] = useState(false);
+  const [removingConnection, setRemovingConnection] = useState(false);
+  const [oauthClientId, setOauthClientId] = useState(oauth2DbConfig.clientId ?? "");
+  const [oauthClientSecret, setOauthClientSecret] = useState(oauth2DbConfig.clientSecret ?? "");
+  const [showClientSecret, setShowClientSecret] = useState(false);
   const [diagnosing, setDiagnosing] = useState(false);
   const [diagnosis, setDiagnosis] = useState<{
     method: string;
@@ -196,6 +202,46 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
       window.open(data.url, "_blank", "width=600,height=700");
     } finally {
       setLoadingAuthUrl(false);
+    }
+  }
+
+  async function handleSaveCreds() {
+    if (!oauthClientId.trim() || !oauthClientSecret.trim()) {
+      return toast.error("Client ID dan Client Secret wajib diisi");
+    }
+    setSavingCreds(true);
+    try {
+      const res = await fetch("/api/admin/email/oauth-credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId: oauthClientId.trim(), clientSecret: oauthClientSecret.trim() }),
+      });
+      if (res.ok) {
+        toast.success("Kredensial OAuth2 berhasil disimpan");
+      } else {
+        const d = await res.json();
+        toast.error(d.error ?? "Gagal menyimpan kredensial");
+      }
+    } finally {
+      setSavingCreds(false);
+    }
+  }
+
+  async function handleRemoveConnection() {
+    if (!confirm("Putuhkan koneksi Gmail OAuth2? Refresh token dan email terhubung akan dihapus dari database.")) return;
+    setRemovingConnection(true);
+    try {
+      const res = await fetch("/api/admin/email/oauth-connection", { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Koneksi Gmail OAuth2 berhasil diputus");
+        setOauthClientId("");
+        setOauthClientSecret("");
+      } else {
+        const d = await res.json();
+        toast.error(d.error ?? "Gagal memutus koneksi");
+      }
+    } finally {
+      setRemovingConnection(false);
     }
   }
 
@@ -563,41 +609,83 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
                   </h4>
                 </div>
                 {oauth2Configured
-                  ? <span className="text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">✓ Dikonfigurasi</span>
+                  ? <span className="text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">✓ Terhubung</span>
                   : <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Belum diset</span>}
               </div>
               <div className="p-4 space-y-4">
-                <p className="text-xs text-gray-600">Mengirim email via <strong>Gmail API</strong> menggunakan OAuth2. Tidak memerlukan password SMTP — lebih aman dan tidak terpengaruh kebijakan Google App Password.</p>
+                <p className="text-xs text-gray-600">Mengirim email via <strong>Gmail API</strong> menggunakan OAuth2. Tidak memerlukan password SMTP — lebih aman dan tidak terpengaruh kebijakan Google App Password. Kredensial dan token disimpan di database.</p>
 
-                <table className="w-full text-xs">
-                  <tbody>
-                    {([
-                      ["GOOGLE_CLIENT_ID",     oauth2Vars.clientId,     "Client ID dari Google Cloud Console"],
-                      ["GOOGLE_CLIENT_SECRET", oauth2Vars.clientSecret, "Client Secret dari Google Cloud Console"],
-                      ["GOOGLE_REFRESH_TOKEN", oauth2Vars.refreshToken, "Didapat setelah klik Mulai Otorisasi"],
-                      ["GMAIL_FROM",           oauth2Vars.gmailFrom,    "Alamat Gmail pengirim (mis. no-reply@gmail.com)"],
-                    ] as [string, boolean, string][]).map(([k, ok, hint]) => (
-                      <tr key={k} className="border-b border-gray-100 last:border-0">
-                        <td className="py-2 pr-3 font-mono text-gray-600 w-2/5 align-top">{k}</td>
-                        <td className="py-2 align-top">
-                          <span className={`font-medium ${ok ? "text-green-700" : "text-red-400"}`}>
-                            {ok ? "✓ diset" : "belum diset"}
-                          </span>
-                          {!ok && <p className="text-gray-400 mt-0.5">{hint}</p>}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                {/* Connected email display */}
+                {oauth2DbConfig.connectedEmail && (
+                  <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-green-800">Terhubung sebagai</p>
+                        <p className="text-xs text-green-700 font-mono">{oauth2DbConfig.connectedEmail}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleRemoveConnection}
+                      disabled={removingConnection}
+                      className="flex items-center gap-1.5 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      {removingConnection ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                      Putus Koneksi
+                    </button>
+                  </div>
+                )}
+
+                {/* Inline Client ID / Secret form */}
+                <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <p className="text-xs font-semibold text-gray-700">Kredensial Google OAuth2</p>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">Client ID</label>
+                    <input
+                      type="text"
+                      value={oauthClientId}
+                      onChange={(e) => setOauthClientId(e.target.value)}
+                      placeholder="xxxxxxxxxx.apps.googleusercontent.com"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">Client Secret</label>
+                    <div className="flex gap-2">
+                      <input
+                        type={showClientSecret ? "text" : "password"}
+                        value={oauthClientSecret}
+                        onChange={(e) => setOauthClientSecret(e.target.value)}
+                        placeholder="GOCSPX-xxxxxxxxxxxxx"
+                        className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowClientSecret(!showClientSecret)}
+                        className="rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-600 hover:bg-gray-100"
+                      >
+                        {showClientSecret ? "Sembunyikan" : "Lihat"}
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleSaveCreds}
+                    disabled={savingCreds}
+                    className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {savingCreds ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                    Simpan Kredensial
+                  </button>
+                </div>
 
                 <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-900 space-y-1.5">
-                  <p className="font-semibold">Cara setup (sekali saja):</p>
+                  <p className="font-semibold">Cara setup:</p>
                   <ol className="list-decimal pl-4 space-y-1">
                     <li>Buat project & aktifkan <strong>Gmail API</strong> di <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer" className="underline">Google Cloud Console</a></li>
                     <li>Buat <strong>OAuth 2.0 Client ID</strong> (tipe: Web application) → tambahkan Redirect URI di bawah</li>
-                    <li>Salin <code className="bg-blue-100 px-1 rounded">GOOGLE_CLIENT_ID</code> & <code className="bg-blue-100 px-1 rounded">GOOGLE_CLIENT_SECRET</code> ke <code className="bg-blue-100 px-1 rounded">.env.local</code> lalu restart server</li>
-                    <li>Klik <strong>"Mulai Otorisasi"</strong> → login Google → salin Refresh Token yang muncul</li>
-                    <li>Tambah <code className="bg-blue-100 px-1 rounded">GOOGLE_REFRESH_TOKEN</code> & <code className="bg-blue-100 px-1 rounded">GMAIL_FROM</code> ke <code className="bg-blue-100 px-1 rounded">.env.local</code> → restart</li>
+                    <li>Masukkan <strong>Client ID</strong> & <strong>Client Secret</strong> ke form di atas lalu klik <strong>Simpan Kredensial</strong></li>
+                    <li>Klik <strong>"Mulai Otorisasi Gmail"</strong> → login dengan akun Gmail pengirim</li>
+                    <li>Setelah otorisasi berhasil, refresh token & email terhubung otomatis tersimpan ke database — tidak perlu edit .env.local</li>
                   </ol>
                 </div>
 
@@ -611,11 +699,11 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={handleGetAuthUrl}
-                    disabled={loadingAuthUrl}
+                    disabled={loadingAuthUrl || (!oauthClientId.trim() && !oauth2Vars.clientId)}
                     className="flex items-center gap-2 rounded-lg border border-blue-300 bg-white px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-50"
                   >
                     {loadingAuthUrl ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
-                    Mulai Otorisasi Gmail
+                    {oauth2DbConfig.hasRefreshToken ? "Otorisasi Ulang" : "Mulai Otorisasi Gmail"}
                   </button>
                   {oauth2Configured && (
                     <button
