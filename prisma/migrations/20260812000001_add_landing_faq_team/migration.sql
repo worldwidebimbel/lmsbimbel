@@ -5,7 +5,7 @@ CREATE TYPE "LandingPageCtaType" AS ENUM ('INQUIRY', 'PPDB', 'EVENT', 'CUSTOM');
 ALTER TABLE "site_programs" ADD COLUMN "slug" TEXT NOT NULL DEFAULT '';
 
 -- Backfill slug from name to avoid duplicate empty slugs
-UPDATE "site_programs" SET "slug" = LOWER(REPLACE("name", ' ', '-')) WHERE "slug" = '';
+UPDATE "site_programs" SET "slug" = LOWER(REPLACE("title", ' ', '-')) WHERE "slug" = '';
 
 -- CreateIndex
 CREATE UNIQUE INDEX "site_programs_slug_key" ON "site_programs"("slug");
