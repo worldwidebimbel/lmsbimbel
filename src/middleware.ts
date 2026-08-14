@@ -3,11 +3,15 @@ import { NextResponse } from "next/server";
 
 const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password", "/api/auth", "/events", "/api/events", "/sertifikat"];
 const ROLE_ROUTES: Record<string, string[]> = {
-  SUPER_ADMIN: ["/admin", "/guru", "/siswa", "/orangtua"],
-  ADMIN: ["/admin", "/guru", "/siswa", "/orangtua"],
+  SUPER_ADMIN: ["/admin", "/guru", "/siswa", "/orangtua", "/afiliator"],
+  ADMIN: ["/admin", "/guru", "/siswa", "/orangtua", "/afiliator"],
+  ADMIN_CABANG: ["/admin", "/guru", "/siswa", "/orangtua"],
+  ADMIN_KEUANGAN: ["/admin", "/guru", "/siswa", "/orangtua"],
+  ADMIN_AKADEMIK: ["/admin", "/guru", "/siswa", "/orangtua"],
   GURU: ["/guru"],
   SISWA: ["/siswa"],
   ORANG_TUA: ["/orangtua"],
+  AFILIATOR: ["/afiliator"],
 };
 
 export default auth((req) => {
@@ -31,9 +35,13 @@ export default auth((req) => {
     const redirectMap: Record<string, string> = {
       SUPER_ADMIN: "/admin",
       ADMIN: "/admin",
+      ADMIN_CABANG: "/admin",
+      ADMIN_KEUANGAN: "/admin",
+      ADMIN_AKADEMIK: "/admin",
       GURU: "/guru",
       SISWA: "/siswa",
       ORANG_TUA: "/orangtua",
+      AFILIATOR: "/afiliator",
     };
     return NextResponse.redirect(new URL(redirectMap[role] ?? "/login", req.url));
   }

@@ -21,6 +21,9 @@ export default async function HomePage() {
     const roleRedirects: Record<string, string> = {
       SUPER_ADMIN: "/admin",
       ADMIN: "/admin",
+      ADMIN_CABANG: "/admin",
+      ADMIN_KEUANGAN: "/admin",
+      ADMIN_AKADEMIK: "/admin",
       GURU: "/guru",
       SISWA: "/siswa",
       ORANG_TUA: "/orangtua",
