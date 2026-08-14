@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Wallet } from "lucide-react";
 import { getBranchScope } from "@/lib/branch-context";
 import { getQrisSettings } from "@/lib/qris-settings";
+import { isDuitkuConfigured } from "@/lib/payment-gateway";
 import TagihanSiswaClient from "@/components/tagihan/TagihanSiswaClient";
 
 export const metadata = { title: "Tagihan" };
@@ -14,7 +15,7 @@ export default async function SiswaTagihanPage() {
 
   const { branchId } = await getBranchScope();
 
-  const [invoices, qris] = await Promise.all([
+  const [invoices, qris, duitkuReady] = await Promise.all([
     db.invoice.findMany({
       where: { studentId: session.user.id, ...(branchId ? { branchId } : {}) },
       select: {
@@ -31,6 +32,7 @@ export default async function SiswaTagihanPage() {
       orderBy: { createdAt: "desc" },
     }),
     getQrisSettings(branchId),
+    isDuitkuConfigured(),
   ]);
 
   const cloudinaryConfigured = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
@@ -48,7 +50,7 @@ export default async function SiswaTagihanPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Tagihan</h1>
-          <p className="text-sm text-gray-500">Riwayat tagihan dan pembayaran QRIS</p>
+          <p className="text-sm text-gray-500">Riwayat tagihan dan pembayaran</p>
         </div>
       </div>
 
@@ -57,6 +59,7 @@ export default async function SiswaTagihanPage() {
         summary={{ total, paid, unpaid, overdue }}
         qris={qris}
         cloudinaryConfigured={cloudinaryConfigured}
+        onlinePaymentEnabled={duitkuReady}
       />
     </div>
   );

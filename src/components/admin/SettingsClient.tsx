@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Save, Database, Mail, Info, AlertTriangle, CheckCircle, Loader2, Trash2, Download, Globe, QrCode, Upload, ExternalLink, Key, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
@@ -57,6 +57,23 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
   } | null>(null);
 
   const [uploadingQris, setUploadingQris] = useState(false);
+
+  const [duitkuConfig, setDuitkuConfig] = useState<{
+    merchantCode: string;
+    apiKey: string;
+    sandbox: boolean;
+    gatewayEnabled: boolean;
+    manualPaymentInstructions: string;
+  }>({ merchantCode: "", apiKey: "", sandbox: true, gatewayEnabled: false, manualPaymentInstructions: "" });
+  const [loadingDuitku, setLoadingDuitku] = useState(false);
+  const [savingDuitku, setSavingDuitku] = useState(false);
+  const [showDuitkuKey, setShowDuitkuKey] = useState(false);
+
+  useEffect(() => {
+    if (tab === "pembayaran" && !duitkuConfig.merchantCode && !loadingDuitku) {
+      loadDuitkuConfig();
+    }
+  }, [tab]);
 
   const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "umum", label: "Umum", icon: <Globe className="h-4 w-4" /> },
@@ -132,6 +149,43 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
       else toast.error("Gagal menyimpan pengaturan");
     } finally {
       setSavingSettings(false);
+    }
+  }
+
+  async function loadDuitkuConfig() {
+    setLoadingDuitku(true);
+    try {
+      const res = await fetch("/api/admin/payment-gateway");
+      if (res.ok) {
+        const data = await res.json();
+        setDuitkuConfig({
+          merchantCode: data.merchantCode ?? "",
+          apiKey: data.apiKey ?? "",
+          sandbox: data.sandbox ?? true,
+          gatewayEnabled: data.gatewayEnabled ?? false,
+          manualPaymentInstructions: data.manualPaymentInstructions ?? "",
+        });
+      }
+    } finally {
+      setLoadingDuitku(false);
+    }
+  }
+
+  async function saveDuitkuConfig() {
+    setSavingDuitku(true);
+    try {
+      const res = await fetch("/api/admin/payment-gateway", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(duitkuConfig),
+      });
+      if (res.ok) toast.success("Konfigurasi payment gateway disimpan");
+      else {
+        const d = await res.json();
+        toast.error(d.error ?? "Gagal menyimpan konfigurasi");
+      }
+    } finally {
+      setSavingDuitku(false);
     }
   }
 
@@ -411,6 +465,108 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
               {savingSettings ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Simpan Pengaturan QRIS
             </button>
+
+            {/* ── Payment Gateway (Duitku) ── */}
+            <div className="border-t border-gray-200 pt-6">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="font-semibold text-gray-800">Payment Gateway (Duitku)</h3>
+                <button
+                  onClick={loadDuitkuConfig}
+                  disabled={loadingDuitku}
+                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                >
+                  {loadingDuitku ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                  Muat Konfigurasi
+                </button>
+              </div>
+              <p className="mb-4 text-sm text-gray-500">
+                Integrasi <a href="https://docs.duitku.com/pop/id/" target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">Duitku POP API</a> untuk pembayaran online otomatis (VA, QRIS, e-Wallet, dll). Callback URL: <code className="bg-gray-100 px-1 rounded text-xs">{typeof window !== "undefined" ? `${window.location.origin}/api/payments/webhook/duitku` : "[NEXTAUTH_URL]/api/payments/webhook/duitku"}</code>
+              </p>
+
+              <div className="space-y-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={duitkuConfig.gatewayEnabled}
+                    onChange={(e) => setDuitkuConfig({ ...duitkuConfig, gatewayEnabled: e.target.checked })}
+                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Aktifkan Payment Gateway</span>
+                </label>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-600">Merchant Code</label>
+                  <input
+                    value={duitkuConfig.merchantCode}
+                    onChange={(e) => setDuitkuConfig({ ...duitkuConfig, merchantCode: e.target.value })}
+                    placeholder="DXXXX"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-600">API Key (Merchant Key)</label>
+                  <div className="flex gap-2">
+                    <input
+                      type={showDuitkuKey ? "text" : "password"}
+                      value={duitkuConfig.apiKey}
+                      onChange={(e) => setDuitkuConfig({ ...duitkuConfig, apiKey: e.target.value })}
+                      placeholder="XXXXXXXCX17XXXX5XX5XXXXXX0X3XXAF"
+                      className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowDuitkuKey(!showDuitkuKey)}
+                      className="rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-600 hover:bg-gray-100"
+                    >
+                      {showDuitkuKey ? "Sembunyikan" : "Lihat"}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-600">Mode</label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        checked={duitkuConfig.sandbox}
+                        onChange={() => setDuitkuConfig({ ...duitkuConfig, sandbox: true })}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="text-sm text-gray-700">Sandbox (uji coba)</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        checked={!duitkuConfig.sandbox}
+                        onChange={() => setDuitkuConfig({ ...duitkuConfig, sandbox: false })}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="text-sm text-gray-700">Production</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-600">Instruksi Pembayaran Manual (opsional)</label>
+                  <textarea
+                    value={duitkuConfig.manualPaymentInstructions}
+                    onChange={(e) => setDuitkuConfig({ ...duitkuConfig, manualPaymentInstructions: e.target.value })}
+                    placeholder="Silakan transfer ke rekening berikut:&#10;BCA 1234567890 a.n. Bimbel EduBimbel&#10;Kirim bukti transfer ke WhatsApp 0812-xxxx"
+                    rows={4}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-400">Ditampilkan kepada siswa/orang tua sebagai alternatif pembayaran manual.</p>
+                </div>
+
+                <button onClick={saveDuitkuConfig} disabled={savingDuitku}
+                  className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50">
+                  {savingDuitku ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  Simpan Konfigurasi Gateway
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

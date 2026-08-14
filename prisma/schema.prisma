@@ -82,6 +82,7 @@ enum PaymentMethod {
   QRIS
   MIDTRANS
   XENDIT
+  DUITKU
 }
 
 enum FeatureTier {
@@ -1589,6 +1590,11 @@ model Registration {
   status              RegistrationStatus  @default(DRAFT)
   rejectionReason     String?
   adminNote           String?
+  registrationFee     Float?              
+  paymentStatus       String?             
+  paymentMethod       String?             
+  externalId          String?             
+  paidAt              DateTime?           
   convertedUserId     String?
   convertedAt         DateTime?
   createdAt           DateTime            @default(now())

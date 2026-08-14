@@ -28,10 +28,11 @@ interface Props {
   summary: { total: number; paid: number; unpaid: number; overdue: number };
   qris: QrisConfig;
   cloudinaryConfigured: boolean;
+  onlinePaymentEnabled?: boolean;
   paymentApiBase?: string;
 }
 
-export default function TagihanSiswaClient({ invoices: initial, summary, qris, cloudinaryConfigured, paymentApiBase = "/api/siswa/tagihan" }: Props) {
+export default function TagihanSiswaClient({ invoices: initial, summary, qris, cloudinaryConfigured, onlinePaymentEnabled = false, paymentApiBase = "/api/siswa/tagihan" }: Props) {
   const [invoices, setInvoices] = useState(initial);
   const [activeInvoice, setActiveInvoice] = useState<Invoice | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -195,11 +196,11 @@ export default function TagihanSiswaClient({ invoices: initial, summary, qris, c
                       className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
                       <QrCode className="h-4 w-4" /> Bayar QRIS
                     </button>
-                    {inv.enableOnlinePayment && (
+                    {(onlinePaymentEnabled || inv.enableOnlinePayment) && (
                       <button onClick={() => handlePayOnline(inv)} disabled={payingOnline}
                         className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50">
                         {payingOnline ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
-                        Bayar Online {inv.onlinePaymentMethod}
+                        Bayar Online
                       </button>
                     )}
                   </div>

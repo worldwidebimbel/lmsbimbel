@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Wallet, Users2 } from "lucide-react";
 import { getBranchScope } from "@/lib/branch-context";
 import { getQrisSettings } from "@/lib/qris-settings";
+import { isDuitkuConfigured } from "@/lib/payment-gateway";
 import TagihanSiswaClient from "@/components/tagihan/TagihanSiswaClient";
 
 export const metadata = { title: "Tagihan Anak" };
@@ -34,7 +35,7 @@ export default async function OrangtuaTagihanPage() {
   const childIds = children.map((c) => c.child.id);
   const branchId = parentBranchId ?? children[0].child.defaultBranchId;
 
-  const [invoices, qris] = await Promise.all([
+  const [invoices, qris, duitkuReady] = await Promise.all([
     db.invoice.findMany({
       where: { studentId: { in: childIds }, ...(branchId ? { branchId } : {}) },
       include: {
@@ -45,6 +46,7 @@ export default async function OrangtuaTagihanPage() {
       orderBy: { createdAt: "desc" },
     }),
     getQrisSettings(branchId),
+    isDuitkuConfigured(),
   ]);
 
   const cloudinaryConfigured = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
@@ -62,7 +64,7 @@ export default async function OrangtuaTagihanPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Tagihan Anak</h1>
-          <p className="text-sm text-gray-500">Riwayat tagihan dan pembayaran QRIS</p>
+          <p className="text-sm text-gray-500">Riwayat tagihan dan pembayaran</p>
         </div>
       </div>
 
@@ -71,6 +73,7 @@ export default async function OrangtuaTagihanPage() {
         summary={{ total, paid, unpaid, overdue }}
         qris={qris}
         cloudinaryConfigured={cloudinaryConfigured}
+        onlinePaymentEnabled={duitkuReady}
         paymentApiBase="/api/orangtua/tagihan"
       />
     </div>

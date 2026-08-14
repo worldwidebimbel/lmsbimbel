@@ -34,3 +34,35 @@ export async function GET(
 
   return NextResponse.json(registration);
 }
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth();
+  if (!session?.user || !isAdminRole(session.user.role)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { id } = await params;
+  const body = await req.json();
+
+  const updateData: Record<string, unknown> = {};
+  if (typeof body.registrationFee === "number") {
+    updateData.registrationFee = body.registrationFee;
+  }
+  if (typeof body.adminNote === "string") {
+    updateData.adminNote = body.adminNote;
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    return NextResponse.json({ error: "Tidak ada field untuk diupdate" }, { status: 400 });
+  }
+
+  const updated = await db.registration.update({
+    where: { id },
+    data: updateData,
+  });
+
+  return NextResponse.json(updated);
+}
