@@ -16,10 +16,13 @@ export default function LoginPage() {
 
   const DEMO_ACCOUNTS = [
     { label: "Super Admin", email: "admin@lmsbimbel.id", password: "admin123", color: "bg-red-100 text-red-700 border-red-200", desc: "Akses global semua cabang" },
-    { label: "Admin Cabang", email: "admincabang@lmsbimbel.id", password: "admincabang123", color: "bg-orange-100 text-orange-700 border-orange-200", desc: "Keuangan & ops per cabang" },
+    { label: "Admin Cabang", email: "admincabang@lmsbimbel.id", password: "admincabang123", color: "bg-orange-100 text-orange-700 border-orange-200", desc: "Ops per cabang" },
+    { label: "Admin Keuangan", email: "adminkeuangan@lmsbimbel.id", password: "adminkeuangan123", color: "bg-amber-100 text-amber-700 border-amber-200", desc: "Pembayaran & laporan" },
+    { label: "Admin Akademik", email: "adminakademik@lmsbimbel.id", password: "adminakademik123", color: "bg-purple-100 text-purple-700 border-purple-200", desc: "Program, kelas, tutor" },
     { label: "Guru", email: "guru@lmsbimbel.id", password: "guru123", color: "bg-yellow-100 text-yellow-700 border-yellow-200", desc: "Kelola kelas, soal, ujian" },
     { label: "Siswa", email: "siswa@lmsbimbel.id", password: "siswa123", color: "bg-green-100 text-green-700 border-green-200", desc: "Akses materi & ujian" },
     { label: "Orang Tua", email: "orangtua@lmsbimbel.id", password: "ortu123", color: "bg-blue-100 text-blue-700 border-blue-200", desc: "Pantau progress anak" },
+    { label: "Afiliator", email: "afiliator@lmsbimbel.id", password: "afiliator123", color: "bg-teal-100 text-teal-700 border-teal-200", desc: "Referral & komisi" },
   ];
 
   async function handleLogin(e: React.FormEvent) {

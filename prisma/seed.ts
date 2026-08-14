@@ -469,7 +469,52 @@ async function main() {
       name: "Admin Cabang Utama",
       email: "admincabang@lmsbimbel.id",
       password: adminCabangPassword,
-      role: UserRole.ADMIN,
+      role: UserRole.ADMIN_CABANG,
+      isActive: true,
+      defaultBranchId: defaultBranch.id,
+    },
+  });
+
+  // Seed Admin Keuangan
+  const adminKeuanganPassword = await bcrypt.hash("adminkeuangan123", 12);
+  await prisma.user.upsert({
+    where: { email: "adminkeuangan@lmsbimbel.id" },
+    update: {},
+    create: {
+      name: "Admin Keuangan",
+      email: "adminkeuangan@lmsbimbel.id",
+      password: adminKeuanganPassword,
+      role: UserRole.ADMIN_KEUANGAN,
+      isActive: true,
+      defaultBranchId: defaultBranch.id,
+    },
+  });
+
+  // Seed Admin Akademik
+  const adminAkademikPassword = await bcrypt.hash("adminakademik123", 12);
+  await prisma.user.upsert({
+    where: { email: "adminakademik@lmsbimbel.id" },
+    update: {},
+    create: {
+      name: "Admin Akademik",
+      email: "adminakademik@lmsbimbel.id",
+      password: adminAkademikPassword,
+      role: UserRole.ADMIN_AKADEMIK,
+      isActive: true,
+      defaultBranchId: defaultBranch.id,
+    },
+  });
+
+  // Seed Afiliator
+  const afiliatorPassword = await bcrypt.hash("afiliator123", 12);
+  await prisma.user.upsert({
+    where: { email: "afiliator@lmsbimbel.id" },
+    update: {},
+    create: {
+      name: "Afiliator Demo",
+      email: "afiliator@lmsbimbel.id",
+      password: afiliatorPassword,
+      role: UserRole.AFILIATOR,
       isActive: true,
       defaultBranchId: defaultBranch.id,
     },
@@ -559,13 +604,16 @@ async function main() {
   }
   console.log(`✅ ${samplePosts.length} blog posts seeded`);
 
-  console.log(`✅ Users seeded: superadmin, admincabang, guru, siswa, orangtua`);
+  console.log(`✅ Users seeded: superadmin, admincabang, adminkeuangan, adminakademik, afiliator, guru, siswa, orangtua`);
   console.log("\n📋 Demo Credentials:");
-  console.log("  Super Admin  : admin@lmsbimbel.id / admin123");
-  console.log("  Admin Cabang : admincabang@lmsbimbel.id / admincabang123");
-  console.log("  Guru         : guru@lmsbimbel.id / guru123");
-  console.log("  Siswa        : siswa@lmsbimbel.id / siswa123");
-  console.log("  Orang Tua    : orangtua@lmsbimbel.id / ortu123");
+  console.log("  Super Admin      : admin@lmsbimbel.id / admin123");
+  console.log("  Admin Cabang     : admincabang@lmsbimbel.id / admincabang123");
+  console.log("  Admin Keuangan   : adminkeuangan@lmsbimbel.id / adminkeuangan123");
+  console.log("  Admin Akademik   : adminakademik@lmsbimbel.id / adminakademik123");
+  console.log("  Afiliator        : afiliator@lmsbimbel.id / afiliator123");
+  console.log("  Guru             : guru@lmsbimbel.id / guru123");
+  console.log("  Siswa            : siswa@lmsbimbel.id / siswa123");
+  console.log("  Orang Tua        : orangtua@lmsbimbel.id / ortu123");
   console.log("\n🎉 Seed completed!");
 }
 

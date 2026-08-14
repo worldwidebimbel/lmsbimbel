@@ -443,12 +443,12 @@
       <h3>Jalur A — Infrastruktur & Master Data (Tahap 0 + sisa Tahap 1) · 12 item</h3>
       <h4>Hari 1 — Setup Infrastruktur (Tahap 0)</h4>
       <ul class="task-list">
-        <li class="fire"><span class="ref">0.1</span> Backup penuh database produksi (<code>pg_dump</code>)</li>
+        <li class="fire done"><span class="ref">0.1</span> Backup penuh database produksi (<code>pg_dump</code>)</li>
         <li class="fire done"><span class="ref">0.1</span> Buat baseline migration + <code>migrate resolve --applied 0_init</code></li>
-        <li class="fire"><span class="ref">0.1</span> Verifikasi <code>prisma migrate status</code> bersih</li>
+        <li class="fire done"><span class="ref">0.1</span> Verifikasi <code>prisma migrate status</code> bersih</li>
         <li class="fire done"><span class="ref">0.1</span> Ganti alur deploy <code>db push</code> → <code>migrate deploy</code></li>
         <li class="done"><span class="ref">0.1</span> Tambah script <code>db:deploy</code> ke <code>package.json</code></li>
-        <li class="fire"><span class="ref">0.2</span> Siapkan database staging</li>
+        <li class="fire done"><span class="ref">0.2</span> Siapkan database staging</li>
         <li><span class="ref">0.2</span> Uji outbound HTTPS VPS (<code>curl -I https://api.resend.com</code>)</li>
         <li class="fire done"><span class="ref">0.2</span> Buat branch <code>feat/worldwide-upgrade</code> + sepakati konvensi commit</li>
       </ul>
