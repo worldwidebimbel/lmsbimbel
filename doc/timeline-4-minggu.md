@@ -19,10 +19,10 @@
 | 3 | Modul Afiliator | 32 | 27 | 5 |
 | 4 | Role & Permission | 18 | 8 | 10 |
 | 5 | Upgrade CBT | 35 | 9 | 26 |
-| 6 | Sertifikat, Payment, Export | 28 | 0 | 28 |
+| 6 | Sertifikat, Payment, Export | 28 | 9 | 19 |
 | 7 | Website, Automation, Security | 30 | 12 | 18 |
 | 8 | Jurnal Mengajar, Raport & Absensi Tutor | 28 | 0 | 28 |
-| **Total** | | **251** | **128** | **123** |
+| **Total** | | **251** | **137** | **114** |
 
 ---
 
@@ -105,14 +105,14 @@
 - [x] `5.2` UI quiz di detail materi siswa — halaman `/siswa/materi/[id]` + `MaterialDetailClient`, tampilkan exam terlink dengan skor & retry
 
 ## Jalur D — Payment & Export Helper (Tahap 6.2-6.3) · 12 item
-- [ ] 🔥 `6.2` Refactor `event-payment.ts` → `src/lib/payment-gateway.ts` generik
-- [ ] 🔥 `6.2` `POST /api/payments/invoice/[id]/checkout`
-- [ ] 🔥 `6.2` `POST /api/payments/webhook/midtrans` terpusat
-- [ ] 🔥 `6.2` Verifikasi signature webhook + idempotent
-- [ ] `6.2` Webhook update Invoice + Payment + BranchTransaction + notifikasi
-- [ ] `6.2` Pembayaran PPDB lewat gateway
-- [ ] `6.2` Instruksi pembayaran manual yang bisa diatur admin
-- [ ] `6.2` Toggle gateway di `/admin/settings`
+- [x] 🔥 `6.2` Refactor `event-payment.ts` → `src/lib/payment-gateway.ts` generik — Duitku POP API, DB-backed config, HMAC-SHA256 signature
+- [x] 🔥 `6.2` `POST /api/payments/invoice/[id]/checkout` — create Duitku invoice for SPP tagihan
+- [x] 🔥 `6.2` `POST /api/payments/webhook/duitku` terpusat — centralized webhook untuk Invoice, Event, PPDB
+- [x] 🔥 `6.2` Verifikasi signature webhook + idempotent — HMAC-SHA256 + cek `confirmedAt`/`paymentStatus`
+- [x] `6.2` Webhook update Invoice + Payment + BranchTransaction + notifikasi — transaksi DB + Notification
+- [x] `6.2` Pembayaran PPDB lewat gateway — `POST /api/payments/ppdb/[id]/checkout` + Registration payment fields
+- [x] `6.2` Instruksi pembayaran manual yang bisa diatur admin — textarea di admin settings Pembayaran tab
+- [x] `6.2` Toggle gateway di `/admin/settings` — checkbox + DB-backed config via AppSetting
 - [ ] `6.3` `src/lib/export-excel.ts` (pakai `exceljs`)
 - [ ] `6.3` `src/lib/export-pdf.ts` (install `pdf-lib`)
 - [ ] `6.3` Hapus duplikat `xlsx` dari `package.json`

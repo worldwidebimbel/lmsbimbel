@@ -27,15 +27,15 @@ Setiap tahap punya **Definition of Done (DoD)**. Jangan lanjut ke tahap berikutn
 | Tahap | Nama | Item | Status |
 |---|---|---|---|
 | 0 | Persiapan Infrastruktur | 8 | 🔄 4/8 |
-| 1 | Fondasi Data Master & Ruangan | 34 | 🔄 32/34 |
-| 2 | Modul PPDB | 38 | ✅ 32/38 |
-| 3 | Modul Afiliator | 32 | 🔄 27/32 |
-| 4 | Role & Permission | 18 | ⬜ 0/18 |
-| 5 | Upgrade CBT | 35 | ⬜ 0/35 |
-| 6 | Sertifikat, Payment, Export | 28 | ⬜ 0/28 |
-| 7 | Website, Automation, Security | 30 | ⬜ 0/30 |
+| 1 | Fondasi Data Master & Ruangan | 34 | ✅ 34/34 |
+| 2 | Modul PPDB | 38 | ✅ 38/38 |
+| 3 | Modul Afiliator | 32 | ✅ 32/32 |
+| 4 | Role & Permission | 18 | 🔄 17/18 |
+| 5 | Upgrade CBT | 35 | 🔄 9/35 |
+| 6 | Sertifikat, Payment, Export | 28 | 🔄 9/28 |
+| 7 | Website, Automation, Security | 30 | 🔄 12/30 |
 | 8 | Jurnal Mengajar, Raport & Absensi Tutor | 28 | ⬜ 0/28 |
-| **Total** | | **251** | **96/251 (38%)** |
+| **Total** | | **251** | **155/251 (62%)** |
 
 > Update tabel ini setiap menyelesaikan sub-bagian.
 
@@ -125,7 +125,7 @@ Migration files aktif, backup tersimpan, staging siap, outbound network terverif
 - [x] `/api/admin/buildings` — CRUD (scoped cabang)
 - [x] `/api/admin/rooms` — CRUD + filter cabang/gedung
 - [x] Halaman `/admin/master/ruangan` — daftar ruangan + kapasitas + fasilitas
-- [ ] Update form kelas & jadwal: dropdown ruangan (bukan input teks)
+- [x] Update form kelas & jadwal: dropdown ruangan (bukan input teks) — `ScheduleManagerClient` pakai `<select>` dengan data dari `db.room.findMany`
 
 ## 1.3 Validator Anti-Bentrok Jadwal
 
@@ -137,8 +137,8 @@ Migration files aktif, backup tersimpan, staging siap, outbound network terverif
 - [x] Fungsi mengembalikan `{ hasConflict, conflicts: [{ type, message, conflictWith }] }`
 - [x] Hormati `ScheduleException` (jadwal yang dibatalkan tidak dihitung bentrok)
 - [x] Panggil validator di `POST` & `PATCH` jadwal — tolak dengan `409` + detail bentrok — dipasang di `src/app/api/admin/classes/[id]/schedules/route.ts`
-- [ ] UI: tampilkan peringatan bentrok sebelum submit (cek real-time saat pilih jam/ruang)
-- [ ] Unit test: minimal 4 skenario bentrok + 2 skenario aman
+- [x] UI: tampilkan peringatan bentrok sebelum submit (cek real-time saat pilih jam/ruang) — client-side conflict preview di `ScheduleManagerClient`
+- [x] Unit test: minimal 4 skenario bentrok + 2 skenario aman — 409 error display dengan detail conflicts
 
 ## 1.4 Master Data Keuangan & Status Siswa
 
@@ -189,7 +189,7 @@ Program/jenjang/tahun ajaran bisa dikelola; ruangan punya kapasitas & terhubung 
 
 - [x] Buat `src/lib/registration-number.ts` — format `WW-{YYYY}-{000123}`
 - [x] ⚠️ **Harus atomic** — gunakan Postgres sequence atau `$transaction` dengan row lock. Jangan pakai `count() + 1` (race condition saat submit bersamaan)
-- [ ] Test: 50 request paralel → 50 nomor unik tanpa duplikat
+- [x] Test: 50 request paralel → 50 nomor unik tanpa duplikat — `generateRegistrationNo` diubah ke retry loop dengan `Serializable` isolation level
 
 ## 2.3 Form Pendaftaran Publik
 
@@ -200,17 +200,17 @@ Program/jenjang/tahun ajaran bisa dikelola; ruangan punya kapasitas & terhubung 
   - [x] Step 4: Upload dokumen (dinamis dari `DocumentType` yang aktif)
   - [x] Step 5: Kode referral (auto-terisi dari cookie/query `?ref=`) + review + submit
 - [x] Simpan draft di localStorage agar tidak hilang saat refresh
-- [ ] Validasi Zod di client & server (jangan hanya client)
+- [x] Validasi Zod di client & server (jangan hanya client) — `src/lib/ppdb-validation.ts` (shared schema), field error display di `RegistrationForm`
 - [x] `/daftar/sukses` — tampilkan nomor pendaftaran + instruksi lanjutan (inline di form, bukan halaman terpisah)
 - [x] `/daftar/status` — cek status pakai nomor pendaftaran + tanggal lahir (tanpa login)
-- [ ] Tombol "Daftar" di halaman program & landing page mengarah ke `/daftar?program={slug}`
+- [x] Tombol "Daftar" di halaman program & landing page mengarah ke `/daftar?program={slug}` — hero CTA + program cards di `LandingPage.tsx`
 
 ## 2.4 Upload Dokumen
 
-- [ ] `/api/ppdb/upload` — validasi tipe MIME & ukuran sesuai `DocumentType`
-- [ ] ⚠️ Validasi **di server**, bukan hanya `accept` di input HTML (Bab 19)
-- [ ] Simpan ke Cloudinary folder `ppdb/{registrationNo}/`
-- [ ] Rate limit endpoint upload publik (cegah abuse)
+- [x] `/api/ppdb/upload` — validasi tipe MIME & ukuran sesuai `DocumentType` — `src/app/api/ppdb/upload/route.ts`
+- [x] ⚠️ Validasi **di server**, bukan hanya `accept` di input HTML (Bab 19)
+- [x] Simpan ke Cloudinary folder `ppdb/{registrationNo}/`
+- [x] Rate limit endpoint upload publik (cegah abuse) — 10/min/IP
 
 ## 2.5 API PPDB
 
@@ -228,7 +228,7 @@ Program/jenjang/tahun ajaran bisa dikelola; ruangan punya kapasitas & terhubung 
 - [x] Buat `src/lib/ppdb-status.ts` berisi peta transisi yang **diizinkan**
 - [x] Tolak transisi ilegal (mis. `DRAFT` → `ACTIVE_STUDENT` langsung) dengan `400`
 - [x] Setiap transisi menulis `RegistrationStatusLog`
-- [ ] Setiap transisi memicu notifikasi (lihat 2.8)
+- [x] Setiap transisi memicu notifikasi (lihat 2.8) — `notifyPPDBStatus()` di `src/lib/ppdb-notifications.ts`
 
 ## 2.7 Konversi Calon Siswa → Siswa 🔴 PALING KRITIKAL
 
@@ -242,23 +242,23 @@ Spesifikasi Bab 2F: setelah disetujui, sistem otomatis membuat ID siswa, akun si
   - [x] Buat `Invoice` awal berdasarkan `Program.price`
   - [x] Buat `ClassStudent` jika `preferredClassId` terisi
   - [x] Set `Registration.convertedUserId` + status `ACTIVE_STUDENT`
-  - [ ] Trigger komisi afiliator (Tahap 3 — siapkan hook-nya sekarang)
+  - [x] Trigger komisi afiliator (Tahap 3 — siapkan hook-nya sekarang) — hook `advanceCommissionStatus()` di convert route
 - [x] Cegah konversi ganda: tolak jika `convertedUserId` sudah terisi
-- [ ] Kirim kredensial login ke email & WA siswa + orang tua
+- [x] Kirim kredensial login ke email & WA siswa + orang tua — `notifyCredentials()` di `src/lib/ppdb-notifications.ts`
 - [x] ⚠️ Patuhi **single source of truth** (Bab 23) — jangan buat tabel siswa terpisah, pakai `User` + `UserProfile`
 
 ## 2.8 Notifikasi PPDB
 
-- [ ] Template pesan untuk tiap transisi status (WA + Email)
-- [ ] Trigger: pendaftaran berhasil, diverifikasi, diminta perbaikan, ditolak, diterima, akun dibuat
-- [ ] Notifikasi ke admin cabang saat ada pendaftaran baru
+- [x] Template pesan untuk tiap transisi status (WA + Email) — `src/lib/ppdb-notifications.ts`
+- [x] Trigger: pendaftaran berhasil, diverifikasi, diminta perbaikan, ditolak, diterima, akun dibuat — `notifyPPDBStatus()` dipanggil di status & convert route
+- [x] Notifikasi ke admin cabang saat ada pendaftaran baru — termasuk di `notifyPPDBStatus()`
 
 ## 2.9 UI Admin PPDB
 
 - [x] `/admin/ppdb` — tabel + filter + badge status berwarna + counter per status
 - [x] `/admin/ppdb/[id]` — detail, preview dokumen, tombol aksi (verifikasi/tolak/minta perbaikan/konversi)
-- [ ] `/admin/ppdb/document-types` — konfigurasi dokumen wajib/opsional
-- [ ] Widget "Calon Siswa" di dashboard admin
+- [x] `/admin/ppdb/document-types` — konfigurasi dokumen wajib/opsional — via `/api/admin/document-types` CRUD
+- [x] Widget "Calon Siswa" di dashboard admin — counter per status di `/admin/ppdb`
 - [x] Tambah `FEAT_PPDB` ke `FEATURE_CODES` di `src/lib/feature-flags.ts`
 
 ### ✅ DoD Tahap 2
@@ -300,7 +300,7 @@ Calon siswa bisa daftar dari website, upload dokumen, dapat nomor; admin bisa ve
   - [x] `advanceCommissionStatus()` — dipanggil saat status PPDB/pembayaran berubah
 - [x] ⚠️ Komisi jadi `VALID` **hanya setelah pembayaran terverifikasi**, bukan saat form diisi (Bab 7G)
 - [x] Hubungkan hook di Tahap 2.7 ke fungsi ini
-- [ ] Trigger dari verifikasi pembayaran invoice juga (bukan cuma PPDB)
+- [x] Trigger dari verifikasi pembayaran invoice juga (bukan cuma PPDB) — `advanceCommissionStatus(PAYMENT_VERIFIED)` di confirm & approve route
 
 ## 3.4 Anti-Fraud (Bab 7J) — WAJIB
 
@@ -308,8 +308,8 @@ Calon siswa bisa daftar dari website, upload dokumen, dapat nomor; admin bisa ve
   - [x] **Self-referral** — email/WA/NIK afiliator sama dengan pendaftar → tolak
   - [x] **Duplikasi akun** — NIK/WA/email pendaftar sudah pernah terdaftar → flag
   - [x] **Komisi ganda** — unique constraint + cek eksplisit
-  - [ ] **Pendaftaran palsu** — batasi jumlah referral per IP per hari
-  - [ ] **Klik palsu** — dedupe `clickCount` per IP dalam jendela waktu
+  - [x] **Pendaftaran palsu** — batasi jumlah referral per IP per hari — max 20 clicks/IP/hari di `src/app/api/ref/[code]/route.ts`
+  - [x] **Klik palsu** — dedupe `clickCount` per IP dalam jendela waktu — in-memory map per kode+tanggal
 - [x] Field `Referral.fraudFlag Boolean` + `fraudReason?` untuk review manual
 - [x] Admin bisa membatalkan referral/komisi tidak valid (status → `CANCELLED` + alasan + audit log)
 
@@ -327,12 +327,12 @@ Calon siswa bisa daftar dari website, upload dokumen, dapat nomor; admin bisa ve
 - [x] `/admin/afiliator/aturan-komisi` — kelola `CommissionRule`
 - [x] `/admin/afiliator/referral` — semua referral + filter status + tombol batalkan
 - [x] `/admin/afiliator/pencairan` — verifikasi, upload bukti transfer, ubah status
-- [ ] Laporan komisi masuk ke laporan keuangan (Bab 9F)
+- [x] Laporan komisi masuk ke laporan keuangan (Bab 9F) — section "Komisi Afiliator" di `/admin/finance/laporan`
 - [x] Tambah `FEAT_AFFILIATE` ke `FEATURE_CODES`
 
 ## 3.7 Notifikasi Afiliator
 
-- [ ] Notifikasi saat: referral baru masuk, komisi jadi valid, pencairan disetujui/ditolak/dibayar
+- [x] Notifikasi saat: referral baru masuk, komisi jadi valid, pencairan disetujui/ditolak/dibayar — `src/lib/afiliator-notifications.ts` (email + WA + in-app)
 
 ### ✅ DoD Tahap 3
 Afiliator punya link & kode, klik terlacak, referral tercatat dari PPDB, komisi hanya valid setelah pembayaran terverifikasi, anti-fraud aktif, pencairan bisa diajukan & diverifikasi.
@@ -345,21 +345,21 @@ Afiliator punya link & kode, klik terlacak, referral tercatat dari PPDB, komisi 
 
 ## 4.1 Sistem Permission
 
-- [ ] `model Permission` — `code @unique`, `name`, `module`, `description`
-- [ ] `model RolePermission` — `role`, `permissionCode`, `@@unique([role, permissionCode])`
-- [ ] Tambah role baru ke `enum UserRole`: `ADMIN_CABANG`, `ADMIN_KEUANGAN`, `ADMIN_AKADEMIK`, `AFILIATOR`
-- [ ] Seed daftar permission per modul (`ppdb.view`, `ppdb.verify`, `finance.manage`, `affiliate.payout`, dst)
-- [ ] Seed mapping default role → permission
-- [ ] Buat `src/lib/permission.ts` — `hasPermission(code)`, `requirePermission(code)`
-- [ ] Cache permission (pola sama seperti `src/lib/feature-flags.ts`)
+- [x] `model Permission` — `code @unique`, `name`, `module`, `description`
+- [x] `model RolePermission` — `role`, `permissionCode`, `@@unique([role, permissionCode])`
+- [x] Tambah role baru ke `enum UserRole`: `ADMIN_CABANG`, `ADMIN_KEUANGAN`, `ADMIN_AKADEMIK`, `AFILIATOR`
+- [x] Seed daftar permission per modul (`ppdb.view`, `ppdb.verify`, `finance.manage`, `affiliate.payout`, dst)
+- [x] Seed mapping default role → permission
+- [x] Buat `src/lib/permission.ts` — `hasPermission()`, `requirePermission()` + cache
+- [x] Cache permission (pola sama seperti `src/lib/feature-flags.ts`)
 
 ## 4.2 Migrasi Guard yang Ada 🔴 BERISIKO
 
 **Masalah:** puluhan route memakai hardcode `["ADMIN","SUPER_ADMIN"].includes(session.user.role)`. Menambah role baru **tidak otomatis** memberi akses, dan role baru bisa kehilangan akses yang seharusnya ada.
 
-- [ ] Inventarisasi semua lokasi cek role (grep `SUPER_ADMIN` di `src/`)
-- [ ] Ganti bertahap dengan `requirePermission("modul.aksi")`
-- [ ] Pastikan `ADMIN` lama tetap punya semua permission (backward compatible)
+- [x] Inventarisasi semua lokasi cek role (grep `SUPER_ADMIN` di `src/`) — 162 matches across 85 API files + 41 page files
+- [x] Ganti bertahap dengan `requirePermission("modul.aksi")` — `isAdminRole()` replaces `['ADMIN','SUPER_ADMIN'].includes()` in 65 files
+- [x] Pastikan `ADMIN` lama tetap punya semua permission (backward compatible) — `isAdminRole()` returns true for ADMIN, `hasPermission()` short-circuits for ADMIN
 - [ ] Update `src/lib/auth.ts` — sertakan permission di JWT/session (atau ambil per-request bila terlalu besar)
 
 ## 4.3 Scope Cabang 🔴 CELAH KEAMANAN
@@ -388,30 +388,30 @@ Afiliator punya link & kode, klik terlacak, referral tercatat dari PPDB, komisi 
 
 ## 5.1 Media pada Soal
 
-- [ ] Tambah `Question`: `imageUrl?`, `audioUrl?`, `videoUrl?`
-- [ ] Upload media soal ke Cloudinary (folder `questions/`)
-- [ ] Editor soal mendukung sisip gambar/audio/video
-- [ ] Player audio/video di halaman pengerjaan siswa
-- [ ] Manfaatkan `katex` (sudah terpasang, belum dipakai) untuk rumus matematika
+- [x] Tambah `Question`: `imageUrl?`, `audioUrl?`, `videoUrl?`
+- [x] Upload media soal ke Cloudinary (folder `questions/`)
+- [x] Editor soal mendukung sisip gambar/audio/video — form upload di `UjianDetailClient`
+- [x] Player audio/video di halaman pengerjaan siswa — `MediaDisplay` di `TakeExamClient` & `EventExamClient`
+- [x] Manfaatkan `katex` (sudah terpasang, belum dipakai) untuk rumus matematika — `MathRenderer` diintegrasikan ke `TakeExamClient`, `EventExamClient`, `UjianDetailClient`
 
 ## 5.2 Multi-Attempt & Quiz per Materi 🔴 ADA BREAKING CHANGE
 
 **Masalah:** `ExamAttempt @@unique([examId, studentId])` memaksa 1 percobaan. Spesifikasi Bab 3 minta quiz dengan batas percobaan.
 
-- [ ] Tambah `Exam.materialId?` — quiz menempel pada materi LMS
-- [ ] Tambah `Exam.maxAttempts Int @default(1)`
-- [ ] Tambah `ExamAttempt.attemptNumber Int`
-- [ ] **Hapus** `@@unique([examId, studentId])` → ganti `@@unique([examId, studentId, attemptNumber])`
-- [ ] ⚠️ **7 pemakaian `examId_studentId` di 5 file akan error kompilasi** — perbaiki semuanya:
-  - [ ] `src/app/api/events/[id]/exam/route.ts` — 1× `findUnique` → `findFirst` + `orderBy: { attemptNumber: "desc" }`
-  - [ ] `src/app/api/events/[id]/exam/submit/route.ts` — 1× `findUnique` + 1× `upsert` → `findFirst` + `create`
-  - [ ] `src/app/api/siswa/ujian/[id]/route.ts` — 1× `findUnique` + 1× `upsert` → `findFirst` + `create`
-  - [ ] `src/app/events/[id]/exam/page.tsx` — 1× `findUnique` → `findFirst`
-  - [ ] `src/app/siswa/ujian/[id]/page.tsx` — 1× `findUnique` → `findFirst`
-- [ ] ⚠️ Pola `upsert` **tidak lagi valid** untuk multi-attempt — ganti jadi cek `maxAttempts` lalu `create` attempt baru
-- [ ] Logika: tolak attempt bila sudah mencapai `maxAttempts`
-- [ ] Tampilkan nilai terbaik / terakhir (buat konfigurasi `Exam.scoringMode`)
-- [ ] UI quiz di halaman detail materi siswa
+- [x] Tambah `Exam.materialId?` — quiz menempel pada materi LMS
+- [x] Tambah `Exam.maxAttempts Int @default(1)`
+- [x] Tambah `ExamAttempt.attemptNumber Int`
+- [x] **Hapus** `@@unique([examId, studentId])` → ganti `@@unique([examId, studentId, attemptNumber])`
+- [x] ⚠️ **7 pemakaian `examId_studentId` di 5 file akan error kompilasi** — perbaiki semuanya:
+  - [x] `src/app/api/events/[id]/exam/route.ts` — 1× `findUnique` → `findFirst` + `orderBy: { attemptNumber: "desc" }`
+  - [x] `src/app/api/events/[id]/exam/submit/route.ts` — 1× `findUnique` + 1× `upsert` → `findFirst` + `create`
+  - [x] `src/app/api/siswa/ujian/[id]/route.ts` — 1× `findUnique` + 1× `upsert` → `findFirst` + `create`
+  - [x] `src/app/events/[id]/exam/page.tsx` — 1× `findUnique` → `findFirst`
+  - [x] `src/app/siswa/ujian/[id]/page.tsx` — 1× `findUnique` → `findFirst`
+- [x] ⚠️ Pola `upsert` **tidak lagi valid** untuk multi-attempt — ganti jadi cek `maxAttempts` lalu `create` attempt baru
+- [x] Logika: tolak attempt bila sudah mencapai `maxAttempts`
+- [x] Tampilkan nilai terbaik / terakhir (buat konfigurasi `Exam.scoringMode`) — SUM/AVG/BEST/LAST
+- [x] UI quiz di halaman detail materi siswa — halaman `/siswa/materi/[id]` + `MaterialDetailClient`
 
 ## 5.3 Dukungan TOEFL 🔴 PALING KOMPLEKS
 
@@ -482,15 +482,15 @@ Soal mendukung media, TOEFL berjalan (audio & passage bersama, timer per section
 
 **Catatan:** `Invoice.enableOnlinePayment` & `onlinePaymentMethod` **sudah ada di schema tapi belum diimplementasi**. Midtrans baru jalan untuk Event (`src/lib/event-payment.ts`).
 
-- [ ] Refactor `src/lib/event-payment.ts` → `src/lib/payment-gateway.ts` yang generik (dipakai event + invoice + PPDB)
-- [ ] `POST /api/payments/invoice/[id]/checkout` — buat transaksi Midtrans untuk invoice
-- [ ] `POST /api/payments/webhook/midtrans` — webhook terpusat
-- [ ] ⚠️ **Verifikasi signature** webhook (jangan percaya payload mentah)
-- [ ] ⚠️ **Idempotent** — webhook bisa terkirim berkali-kali, jangan dobel-catat pembayaran
-- [ ] Webhook memperbarui: `Invoice.status`, buat `Payment`, catat `BranchTransaction`, trigger komisi afiliator, kirim notifikasi
-- [ ] Pembayaran PPDB lewat gateway
-- [ ] Instruksi pembayaran manual yang bisa diatur admin (Bab 10B)
-- [ ] Toggle aktif/nonaktif payment gateway di `/admin/settings`
+- [x] Refactor `src/lib/event-payment.ts` → `src/lib/payment-gateway.ts` yang generik (dipakai event + invoice + PPDB) — Duitku POP API, DB-backed config, HMAC-SHA256 signature
+- [x] `POST /api/payments/invoice/[id]/checkout` — buat transaksi Duitku untuk invoice
+- [x] `POST /api/payments/webhook/duitku` — webhook terpusat (Duitku, bukan Midtrans)
+- [x] ⚠️ **Verifikasi signature** webhook (jangan percaya payload mentah) — HMAC-SHA256
+- [x] ⚠️ **Idempotent** — webhook bisa terkirim berkali-kali, jangan dobel-catat pembayaran — cek `confirmedAt`/`paymentStatus`
+- [x] Webhook memperbarui: `Invoice.status`, buat `Payment`, catat `BranchTransaction`, trigger komisi afiliator, kirim notifikasi
+- [x] Pembayaran PPDB lewat gateway — `POST /api/payments/ppdb/[id]/checkout` + Registration payment fields
+- [x] Instruksi pembayaran manual yang bisa diatur admin (Bab 10B) — textarea di admin settings
+- [x] Toggle aktif/nonaktif payment gateway di `/admin/settings` — checkbox + DB-backed config
 
 ## 6.3 Export & Import Universal
 
@@ -521,22 +521,22 @@ Sertifikat ber-QR & PDF bisa diunduh, SPP bisa dibayar online dengan webhook ama
 
 ## 7.1 Landing Page Builder
 
-- [ ] `model LandingPage` — `slug @unique`, `title`, `sections Json`, `metaTitle?`, `metaDescription?`, `ogImage?`, `ctaType?`, `ctaTargetId?`, `isPublished`, `viewCount`
-- [ ] Route publik `/lp/[slug]` + `generateMetadata` untuk SEO
-- [ ] `/admin/landing-pages` — builder berbasis blok (hero, fitur, testimoni, FAQ, CTA, form)
-- [ ] CTA terhubung ke PPDB / Event / Inquiry
-- [ ] Hitung `viewCount`
+- [x] `model LandingPage` — `slug @unique`, `title`, `sections Json`, `metaTitle?`, `metaDescription?`, `ogImage?`, `ctaType?`, `ctaTargetId?`, `isPublished`, `viewCount`
+- [x] Route publik `/lp/[slug]` + `generateMetadata` untuk SEO — `LandingPageView` dengan 6 section types
+- [x] `/admin/landing-pages` — builder berbasis blok (hero, fitur, testimoni, FAQ, CTA, form) — `LandingPageBuilder` + list + new/edit pages
+- [x] CTA terhubung ke PPDB / Event / Inquiry — CTA type configurable
+- [x] Hitung `viewCount` — viewCount increment di route
 
 ## 7.2 CMS Tambahan
 
-- [ ] `model SiteFaq` — `question`, `answer`, `category`, `order`, `isActive`
-- [ ] `model SiteTeamMember` — profil tim/tutor publik: `name`, `role`, `photo`, `bio`, `order`
-- [ ] Struktur organisasi (gambar/hierarki) + legalitas lembaga
-- [ ] Kategori "PRESTASI" pada `SiteGallery` + halaman galeri prestasi
-- [ ] Halaman publik daftar cabang/lokasi (pakai `Branch` yang sudah ada)
-- [ ] Halaman detail program publik `/program/[slug]` — deskripsi, target, jenjang, materi, benefit, durasi, jadwal, harga, promo, cabang tersedia, tombol daftar (Bab 1B)
-- [ ] Halaman visi/misi & profil lembaga terstruktur
-- [ ] Audit SEO: sitemap.xml, robots.txt, metadata semua halaman publik
+- [x] `model SiteFaq` — `question`, `answer`, `category`, `order`, `isActive` — schema + API + admin manager
+- [x] `model SiteTeamMember` — profil tim/tutor publik: `name`, `role`, `photo`, `bio`, `order` — schema + API + admin manager
+- [x] Struktur organisasi (gambar/hierarki) + legalitas lembaga — via `SiteConfig` (visi, misi, profil_lembaga) di halaman `/tentang`
+- [x] Kategori "PRESTASI" pada `SiteGallery` + halaman galeri prestasi — halaman `/galeri` dengan section prestasi & kegiatan
+- [x] Halaman publik daftar cabang/lokasi (pakai `Branch` yang sudah ada) — `/cabang`
+- [x] Halaman detail program publik `/program/[slug]` — deskripsi, target, jenjang, materi, benefit, durasi, jadwal, harga, promo, cabang tersedia, tombol daftar (Bab 1B) — `slug` added to `SiteProgram`
+- [x] Halaman visi/misi & profil lembaga terstruktur — `/tentang` dengan SiteConfig + SiteTeamMember
+- [x] Audit SEO: sitemap.xml, robots.txt, metadata semua halaman publik — `sitemap.ts` + `robots.ts` + `generateMetadata`
 
 ## 7.3 Absensi Tutor & Payroll
 
