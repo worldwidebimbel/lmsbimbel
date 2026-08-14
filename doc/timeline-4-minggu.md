@@ -17,12 +17,12 @@
 | 1 | Fondasi Data Master & Ruangan | 34 | 34 | 0 |
 | 2 | Modul PPDB | 38 | 33 | 5 |
 | 3 | Modul Afiliator | 32 | 27 | 5 |
-| 4 | Role & Permission | 18 | 8 | 10 |
+| 4 | Role & Permission | 18 | 18 | 0 |
 | 5 | Upgrade CBT | 35 | 9 | 26 |
-| 6 | Sertifikat, Payment, Export | 28 | 9 | 19 |
+| 6 | Sertifikat, Payment, Export | 28 | 11 | 17 |
 | 7 | Website, Automation, Security | 30 | 12 | 18 |
 | 8 | Jurnal Mengajar, Raport & Absensi Tutor | 28 | 0 | 28 |
-| **Total** | | **251** | **137** | **114** |
+| **Total** | | **251** | **139** | **112** |
 
 ---
 
@@ -113,9 +113,9 @@
 - [x] `6.2` Pembayaran PPDB lewat gateway — `POST /api/payments/ppdb/[id]/checkout` + Registration payment fields
 - [x] `6.2` Instruksi pembayaran manual yang bisa diatur admin — textarea di admin settings Pembayaran tab
 - [x] `6.2` Toggle gateway di `/admin/settings` — checkbox + DB-backed config via AppSetting
-- [ ] `6.3` `src/lib/export-excel.ts` (pakai `exceljs`)
-- [ ] `6.3` `src/lib/export-pdf.ts` (install `pdf-lib`)
-- [ ] `6.3` Hapus duplikat `xlsx` dari `package.json`
+- [x] `6.3` `src/lib/export-excel.ts` (pakai `exceljs`) — helper generik `generateExcelBuffer()` + `excelResponse()`
+- [x] `6.3` `src/lib/export-pdf.ts` (install `pdf-lib`) — helper generik `generatePdfBuffer()` + `pdfResponse()`
+- [ ] `6.3` Hapus duplikat `xlsx` dari `package.json` — `BankSoalImportClient` masih pakai `xlsx`, perlu refactor dulu
 - [ ] `6.3` Import data siswa dari Excel/CSV + preview + template unduhan
 
 ## Jalur E — Website & CMS Awal (Tahap 7.1-7.2) · 13 item
@@ -140,7 +140,7 @@
 - [x] `4.1` `src/lib/permission.ts` — `hasPermission()`, `requirePermission()` + cache
 - [x] 🔥 `4.2` Inventarisasi semua cek role (grep `SUPER_ADMIN`) — 162 matches across 85 API files + 41 page files
 - [x] `4.2` Ganti guard hardcode → `requirePermission()`, pastikan backward compatible — `isAdminRole()` replaces `['ADMIN','SUPER_ADMIN'].includes()` in 65 files
-- [ ] `4.2` Update `src/lib/auth.ts` — permission di session
+- [x] `4.2` Update `src/lib/auth.ts` — permission di session — `hasPermission()` ambil per-request dengan cache 5 menit
 - [x] `4.2` Pastikan `ADMIN` lama tetap punya semua permission — `isAdminRole()` returns true for ADMIN, `hasPermission()` short-circuits for ADMIN
 
 ## 🔄 Sync Point Jumat Minggu 1

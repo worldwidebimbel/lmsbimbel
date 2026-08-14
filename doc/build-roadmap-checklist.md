@@ -30,12 +30,12 @@ Setiap tahap punya **Definition of Done (DoD)**. Jangan lanjut ke tahap berikutn
 | 1 | Fondasi Data Master & Ruangan | 34 | ✅ 34/34 |
 | 2 | Modul PPDB | 38 | ✅ 38/38 |
 | 3 | Modul Afiliator | 32 | ✅ 32/32 |
-| 4 | Role & Permission | 18 | 🔄 17/18 |
+| 4 | Role & Permission | 18 | ✅ 18/18 |
 | 5 | Upgrade CBT | 35 | 🔄 9/35 |
-| 6 | Sertifikat, Payment, Export | 28 | 🔄 9/28 |
+| 6 | Sertifikat, Payment, Export | 28 | 🔄 11/28 |
 | 7 | Website, Automation, Security | 30 | 🔄 12/30 |
 | 8 | Jurnal Mengajar, Raport & Absensi Tutor | 28 | ⬜ 0/28 |
-| **Total** | | **251** | **155/251 (62%)** |
+| **Total** | | **251** | **157/251 (63%)** |
 
 > Update tabel ini setiap menyelesaikan sub-bagian.
 
@@ -360,7 +360,7 @@ Afiliator punya link & kode, klik terlacak, referral tercatat dari PPDB, komisi 
 - [x] Inventarisasi semua lokasi cek role (grep `SUPER_ADMIN` di `src/`) — 162 matches across 85 API files + 41 page files
 - [x] Ganti bertahap dengan `requirePermission("modul.aksi")` — `isAdminRole()` replaces `['ADMIN','SUPER_ADMIN'].includes()` in 65 files
 - [x] Pastikan `ADMIN` lama tetap punya semua permission (backward compatible) — `isAdminRole()` returns true for ADMIN, `hasPermission()` short-circuits for ADMIN
-- [ ] Update `src/lib/auth.ts` — sertakan permission di JWT/session (atau ambil per-request bila terlalu besar)
+- [x] Update `src/lib/auth.ts` — sertakan permission di JWT/session (atau ambil per-request bila terlalu besar) — `hasPermission()` di `src/lib/permission.ts` ambil per-request dengan cache 5 menit
 
 ## 4.3 Scope Cabang 🔴 CELAH KEAMANAN
 
@@ -494,9 +494,9 @@ Soal mendukung media, TOEFL berjalan (audio & passage bersama, timer per section
 
 ## 6.3 Export & Import Universal
 
-- [ ] `src/lib/export-excel.ts` — helper generik pakai `exceljs` (**sudah terpasang**)
-- [ ] `src/lib/export-pdf.ts` — helper generik pakai `pdf-lib`
-- [ ] Hapus salah satu dari `xlsx`/`exceljs` di `package.json` (duplikat, keduanya belum dipakai)
+- [x] `src/lib/export-excel.ts` — helper generik pakai `exceljs` (**sudah terpasang**) — `generateExcelBuffer()` + `excelResponse()`
+- [x] `src/lib/export-pdf.ts` — helper generik pakai `pdf-lib` — `generatePdfBuffer()` + `pdfResponse()`
+- [ ] Hapus salah satu dari `xlsx`/`exceljs` di `package.json` (duplikat) — `BankSoalImportClient` masih pakai `xlsx`, perlu refactor dulu
 - [ ] Pasang tombol Export Excel + PDF di: data siswa, nilai, soal, pembayaran, keuangan, jadwal, absensi, laporan, data afiliator
 - [ ] Export menghormati filter & scope cabang yang aktif
 - [ ] Import data siswa dari Excel/CSV + preview + laporan error
