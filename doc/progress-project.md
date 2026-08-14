@@ -308,7 +308,37 @@
 
 ---
 
-## 📊 Summary Progress
+## � Optimasi & Mobile Friendly (Tahap 9)
+
+### 9.1 Responsive & Mobile Friendly
+- [ ] Audit responsive semua dashboard role (375px, 768px, 1024px)
+- [ ] Mobile navigation: hamburger menu + sidebar drawer untuk semua layout
+- [ ] Touch-friendly: tap target ≥44px, spacing cukup untuk touch
+- [ ] Tabel responsive: horizontal scroll atau card view di mobile
+- [ ] Form mobile optimization: input type correct, autocomplete, numeric keyboard
+- [ ] Bottom navigation bar untuk siswa & orang tua di mobile
+- [ ] Halaman ujian/quiz mobile-friendly: timer sticky, navigasi compact
+- [ ] Landing page & halaman publik mobile audit
+
+### 9.2 Performance Optimization
+- [ ] Image optimization: `next/image` untuk semua gambar, lazy loading
+- [ ] Bundle size: `@next/bundle-analyzer`, code splitting heavy components
+- [ ] Database query optimization: audit N+1 queries, tambah index missing
+- [ ] API response caching: `Cache-Control` headers untuk GET endpoints
+- [ ] Font loading optimization: `display=swap`, preload, subset
+- [ ] Lighthouse audit & fix: target ≥80 (Performance, Accessibility, Best Practices, SEO)
+
+### 9.3 UI/UX Polish & Consistency
+- [ ] Loading states: skeleton screens untuk semua tabel & card
+- [ ] Empty states: ilustrasi/pesan untuk semua halaman kosong
+- [ ] Error states: consistent error boundary + pesan user-friendly
+- [ ] Konsistensi spacing & typography: sistem spacing Tailwind konsisten
+- [ ] Accessibility: ARIA labels, keyboard navigation, contrast ≥4.5:1
+- [ ] Dark mode (opsional): toggle theme, `prefers-color-scheme` + manual toggle
+
+---
+
+## �📊 Summary Progress
 
 | Modul | Selesai | Total | % |
 |-------|---------|-------|---|

@@ -22,7 +22,8 @@
 | 6 | Sertifikat, Payment, Export | 28 | 11 | 17 |
 | 7 | Website, Automation, Security | 30 | 12 | 18 |
 | 8 | Jurnal Mengajar, Raport & Absensi Tutor | 28 | 0 | 28 |
-| **Total** | | **251** | **139** | **112** |
+| 9 | Optimasi & Mobile Friendly | 20 | 0 | 20 |
+| **Total** | | **271** | **139** | **132** |
 
 ---
 
@@ -36,6 +37,7 @@
 | **D** | Payment, Sertifikat & Export | 6 |
 | **E** | Website, CMS & Security | 7 |
 | **F** | Role, Jurnal, Raport & Absensi Tutor | 4, 8 |
+| **G** | Optimasi & Mobile Friendly | 9 |
 
 ---
 
@@ -46,7 +48,7 @@
 | **1** | Fondasi & Sisa Tahap 1-3 | Migration aktif, master data lengkap, PPDB & afiliator selesai |
 | **2** | CBT, Payment & Sertifikat | Media soal, multi-attempt, TOEFL, payment gateway, sertifikat, export |
 | **3** | Role, Website & Akademik | Permission granular, landing page, CMS, jurnal mengajar, raport, absensi tutor |
-| **4** | Integrasi, Security & Rilis | Security hardening, notifikasi, leaderboard, dashboard final, smoke test, deploy |
+| **4** | Integrasi, Security, Optimasi & Rilis | Security hardening, mobile friendly, notifikasi, leaderboard, dashboard final, smoke test, deploy |
 
 ---
 
@@ -213,6 +215,11 @@
 - [ ] `4.4` Menu sidebar dinamis per permission
 - [ ] `4.4` Halaman `/admin/users` — pilihan role diperluas + assign cabang
 
+## Jalur G — Optimasi Awal (Tahap 9.2) · 3 item
+- [ ] `9.2` Image optimization: pakai `next/image` untuk semua gambar (landing, avatar, materi, sertifikat)
+- [ ] `9.2` Bundle size: audit dengan `@next/bundle-analyzer`, code splitting untuk heavy components
+- [ ] `9.2` Database query optimization: audit N+1 queries dengan Prisma `include`/`select`
+
 ## 🔄 Sync Point Jumat Minggu 2
 - [ ] Demo TOEFL: 1 audio untuk 5 soal, batas 1× putar, timer per section
 - [ ] Demo sertifikat: generate PDF dengan QR Code
@@ -297,6 +304,12 @@
 - [ ] `8.4` Notifikasi ke tutor saat payroll disetujui/dibayar
 - [ ] `8.4` Notifikasi ke admin saat tutor tidak hadir (ALPHA)
 
+## Jalur G — Responsive Audit (Tahap 9.1) · 4 item
+- [ ] `9.1` Audit responsive semua dashboard role (admin, guru, siswa, orang tua, afiliator) — uji di 375px, 768px, 1024px
+- [ ] `9.1` Mobile navigation: hamburger menu + sidebar drawer untuk semua layout role
+- [ ] `9.1` Tabel responsive: horizontal scroll atau card view di mobile untuk semua tabel data
+- [ ] `9.1` Landing page & halaman publik mobile audit (hero, program, footer, form daftar)
+
 ## 🔄 Sync Point Jumat Minggu 3
 - [ ] Demo jurnal mengajar: tutor input → admin lihat → orang tua lihat
 - [ ] Demo raport: generate massal → edit komentar → publish → orang tua lihat → cetak PDF
@@ -330,6 +343,21 @@
 - [ ] Pasang audit log di semua mutasi tersisa
 - [ ] Pasang export Excel/PDF di modul yang belum (afiliator, jurnal, raport, payroll)
 
+## Jalur G — Optimasi & Mobile Friendly Final (Tahap 9.1, 9.2, 9.3) · 13 item
+- [ ] `9.1` Touch-friendly: pastikan semua button & tap target ≥44px height
+- [ ] `9.1` Form mobile optimization: input type correct (tel, email, number), autocomplete
+- [ ] `9.1` Bottom navigation bar untuk siswa & orang tua di mobile (Home, Materi, Tagihan, Profil)
+- [ ] `9.1` Halaman ujian/quiz mobile-friendly: soal tidak overflow, timer sticky, navigasi compact
+- [ ] `9.2` API response caching: `Cache-Control` headers untuk GET endpoints yang jarang berubah
+- [ ] `9.2` Font loading optimization: `display=swap`, preload critical fonts
+- [ ] `9.2` Lighthouse audit & fix: target ≥80 untuk Performance, Accessibility, Best Practices, SEO
+- [ ] `9.3` Loading states: skeleton screens untuk semua tabel & card yang fetch data
+- [ ] `9.3` Empty states: ilustrasi/pesan untuk semua halaman kosong
+- [ ] `9.3` Error states: consistent error boundary + pesan error yang user-friendly
+- [ ] `9.3` Konsistensi spacing & typography: audit semua halaman, sistem spacing Tailwind konsisten
+- [ ] `9.3` Accessibility: ARIA labels di semua interactive elements, keyboard navigation, contrast ≥4.5:1
+- [ ] `9.3` Dark mode (opsional): toggle theme di settings, `prefers-color-scheme` + manual toggle
+
 ## Hari 3-4 — Smoke Test Menyeluruh
 - [ ] Alur PPDB: daftar → upload dokumen → verifikasi → bayar → konversi siswa → kelas → jadwal
 - [ ] Alur Afiliator: klik link → daftar → verifikasi → bayar → komisi VALID → pencairan
@@ -356,21 +384,21 @@
 - [ ] Verifikasi backup otomatis berjalan
 
 ## 🔄 Sync Point Jumat Minggu 4 — RILIS
-- [ ] **DoD Tahap 6 tercentang**
-- [ ] Semua 8 tahap selesai
-- [ ] 251 item tercentang
+- [ ] **DoD Tahap 6 & 9 tercentang**
+- [ ] Semua 9 tahap selesai
+- [ ] 271 item tercentang
 - [ ] Sistem live di produksi
 
 ---
 
 # Kalender Ringkas
 
-| | Jalur A | Jalur B | Jalur C | Jalur D | Jalur E | Jalur F |
-|---|---|---|---|---|---|---|
-| **M1** | Infra + Master | PPDB + Afiliator sisa | CBT media + multi-attempt | Payment + Export | Landing page + CMS | Role & permission |
-| **M2** | — | — | TOEFL + bank soal + AI | Sertifikat + laporan | Absensi tutor + payroll | Scope cabang + dashboard |
-| **M3** | — | — | — | — | Notifikasi + leaderboard + dashboard final | Jurnal + raport + absensi tutor + payroll |
-| **M4** | — | — | — | — | — | Security + integrasi + smoke test + deploy |
+| | Jalur A | Jalur B | Jalur C | Jalur D | Jalur E | Jalur F | Jalur G |
+|---|---|---|---|---|---|---|---|
+| **M1** | Infra + Master | PPDB + Afiliator sisa | CBT media + multi-attempt | Payment + Export | Landing page + CMS | Role & permission | — |
+| **M2** | — | — | TOEFL + bank soal + AI | Sertifikat + laporan | Absensi tutor + payroll | Scope cabang + dashboard | Perf optimization awal |
+| **M3** | — | — | — | — | Notifikasi + leaderboard + dashboard final | Jurnal + raport + absensi tutor + payroll | Responsive audit |
+| **M4** | — | — | — | — | — | Security + integrasi + smoke test + deploy | Mobile friendly + UI polish + Lighthouse |
 
 ---
 

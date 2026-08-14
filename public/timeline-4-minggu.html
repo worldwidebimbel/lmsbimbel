@@ -392,7 +392,8 @@
       <tr><td>6</td><td>Sertifikat, Payment, Export</td><td style="text-align:center">28</td><td style="text-align:center">0</td><td style="text-align:center">28</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/28</span></td></tr>
       <tr><td>7</td><td>Website, Automation, Security</td><td style="text-align:center">30</td><td style="text-align:center">12</td><td style="text-align:center">18</td><td style="text-align:center"><span class="badge badge-yellow">🔄 12/30</span></td></tr>
       <tr><td>8</td><td>Jurnal Mengajar, Raport & Absensi Tutor</td><td style="text-align:center">28</td><td style="text-align:center">0</td><td style="text-align:center">28</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/28</span></td></tr>
-      <tr><td colspan="2"><strong>Total</strong></td><td style="text-align:center"><strong>251</strong></td><td style="text-align:center"><strong>128</strong></td><td style="text-align:center"><strong>123</strong></td><td style="text-align:center"><span class="badge badge-blue">51% selesai</span></td></tr>
+      <tr><td>9</td><td>Optimasi & Mobile Friendly</td><td style="text-align:center">20</td><td style="text-align:center">0</td><td style="text-align:center">20</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/20</span></td></tr>
+      <tr><td colspan="2"><strong>Total</strong></td><td style="text-align:center"><strong>271</strong></td><td style="text-align:center"><strong>139</strong></td><td style="text-align:center"><strong>132</strong></td><td style="text-align:center"><span class="badge badge-blue">51% selesai</span></td></tr>
     </tbody>
   </table>
 
@@ -405,6 +406,7 @@
     <div class="jalur-card"><div class="letter">D</div><div class="focus">Payment, Sertifikat & Export</div><div class="tahap">Tahap 6</div></div>
     <div class="jalur-card"><div class="letter">E</div><div class="focus">Website, CMS & Security</div><div class="tahap">Tahap 7</div></div>
     <div class="jalur-card"><div class="letter">F</div><div class="focus">Role, Jurnal, Raport & Absensi Tutor</div><div class="tahap">Tahap 4, 8</div></div>
+    <div class="jalur-card"><div class="letter">G</div><div class="focus">Optimasi & Mobile Friendly</div><div class="tahap">Tahap 9</div></div>
   </div>
 
   <!-- Week Summary -->
@@ -427,8 +429,8 @@
     </div>
     <div class="week-card w4">
       <div class="week-num">Minggu 4</div>
-      <div class="week-theme">Integrasi, Security & Rilis</div>
-      <div class="week-milestone">Security hardening, notifikasi, leaderboard, dashboard final, smoke test, deploy</div>
+      <div class="week-theme">Integrasi, Security, Optimasi & Rilis</div>
+      <div class="week-milestone">Security hardening, mobile friendly, notifikasi, leaderboard, dashboard final, smoke test, deploy</div>
     </div>
   </div>
 
@@ -502,17 +504,17 @@
     <div class="jalur-section">
       <h3>Jalur D — Payment & Export Helper (Tahap 6.2-6.3) · 12 item</h3>
       <ul class="task-list">
-        <li class="fire"><span class="ref">6.2</span> Refactor <code>event-payment.ts</code> → <code>src/lib/payment-gateway.ts</code> generik</li>
-        <li class="fire"><span class="ref">6.2</span> <code>POST /api/payments/invoice/[id]/checkout</code></li>
-        <li class="fire"><span class="ref">6.2</span> <code>POST /api/payments/webhook/midtrans</code> terpusat</li>
-        <li class="fire"><span class="ref">6.2</span> Verifikasi signature webhook + idempotent</li>
-        <li><span class="ref">6.2</span> Webhook update Invoice + Payment + BranchTransaction + notifikasi</li>
-        <li><span class="ref">6.2</span> Pembayaran PPDB lewat gateway</li>
-        <li><span class="ref">6.2</span> Instruksi pembayaran manual yang bisa diatur admin</li>
-        <li><span class="ref">6.2</span> Toggle gateway di <code>/admin/settings</code></li>
-        <li><span class="ref">6.3</span> <code>src/lib/export-excel.ts</code> (pakai <code>exceljs</code>)</li>
-        <li><span class="ref">6.3</span> <code>src/lib/export-pdf.ts</code> (install <code>pdf-lib</code>)</li>
-        <li><span class="ref">6.3</span> Hapus duplikat <code>xlsx</code> dari <code>package.json</code></li>
+        <li class="fire done"><span class="ref">6.2</span> Refactor <code>event-payment.ts</code> → <code>src/lib/payment-gateway.ts</code> generik — Duitku POP API</li>
+        <li class="fire done"><span class="ref">6.2</span> <code>POST /api/payments/invoice/[id]/checkout</code></li>
+        <li class="fire done"><span class="ref">6.2</span> <code>POST /api/payments/webhook/duitku</code> terpusat</li>
+        <li class="fire done"><span class="ref">6.2</span> Verifikasi signature webhook + idempotent</li>
+        <li class="done"><span class="ref">6.2</span> Webhook update Invoice + Payment + BranchTransaction + notifikasi</li>
+        <li class="done"><span class="ref">6.2</span> Pembayaran PPDB lewat gateway</li>
+        <li class="done"><span class="ref">6.2</span> Instruksi pembayaran manual yang bisa diatur admin</li>
+        <li class="done"><span class="ref">6.2</span> Toggle gateway di <code>/admin/settings</code></li>
+        <li class="done"><span class="ref">6.3</span> <code>src/lib/export-excel.ts</code> (pakai <code>exceljs</code>)</li>
+        <li class="done"><span class="ref">6.3</span> <code>src/lib/export-pdf.ts</code> (install <code>pdf-lib</code>)</li>
+        <li><span class="ref">6.3</span> Hapus duplikat <code>xlsx</code> dari <code>package.json</code> — <code>BankSoalImportClient</code> masih pakai</li>
         <li><span class="ref">6.3</span> Import data siswa dari Excel/CSV + preview + template unduhan</li>
       </ul>
     </div>
@@ -545,7 +547,7 @@
         <li class="done"><span class="ref">4.1</span> <code>src/lib/permission.ts</code> — <code>hasPermission()</code>, <code>requirePermission()</code> + cache</li>
         <li class="fire done"><span class="ref">4.2</span> Inventarisasi semua cek role (grep <code>SUPER_ADMIN</code>) — 162 matches di 85 file API + 41 page</li>
         <li class="done"><span class="ref">4.2</span> Ganti guard hardcode → <code>isAdminRole()</code>, backward compatible — 65 file diupdate</li>
-        <li><span class="ref">4.2</span> Update <code>src/lib/auth.ts</code> — permission di session</li>
+        <li class="done"><span class="ref">4.2</span> Update <code>src/lib/auth.ts</code> — permission di session (per-request, cache 5 menit)</li>
         <li class="done"><span class="ref">4.2</span> Pastikan <code>ADMIN</code> lama tetap punya semua permission</li>
       </ul>
     </div>
@@ -637,6 +639,15 @@
         <li><span class="ref">4.4</span> Dashboard Admin Akademik — program, kelas, tutor, jadwal, siswa</li>
         <li><span class="ref">4.4</span> Menu sidebar dinamis per permission</li>
         <li><span class="ref">4.4</span> Halaman <code>/admin/users</code> — pilihan role diperluas + assign cabang</li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
+      <h3>Jalur G — Optimasi Awal (Tahap 9.2) · 3 item</h3>
+      <ul class="task-list">
+        <li><span class="ref">9.2</span> Image optimization: pakai <code>next/image</code> untuk semua gambar</li>
+        <li><span class="ref">9.2</span> Bundle size: audit dengan <code>@next/bundle-analyzer</code>, code splitting</li>
+        <li><span class="ref">9.2</span> Database query optimization: audit N+1 queries dengan Prisma</li>
       </ul>
     </div>
 
@@ -748,6 +759,16 @@
       </ul>
     </div>
 
+    <div class="jalur-section">
+      <h3>Jalur G — Responsive Audit (Tahap 9.1) · 4 item</h3>
+      <ul class="task-list">
+        <li><span class="ref">9.1</span> Audit responsive semua dashboard role (375px, 768px, 1024px)</li>
+        <li><span class="ref">9.1</span> Mobile navigation: hamburger menu + sidebar drawer untuk semua layout</li>
+        <li><span class="ref">9.1</span> Tabel responsive: horizontal scroll atau card view di mobile</li>
+        <li><span class="ref">9.1</span> Landing page & halaman publik mobile audit</li>
+      </ul>
+    </div>
+
     <div class="sync-point">
       <h4>🔄 Sync Point Jumat Minggu 3</h4>
       <ul class="task-list">
@@ -794,6 +815,25 @@
     </div>
 
     <div class="jalur-section">
+      <h3>Jalur G — Optimasi & Mobile Friendly Final (Tahap 9) · 13 item</h3>
+      <ul class="task-list">
+        <li><span class="ref">9.1</span> Touch-friendly: tap target ≥44px, spacing cukup untuk touch</li>
+        <li><span class="ref">9.1</span> Form mobile optimization: input type correct, autocomplete, numeric keyboard</li>
+        <li><span class="ref">9.1</span> Bottom navigation bar untuk siswa & orang tua di mobile</li>
+        <li><span class="ref">9.1</span> Halaman ujian/quiz mobile-friendly: timer sticky, navigasi compact</li>
+        <li><span class="ref">9.2</span> API response caching: <code>Cache-Control</code> headers untuk GET endpoints</li>
+        <li><span class="ref">9.2</span> Font loading optimization: <code>display=swap</code>, preload critical fonts</li>
+        <li><span class="ref">9.2</span> Lighthouse audit & fix: target ≥80 (Performance, Accessibility, Best Practices, SEO)</li>
+        <li><span class="ref">9.3</span> Loading states: skeleton screens untuk semua tabel & card</li>
+        <li><span class="ref">9.3</span> Empty states: ilustrasi/pesan untuk semua halaman kosong</li>
+        <li><span class="ref">9.3</span> Error states: consistent error boundary + pesan user-friendly</li>
+        <li><span class="ref">9.3</span> Konsistensi spacing & typography: sistem spacing Tailwind konsisten</li>
+        <li><span class="ref">9.3</span> Accessibility: ARIA labels, keyboard navigation, contrast ≥4.5:1</li>
+        <li><span class="ref">9.3</span> Dark mode (opsional): toggle theme, <code>prefers-color-scheme</code> + manual toggle</li>
+      </ul>
+    </div>
+
+    <div class="jalur-section">
       <h3>Hari 3-4 — Smoke Test Menyeluruh</h3>
       <ul class="task-list">
         <li>Alur PPDB: daftar → upload dokumen → verifikasi → bayar → konversi siswa → kelas → jadwal</li>
@@ -829,9 +869,9 @@
     <div class="sync-point">
       <h4>🔄 Sync Point Jumat Minggu 4 — RILIS</h4>
       <ul class="task-list">
-        <li><strong>DoD Tahap 6 tercentang</strong></li>
-        <li>Semua 8 tahap selesai</li>
-        <li>251 item tercentang</li>
+        <li><strong>DoD Tahap 6 & 9 tercentang</strong></li>
+        <li>Semua 9 tahap selesai</li>
+        <li>271 item tercentang</li>
         <li>Sistem live di produksi</li>
       </ul>
     </div>
@@ -849,6 +889,7 @@
         <th>Jalur D</th>
         <th>Jalur E</th>
         <th>Jalur F</th>
+        <th>Jalur G</th>
       </tr>
     </thead>
     <tbody>
@@ -860,6 +901,7 @@
         <td>Payment + Export</td>
         <td>Landing page + CMS</td>
         <td>Role & permission</td>
+        <td>—</td>
       </tr>
       <tr>
         <td>M2</td>
@@ -869,6 +911,7 @@
         <td>Sertifikat + laporan</td>
         <td>Absensi tutor + payroll</td>
         <td>Scope cabang + dashboard</td>
+        <td>Perf optimization awal</td>
       </tr>
       <tr>
         <td>M3</td>
@@ -878,6 +921,7 @@
         <td>—</td>
         <td>Notifikasi + leaderboard + dashboard final</td>
         <td>Jurnal + raport + absensi tutor + payroll</td>
+        <td>Responsive audit</td>
       </tr>
       <tr>
         <td>M4</td>
@@ -887,6 +931,7 @@
         <td>—</td>
         <td>—</td>
         <td>Security + integrasi + smoke test + deploy</td>
+        <td>Mobile friendly + UI polish + Lighthouse</td>
       </tr>
     </tbody>
   </table>

@@ -35,7 +35,8 @@ Setiap tahap punya **Definition of Done (DoD)**. Jangan lanjut ke tahap berikutn
 | 6 | Sertifikat, Payment, Export | 28 | 🔄 11/28 |
 | 7 | Website, Automation, Security | 30 | 🔄 12/30 |
 | 8 | Jurnal Mengajar, Raport & Absensi Tutor | 28 | ⬜ 0/28 |
-| **Total** | | **251** | **157/251 (63%)** |
+| 9 | Optimasi & Mobile Friendly | 20 | ⬜ 0/20 |
+| **Total** | | **271** | **157/271 (58%)** |
 
 > Update tabel ini setiap menyelesaikan sub-bagian.
 
@@ -755,6 +756,44 @@ Website punya landing page dinamis & halaman program lengkap, absensi tutor + pa
 
 ### ✅ DoD Tahap 8
 Tutor mengisi jurnal mengajar per pertemuan; admin & orang tua bisa lihat jurnal; rapor per periode bisa digenerate massal, diedit komentarnya, dipublish, dan dicetak PDF; orang tua & siswa bisa lihat rapor via app; absensi tutor tercatat (manual/QR/kode); payroll honor tutor bisa dihitung, disetujui, dan dicetak slip.
+
+---
+
+# TAHAP 9 — OPTIMASI & MOBILE FRIENDLY
+
+> Merapikan tampilan dan performa aplikasi dari sisi frontend maupun backend. Bisa dikerjakan paralel dengan tahap lain mulai Minggu 2, mayoritas di Minggu 4.
+
+## 9.1 Responsive & Mobile Friendly
+
+- [ ] Audit responsive semua dashboard role (admin, guru, siswa, orang tua, afiliator) — uji di breakpoint 375px, 768px, 1024px
+- [ ] Mobile navigation: hamburger menu + sidebar drawer untuk semua layout role
+- [ ] Touch-friendly: pastikan semua button & tap target ≥44px height, spacing cukup untuk touch
+- [ ] Tabel responsive: horizontal scroll atau card view di mobile untuk semua tabel data (siswa, nilai, tagihan, jadwal, absensi)
+- [ ] Form mobile optimization: input type correct (tel, email, number), autocomplete, numeric keyboard untuk field angka
+- [ ] Bottom navigation bar untuk siswa & orang tua di mobile (shortcut: Home, Materi, Tagihan, Profil)
+- [ ] Halaman ujian/quiz mobile-friendly: soal tidak overflow, timer visible sticky, navigasi soal compact
+- [ ] Landing page & halaman publik mobile audit (hero, program, footer, form daftar)
+
+## 9.2 Performance Optimization
+
+- [ ] Image optimization: pakai `next/image` untuk semua gambar (landing, avatar, materi, sertifikat), lazy loading + responsive sizes
+- [ ] Bundle size: audit dengan `@next/bundle-analyzer`, code splitting untuk heavy components (recharts, pdf-lib, exceljs, midtrans-client)
+- [ ] Database query optimization: audit N+1 queries dengan Prisma `include`/`select`, tambah index yang missing
+- [ ] API response caching: `Cache-Control` headers untuk GET endpoints yang jarang berubah (programs, branches, landing pages)
+- [ ] Font loading optimization: `display=swap`, preload critical fonts, subset font
+- [ ] Lighthouse audit & fix: target ≥80 untuk Performance, Accessibility, Best Practices, SEO di halaman publik
+
+## 9.3 UI/UX Polish & Consistency
+
+- [ ] Loading states: skeleton screens untuk semua tabel & card yang fetch data (ganti spinner dengan skeleton)
+- [ ] Empty states: ilustrasi/pesan untuk semua halaman kosong (no data, no invoice, no exam, no materi)
+- [ ] Error states: consistent error boundary + pesan error yang user-friendly (bukan raw JSON)
+- [ ] Konsistensi spacing & typography: audit semua halaman, pastikan pakai sistem spacing Tailwind yang konsisten
+- [ ] Accessibility: ARIA labels di semua interactive elements, keyboard navigation, color contrast ≥4.5:1
+- [ ] Dark mode (opsional): toggle theme di settings, implementasi `prefers-color-scheme` + manual toggle
+
+### ✅ DoD Tahap 9
+Semua halaman responsive di mobile (375px), tap target touch-friendly, tabel tidak overflow, performa Lighthouse ≥80, loading & empty states konsisten, accessibility dasar terpenuhi.
 
 ---
 
