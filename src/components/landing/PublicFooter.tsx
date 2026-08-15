@@ -47,6 +47,8 @@ export default function PublicFooter({ config: cfg }: Props) {
               <li><Link href="/#daftar" className="hover:text-blue-600">Cara Daftar</Link></li>
               <li><Link href="/login" className="hover:text-blue-600">Masuk Akun</Link></li>
               <li><Link href="/events" className="hover:text-blue-600">Event & Tryout</Link></li>
+              <li><Link href="/kebijakan-privasi" className="hover:text-blue-600">Kebijakan Privasi</Link></li>
+              <li><Link href="/syarat-ketentuan" className="hover:text-blue-600">Syarat & Ketentuan</Link></li>
             </ul>
           </div>
           <div>

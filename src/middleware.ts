@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
-const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password", "/api/auth", "/events", "/api/events", "/sertifikat"];
+const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password", "/api/auth", "/events", "/api/events", "/sertifikat", "/kebijakan-privasi", "/syarat-ketentuan"];
 const ROLE_ROUTES: Record<string, string[]> = {
   SUPER_ADMIN: ["/admin", "/guru", "/siswa", "/orangtua", "/afiliator"],
   ADMIN: ["/admin", "/guru", "/siswa", "/orangtua", "/afiliator"],
