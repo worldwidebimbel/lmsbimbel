@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     include: {
       profile: { select: { phone: true, schoolName: true, gradeLevel: true, studentStatus: true } },
       defaultBranch: { select: { name: true } },
-      classStudents: { select: { class: { select: { name: true, subject: { select: { name: true } } } } }, take: 1 },
+      enrolledClasses: { select: { class: { select: { name: true, subject: { select: { name: true } } } } }, take: 1 },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -42,8 +42,8 @@ export async function GET(req: NextRequest) {
     sekolah: s.profile?.schoolName ?? "",
     kelas: s.profile?.gradeLevel ?? "",
     cabang: s.defaultBranch?.name ?? "",
-    kelasAktif: s.classStudents[0]?.class.name ?? "",
-    mapel: s.classStudents[0]?.class.subject.name ?? "",
+    kelasAktif: s.enrolledClasses[0]?.class.name ?? "",
+    mapel: s.enrolledClasses[0]?.class.subject.name ?? "",
     status: s.profile?.studentStatus ?? "AKTIF",
     bergabung: s.createdAt.toISOString().split("T")[0],
   }));
