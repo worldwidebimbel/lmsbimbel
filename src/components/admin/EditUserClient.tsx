@@ -20,7 +20,11 @@ const ROLES = [
   { value: "SISWA", label: "Siswa" },
   { value: "GURU", label: "Guru" },
   { value: "ADMIN", label: "Admin" },
+  { value: "ADMIN_CABANG", label: "Admin Cabang" },
+  { value: "ADMIN_KEUANGAN", label: "Admin Keuangan" },
+  { value: "ADMIN_AKADEMIK", label: "Admin Akademik" },
   { value: "ORANG_TUA", label: "Orang Tua" },
+  { value: "AFILIATOR", label: "Afiliator" },
 ];
 
 export default function EditUserClient({ user, isSelf, branches, isSuperAdmin }: { user: UserData; isSelf: boolean; branches: Branch[]; isSuperAdmin: boolean }) {

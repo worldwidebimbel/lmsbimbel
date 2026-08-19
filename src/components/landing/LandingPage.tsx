@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { GraduationCap, BookOpen, Users, Award, ArrowRight, CheckCircle, Star, Phone, FlaskConical, Calculator, Monitor, PenTool, Layers, Rocket } from "lucide-react";
 import { db } from "@/lib/db";
 import { getSiteConfig } from "@/lib/site-config";
@@ -217,8 +218,8 @@ export default async function LandingPage() {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {items.map((item) => (
                     <div key={item.id} className="group rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="aspect-square bg-gray-100 overflow-hidden">
-                        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <div className="relative aspect-square bg-gray-100 overflow-hidden">
+                        <Image src={item.imageUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 50vw, 25vw" />
                       </div>
                       <div className="p-3">
                         <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
@@ -312,7 +313,7 @@ function TestimonialCard({ name, role, text, avatarUrl }: { name: string; role: 
       <p className="mt-4 text-sm text-gray-600 leading-relaxed">&ldquo;{text}&rdquo;</p>
       <div className="mt-4 flex items-center gap-3">
         {avatarUrl ? (
-          <img src={avatarUrl} alt={name} className="h-10 w-10 rounded-full object-cover" />
+          <Image src={avatarUrl} alt={name} width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
         ) : (
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
             {name.charAt(0)}

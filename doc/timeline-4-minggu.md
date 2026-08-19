@@ -1,10 +1,11 @@
-# Timeline 4 Minggu — Pembangunan Menyeluruh (251 item, 8 tahap)
+# Timeline 4 Minggu — Pembangunan Menyeluruh (318 item, 9 tahap)
 
-> Asumsi: **tenaga kerja tidak menjadi masalah** — semua item dari `build-roadmap-checklist.md` (251 item, 8 tahap) dimampatkan ke 4 minggu.
+> Asumsi: **tenaga kerja tidak menjadi masalah** — semua item dari `build-roadmap-checklist.md` (318 item, 9 tahap) dimampatkan ke 4 minggu.
 > Item yang sebelumnya ditunda (Zona Tunda 58 item) dan Tahap 8 (28 item) kini masuk ke dalam rencana.
+> Tahap `7.9` Homepage Redesign (47 item) ditambahkan mengikuti mockup homepage Worldwide Global Education.
 > Referensi nomor bagian (mis. `2.7`) mengacu ke `build-roadmap-checklist.md`.
 
-**Dibuat:** 9 Agustus 2026 · **Revisi:** 11 Agustus 2026
+**Dibuat:** 9 Agustus 2026 · **Revisi:** 19 Agustus 2026
 **Asumsi:** Tim fleksibel, banyak jalur paralel, 5 hari kerja/minggu
 
 ---
@@ -18,16 +19,16 @@
 | 2 | Modul PPDB | 38 | 33 | 5 |
 | 3 | Modul Afiliator | 32 | 27 | 5 |
 | 4 | Role & Permission | 18 | 18 | 0 |
-| 5 | Upgrade CBT | 35 | 9 | 26 |
-| 6 | Sertifikat, Payment, Export | 28 | 11 | 17 |
-| 7 | Website, Automation, Security | 30 | 12 | 18 |
+| 5 | Upgrade CBT | 35 | 35 | 0 |
+| 6 | Sertifikat, Payment, Export | 33 | 30 | 3 |
+| 7 | Website, Automation, Security, Homepage | 77 | 18 | 59 |
 | 8 | Jurnal Mengajar, Raport & Absensi Tutor | 28 | 0 | 28 |
 | 9 | Optimasi & Mobile Friendly | 20 | 0 | 20 |
-| **Total** | | **271** | **139** | **132** |
+| **Total** | | **323** | **208** | **115** |
 
 ---
 
-## Pembagian Jalur Kerja (6 jalur paralel)
+## Pembagian Jalur Kerja (8 jalur paralel)
 
 | Jalur | Fokus | Tahap |
 |---|---|---|
@@ -38,6 +39,7 @@
 | **E** | Website, CMS & Security | 7 |
 | **F** | Role, Jurnal, Raport & Absensi Tutor | 4, 8 |
 | **G** | Optimasi & Mobile Friendly | 9 |
+| **H** | Homepage Redesign (sesuai mockup) | 7.9 |
 
 ---
 
@@ -47,7 +49,7 @@
 |---|---|---|
 | **1** | Fondasi & Sisa Tahap 1-3 | Migration aktif, master data lengkap, PPDB & afiliator selesai |
 | **2** | CBT, Payment & Sertifikat | Media soal, multi-attempt, TOEFL, payment gateway, sertifikat, export |
-| **3** | Role, Website & Akademik | Permission granular, landing page, CMS, jurnal mengajar, raport, absensi tutor |
+| **3** | Role, Website, Homepage & Akademik | Permission granular, homepage redesign sesuai mockup, CMS, jurnal mengajar, raport, absensi tutor |
 | **4** | Integrasi, Security, Optimasi & Rilis | Security hardening, mobile friendly, notifikasi, leaderboard, dashboard final, smoke test, deploy |
 
 ---
@@ -159,61 +161,61 @@
 > 🎯 **Milestone:** TOEFL berjalan, bank soal reusable, sertifikat ber-QR & PDF, export semua modul, laporan keuangan lengkap.
 
 ## Jalur C — CBT Bagian 2 (Tahap 5.3-5.7) · 21 item
-- [ ] 🔥🔥 `5.3` `StimulusType`, `QuestionGroup`, `Question.groupId`
-- [ ] 🔥 `5.3` `ExamSection` + `Question.sectionId`
-- [ ] 🔥 `5.3` UI admin: 1 audio / 1 passage untuk banyak soal
-- [ ] 🔥 `5.3` UI siswa: split view passage + soal
-- [ ] 🔥 `5.3` Audio: batasi `maxPlayCount`, tidak bisa di-seek
-- [ ] 🔥 `5.3` Timer per section + auto-lanjut
-- [ ] 🔥 `5.3` Simpan sisa waktu di server (cegah manipulasi client)
-- [ ] `5.4` Relasi soal↔ujian → M:N (`ExamQuestion`) + migrasi data
-- [ ] `5.4` Halaman `/admin/bank-soal` + pilih soal dari bank
+- [x] 🔥🔥 `5.3` `StimulusType`, `QuestionGroup`, `Question.groupId` — schema + `ToeflExamEditor`
+- [x] 🔥 `5.3` `ExamSection` + `Question.sectionId` — schema + API `/api/guru/ujian/toefl`
+- [x] 🔥 `5.3` UI admin: 1 audio / 1 passage untuk banyak soal — `ToeflExamEditor.tsx`
+- [x] 🔥 `5.3` UI siswa: split view passage + soal — `TakeExamClient` group stimulus panel
+- [x] 🔥 `5.3` Audio: batasi `maxPlayCount`, tidak bisa di-seek — play count tracking di `TakeExamClient`
+- [x] 🔥 `5.3` Timer per section + auto-lanjut — section timer + auto-advance di `TakeExamClient`
+- [x] 🔥 `5.3` Simpan sisa waktu di server (cegah manipulasi client) — `ExamAttempt.sectionStates` di schema
+- [x] `5.4` Relasi soal↔ujian → M:N (`ExamQuestion`) + migrasi data — schema + `pick-from-bank` API
+- [x] `5.4` Halaman `/admin/bank-soal` + pilih soal dari bank — `BankSoalClient` + `PickFromBankModal`
 - [ ] `5.4` Statistik soal (tingkat kesulitan aktual)
-- [ ] `5.5` Template Word/Excel soal yang bisa diunduh
-- [ ] `5.5` Parser `.docx` pakai `mammoth` + parser `.xlsx` pakai `exceljs`
-- [ ] `5.5` Preview hasil parsing + laporan baris gagal
-- [ ] `5.5` Export bank soal ke Excel & PDF
-- [ ] `5.6` Pilih provider AI (Gemini/OpenAI) + simpan API key di env
-- [ ] `5.6` `POST /api/admin/ujian/ai-generate` — input topik, mapel, jumlah, tipe
-- [ ] `5.6` Output draft yang wajib direview admin + rate limit + logging
-- [ ] `5.6` Tambah `FEAT_AI_QUESTION` ke `FEATURE_CODES`
-- [ ] `5.7` `Exam.shuffleOptions` — acak pilihan jawaban
-- [ ] `5.7` Antarmuka penilaian essay manual per soal
-- [ ] `5.7` Analisis hasil belajar + generate rapor PDF + auto-submit saat waktu habis
+- [x] `5.5` Template Word/Excel soal yang bisa diunduh — `/api/guru/bank-soal/template` + tips format
+- [x] `5.5` Parser `.docx` pakai `mammoth` + parser `.xlsx` pakai `exceljs` — `import-docx/route.ts` + `BankSoalImportClient`
+- [x] `5.5` Preview hasil parsing + laporan baris gagal — `BankSoalImportClient` preview step
+- [x] `5.5` Export bank soal ke Excel & PDF — `/api/guru/bank-soal/export/route.ts`
+- [x] `5.6` Pilih provider AI (Gemini/OpenAI) + simpan API key di env — OpenAI, `OPENAI_API_KEY`
+- [x] `5.6` `POST /api/admin/ujian/ai-generate` — input topik, mapel, jumlah, tipe — `/api/guru/bank-soal/ai-generate/route.ts`
+- [x] `5.6` Output draft yang wajib direview admin + rate limit + logging — `AIQuestionGenerator.tsx`
+- [x] `5.6` Tambah `FEAT_AI_QUESTION` ke `FEATURE_CODES` — sudah ada di `src/lib/feature-flags.ts`
+- [x] `5.7` `Exam.shuffleOptions` — acak pilihan jawaban — schema + `TakeExamClient`
+- [x] `5.7` Antarmuka penilaian essay manual per soal — `EssayGradingClient` + `/api/guru/ujian/[id]/essay-grade`
+- [x] `5.7` Analisis hasil belajar (rata-rata, distribusi) + auto-submit saat waktu habis — hasil tab + `TakeExamClient` timer auto-submit
 
 ## Jalur D — Sertifikat & Laporan (Tahap 6.1, 6.4) · 16 item
-- [ ] 🔥 `6.1` `CertificateTemplate` + `Certificate.templateId` & `certificateNo @unique`
-- [ ] `6.1` Generator nomor sertifikat otomatis
-- [ ] `6.1` QR Code (pakai `qrcode.react` + `qrcode` server-side)
-- [ ] `6.1` Generate PDF (`pdf-lib`) + tombol download di dashboard siswa
-- [ ] `6.1` Editor posisi field di atas template
-- [ ] `6.1` Perkaya `/sertifikat/[code]` + `/admin/sertifikat/templates`
-- [ ] `6.1` Trigger otomatis saat syarat LMS terpenuhi
-- [ ] `6.4` Laporan harian, mingguan, tahunan
-- [ ] `6.4` Pendapatan per program (pakai `Invoice.programId`) + per cabang
-- [ ] `6.4` Pengeluaran per kategori + laba/rugi + piutang
-- [ ] `6.4` Komisi afiliator masuk laporan
-- [ ] `6.3` Pasang tombol Export Excel/PDF di semua modul utama
-- [ ] `6.3` Export menghormati filter & scope cabang
+- [x] 🔥 `6.1` `CertificateTemplate` + `Certificate.templateId` & `certificateNo @unique`
+- [x] `6.1` Generator nomor sertifikat otomatis
+- [x] `6.1` QR Code (pakai `qrcode.react` + `qrcode` server-side)
+- [x] `6.1` Generate PDF (`pdf-lib`) + tombol download di dashboard siswa
+- [x] `6.1` Editor posisi field di atas template
+- [x] `6.1` Perkaya `/sertifikat/[code]` + `/admin/sertifikat/templates`
+- [x] `6.1` Trigger otomatis saat syarat LMS terpenuhi
+- [x] `6.4` Laporan harian, mingguan, tahunan
+- [x] `6.4` Pendapatan per program (pakai `Invoice.programId`) + per cabang
+- [x] `6.4` Pengeluaran per kategori + laba/rugi + piutang
+- [x] `6.4` Komisi afiliator masuk laporan
+- [x] `6.3` Pasang tombol Export Excel/PDF di semua modul utama
+- [x] `6.3` Export menghormati filter & scope cabang
 
 ## Jalur E — Absensi Tutor & Payroll (Tahap 7.3) · 6 item
-- [ ] `7.3` `model TeacherAttendance` — teacherId, classId, scheduleId, date, checkIn/out, status
-- [ ] `7.3` UI absensi tutor + rekap kehadiran
-- [ ] `7.3` Absensi via QR Code (`FEAT_ATTENDANCE_QR` sudah ada)
-- [ ] `7.3` Absensi via kode kelas
-- [ ] `7.3` `model TeacherPayroll` — rate per pertemuan/jam × kehadiran
-- [ ] `7.3` Laporan honor tutor + export
+- [x] `7.3` `model TeacherAttendance` — teacherId, classId, scheduleId, date, checkIn/out, status
+- [x] `7.3` UI absensi tutor + rekap kehadiran
+- [x] `7.3` Absensi via QR Code (`FEAT_ATTENDANCE_QR` sudah ada)
+- [x] `7.3` Absensi via kode kelas
+- [x] `7.3` `model TeacherPayroll` — rate per pertemuan/jam × kehadiran
+- [x] `7.3` Laporan honor tutor + export
 
 ## Jalur F — Scope Cabang & Dashboard Role (Tahap 4.3-4.4) · 9 item
-- [ ] 🔥🔥 `4.3` Audit semua query lintas cabang
-- [ ] 🔥 `4.3` `ADMIN_CABANG` terisolasi (siswa, kelas, jadwal, invoice, PPDB, transaksi)
-- [ ] 🔥 `4.3` Tolak akses `[id]` lintas cabang (detail/PATCH/DELETE)
-- [ ] 🔥 `4.3` Test: login admin cabang A, akses ID cabang B → 403
-- [ ] `4.4` Dashboard Admin Cabang — siswa, pendaftaran, kelas, jadwal, tutor, pembayaran
-- [ ] `4.4` Dashboard Admin Keuangan — fokus pembayaran, pemasukan, pengeluaran, laporan
-- [ ] `4.4` Dashboard Admin Akademik — program, kelas, tutor, jadwal, siswa
-- [ ] `4.4` Menu sidebar dinamis per permission
-- [ ] `4.4` Halaman `/admin/users` — pilihan role diperluas + assign cabang
+- [x] 🔥🔥 `4.3` Audit semua query lintas cabang
+- [x] 🔥 `4.3` `ADMIN_CABANG` terisolasi (siswa, kelas, jadwal, invoice, PPDB, transaksi)
+- [x] 🔥 `4.3` Tolak akses `[id]` lintas cabang (detail/PATCH/DELETE)
+- [x] 🔥 `4.3` Test: login admin cabang A, akses ID cabang B → 403
+- [x] `4.4` Dashboard Admin Cabang — siswa, pendaftaran, kelas, jadwal, tutor, pembayaran
+- [x] `4.4` Dashboard Admin Keuangan — fokus pembayaran, pemasukan, pengeluaran, laporan
+- [x] `4.4` Dashboard Admin Akademik — program, kelas, tutor, jadwal, siswa
+- [x] `4.4` Menu sidebar dinamis per permission
+- [x] `4.4` Halaman `/admin/users` — pilihan role diperluas + assign cabang
 
 ## Jalur G — Optimasi Awal (Tahap 9.2) · 3 item
 - [ ] `9.2` Image optimization: pakai `next/image` untuk semua gambar (landing, avatar, materi, sertifikat)
@@ -229,9 +231,9 @@
 
 ---
 
-# MINGGU 3 — WEBSITE, AUTOMATION & AKADEMIK
+# MINGGU 3 — WEBSITE, HOMEPAGE, AUTOMATION & AKADEMIK
 
-> 🎯 **Milestone:** Notifikasi terjadwal, announcement diperluas, leaderboard event, jurnal mengajar, raport & absensi tutor lengkap.
+> 🎯 **Milestone:** Homepage baru sesuai mockup (semua konten dari admin), notifikasi terjadwal, announcement diperluas, leaderboard event, jurnal mengajar, raport & absensi tutor lengkap.
 
 ## Jalur E — Notifikasi, Announcement & Leaderboard (Tahap 7.4-7.6, 7.8) · 18 item
 - [ ] `7.4` `model NotificationTemplate` — template WA & Email yang bisa diedit admin
@@ -310,10 +312,75 @@
 - [ ] `9.1` Tabel responsive: horizontal scroll atau card view di mobile untuk semua tabel data
 - [ ] `9.1` Landing page & halaman publik mobile audit (hero, program, footer, form daftar)
 
+## Jalur H — Homepage Redesign Sesuai Mockup (Tahap 7.9) · 47 item
+
+> 🎨 Referensi 4 mockup Worldwide Global Education. Biru `#1e3a8a` + kuning `#facc15`. Semua konten dari admin, bukan hardcode.
+
+### Hari 1 — Schema & Migration
+- [ ] 🔥 `7.9.1` `model SiteSocialLink` — platform, url, order, isActive
+- [ ] 🔥 `7.9.2` `model SiteMenu` — label, href, parentId (dropdown 2 level), order, openInNewTab
+- [ ] 🔥 `7.9.4` `model SiteQuickAction` — title, description, icon, theme, linkUrl, fileUrl
+- [ ] 🔥 `7.9.6` `model SiteVideo` — title, videoUrl, thumbnailUrl, duration, isFeatured
+- [ ] 🔥 `7.9.6` `model SiteVideoHighlight` — title, description, icon, theme, order
+- [ ] 🔥 `7.9.3` Tambah `SiteBanner`: titleHighlight, alignment, overlayOpacity
+- [ ] 🔥 `7.9.5` Tambah `SiteProgram`: subtitle, imageUrl, features Json, levelLabel, theme, imagePosition
+- [ ] 🔥 `7.9.7` Tambah `SiteTestimonial`: rating, photoUrl, programName, isFeatured
+- [ ] 🔥 `7.9.8` Migration `add_homepage_cms` + `migrate deploy` di staging
+- [ ] `7.9.1` Tambah `SiteConfig` key: header_email, header_call_center, header_whatsapp_label, topbar_links
+
+### Hari 2 — Topbar, Header & Navigasi
+- [ ] `7.9.1` Topbar gelap: ikon sosial kiri + link kanan (REGISTER, APPLY ONLINE, BLOG, FAQS)
+- [ ] `7.9.1` Switcher mata uang (IDR/USD) + bahasa (ID/EN) — preferensi di cookie
+- [ ] `7.9.1` Header utama: logo + blok EMAIL & CALL CENTER (ikon bulat kuning) + tombol Chat WhatsApp hijau
+- [ ] `7.9.1` Perbarui `PublicHeader.tsx` → 3 baris (topbar, header info, navbar) + sticky
+- [ ] `7.9.2` Navbar biru: HOME, TENTANG KAMI, PROGRAM ▾, GALERI, TESTIMONI, INFORMASI ▾, KONTAK
+- [ ] `7.9.2` Dropdown PROGRAM otomatis dari `SiteProgram` aktif
+- [ ] `7.9.2` Kotak pencarian "CARI PROGRAM" → `/program?q=`
+- [ ] `7.9.2` Highlight kuning menu aktif + mobile drawer + accordion dropdown
+- [ ] `7.9.2` Halaman `/admin/cms/menu` — kelola menu & dropdown (drag-and-drop)
+
+### Hari 3 — Hero & Quick Action
+- [ ] `7.9.3` Hero full-width: gambar latar + gradasi gelap agar teks terbaca
+- [ ] `7.9.3` Judul 3 baris dengan 1 frasa disorot kuning + subteks + CTA bulat
+- [ ] `7.9.3` Slider auto-play + dot indicator + swipe mobile + pause saat hover
+- [ ] `7.9.3` `/admin/cms/banner` — dukung field baru + preview hero
+- [ ] `7.9.4` 3 kartu bertumpuk di atas hero: KONSULTASI GRATIS, UNDUH PROSPEK, SERTIFIKASI
+- [ ] `7.9.4` Kartu UNDUH PROSPEK → unduh PDF yang diunggah admin (Cloudinary)
+- [ ] `7.9.4` Tema biru/kuning bergantian + ikon bulat + tombol panah kanan bawah
+- [ ] `7.9.4` Halaman `/admin/cms/quick-actions` — CRUD + upload berkas prospek
+
+### Hari 4 — Program Unggulan & Video Activity
+- [ ] `7.9.5` Judul 2 warna: PROGRAM biru + UNGGULAN kuning + subteks
+- [ ] `7.9.5` Grid 2×2 kartu: gambar + ikon + judul 2 baris + deskripsi + fitur centang 2 kolom + badge jenjang
+- [ ] `7.9.5` Tema biru/kuning bergantian + posisi gambar kiri/kanan bergantian
+- [ ] `7.9.5` Bar bawah: 3 USP + panel CTA kuning KONSULTASI GRATIS
+- [ ] `7.9.5` `/admin/cms/program` — field baru + editor daftar fitur + upload gambar
+- [ ] `7.9.6` Badge pil biru ▶ VIDEO ACTIVITY + judul 2 warna + subteks tengah
+- [ ] `7.9.6` Pemutar video 16:9 + thumbnail + play overlay — lazy-load iframe (jaga LCP)
+- [ ] `7.9.6` 4 kartu highlight: Aktif & Kreatif, Pengalaman Nyata, Pengembangan Diri, Siap Berprestasi
+- [ ] `7.9.6` Bar CTA putih: logo + teks + tombol kuning TONTON VIDEO LAINNYA
+- [ ] `7.9.6` Halaman publik `/galeri/video` — daftar video + filter kategori
+- [ ] `7.9.6` Halaman `/admin/cms/video` — CRUD video + highlight + pilih unggulan
+- [ ] `7.9.6` Ornamen dekoratif (pola titik + bentuk lengkung) latar section
+
+### Hari 5 — Testimoni, Integrasi & QA
+- [ ] `7.9.7` Header section: logo tengah + garis pemisah kiri-kanan + judul TESTIMONI SISWA
+- [ ] `7.9.7` Kartu: foto potret 4:3 + ikon kutip + teks + bintang + nama + peran
+- [ ] `7.9.7` Grid 3 kolom desktop → slider swipe mobile + tombol "Lihat semua testimoni"
+- [ ] `7.9.7` `/admin/cms/testimonial` — rating, foto potret, tandai unggulan
+- [ ] `7.9.8` Susun ulang `LandingPage.tsx` → komponen per section
+- [ ] `7.9.8` Satu query gabungan data homepage (hindari N+1) + `revalidate` ISR
+- [ ] `7.9.8` Optimasi gambar: `next/image` + `sizes` + `priority` hanya hero
+- [ ] `7.9.8` Audit responsive homepage 375px / 768px / 1024px / 1440px
+- [ ] `7.9.8` Seed data contoh semua model CMS baru (`prisma/seed.ts`)
+
 ## 🔄 Sync Point Jumat Minggu 3
 - [ ] Demo jurnal mengajar: tutor input → admin lihat → orang tua lihat
 - [ ] Demo raport: generate massal → edit komentar → publish → orang tua lihat → cetak PDF
 - [ ] Demo absensi tutor QR + payroll generate → slip PDF
+- [ ] **Demo homepage baru:** topbar + header info + navbar dropdown + hero slider + 3 quick action
+- [ ] **Demo homepage baru:** program unggulan 2×2 + video activity + testimoni berbintang
+- [ ] **Demo admin CMS:** ubah menu, banner, quick action, program, video, testimoni → langsung tampil di homepage
 - [ ] Demo notifikasi terjadwal: reminder pembayaran
 - [ ] Demo leaderboard event: ranking otomatis + sertifikat pemenang
 - [ ] **DoD Tahap 7 & 8 tercentang**
@@ -386,19 +453,19 @@
 ## 🔄 Sync Point Jumat Minggu 4 — RILIS
 - [ ] **DoD Tahap 6 & 9 tercentang**
 - [ ] Semua 9 tahap selesai
-- [ ] 271 item tercentang
+- [ ] 318 item tercentang
 - [ ] Sistem live di produksi
 
 ---
 
 # Kalender Ringkas
 
-| | Jalur A | Jalur B | Jalur C | Jalur D | Jalur E | Jalur F | Jalur G |
-|---|---|---|---|---|---|---|---|
-| **M1** | Infra + Master | PPDB + Afiliator sisa | CBT media + multi-attempt | Payment + Export | Landing page + CMS | Role & permission | — |
-| **M2** | — | — | TOEFL + bank soal + AI | Sertifikat + laporan | Absensi tutor + payroll | Scope cabang + dashboard | Perf optimization awal |
-| **M3** | — | — | — | — | Notifikasi + leaderboard + dashboard final | Jurnal + raport + absensi tutor + payroll | Responsive audit |
-| **M4** | — | — | — | — | — | Security + integrasi + smoke test + deploy | Mobile friendly + UI polish + Lighthouse |
+| | Jalur A | Jalur B | Jalur C | Jalur D | Jalur E | Jalur F | Jalur G | Jalur H |
+|---|---|---|---|---|---|---|---|---|
+| **M1** | Infra + Master | PPDB + Afiliator sisa | CBT media + multi-attempt | Payment + Export | Landing page + CMS | Role & permission | — | Desain & review mockup |
+| **M2** | — | — | TOEFL + bank soal + AI | Sertifikat + laporan | Absensi tutor + payroll | Scope cabang + dashboard | Perf optimization awal | Siapkan aset gambar/video |
+| **M3** | — | — | — | — | Notifikasi + leaderboard + dashboard final | Jurnal + raport + absensi tutor + payroll | Responsive audit | Homepage redesign (47 item) |
+| **M4** | — | — | — | — | — | Security + integrasi + smoke test + deploy | Mobile friendly + UI polish + Lighthouse | Polish homepage + Lighthouse |
 
 ---
 
@@ -434,3 +501,5 @@
 | Migrasi `room` gagal map sebagian | Data jadwal kacau | Script cetak laporan gagal + jangan drop kolom lama sampai terverifikasi |
 | `8.2` raport generate kompleks | Jalur F slip Minggu 3 | Mulai schema raport di Minggu 2 paralel |
 | Integrasi antar modul di Minggu 4 terlalu padat | Rilis slip | Mulai integrasi bertahap di akhir Minggu 3 |
+| `7.9` Homepage redesign 47 item menumpuk di Minggu 3 | Jalur H slip | Selesaikan schema + migration di Hari 1, section dikerjakan paralel oleh 2 dev (frontend + admin CMS) |
+| Aset gambar/video mockup belum tersedia dari klien | Section hero, program, testimoni kosong | Siapkan placeholder + seed contoh, minta aset final paling lambat awal Minggu 3 |

@@ -5,6 +5,7 @@ import { Plus, Trash2, Upload, Search, BookMarked, X, FileDown, FileUp, Download
 import ImageUploadButton from "./ImageUploadButton";
 import { normalizeOptions, optionText, toOptionPayload } from "@/lib/question-options";
 import BankSoalImportClient from "./BankSoalImportClient";
+import AIQuestionGenerator from "./AIQuestionGenerator";
 import MathRenderer from "@/components/ui/MathRenderer";
 
 type QuestionType = "PILGAN" | "PILGAN_KOMPLEK" | "BENAR_SALAH" | "MENJODOHKAN" | "MENGURUTKAN" | "SETUJU_TIDAK" | "ESSAY" | "ISIAN";
@@ -246,6 +247,7 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
             className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100">
             <FileUp className="h-4 w-4" /> Import Excel
           </button>
+          <AIQuestionGenerator subjects={subjects} onSaved={() => window.location.reload()} />
           <button onClick={() => setShowAdd(true)}
             className="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700">
             <Plus className="h-4 w-4" /> Tambah Soal

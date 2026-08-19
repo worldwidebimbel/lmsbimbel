@@ -30,7 +30,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     where: { id },
     include: {
       class: { select: { id: true, name: true, subject: { select: { name: true, color: true } } } },
-      questions: { orderBy: { createdAt: "asc" } },
+      questions: { orderBy: { order: "asc" } },
+      sections: { orderBy: { order: "asc" }, include: { _count: { select: { questions: true } } } },
+      questionGroups: { orderBy: { order: "asc" }, include: { _count: { select: { questions: true } } } },
       _count: { select: { attempts: true } },
     },
   });
@@ -59,6 +61,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(body.startTime !== undefined && { startTime: body.startTime ? new Date(body.startTime) : null }),
       ...(body.endTime !== undefined && { endTime: body.endTime ? new Date(body.endTime) : null }),
       ...(body.isRandomized !== undefined && { isRandomized: Boolean(body.isRandomized) }),
+      ...(body.shuffleOptions !== undefined && { shuffleOptions: Boolean(body.shuffleOptions) }),
       ...(body.passingScore !== undefined && { passingScore: Number(body.passingScore) }),
       ...(body.isPublished !== undefined && { isPublished: Boolean(body.isPublished) }),
     },

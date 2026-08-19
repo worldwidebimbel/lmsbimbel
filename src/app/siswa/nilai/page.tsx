@@ -2,9 +2,11 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
+import dynamic from "next/dynamic";
 import { BarChart3, Trophy, TrendingUp } from "lucide-react";
 import Link from "next/link";
-import NilaiChart from "@/components/siswa/NilaiChart";
+
+const NilaiChart = dynamic(() => import("@/components/siswa/NilaiChart"), { loading: () => <div className="h-48 animate-pulse bg-gray-100 rounded-lg" /> });
 
 export const metadata = { title: "Nilai" };
 

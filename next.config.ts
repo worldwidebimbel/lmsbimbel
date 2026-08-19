@@ -1,9 +1,16 @@
 import type { NextConfig } from "next";
 import path from "path";
+import bundleAnalyzer from "@next/bundle-analyzer";
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
   images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 86400,
     remotePatterns: [
       { protocol: "https", hostname: "**.cloudinary.com" },
       { protocol: "https", hostname: "**.supabase.co" },
@@ -39,4 +46,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

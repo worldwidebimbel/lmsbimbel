@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 
 export async function GET(
   _req: NextRequest,
@@ -13,6 +14,7 @@ export async function GET(
   }
 
   const { id } = await params;
+  const { isSuperAdmin, branchId } = await getBranchScope();
   const registration = await db.registration.findUnique({
     where: { id },
     include: {
@@ -31,6 +33,9 @@ export async function GET(
   if (!registration) {
     return NextResponse.json({ error: "Pendaftaran tidak ditemukan" }, { status: 404 });
   }
+  if (!isSuperAdmin && registration.branchId !== branchId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   return NextResponse.json(registration);
 }
@@ -45,7 +50,14 @@ export async function PATCH(
   }
 
   const { id } = await params;
+  const { isSuperAdmin, branchId } = await getBranchScope();
   const body = await req.json();
+
+  const existing = await db.registration.findUnique({ where: { id }, select: { branchId: true } });
+  if (!existing) return NextResponse.json({ error: "Pendaftaran tidak ditemukan" }, { status: 404 });
+  if (!isSuperAdmin && existing.branchId !== branchId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const updateData: Record<string, unknown> = {};
   if (typeof body.registrationFee === "number") {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -10,6 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   const { id } = await params;
+  const { isSuperAdmin, branchId } = await getBranchScope();
   const invoice = await db.invoice.findUnique({
     where: { id },
     include: {
@@ -23,6 +25,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   });
 
   if (!invoice) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!isSuperAdmin && invoice.branchId !== branchId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   return NextResponse.json(invoice);
 }
 
@@ -33,7 +38,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const { id } = await params;
+  const { isSuperAdmin, branchId } = await getBranchScope();
   const body = await req.json();
+
+  const existing = await db.invoice.findUnique({ where: { id }, select: { branchId: true } });
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!isSuperAdmin && existing.branchId !== branchId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const updated = await db.invoice.update({
     where: { id },

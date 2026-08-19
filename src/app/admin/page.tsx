@@ -1,23 +1,27 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
+import { getBranchScope } from "@/lib/branch-context";
 import {
   Users, BookOpen, CalendarDays, TrendingUp,
   GraduationCap, CheckSquare, Wallet, ArrowUpRight,
   UserCheck, Share2, FileText, Globe,
 } from "lucide-react";
 
-async function getDashboardStats() {
+async function getDashboardStats(branchId: string | null, isSuperAdmin: boolean) {
+  const branchFilter = isSuperAdmin ? {} : branchId ? { branchId } : {};
+  const classBranchFilter = isSuperAdmin ? {} : branchId ? { branchId } : {};
+
   const [
     totalStudents, totalTeachers, totalClasses, unpaidInvoices, activeFlags,
     pendingPpdb, totalAffiliates, pendingCommissions, activeLandingPages, totalFaqs,
   ] = await Promise.all([
-    db.user.count({ where: { role: "SISWA", isActive: true } }),
-    db.user.count({ where: { role: "GURU", isActive: true } }),
-    db.class.count({ where: { isActive: true } }),
-    db.invoice.aggregate({ where: { status: "UNPAID" }, _sum: { amount: true } }),
+    db.user.count({ where: { role: "SISWA", isActive: true, ...branchFilter } }),
+    db.user.count({ where: { role: "GURU", isActive: true, ...branchFilter } }),
+    db.class.count({ where: { isActive: true, ...classBranchFilter } }),
+    db.invoice.aggregate({ where: { status: "UNPAID", ...branchFilter }, _sum: { amount: true } }),
     db.featureFlag.count({ where: { isActive: true } }),
-    db.registration.count({ where: { status: { in: ["SUBMITTED", "WAITING_VERIFICATION"] } } }),
+    db.registration.count({ where: { status: { in: ["SUBMITTED", "WAITING_VERIFICATION"] }, ...branchFilter } }),
     db.affiliate.count({ where: { isActive: true } }),
     db.commission.count({ where: { status: "PENDING" } }),
     db.landingPage.count({ where: { isPublished: true } }),
@@ -35,23 +39,59 @@ async function getDashboardStats() {
 
 export default async function AdminDashboard() {
   const session = await auth();
-  const stats = await getDashboardStats();
+  const { branchId, isSuperAdmin } = await getBranchScope();
+  const role = session?.user?.role ?? "ADMIN";
+  const stats = await getDashboardStats(branchId, isSuperAdmin);
 
-  const cards = [
-    { label: "Total Siswa", value: stats.totalStudents, icon: Users, color: "text-blue-600", bg: "bg-blue-50", trend: "+12%" },
-    { label: "Total Guru", value: stats.totalTeachers, icon: GraduationCap, color: "text-purple-600", bg: "bg-purple-50", trend: "+2%" },
-    { label: "Kelas Aktif", value: stats.totalClasses, icon: BookOpen, color: "text-green-600", bg: "bg-green-50", trend: "+5%" },
-    { label: "Tagihan Belum Bayar", value: formatCurrency(stats.unpaidAmount), icon: Wallet, color: "text-orange-600", bg: "bg-orange-50", trend: "IDR" },
-    { label: "Fitur Aktif", value: `${stats.activeFlags} / 29`, icon: CheckSquare, color: "text-teal-600", bg: "bg-teal-50", trend: "modul" },
-  ];
+  const isFinance = role === "ADMIN_KEUANGAN";
+  const isAcademic = role === "ADMIN_AKADEMIK";
+  const isCabang = role === "ADMIN_CABANG";
 
-  const moduleCards = [
-    { label: "PPDB Pending", value: stats.pendingPpdb, href: "/admin/ppdb", icon: UserCheck, color: "text-indigo-600", bg: "bg-indigo-50" },
-    { label: "Afiliator Aktif", value: stats.totalAffiliates, href: "/admin/afiliator", icon: Share2, color: "text-pink-600", bg: "bg-pink-50" },
-    { label: "Komisi Pending", value: stats.pendingCommissions, href: "/admin/afiliator/komisi", icon: Wallet, color: "text-yellow-600", bg: "bg-yellow-50" },
-    { label: "Landing Pages", value: stats.activeLandingPages, href: "/admin/landing-pages", icon: Globe, color: "text-cyan-600", bg: "bg-cyan-50" },
-    { label: "FAQ Aktif", value: stats.totalFaqs, href: "/admin/faq", icon: FileText, color: "text-slate-600", bg: "bg-slate-50" },
-  ];
+  const cards = isFinance
+    ? [
+        { label: "Tagihan Belum Bayar", value: formatCurrency(stats.unpaidAmount), icon: Wallet, color: "text-orange-600", bg: "bg-orange-50", trend: "IDR" },
+        { label: "PPDB Pending", value: stats.pendingPpdb, icon: UserCheck, color: "text-indigo-600", bg: "bg-indigo-50", trend: "antrian" },
+        { label: "Komisi Pending", value: stats.pendingCommissions, icon: Share2, color: "text-yellow-600", bg: "bg-yellow-50", trend: "item" },
+        { label: "Afiliator Aktif", value: stats.totalAffiliates, icon: Share2, color: "text-pink-600", bg: "bg-pink-50", trend: "orang" },
+      ]
+    : isAcademic
+    ? [
+        { label: "Total Siswa", value: stats.totalStudents, icon: Users, color: "text-blue-600", bg: "bg-blue-50", trend: "aktif" },
+        { label: "Total Guru", value: stats.totalTeachers, icon: GraduationCap, color: "text-purple-600", bg: "bg-purple-50", trend: "aktif" },
+        { label: "Kelas Aktif", value: stats.totalClasses, icon: BookOpen, color: "text-green-600", bg: "bg-green-50", trend: "kelas" },
+        { label: "PPDB Pending", value: stats.pendingPpdb, icon: UserCheck, color: "text-indigo-600", bg: "bg-indigo-50", trend: "antrian" },
+      ]
+    : [
+        { label: "Total Siswa", value: stats.totalStudents, icon: Users, color: "text-blue-600", bg: "bg-blue-50", trend: "+12%" },
+        { label: "Total Guru", value: stats.totalTeachers, icon: GraduationCap, color: "text-purple-600", bg: "bg-purple-50", trend: "+2%" },
+        { label: "Kelas Aktif", value: stats.totalClasses, icon: BookOpen, color: "text-green-600", bg: "bg-green-50", trend: "+5%" },
+        { label: "Tagihan Belum Bayar", value: formatCurrency(stats.unpaidAmount), icon: Wallet, color: "text-orange-600", bg: "bg-orange-50", trend: "IDR" },
+        ...(isSuperAdmin || isCabang ? [{ label: "Fitur Aktif", value: `${stats.activeFlags} / 29`, icon: CheckSquare, color: "text-teal-600", bg: "bg-teal-50", trend: "modul" }] : []),
+      ];
+
+  const moduleCards = isFinance
+    ? [
+        { label: "PPDB Pending", value: stats.pendingPpdb, href: "/admin/ppdb", icon: UserCheck, color: "text-indigo-600", bg: "bg-indigo-50" },
+        { label: "Afiliator Aktif", value: stats.totalAffiliates, href: "/admin/afiliator", icon: Share2, color: "text-pink-600", bg: "bg-pink-50" },
+        { label: "Komisi Pending", value: stats.pendingCommissions, href: "/admin/afiliator/komisi", icon: Wallet, color: "text-yellow-600", bg: "bg-yellow-50" },
+        { label: "Laporan Keuangan", value: "Buka", href: "/admin/finance/laporan", icon: TrendingUp, color: "text-green-600", bg: "bg-green-50" },
+      ]
+    : isAcademic
+    ? [
+        { label: "Kelas Aktif", value: stats.totalClasses, href: "/admin/classes", icon: BookOpen, color: "text-green-600", bg: "bg-green-50" },
+        { label: "PPDB Pending", value: stats.pendingPpdb, href: "/admin/ppdb", icon: UserCheck, color: "text-indigo-600", bg: "bg-indigo-50" },
+        { label: "Total Guru", value: stats.totalTeachers, href: "/admin/users", icon: GraduationCap, color: "text-purple-600", bg: "bg-purple-50" },
+        { label: "Total Siswa", value: stats.totalStudents, href: "/admin/users", icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
+      ]
+    : [
+        { label: "PPDB Pending", value: stats.pendingPpdb, href: "/admin/ppdb", icon: UserCheck, color: "text-indigo-600", bg: "bg-indigo-50" },
+        { label: "Afiliator Aktif", value: stats.totalAffiliates, href: "/admin/afiliator", icon: Share2, color: "text-pink-600", bg: "bg-pink-50" },
+        { label: "Komisi Pending", value: stats.pendingCommissions, href: "/admin/afiliator/komisi", icon: Wallet, color: "text-yellow-600", bg: "bg-yellow-50" },
+        ...(isSuperAdmin ? [
+          { label: "Landing Pages", value: stats.activeLandingPages, href: "/admin/landing-pages", icon: Globe, color: "text-cyan-600", bg: "bg-cyan-50" },
+          { label: "FAQ Aktif", value: stats.totalFaqs, href: "/admin/faq", icon: FileText, color: "text-slate-600", bg: "bg-slate-50" },
+        ] : []),
+      ];
 
   return (
     <div className="space-y-6">

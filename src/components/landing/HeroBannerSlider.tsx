@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Banner {
@@ -30,7 +31,7 @@ export default function HeroBannerSlider({ banners, colorPrimary }: { banners: B
     <section className="relative overflow-hidden" style={{ minHeight: "420px" }}>
       <div className="relative w-full h-full" style={{ minHeight: "420px" }}>
         {b.imageUrl ? (
-          <img src={b.imageUrl} alt={b.title} className="w-full object-cover absolute inset-0" style={{ height: "100%", minHeight: "420px" }} />
+          <Image src={b.imageUrl} alt={b.title} fill className="object-cover" priority sizes="100vw" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-blue-700 to-blue-500" />
         )}

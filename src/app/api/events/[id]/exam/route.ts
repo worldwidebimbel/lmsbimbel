@@ -28,9 +28,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
           videoUrl: true,
           options: true,
           score: true,
+          groupId: true,
+          sectionId: true,
+          order: true,
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: { order: "asc" },
       },
+      sections: { orderBy: { order: "asc" } },
+      questionGroups: { orderBy: { order: "asc" } },
     },
   });
 
@@ -63,8 +68,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       duration: exam.duration,
       passingScore: exam.passingScore,
       questionCount: questions.length,
+      shuffleOptions: exam.shuffleOptions,
     },
     questions,
+    sections: exam.sections,
+    questionGroups: exam.questionGroups,
     attempt: latestAttempt
       ? {
           isCompleted: latestAttempt.isCompleted,

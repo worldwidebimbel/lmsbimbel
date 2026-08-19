@@ -9,7 +9,11 @@ const ROLES = [
   { value: "SISWA", label: "Siswa" },
   { value: "GURU", label: "Guru" },
   { value: "ADMIN", label: "Admin" },
+  { value: "ADMIN_CABANG", label: "Admin Cabang" },
+  { value: "ADMIN_KEUANGAN", label: "Admin Keuangan" },
+  { value: "ADMIN_AKADEMIK", label: "Admin Akademik" },
   { value: "ORANG_TUA", label: "Orang Tua" },
+  { value: "AFILIATOR", label: "Afiliator" },
 ];
 
 interface Branch { id: string; name: string; code: string }
@@ -112,11 +116,10 @@ export default function NewUserClient({ branches, defaultBranchId, isSuperAdmin 
           </select>
         </div>
 
-        {isSuperAdmin && (
+        {branches.length > 0 && (
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Cabang Default *</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">Cabang Default {isSuperAdmin ? "*" : ""}</label>
             <select
-              required
               value={form.branchId}
               onChange={(e) => update("branchId", e.target.value)}
               className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"

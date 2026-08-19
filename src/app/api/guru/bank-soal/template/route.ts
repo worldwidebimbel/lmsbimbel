@@ -41,7 +41,7 @@ const EXAMPLE_ROWS = [
 
 export async function GET() {
   const session = await auth();
-  if (!session?.user || !["GURU", "ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
+  if (!session?.user || !["GURU", "ADMIN", "SUPER_ADMIN", "ADMIN_CABANG", "ADMIN_AKADEMIK"].includes(session.user.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

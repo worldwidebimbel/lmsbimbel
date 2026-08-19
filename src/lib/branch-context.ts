@@ -16,6 +16,7 @@ export async function getBranchScope(): Promise<BranchScope> {
 
   const role = session.user.role;
   const isSuperAdmin = role === "SUPER_ADMIN";
+  const isBranchAdmin = ["ADMIN", "ADMIN_CABANG", "ADMIN_KEUANGAN", "ADMIN_AKADEMIK"].includes(role);
 
   const allBranches = await db.branch.findMany({
     where: { isActive: true },
@@ -23,8 +24,8 @@ export async function getBranchScope(): Promise<BranchScope> {
     orderBy: { name: "asc" },
   });
 
-  // Super admin can access all; other roles limited to their default branch
-  const branchId = isSuperAdmin ? null : session.user.defaultBranchId;
+  // Super admin can access all; branch admins limited to their default branch
+  const branchId = isSuperAdmin ? null : isBranchAdmin ? session.user.defaultBranchId : null;
 
   return { branchId, isSuperAdmin, allBranches };
 }
@@ -42,11 +43,18 @@ export function branchWhere(branchId: string | null): Prisma.ClassWhereInput | P
   return branchId ? { branchId } : {};
 }
 
+export function assertBranchAccess(recordBranchId: string | null | undefined, scope: BranchScope): boolean {
+  if (scope.isSuperAdmin) return true;
+  if (!scope.branchId) return false;
+  if (!recordBranchId) return true;
+  return recordBranchId === scope.branchId;
+}
+
 export async function getAdminIdsForBranch(branchId: string | null): Promise<string[]> {
   const users = await db.user.findMany({
     where: {
       isActive: true,
-      role: { in: ["ADMIN", "SUPER_ADMIN"] },
+      role: { in: ["ADMIN", "SUPER_ADMIN", "ADMIN_CABANG", "ADMIN_KEUANGAN", "ADMIN_AKADEMIK"] },
       ...(branchId
         ? {
             OR: [
@@ -125,7 +133,7 @@ export async function getAllowedClassIds(user: { id: string; role: string }, bra
     return classes.map((c) => c.id);
   }
 
-  if (role === "ADMIN") {
+  if (role === "ADMIN" || role === "ADMIN_CABANG" || role === "ADMIN_KEUANGAN" || role === "ADMIN_AKADEMIK") {
     if (branchId) {
       const classes = await db.class.findMany({
         where: { branchId, isActive: true },

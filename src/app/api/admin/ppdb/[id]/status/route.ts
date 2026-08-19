@@ -7,6 +7,7 @@ import { canTransition } from "@/lib/ppdb-status";
 import { advanceCommissionStatus } from "@/lib/commission";
 import { RegistrationStatus } from "@prisma/client";
 import { notifyPPDBStatus } from "@/lib/ppdb-notifications";
+import { getBranchScope } from "@/lib/branch-context";
 
 export async function PATCH(
   req: NextRequest,
@@ -18,6 +19,7 @@ export async function PATCH(
   }
 
   const { id } = await params;
+  const { isSuperAdmin, branchId } = await getBranchScope();
   const body = await req.json();
   const { status, note, rejectionReason } = body as {
     status: RegistrationStatus;
@@ -28,6 +30,9 @@ export async function PATCH(
   const registration = await db.registration.findUnique({ where: { id } });
   if (!registration) {
     return NextResponse.json({ error: "Pendaftaran tidak ditemukan" }, { status: 404 });
+  }
+  if (!isSuperAdmin && registration.branchId !== branchId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   if (!canTransition(registration.status, status)) {

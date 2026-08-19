@@ -7,12 +7,16 @@ import Link from "next/link";
 import { normalizeOptions } from "@/lib/question-options";
 import MathRenderer from "@/components/ui/MathRenderer";
 
-interface Question { id: string; type: string; content: string; imageUrl?: string | null; audioUrl?: string | null; videoUrl?: string | null; options: unknown; score: number }
+interface Question { id: string; type: string; content: string; imageUrl?: string | null; audioUrl?: string | null; videoUrl?: string | null; options: unknown; score: number; groupId?: string | null; sectionId?: string | null; order?: number }
+interface ExamSection { id: string; name: string; duration: number; order: number }
+interface QuestionGroup { id: string; type: string; title: string | null; passageText: string | null; audioUrl: string | null; maxPlayCount: number | null; timeLimit: number | null; order: number }
 interface Exam {
   id: string; title: string; duration: number; passingScore: number;
-  description: string | null; isRandomized: boolean;
+  description: string | null; isRandomized: boolean; shuffleOptions?: boolean;
   class: { name: string; subject: { name: string; color: string } };
   questions: Question[];
+  sections?: ExamSection[];
+  questionGroups?: QuestionGroup[];
 }
 interface Attempt { id: string; score: number | null; isCompleted: boolean; answers: Record<string, string> | null; attemptNumber?: number }
 
@@ -64,6 +68,25 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
     existingAttempt?.isCompleted ? { score: existingAttempt.score ?? 0, passed: (existingAttempt.score ?? 0) >= exam.passingScore } : null
   );
 
+  // TOEFL: section state
+  const hasSections = (exam.sections?.length ?? 0) > 0;
+  const hasGroups = (exam.questionGroups?.length ?? 0) > 0;
+  const [activeSection, setActiveSection] = useState(0);
+  const [sectionTimeLeft, setSectionTimeLeft] = useState(
+    hasSections && exam.sections![0] ? exam.sections![0].duration * 60 : 0
+  );
+  // Audio play count per group
+  const [audioPlayCount, setAudioPlayCount] = useState<Record<string, number>>({});
+
+  // Filter questions by active section
+  const sectionQuestions = hasSections
+    ? exam.questions.filter((q) => q.sectionId === exam.sections![activeSection]?.id)
+    : exam.questions;
+  const currentQuestion = sectionQuestions[current] ?? exam.questions[current];
+  const currentGroup = currentQuestion?.groupId
+    ? exam.questionGroups?.find((g) => g.id === currentQuestion.groupId)
+    : null;
+
   const handleSubmit = useCallback(() => {
     startTransition(async () => {
       const res = await fetch(`/api/siswa/ujian/${exam.id}`, {
@@ -83,19 +106,37 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
   useEffect(() => {
     if (submitted) return;
     const timer = setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 1) { clearInterval(timer); handleSubmit(); return 0; }
-        return t - 1;
-      });
+      if (hasSections) {
+        setSectionTimeLeft((t) => {
+          if (t <= 1) {
+            clearInterval(timer);
+            if (activeSection < (exam.sections?.length ?? 0) - 1) {
+              setActiveSection((s) => s + 1);
+              const next = exam.sections?.[activeSection + 1];
+              return next ? next.duration * 60 : 0;
+            }
+            handleSubmit();
+            return 0;
+          }
+          return t - 1;
+        });
+      } else {
+        setTimeLeft((t) => {
+          if (t <= 1) { clearInterval(timer); handleSubmit(); return 0; }
+          return t - 1;
+        });
+      }
     }, 1000);
     return () => clearInterval(timer);
-  }, [submitted, handleSubmit]);
+  }, [submitted, handleSubmit, hasSections, activeSection, exam.sections]);
 
-  const q = exam.questions[current];
+  const q = currentQuestion ?? exam.questions[current];
+  const displayQuestions = hasSections ? sectionQuestions : exam.questions;
   const answered = Object.keys(answers).length;
-  const mm = Math.floor(timeLeft / 60).toString().padStart(2, "0");
-  const ss = (timeLeft % 60).toString().padStart(2, "0");
-  const isLow = timeLeft < 120;
+  const displayTimeLeft = hasSections ? sectionTimeLeft : timeLeft;
+  const mm = Math.floor(displayTimeLeft / 60).toString().padStart(2, "0");
+  const ss = (displayTimeLeft % 60).toString().padStart(2, "0");
+  const isLow = displayTimeLeft < 120;
 
   if (submitted && result) {
     const canRetry = completedAttempts < maxAttempts;
@@ -144,15 +185,20 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="mx-auto max-w-3xl space-y-4">
       {/* Header */}
       <div className="sticky top-0 z-10 flex items-center justify-between rounded-xl border border-gray-200 bg-white px-5 py-3 shadow-sm">
         <div>
           <p className="text-xs text-gray-400">{exam.class.subject.name} · {exam.class.name}</p>
           <p className="font-semibold text-gray-900 text-sm">{exam.title}</p>
+          {hasSections && (
+            <p className="text-xs text-indigo-600 font-medium mt-0.5">
+              Section: {exam.sections![activeSection]?.name}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-xs text-gray-500">{answered}/{exam.questions.length} dijawab</span>
+          <span className="text-xs text-gray-500">{answered}/{displayQuestions.length} dijawab</span>
           <div className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold ${isLow ? "bg-red-100 text-red-600 animate-pulse" : "bg-gray-100 text-gray-700"}`}>
             <Clock className="h-4 w-4" />
             {mm}:{ss}
@@ -160,13 +206,62 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
         </div>
       </div>
 
+      {/* Section tabs */}
+      {hasSections && (
+        <div className="flex gap-2 rounded-xl border border-gray-200 bg-white p-3">
+          {exam.sections!.map((sec, i) => (
+            <button
+              key={sec.id}
+              onClick={() => { setActiveSection(i); setCurrent(0); setSectionTimeLeft(sec.duration * 60); }}
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                i === activeSection ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              <span className="text-xs opacity-70">{i + 1}.</span>
+              {sec.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Group stimulus panel (TOEFL: reading passage / audio) */}
+      {hasGroups && currentGroup && (
+        <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-5 space-y-3">
+          {currentGroup.title && <h3 className="font-semibold text-gray-900 text-sm">{currentGroup.title}</h3>}
+          {currentGroup.type === "READING" && currentGroup.passageText && (
+            <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
+              <MathRenderer content={currentGroup.passageText} />
+            </div>
+          )}
+          {currentGroup.type === "AUDIO" && currentGroup.audioUrl && (
+            <div className="space-y-2">
+              <audio
+                controls
+                onPlay={() => {
+                  const count = audioPlayCount[currentGroup.id] ?? 0;
+                  setAudioPlayCount((p) => ({ ...p, [currentGroup.id]: count + 1 }));
+                }}
+                className="w-full"
+              >
+                <source src={currentGroup.audioUrl} />
+              </audio>
+              {currentGroup.maxPlayCount && (
+                <p className="text-xs text-gray-500">
+                  Putar maksimal {currentGroup.maxPlayCount}x · Sudah diputar: {audioPlayCount[currentGroup.id] ?? 0}x
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Question Navigation */}
       <div className="flex flex-wrap gap-1.5 rounded-xl border border-gray-200 bg-white p-4">
-        {exam.questions.map((_, i) => (
+        {displayQuestions.map((_, i) => (
           <button key={i} onClick={() => setCurrent(i)}
             className={`h-8 w-8 rounded-lg text-xs font-medium transition-colors ${
               i === current ? "bg-indigo-600 text-white" :
-              answers[exam.questions[i].id] ? "bg-green-100 text-green-700" :
+              answers[displayQuestions[i].id] ? "bg-green-100 text-green-700" :
               "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}>
             {i + 1}
@@ -177,7 +272,7 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
       {/* Question Card */}
       <div className="rounded-xl border border-gray-200 bg-white p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-600">Soal {current + 1} dari {exam.questions.length}</span>
+          <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-600">Soal {current + 1} dari {displayQuestions.length}</span>
           <span className="text-xs text-gray-400">{q.score} poin</span>
         </div>
 
@@ -389,8 +484,8 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
           <ArrowLeft className="h-4 w-4" /> Sebelumnya
         </button>
 
-        {current < exam.questions.length - 1 ? (
-          <button onClick={() => setCurrent((c) => Math.min(exam.questions.length - 1, c + 1))}
+        {current < displayQuestions.length - 1 ? (
+          <button onClick={() => setCurrent((c) => Math.min(displayQuestions.length - 1, c + 1))}
             className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
             Selanjutnya <ArrowRight className="h-4 w-4" />
           </button>

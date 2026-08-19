@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { optionText } from "@/lib/question-options";
+import { checkAndIssueClassCompletionCertificate } from "@/lib/certificate-trigger";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -15,9 +16,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     include: {
       class: { select: { name: true, subject: { select: { name: true, color: true } } } },
       questions: {
-        select: { id: true, type: true, content: true, imageUrl: true, audioUrl: true, videoUrl: true, options: true, score: true },
-        orderBy: { createdAt: "asc" },
+        select: { id: true, type: true, content: true, imageUrl: true, audioUrl: true, videoUrl: true, options: true, score: true, groupId: true, sectionId: true, order: true },
+        orderBy: { order: "asc" },
       },
+      sections: { orderBy: { order: "asc" } },
+      questionGroups: { orderBy: { order: "asc" } },
       attempts: {
         where: { studentId: session.user.id },
         select: { id: true, score: true, isCompleted: true, submittedAt: true, answers: true, attemptNumber: true },
@@ -34,6 +37,17 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   if (exam.isRandomized) {
     exam.questions = exam.questions.sort(() => Math.random() - 0.5);
+  }
+
+  if (exam.shuffleOptions) {
+    exam.questions = exam.questions.map((q) => {
+      if (q.type === "PILGAN" && q.options) {
+        const opts = q.options as string[];
+        const shuffled = [...opts].sort(() => Math.random() - 0.5);
+        return { ...q, options: shuffled };
+      }
+      return q;
+    });
   }
 
   return NextResponse.json({ ...exam, maxAttemptsReached: completedCount >= exam.maxAttempts, hasActiveAttempt });
@@ -140,10 +154,21 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     },
   });
 
+  let certificateIssued = false;
+  if (percentScore >= exam.passingScore && exam.classId) {
+    try {
+      const result = await checkAndIssueClassCompletionCertificate(session.user.id, exam.classId);
+      certificateIssued = result.issued;
+    } catch {
+      // Non-blocking: certificate trigger failure should not affect exam submission
+    }
+  }
+
   return NextResponse.json({
     score: percentScore,
     passed: percentScore >= exam.passingScore,
     passingScore: exam.passingScore,
     attempt,
+    certificateIssued,
   });
 }

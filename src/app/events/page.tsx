@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { Calendar, MapPin, Users, Trophy, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { formatCurrency } from "@/lib/utils";
 import PublicShell from "@/components/landing/PublicShell";
 
@@ -39,8 +40,8 @@ export default async function PublicEventsPage() {
               {events.map((event) => (
                 <div key={event.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
                   {event.image ? (
-                    <div className="h-40 bg-gray-100">
-                      <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+                    <div className="relative h-40 bg-gray-100">
+                      <Image src={event.image} alt={event.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
                     </div>
                   ) : (
                     <div className="h-40 bg-blue-100 flex items-center justify-center">

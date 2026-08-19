@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Image as ImageIcon, Trophy } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -41,8 +42,8 @@ export default async function GaleriPage() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {prestasi.map((g) => (
                 <div key={g.id} className="group rounded-xl overflow-hidden border border-gray-200">
-                  <div className="aspect-video overflow-hidden">
-                    <img src={g.imageUrl} alt={g.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  <div className="relative aspect-video overflow-hidden">
+                    <Image src={g.imageUrl} alt={g.title} fill className="object-cover group-hover:scale-105 transition-transform" sizes="(max-width: 768px) 50vw, 33vw" />
                   </div>
                   <div className="p-3">
                     <p className="font-medium text-sm text-gray-900">{g.title}</p>
@@ -60,8 +61,8 @@ export default async function GaleriPage() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {galleries.map((g) => (
                 <div key={g.id} className="group rounded-xl overflow-hidden border border-gray-200">
-                  <div className="aspect-video overflow-hidden">
-                    <img src={g.imageUrl} alt={g.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  <div className="relative aspect-video overflow-hidden">
+                    <Image src={g.imageUrl} alt={g.title} fill className="object-cover group-hover:scale-105 transition-transform" sizes="(max-width: 768px) 50vw, 33vw" />
                   </div>
                   <div className="p-3">
                     <p className="font-medium text-sm text-gray-900">{g.title}</p>

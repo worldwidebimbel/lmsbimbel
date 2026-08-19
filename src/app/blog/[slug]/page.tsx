@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { db } from "@/lib/db";
@@ -46,8 +47,8 @@ export default async function BlogDetailPage({ params }: PageProps) {
           </div>
 
           {post.coverImage && (
-            <div className="mt-8 aspect-video overflow-hidden rounded-2xl bg-gray-100">
-              <img src={post.coverImage} alt={post.title} className="h-full w-full object-cover" />
+            <div className="relative mt-8 aspect-video overflow-hidden rounded-2xl bg-gray-100">
+              <Image src={post.coverImage} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" priority />
             </div>
           )}
 

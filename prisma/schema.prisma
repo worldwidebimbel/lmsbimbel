@@ -68,6 +68,11 @@ enum AttendanceStatus {
   ALPHA
 }
 
+enum StimulusType {
+  AUDIO
+  READING
+}
+
 enum InvoiceStatus {
   UNPAID
   PENDING
@@ -194,6 +199,10 @@ model Branch {
   buildings    Building[]
   rooms        Room[]
   registrations Registration[]
+  teacherAttendances TeacherAttendance[]
+  teacherPayrolls    TeacherPayroll[]
+  teachingJournals   TeachingJournal[]
+  raports            Raport[]
 
   @@map("branches")
 }
@@ -252,6 +261,10 @@ model User {
   certificates       Certificate[]
   mediaFiles         MediaFile[]
   academicCalendarEvents AcademicCalendar[]
+  teacherAttendances TeacherAttendance[]
+  teacherPayrolls    TeacherPayroll[]
+  teachingJournals   TeachingJournal[]
+  raports            Raport[]
 
   @@map("users")
 }
@@ -388,6 +401,9 @@ model Class {
   gradeComponents GradeComponent[]
   forumThreads ForumThread[]
   liveSessions LiveSession[]
+  teacherAttendances TeacherAttendance[]
+  teachingJournals  TeachingJournal[]
+  raports           Raport[]
 
   @@map("classes")
   @@index([branchId])
@@ -425,6 +441,8 @@ model Schedule {
   teacher        User?       @relation("ScheduleTeacher", fields: [teacherId], references: [id])
   attendances    Attendance[]
   exceptions     ScheduleException[]
+  teacherAttendances TeacherAttendance[]
+  teachingJournals   TeachingJournal[]
 
   @@map("schedules")
   @@index([roomId])
@@ -442,6 +460,35 @@ model ScheduleException {
   schedule        Schedule @relation(fields: [scheduleId], references: [id])
 
   @@map("schedule_exceptions")
+}
+
+model TeachingJournal {
+  id          String   @id @default(cuid())
+  classId     String
+  teacherId   String
+  scheduleId  String?
+  branchId    String?
+  sessionDate DateTime
+  startTime   String
+  endTime     String
+  material    String?
+  activity    String
+  obstacles   String?
+  solution    String?
+  studentCount Int    @default(0)
+  status      String  @default("DRAFT")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  class       Class   @relation(fields: [classId], references: [id])
+  teacher     User    @relation(fields: [teacherId], references: [id])
+  schedule    Schedule? @relation(fields: [scheduleId], references: [id])
+  branch      Branch?  @relation(fields: [branchId], references: [id])
+
+  @@map("teaching_journals")
+  @@index([classId])
+  @@index([teacherId])
+  @@index([branchId])
 }
 
 enum CalendarEventType {
@@ -566,28 +613,32 @@ model Submission {
 // ============================
 
 model Exam {
-  id           String    @id @default(cuid())
-  title        String
-  description  String?
-  classId      String?
-  eventId      String?
-  materialId   String?
-  duration     Int
-  startTime    DateTime?
-  endTime      DateTime?
-  isRandomized Boolean   @default(false)
-  passingScore Float     @default(60)
-  maxAttempts  Int       @default(1)
-  scoringMode  String    @default("SUM")
-  isPublished  Boolean   @default(false)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  title           String
+  description     String?
+  classId         String?
+  eventId         String?
+  materialId      String?
+  duration        Int
+  startTime       DateTime?
+  endTime         DateTime?
+  isRandomized    Boolean   @default(false)
+  shuffleOptions  Boolean   @default(false)
+  passingScore    Float     @default(60)
+  maxAttempts     Int       @default(1)
+  scoringMode     String    @default("SUM")
+  isPublished     Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  class        Class?    @relation(fields: [classId], references: [id])
-  event        Event?    @relation(fields: [eventId], references: [id])
-  material     Material? @relation(fields: [materialId], references: [id])
-  questions    Question[]
-  attempts     ExamAttempt[]
+  class           Class?    @relation(fields: [classId], references: [id])
+  event           Event?    @relation(fields: [eventId], references: [id])
+  material        Material? @relation(fields: [materialId], references: [id])
+  questions       Question[]
+  examQuestions   ExamQuestion[]
+  attempts        ExamAttempt[]
+  sections        ExamSection[]
+  questionGroups  QuestionGroup[]
 
   @@map("exams")
 }
@@ -596,6 +647,8 @@ model Question {
   id            String       @id @default(cuid())
   examId        String?
   subjectId     String?
+  groupId       String?
+  sectionId     String?
   type          QuestionType @default(PILGAN)
   content       String
   imageUrl      String?
@@ -607,13 +660,37 @@ model Question {
   score         Float        @default(1)
   difficulty    Int          @default(2)
   tags          Json?
+  order         Int          @default(0)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
   exam          Exam?        @relation(fields: [examId], references: [id])
   subject       Subject?     @relation(fields: [subjectId], references: [id])
+  group         QuestionGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  section       ExamSection?   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  examQuestions ExamQuestion[]
 
+  @@index([groupId])
+  @@index([sectionId])
+  @@index([subjectId])
+  @@index([examId])
   @@map("questions")
+}
+
+model ExamQuestion {
+  id         String   @id @default(cuid())
+  examId     String
+  questionId String
+  order      Int      @default(0)
+  score      Float?   @default(1)
+  createdAt  DateTime @default(now())
+
+  exam       Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, questionId])
+  @@index([questionId])
+  @@map("exam_questions")
 }
 
 model ExamAttempt {
@@ -626,12 +703,47 @@ model ExamAttempt {
   score          Float?
   answers        Json?
   isCompleted    Boolean   @default(false)
+  sectionStates  Json?
 
   exam           Exam      @relation(fields: [examId], references: [id])
   student        User      @relation(fields: [studentId], references: [id])
 
   @@unique([examId, studentId, attemptNumber])
   @@map("exam_attempts")
+}
+
+model ExamSection {
+  id        String   @id @default(cuid())
+  examId    String
+  name      String
+  duration  Int
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  exam      Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  questions Question[]
+
+  @@index([examId])
+  @@map("exam_sections")
+}
+
+model QuestionGroup {
+  id           String       @id @default(cuid())
+  examId       String
+  type         StimulusType
+  title        String?
+  passageText  String?      @db.Text
+  audioUrl     String?
+  maxPlayCount Int?
+  timeLimit    Int?
+  order        Int          @default(0)
+  createdAt    DateTime     @default(now())
+
+  exam         Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  questions    Question[]
+
+  @@index([examId])
+  @@map("question_groups")
 }
 
 // ============================
@@ -669,6 +781,68 @@ model AttendanceRecord {
 }
 
 // ============================
+// ABSENSI TUTOR & PAYROLL
+// ============================
+
+enum TeacherAttendanceStatus {
+  HADIR
+  TERLAMBAT
+  TIDAK_HADIR
+  IZIN
+  SAKIT
+}
+
+model TeacherAttendance {
+  id          String                 @id @default(cuid())
+  teacherId   String
+  classId     String?
+  scheduleId  String?
+  branchId    String?
+  date        DateTime
+  checkIn     DateTime?
+  checkOut    DateTime?
+  status      TeacherAttendanceStatus @default(HADIR)
+  method      String?
+  note        String?
+  createdAt   DateTime               @default(now())
+
+  teacher     User                   @relation(fields: [teacherId], references: [id])
+  class       Class?                 @relation(fields: [classId], references: [id])
+  schedule    Schedule?              @relation(fields: [scheduleId], references: [id])
+  branch      Branch?                @relation(fields: [branchId], references: [id])
+
+  @@unique([teacherId, date])
+  @@index([teacherId])
+  @@index([branchId])
+  @@map("teacher_attendances")
+}
+
+model TeacherPayroll {
+  id           String   @id @default(cuid())
+  teacherId    String
+  branchId     String?
+  periodStart  DateTime
+  periodEnd    DateTime
+  ratePerMeeting Float  @default(0)
+  ratePerHour    Float  @default(0)
+  totalMeetings Int    @default(0)
+  totalHours    Float  @default(0)
+  totalAmount   Float  @default(0)
+  status        String @default("DRAFT")
+  paidAt        DateTime?
+  note          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  teacher      User     @relation(fields: [teacherId], references: [id])
+  branch       Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([teacherId])
+  @@index([branchId])
+  @@map("teacher_payrolls")
+}
+
+// ============================
 // NILAI
 // ============================
 
@@ -700,6 +874,38 @@ model Grade {
 
   @@unique([studentId, componentId])
   @@map("grades")
+}
+
+model Raport {
+  id             String   @id @default(cuid())
+  studentId      String
+  classId        String
+  academicYearId String?
+  branchId       String?
+  semester       String   @default("GANJIL")
+  period         String?
+  finalGrade     Float?
+  predicate      String?
+  description    String?
+  teacherNote    String?
+  principalNote  String?
+  attendanceSummary Json?
+  gradeBreakdown Json?
+  status         String   @default("DRAFT")
+  publishedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  student        User     @relation(fields: [studentId], references: [id])
+  class          Class    @relation(fields: [classId], references: [id])
+  academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
+  branch         Branch?  @relation(fields: [branchId], references: [id])
+
+  @@unique([studentId, classId, semester, period])
+  @@map("raports")
+  @@index([studentId])
+  @@index([classId])
+  @@index([branchId])
 }
 
 // ============================
@@ -1167,21 +1373,45 @@ model EventRegistration {
 model Certificate {
   id            String          @id @default(cuid())
   code          String          @unique
+  certificateNo String?         @unique
   userId        String
   type          CertificateType
   title         String
   recipientName String
   eventId       String?
   eventName     String?
+  templateId    String?
   score         Float?
   rank          Int?
   issuedAt      DateTime        @default(now())
   createdAt     DateTime        @default(now())
 
   user          User            @relation(fields: [userId], references: [id])
+  template      CertificateTemplate? @relation(fields: [templateId], references: [id])
 
   @@index([userId])
   @@map("certificates")
+}
+
+model CertificateTemplate {
+  id              String   @id @default(cuid())
+  name            String
+  type            CertificateType
+  backgroundImage String?
+  headerText      String?
+  bodyText        String?
+  footerText      String?
+  signatureText   String?
+  signatureImage  String?
+  logoImage       String?
+  fieldPositions  Json?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  certificates    Certificate[]
+
+  @@map("certificate_templates")
 }
 
 // ============================
@@ -1432,6 +1662,7 @@ model AcademicYear {
   updatedAt DateTime @updatedAt
 
   classes   Class[]
+  raports   Raport[]
 
   @@map("academic_years")
 }

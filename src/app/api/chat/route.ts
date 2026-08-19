@@ -39,13 +39,22 @@ export async function GET(req: NextRequest) {
         contactMap.set(key, { user: m.receiver, lastMessage: m.content, lastAt: m.createdAt, unread: 0 });
       }
     }
+
+    const allSenderIds = Array.from(new Set(received.map((m) => m.senderId)));
+    const unreadCounts = await db.message.groupBy({
+      by: ["senderId"],
+      where: { senderId: { in: allSenderIds }, receiverId: userId, isRead: false },
+      _count: { _all: true },
+    });
+    const unreadMap = new Map(unreadCounts.map((u) => [u.senderId, u._count._all]));
+
     for (const m of received) {
       const key = m.senderId;
       const allowed = await canChatWith(session.user, m.senderId, isSuperAdmin ? null : branchId);
       if (!allowed) continue;
       const existing = contactMap.get(key);
       const isNewer = !existing || m.createdAt > existing.lastAt;
-      const unread = await db.message.count({ where: { senderId: key, receiverId: userId, isRead: false } });
+      const unread = unreadMap.get(key) ?? 0;
       if (!existing) {
         contactMap.set(key, { user: m.sender, lastMessage: m.content, lastAt: m.createdAt, unread });
       } else if (isNewer) {

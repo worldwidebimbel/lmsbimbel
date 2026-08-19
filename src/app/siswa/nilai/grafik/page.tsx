@@ -1,9 +1,11 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
+import dynamic from "next/dynamic";
 import { BarChart3, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import NilaiProgressClient from "@/components/siswa/NilaiProgressClient";
+
+const NilaiProgressClient = dynamic(() => import("@/components/siswa/NilaiProgressClient"), { loading: () => <div className="h-64 animate-pulse bg-gray-100 rounded-lg" /> });
 
 export const metadata = { title: "Grafik Perkembangan Nilai" };
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Upload, FileSpreadsheet, X, CheckCircle, AlertCircle, AlertTriangle, Loader2, Download } from "lucide-react";
+import { Upload, FileSpreadsheet, FileText, X, CheckCircle, AlertCircle, AlertTriangle, Loader2, Download } from "lucide-react";
 
 interface Subject { id: string; name: string }
 
@@ -101,38 +101,67 @@ export default function BankSoalImportClient({
   const [dragOver, setDragOver] = useState(false);
 
   async function handleFile(file: File) {
-    if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
-      alert("Hanya file Excel (.xlsx / .xls) yang diterima.");
+    const isXlsx = file.name.endsWith(".xlsx") || file.name.endsWith(".xls");
+    const isDocx = file.name.endsWith(".docx");
+    if (!isXlsx && !isDocx) {
+      alert("Hanya file Excel (.xlsx / .xls) atau Word (.docx) yang diterima.");
       return;
     }
     setLoading(true);
 
-    const XLSX = await import("xlsx");
-    const arrayBuffer = await file.arrayBuffer();
-    const wb = XLSX.read(arrayBuffer, { type: "array" });
-
-    const sheetName = wb.SheetNames.find((n) => n !== "PETUNJUK") ?? wb.SheetNames[0];
-    const ws = wb.Sheets[sheetName];
-
-    const jsonRaw: Record<string, string>[] = XLSX.utils.sheet_to_json(ws, {
-      raw: false,
-      defval: "",
-    }) as Record<string, string>[];
-
-    const headerRow: Record<string, string> = XLSX.utils.sheet_to_json(ws, {
-      header: 1,
-      range: 0,
-      raw: false,
-    })[0] as Record<string, string>;
-
-    let data = jsonRaw;
-    if (headerRow && Object.values(headerRow).some((v) => String(v).includes("petunjuk") || String(v).includes("PETUNJUK"))) {
-      data = jsonRaw.slice(1);
+    if (isDocx) {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/guru/bank-soal/import-docx", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error ?? "Gagal parse file docx");
+        setLoading(false);
+        return;
+      }
+      const parsed = (data.rows as Record<string, string>[]).map((r, i) => validateRow(r, i));
+      setRows(parsed);
+      setStep("preview");
+      setLoading(false);
+      return;
     }
 
-    const parsed = data
-      .filter((r) => Object.values(r).some((v) => v !== ""))
-      .map((r, i) => validateRow(r, i));
+    const ExcelJS = (await import("exceljs")).default;
+    const arrayBuffer = await file.arrayBuffer();
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(arrayBuffer);
+
+    const sheet = wb.worksheets.find((ws) => ws.name !== "PETUNJUK") ?? wb.worksheets[0];
+    if (!sheet) {
+      alert("Tidak ada sheet data ditemukan.");
+      setLoading(false);
+      return;
+    }
+
+    const headers: string[] = [];
+    sheet.getRow(1).eachCell((cell, colNumber) => {
+      headers[colNumber - 1] = String(cell.value ?? "").trim();
+    });
+
+    const isPetunjukHeader = headers.some((h) => h.toLowerCase().includes("petunjuk"));
+    const dataStartRow = isPetunjukHeader ? 3 : 2;
+
+    const jsonRaw: Record<string, string>[] = [];
+    for (let r = dataStartRow; r <= sheet.rowCount; r++) {
+      const row = sheet.getRow(r);
+      const obj: Record<string, string> = {};
+      let hasData = false;
+      headers.forEach((header, idx) => {
+        if (!header) return;
+        const cell = row.getCell(idx + 1);
+        const val = cell.value === null || cell.value === undefined ? "" : String(cell.value);
+        obj[header] = val;
+        if (val !== "") hasData = true;
+      });
+      if (hasData) jsonRaw.push(obj);
+    }
+
+    const parsed = jsonRaw.map((r, i) => validateRow(r, i));
 
     setRows(parsed);
     setStep("preview");
@@ -168,8 +197,8 @@ export default function BankSoalImportClient({
         <div className="space-y-5">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-gray-900">Import Soal dari Excel</h3>
-              <p className="text-sm text-gray-500 mt-0.5">Upload file .xlsx sesuai template. Preview & validasi sebelum import.</p>
+              <h3 className="font-semibold text-gray-900">Import Soal dari Excel / Word</h3>
+              <p className="text-sm text-gray-500 mt-0.5">Upload file .xlsx sesuai template atau .docx dengan format soal. Preview & validasi sebelum import.</p>
             </div>
             <a
               href="/api/guru/bank-soal/template"
@@ -192,15 +221,17 @@ export default function BankSoalImportClient({
               ) : (
                 <FileSpreadsheet className="h-10 w-10 text-gray-400" />
               )}
-              <p className="text-sm text-gray-600">{loading ? "Membaca file..." : "Drag & drop file Excel ke sini, atau klik untuk pilih"}</p>
-              <p className="text-xs text-gray-400">Format: .xlsx atau .xls</p>
+              <p className="text-sm text-gray-600">{loading ? "Membaca file..." : "Drag & drop file Excel atau Word ke sini, atau klik untuk pilih"}</p>
+              <p className="text-xs text-gray-400">Format: .xlsx, .xls, atau .docx</p>
             </div>
-            <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden"
+            <input ref={fileRef} type="file" accept=".xlsx,.xls,.docx" className="hidden"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
           </div>
 
           <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 text-xs text-blue-700 space-y-1">
-            <p className="font-semibold">Tips Format Excel:</p>
+            <p className="font-semibold">Tips Format:</p>
+            <p>• <strong>Excel:</strong> gunakan template, isi kolom tipe, soal, opsi A-E, kunci jawaban</p>
+            <p>• <strong>Word (.docx):</strong> format bebas — setiap soal diawali "Soal:" atau nomor, opsi A-E, "Kunci:" / "Jawaban:", "Pembahasan:"</p>
             <p>• <strong>LaTeX:</strong> tulis formula di dalam tanda $…$. Contoh: <code>{"$\\frac{x}{y}$"}</code></p>
             <p>• <strong>Arab/Al-Quran:</strong> paste teks Arab langsung — akan dirender dengan font Amiri</p>
             <p>• <strong>Aksara Jawa:</strong> paste Unicode Hanacaraka langsung — font Noto Serif Javanese</p>

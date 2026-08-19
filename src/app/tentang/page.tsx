@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import Image from "next/image";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -54,7 +55,7 @@ export default async function TentangPage() {
               {teamMembers.map((m) => (
                 <div key={m.id} className="rounded-xl border border-gray-200 p-6 text-center">
                   {m.photoUrl ? (
-                    <img src={m.photoUrl} alt={m.name} className="w-24 h-24 rounded-full object-cover mx-auto mb-4" />
+                    <Image src={m.photoUrl} alt={m.name} width={96} height={96} className="w-24 h-24 rounded-full object-cover mx-auto mb-4" />
                   ) : (
                     <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center mx-auto mb-4">
                       <span className="text-2xl font-bold text-indigo-600">{m.name.charAt(0)}</span>

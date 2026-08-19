@@ -3,10 +3,12 @@ import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
+import dynamic from "next/dynamic";
 import { UserRole } from "@prisma/client";
 import { ArrowLeft, GraduationCap } from "lucide-react";
 import Link from "next/link";
-import TeacherStatsClient from "@/components/admin/TeacherStatsClient";
+
+const TeacherStatsClient = dynamic(() => import("@/components/admin/TeacherStatsClient"), { loading: () => <div className="h-64 animate-pulse bg-gray-100 rounded-lg" /> });
 
 export const metadata = { title: "Laporan Kinerja Guru" };
 

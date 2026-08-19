@@ -2,8 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Loader2, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
+import { Plus, Trash2, Loader2, Eye, EyeOff, CheckCircle, XCircle, BookMarked } from "lucide-react";
 import ImageUploadButton from "./ImageUploadButton";
+import ToeflExamEditor from "./ToeflExamEditor";
+import PickFromBankModal from "./PickFromBankModal";
+import EssayGradingClient from "./EssayGradingClient";
 import { normalizeOptions, optionText, toOptionPayload } from "@/lib/question-options";
 import MathRenderer from "@/components/ui/MathRenderer";
 
@@ -21,12 +24,25 @@ interface Exam {
 const DIFF_LABEL = ["", "Mudah", "Sedang", "Sulit", "Sangat Sulit"];
 const DIFF_COLOR = ["", "text-green-600", "text-yellow-600", "text-orange-600", "text-red-600"];
 
-export default function UjianDetailClient({ exam: initial, attempts }: { exam: Exam; attempts: Attempt[] }) {
+interface Subject { id: string; name: string; color: string }
+
+interface EssayQuestion { id: string; content: string; score: number }
+interface EssayAttempt {
+  id: string;
+  studentId: string;
+  studentName: string;
+  score: number | null;
+  answers: Record<string, string> | null;
+  submittedAt: string;
+}
+
+export default function UjianDetailClient({ exam: initial, attempts, subjects = [], essayQuestions = [], essayAttempts = [] }: { exam: Exam; attempts: Attempt[]; subjects?: Subject[]; essayQuestions?: EssayQuestion[]; essayAttempts?: EssayAttempt[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [exam, setExam] = useState(initial);
   const [showForm, setShowForm] = useState(false);
-  const [tab, setTab] = useState<"soal" | "hasil">("soal");
+  const [tab, setTab] = useState<"soal" | "hasil" | "toefl" | "essay">("soal");
+  const [showPickBank, setShowPickBank] = useState(false);
   const [error, setError] = useState("");
   const [newQ, setNewQ] = useState({
     type: "PILGAN", content: "", contentImageUrl: "",
@@ -121,18 +137,26 @@ export default function UjianDetailClient({ exam: initial, attempts }: { exam: E
       </div>
 
       <div className="flex border-b border-gray-200">
-        {(["soal", "hasil"] as const).map((t) => (
+        {(["soal", "toefl", "hasil", "essay"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-2.5 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${
               tab === t ? "border-indigo-600 text-indigo-600" : "border-transparent text-gray-500 hover:text-gray-700"
             }`}>
-            {t === "soal" ? `Soal (${exam.questions.length})` : `Hasil Ujian (${attempts.length})`}
+            {t === "soal" ? `Soal (${exam.questions.length})` : t === "toefl" ? "TOEFL" : t === "essay" ? "Nilai Essay" : `Hasil Ujian (${attempts.length})`}
           </button>
         ))}
       </div>
 
       {tab === "soal" && (
         <div className="space-y-3">
+          <div className="flex justify-end">
+            <button
+              onClick={() => setShowPickBank(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100"
+            >
+              <BookMarked className="h-4 w-4" /> Pilih dari Bank Soal
+            </button>
+          </div>
           {exam.questions.map((q, i) => (
             <div key={q.id} className="rounded-xl border border-gray-200 bg-white p-4">
               <div className="flex items-start justify-between gap-3">
@@ -305,6 +329,16 @@ export default function UjianDetailClient({ exam: initial, attempts }: { exam: E
         </div>
       )}
 
+      {tab === "essay" && (
+        <EssayGradingClient exam={exam} essayQuestions={essayQuestions} attempts={essayAttempts} />
+      )}
+
+      {tab === "toefl" && (
+        <div className="rounded-xl border border-gray-200 bg-white p-4">
+          <ToeflExamEditor examId={exam.id} />
+        </div>
+      )}
+
       {tab === "hasil" && (
         <div className="space-y-4">
           {attempts.length > 0 && (
@@ -355,6 +389,15 @@ export default function UjianDetailClient({ exam: initial, attempts }: { exam: E
             </div>
           )}
         </div>
+      )}
+
+      {showPickBank && (
+        <PickFromBankModal
+          examId={exam.id}
+          subjects={subjects}
+          onClose={() => setShowPickBank(false)}
+          onPicked={() => { setShowPickBank(false); router.refresh(); }}
+        />
       )}
     </div>
   );

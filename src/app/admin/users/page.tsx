@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 import { getRoleLabel, getRoleColor, formatDate } from "@/lib/utils";
 import { UserPlus, Search, Building2 } from "lucide-react";
+import SiswaImportClient from "@/components/admin/SiswaImportClient";
 
 async function getUsers(branchId: string | null, isSuperAdmin: boolean) {
   const where = branchId ? { defaultBranchId: branchId } : {};
@@ -21,7 +22,7 @@ export default async function UsersPage() {
   const roleGroups = {
     SISWA: users.filter((u) => u.role === "SISWA"),
     GURU: users.filter((u) => u.role === "GURU"),
-    ADMIN: users.filter((u) => u.role === "ADMIN" || u.role === "SUPER_ADMIN"),
+    ADMIN: users.filter((u) => ["ADMIN", "SUPER_ADMIN", "ADMIN_CABANG", "ADMIN_KEUANGAN", "ADMIN_AKADEMIK"].includes(u.role)),
     ORANG_TUA: users.filter((u) => u.role === "ORANG_TUA"),
   };
 
@@ -42,6 +43,7 @@ export default async function UsersPage() {
               </select>
             </div>
           )}
+          <SiswaImportClient />
           <a href="/admin/users/new"
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
             <UserPlus className="w-4 h-4" />

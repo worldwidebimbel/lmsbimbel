@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subDays, subWeeks, subMonths, subYears } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { formatCurrency } from "@/lib/utils";
-import { ArrowLeft, Printer, Building2 } from "lucide-react";
+import { ArrowLeft, Printer, Building2, Download } from "lucide-react";
 import Link from "next/link";
 import ReportControls from "@/components/admin/ReportControls";
 
@@ -47,7 +47,7 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
   const [allInvoices, allPayments, branchTransactions, allCommissions, allPayouts] = await Promise.all([
     db.invoice.findMany({
       where: branchFilter,
-      include: { student: { select: { name: true, email: true } }, plan: { select: { name: true } } },
+      include: { student: { select: { name: true, email: true } }, plan: { select: { name: true } }, program: { select: { name: true } }, branch: { select: { name: true } } },
       orderBy: { createdAt: "desc" },
     }),
     db.payment.findMany({
@@ -104,6 +104,49 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
   const totalCommissionPending = allCommissions.filter((c) => ["PENDING", "REGISTRATION_VERIFIED", "PAYMENT_VERIFIED"].includes(c.status)).reduce((s, c) => s + c.amount, 0);
   const pendingPayouts = allPayouts.filter((p) => p.status === "REQUESTED");
 
+  // Revenue per program
+  const revenuePerProgram: Record<string, { invoiced: number; collected: number; count: number }> = {};
+  for (const inv of allInvoices) {
+    const progName = inv.program?.name ?? "Tanpa Program";
+    if (!revenuePerProgram[progName]) revenuePerProgram[progName] = { invoiced: 0, collected: 0, count: 0 };
+    revenuePerProgram[progName].invoiced += inv.amount;
+    revenuePerProgram[progName].count += 1;
+    const invPayments = allPayments.filter((p) => p.invoiceId === inv.id);
+    revenuePerProgram[progName].collected += invPayments.reduce((s, p) => s + p.amount, 0);
+  }
+
+  // Revenue per branch (only for super admin)
+  const revenuePerBranch: Record<string, { invoiced: number; collected: number }> = {};
+  if (isSuperAdmin) {
+    for (const inv of allInvoices) {
+      const brName = inv.branch?.name ?? "Tanpa Cabang";
+      if (!revenuePerBranch[brName]) revenuePerBranch[brName] = { invoiced: 0, collected: 0 };
+      revenuePerBranch[brName].invoiced += inv.amount;
+      const invPayments = allPayments.filter((p) => p.invoiceId === inv.id);
+      revenuePerBranch[brName].collected += invPayments.reduce((s, p) => s + p.amount, 0);
+    }
+  }
+
+  // Expense per category
+  const expensePerCategory: Record<string, number> = {};
+  for (const tx of branchTransactions.filter((t) => ["EXPENSE", "TRANSFER_OUT"].includes(t.type))) {
+    const cat = tx.category || "Lainnya";
+    expensePerCategory[cat] = (expensePerCategory[cat] ?? 0) + tx.amount;
+  }
+
+  // Laba/Rugi
+  const totalIncomeTx = branchTransactions.filter((t) => ["INCOME", "TRANSFER_IN"].includes(t.type)).reduce((s, t) => s + t.amount, 0);
+  const totalExpenseTx = branchTransactions.filter((t) => ["EXPENSE", "TRANSFER_OUT"].includes(t.type)).reduce((s, t) => s + t.amount, 0);
+  const labaRugi = totalCollected + totalIncomeTx - totalExpenseTx;
+
+  // Piutang (receivables)
+  const piutang = allInvoices.filter((i) => ["UNPAID", "OVERDUE", "PENDING"].includes(i.status));
+  const piutangPerBranch: Record<string, number> = {};
+  for (const inv of piutang) {
+    const brName = inv.branch?.name ?? "Tanpa Cabang";
+    piutangPerBranch[brName] = (piutangPerBranch[brName] ?? 0) + inv.amount;
+  }
+
   const branchName = selectedBranch ? allBranches.find((b) => b.id === selectedBranch)?.name ?? "Cabang" : "Semua Cabang";
 
   return (
@@ -118,9 +161,17 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
             <p className="text-sm text-gray-500">Dicetak: {format(now, "d MMMM yyyy HH:mm", { locale: localeId })} · {branchName}</p>
           </div>
         </div>
-        <button onClick={() => {}} className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 print:hidden">
-          <Printer className="h-4 w-4" /> Cetak
-        </button>
+        <div className="flex items-center gap-2 print:hidden">
+          <a
+            href={`/api/admin/finance/export?branch=${selectedBranch ?? "all"}`}
+            className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+          >
+            <Download className="h-4 w-4" /> Export Excel
+          </a>
+          <button onClick={() => window.print()} className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">
+            <Printer className="h-4 w-4" /> Cetak
+          </button>
+        </div>
       </div>
 
       <ReportControls branches={allBranches} currentBranch={selectedBranch ?? (isSuperAdmin ? "all" : (branchId ?? "all"))} currentPeriod={selectedPeriod} />
@@ -211,6 +262,118 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
               ))}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Laba/Rugi Summary */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {[
+          { label: "Pendapatan (Pembayaran)", value: formatCurrency(totalCollected), color: "text-green-600" },
+          { label: "Pemasukan Lain", value: formatCurrency(totalIncomeTx), color: "text-blue-600" },
+          { label: "Total Pengeluaran", value: formatCurrency(totalExpenseTx), color: "text-red-600" },
+          { label: "Laba/Rugi", value: formatCurrency(labaRugi), color: labaRugi >= 0 ? "text-green-600" : "text-red-600" },
+        ].map((s) => (
+          <div key={s.label} className="rounded-xl border border-gray-200 bg-white p-4">
+            <p className="text-xs text-gray-500">{s.label}</p>
+            <p className={`mt-1 text-xl font-bold ${s.color}`}>{s.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Revenue per program */}
+        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+          <div className="border-b border-gray-100 px-5 py-3">
+            <h2 className="font-semibold text-gray-900">Pendapatan per Program</h2>
+          </div>
+          {Object.keys(revenuePerProgram).length === 0 ? (
+            <p className="px-5 py-4 text-sm text-gray-400">Belum ada data program</p>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {Object.entries(revenuePerProgram).sort((a, b) => b[1].collected - a[1].collected).map(([prog, data]) => (
+                <div key={prog} className="px-5 py-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-gray-800">{prog}</span>
+                    <span className="text-sm font-bold text-green-600">{formatCurrency(data.collected)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-400">
+                    <span>Ditagihkan: {formatCurrency(data.invoiced)}</span>
+                    <span>{data.count} tagihan</span>
+                  </div>
+                  {data.invoiced > 0 && (
+                    <div className="mt-1.5 h-1.5 w-full rounded-full bg-gray-100">
+                      <div className="h-full rounded-full bg-green-500" style={{ width: `${Math.min((data.collected / data.invoiced) * 100, 100)}%` }} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Revenue per branch (super admin only) */}
+        {isSuperAdmin && Object.keys(revenuePerBranch).length > 0 && (
+          <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+            <div className="border-b border-gray-100 px-5 py-3">
+              <h2 className="font-semibold text-gray-900">Pendapatan per Cabang</h2>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {Object.entries(revenuePerBranch).sort((a, b) => b[1].collected - a[1].collected).map(([br, data]) => (
+                <div key={br} className="px-5 py-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-gray-800">{br}</span>
+                    <span className="text-sm font-bold text-green-600">{formatCurrency(data.collected)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-400">
+                    <span>Ditagihkan: {formatCurrency(data.invoiced)}</span>
+                    <span>{data.invoiced > 0 ? `${Math.round((data.collected / data.invoiced) * 100)}%` : "0%"}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Expense per category */}
+        <div className={`rounded-xl border border-gray-200 bg-white overflow-hidden ${isSuperAdmin && Object.keys(revenuePerBranch).length > 0 ? "" : "lg:col-span-1"}`}>
+          <div className="border-b border-gray-100 px-5 py-3">
+            <h2 className="font-semibold text-gray-900">Pengeluaran per Kategori</h2>
+          </div>
+          {Object.keys(expensePerCategory).length === 0 ? (
+            <p className="px-5 py-4 text-sm text-gray-400">Belum ada pengeluaran tercatat</p>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {Object.entries(expensePerCategory).sort((a, b) => b[1] - a[1]).map(([cat, amount]) => (
+                <div key={cat} className="flex items-center justify-between px-5 py-3">
+                  <span className="text-sm text-gray-700">{cat}</span>
+                  <span className="text-sm font-semibold text-red-600">{formatCurrency(amount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Piutang */}
+        <div className="rounded-xl border border-orange-200 bg-white overflow-hidden">
+          <div className="border-b border-orange-100 bg-orange-50 px-5 py-3">
+            <h2 className="font-semibold text-orange-900">Piutang (Belum Lunas) — {formatCurrency(totalUnpaid)}</h2>
+          </div>
+          {piutang.length === 0 ? (
+            <p className="px-5 py-4 text-sm text-gray-400">Tidak ada piutang</p>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {Object.entries(piutangPerBranch).map(([br, amount]) => (
+                <div key={br} className="flex items-center justify-between px-5 py-3">
+                  <span className="text-sm text-gray-700">{br}</span>
+                  <span className="text-sm font-semibold text-orange-600">{formatCurrency(amount)}</span>
+                </div>
+              ))}
+              <div className="flex items-center justify-between px-5 py-3 bg-orange-50/50">
+                <span className="text-sm font-medium text-gray-800">Total Piutang</span>
+                <span className="text-sm font-bold text-orange-600">{formatCurrency(totalUnpaid)}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

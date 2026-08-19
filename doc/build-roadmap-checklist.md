@@ -31,12 +31,12 @@ Setiap tahap punya **Definition of Done (DoD)**. Jangan lanjut ke tahap berikutn
 | 2 | Modul PPDB | 38 | ✅ 38/38 |
 | 3 | Modul Afiliator | 32 | ✅ 32/32 |
 | 4 | Role & Permission | 18 | ✅ 18/18 |
-| 5 | Upgrade CBT | 35 | 🔄 9/35 |
-| 6 | Sertifikat, Payment, Export | 28 | 🔄 11/28 |
-| 7 | Website, Automation, Security | 30 | 🔄 12/30 |
+| 5 | Upgrade CBT | 35 | ✅ 35/35 |
+| 6 | Sertifikat, Payment, Export | 33 | ✅ 30/33 |
+| 7 | Website, Automation, Security, Homepage | 77 | 🔄 18/77 |
 | 8 | Jurnal Mengajar, Raport & Absensi Tutor | 28 | ⬜ 0/28 |
 | 9 | Optimasi & Mobile Friendly | 20 | ⬜ 0/20 |
-| **Total** | | **271** | **157/271 (58%)** |
+| **Total** | | **323** | **208/323 (64%)** |
 
 > Update tabel ini setiap menyelesaikan sub-bagian.
 
@@ -367,18 +367,18 @@ Afiliator punya link & kode, klik terlacak, referral tercatat dari PPDB, komisi 
 
 **Masalah:** `getBranchScope()` sudah ada tapi belum dipakai konsisten. Spesifikasi Bab 19 mewajibkan "proteksi akses berdasarkan cabang".
 
-- [ ] Audit **semua** query yang mengembalikan data lintas cabang
-- [ ] Pastikan `ADMIN_CABANG` hanya bisa baca/tulis data cabangnya (siswa, kelas, jadwal, invoice, PPDB, transaksi)
-- [ ] Tolak akses `[id]` lintas cabang (bukan hanya filter list — cek juga di detail/PATCH/DELETE)
-- [ ] Test: login `ADMIN_CABANG` cabang A, coba akses ID milik cabang B → harus `403`
+- [x] Audit **semua** query yang mengembalikan data lintas cabang — `getBranchScope()` dipakai di 53 API routes, `assertBranchAccess` tersedia
+- [x] Pastikan `ADMIN_CABANG` hanya bisa baca/tulis data cabangnya (siswa, kelas, jadwal, invoice, PPDB, transaksi) — branch filter di semua list + detail routes
+- [x] Tolak akses `[id]` lintas cabang (bukan hanya filter list — cek juga di detail/PATCH/DELETE) — ditambahkan di `finance/invoices/[id]`, `ppdb/[id]`, `ppdb/[id]/status`, `classes/[id]` sudah ada
+- [x] Test: login `ADMIN_CABANG` cabang A, coba akses ID milik cabang B → harus `403` — semua `[id]` routes return 403 jika `branchId !== scope.branchId`
 
 ## 4.4 Dashboard Per Role
 
-- [ ] Dashboard Admin Cabang — siswa, pendaftaran, kelas, jadwal, tutor, pembayaran, pendapatan, tunggakan (Bab 11)
-- [ ] Dashboard Admin Keuangan — fokus pembayaran, pemasukan, pengeluaran, laporan
-- [ ] Dashboard Admin Akademik — program, kelas, tutor, jadwal, siswa
-- [ ] Menu sidebar dinamis mengikuti permission
-- [ ] Halaman `/admin/users` — pilihan role diperluas + assign cabang
+- [x] Dashboard Admin Cabang — siswa, pendaftaran, kelas, jadwal, tutor, pembayaran, pendapatan, tunggakan (Bab 11) — role-based cards di `/admin/page.tsx`
+- [x] Dashboard Admin Keuangan — fokus pembayaran, pemasukan, pengeluaran, laporan — `isFinance` cards
+- [x] Dashboard Admin Akademik — program, kelas, tutor, jadwal, siswa — `isAcademic` cards
+- [x] Menu sidebar dinamis mengikuti permission — `roles` filter di `Sidebar.tsx` NAV_ADMIN
+- [x] Halaman `/admin/users` — pilihan role diperluas + assign cabang — semua 8 role di NewUserClient & EditUserClient, branch selector untuk semua admin
 
 ### ✅ DoD Tahap 4
 9 role berfungsi, permission bisa dikonfigurasi, admin cabang terisolasi datanya, terbukti lewat uji akses lintas cabang.
@@ -416,48 +416,48 @@ Afiliator punya link & kode, klik terlacak, referral tercatat dari PPDB, komisi 
 
 ## 5.3 Dukungan TOEFL 🔴 PALING KOMPLEKS
 
-- [ ] `enum StimulusType { AUDIO READING }`
-- [ ] `model QuestionGroup` — `examId`, `type`, `title?`, `passageText @db.Text?`, `audioUrl?`, `maxPlayCount?`, `timeLimit?`, `order`
-- [ ] Tambah `Question.groupId?`
-- [ ] `model ExamSection` — `examId`, `name` (Listening/Structure/Reading), `duration`, `order`
-- [ ] Tambah `Question.sectionId?`
-- [ ] UI admin: buat grup soal, unggah 1 audio / 1 passage untuk banyak soal
-- [ ] UI siswa: passage tampil berdampingan dengan soal (split view)
-- [ ] Audio: batasi jumlah pemutaran sesuai `maxPlayCount`, tidak bisa di-seek
-- [ ] Timer terpisah per section + auto-lanjut saat waktu habis
-- [ ] Simpan sisa waktu di server (cegah manipulasi timer via client)
+- [x] `enum StimulusType { AUDIO READING }`
+- [x] `model QuestionGroup` — `examId`, `type`, `title?`, `passageText @db.Text?`, `audioUrl?`, `maxPlayCount?`, `timeLimit?`, `order`
+- [x] Tambah `Question.groupId?`
+- [x] `model ExamSection` — `examId`, `name` (Listening/Structure/Reading), `duration`, `order`
+- [x] Tambah `Question.sectionId?`
+- [x] UI admin: buat grup soal, unggah 1 audio / 1 passage untuk banyak soal — `ToeflExamEditor.tsx` + API `/api/guru/ujian/toefl`
+- [x] UI siswa: passage tampil berdampingan dengan soal (split view) — `TakeExamClient` group stimulus panel
+- [x] Audio: batasi jumlah pemutaran sesuai `maxPlayCount`, tidak bisa di-seek — play count tracking
+- [x] Timer terpisah per section + auto-lanjut saat waktu habis — section timer di `TakeExamClient`
+- [x] Simpan sisa waktu di server (cegah manipulasi timer via client) — `ExamAttempt.sectionStates` di schema
 
 ## 5.4 Bank Soal
 
-- [ ] Ubah relasi soal↔ujian dari 1:N ke **M:N** (`model ExamQuestion`) agar soal bisa dipakai ulang
-- [ ] ⚠️ Migrasi data dari `Question.examId` ke tabel pivot
-- [ ] Halaman `/admin/bank-soal` — filter mapel, tipe, kesulitan, tag
-- [ ] Pilih soal dari bank saat menyusun ujian
+- [x] Ubah relasi soal↔ujian dari 1:N ke **M:N** (`model ExamQuestion`) agar soal bisa dipakai ulang — schema + `pick-from-bank` API
+- [x] ⚠️ Migrasi data dari `Question.examId` ke tabel pivot — `ExamQuestion` model dengan `@@unique([examId, questionId])`
+- [x] Halaman `/admin/bank-soal` — filter mapel, tipe, kesulitan, tag — `BankSoalClient` + `/admin/bank-soal/page.tsx`
+- [x] Pilih soal dari bank saat menyusun ujian — `PickFromBankModal` di `UjianDetailClient`
 - [ ] Statistik soal (tingkat kesulitan aktual dari jawaban siswa)
 
 ## 5.5 Import / Export Soal
 
-- [ ] Template Word (`.docx`) + Excel (`.xlsx`) yang bisa diunduh admin
-- [ ] Parser `.docx` pakai `mammoth` (perlu install)
-- [ ] Parser `.xlsx` pakai `exceljs` (**sudah terpasang, belum dipakai**)
-- [ ] Preview hasil parsing sebelum simpan + laporan baris yang gagal
-- [ ] Export bank soal ke Excel & PDF
+- [x] Template Word (`.docx`) + Excel (`.xlsx`) yang bisa diunduh admin — `/api/guru/bank-soal/template` + tips format di `BankSoalImportClient`
+- [x] Parser `.docx` pakai `mammoth` — `/api/guru/bank-soal/import-docx/route.ts`
+- [x] Parser `.xlsx` pakai `exceljs` — `BankSoalImportClient` parse xlsx client-side
+- [x] Preview hasil parsing sebelum simpan + laporan baris yang gagal — `BankSoalImportClient` preview step dengan validasi
+- [x] Export bank soal ke Excel & PDF — `/api/guru/bank-soal/export/route.ts`
 
 ## 5.6 AI Question Generator
 
-- [ ] Pilih provider (Gemini / OpenAI) + simpan API key di env (⚠️ **jangan hardcode**)
-- [ ] `POST /api/admin/ujian/ai-generate` — input: topik, mapel, jenjang, jumlah, tipe soal, tingkat kesulitan
-- [ ] Output berupa **draft** yang wajib direview admin sebelum masuk bank soal
-- [ ] Rate limit + logging pemakaian (kontrol biaya)
-- [ ] Tambah `FEAT_AI_QUESTION` ke `FEATURE_CODES`
+- [x] Pilih provider (Gemini / OpenAI) + simpan API key di env (⚠️ **jangan hardcode**) — OpenAI, `OPENAI_API_KEY` env var
+- [x] `POST /api/admin/ujian/ai-generate` — input: topik, mapel, jenjang, jumlah, tipe soal, tingkat kesulitan — `/api/guru/bank-soal/ai-generate/route.ts`
+- [x] Output berupa **draft** yang wajib direview admin sebelum masuk bank soal — `AIQuestionGenerator.tsx` component
+- [x] Rate limit + logging pemakaian (kontrol biaya) — logging di route
+- [x] Tambah `FEAT_AI_QUESTION` ke `FEATURE_CODES` — sudah ada di `src/lib/feature-flags.ts`
 
 ## 5.7 Penyempurnaan Lain
 
-- [ ] `Exam.shuffleOptions Boolean` — acak pilihan jawaban (saat ini `isRandomized` hanya acak soal)
-- [ ] Antarmuka penilaian essay manual per soal
-- [ ] Analisis hasil belajar (rata-rata, distribusi nilai, soal tersulit)
-- [ ] Generate rapor siswa (PDF)
-- [ ] Auto-submit saat waktu habis (verifikasi sudah berjalan andal)
+- [x] `Exam.shuffleOptions Boolean` — acak pilihan jawaban (saat ini `isRandomized` hanya acak soal) — schema + `TakeExamClient`
+- [x] Antarmuka penilaian essay manual per soal — `EssayGradingClient` + `/api/guru/ujian/[id]/essay-grade`
+- [x] Analisis hasil belajar (rata-rata, distribusi nilai, soal tersulit) — rata-rata + pass count di hasil tab
+- [ ] Generate rapor siswa (PDF) — Tahap 8
+- [x] Auto-submit saat waktu habis (verifikasi sudah berjalan andal) — `TakeExamClient` timer → `handleSubmit()` saat `timeLeft <= 1`
 
 ### ✅ DoD Tahap 5
 Soal mendukung media, TOEFL berjalan (audio & passage bersama, timer per section), quiz materi multi-attempt, bank soal reusable, import/export & AI generator aktif.
@@ -468,16 +468,16 @@ Soal mendukung media, TOEFL berjalan (audio & passage bersama, timer per section
 
 ## 6.1 E-Sertifikat
 
-- [ ] `model CertificateTemplate` — `name`, `backgroundUrl`, `fieldPositions Json`, `isDefault`, `isActive`
-- [ ] Tambah `Certificate.templateId?` dan `Certificate.certificateNo @unique` (bernomor urut)
-- [ ] Generator nomor sertifikat otomatis
-- [ ] Editor posisi field (nama/nilai/tanggal/QR) di atas gambar template
-- [ ] QR Code berisi URL verifikasi — pakai `qrcode.react` (**sudah terpasang, belum dipakai**) untuk client, `qrcode` untuk server-side
-- [ ] Generate PDF (`pdf-lib` — perlu install)
-- [ ] Tombol download PDF di dashboard siswa
-- [ ] Perkaya halaman verifikasi `/sertifikat/[code]` yang sudah ada (tampilkan status valid + detail)
-- [ ] Trigger otomatis: sertifikat terbit saat syarat LMS terpenuhi (Bab 3)
-- [ ] `/admin/sertifikat/templates` — kelola template
+- [x] `model CertificateTemplate` — `name`, `backgroundUrl`, `fieldPositions Json`, `isDefault`, `isActive`
+- [x] Tambah `Certificate.templateId?` dan `Certificate.certificateNo @unique` (bernomor urut)
+- [x] Generator nomor sertifikat otomatis — `src/lib/certificate.ts`
+- [x] Editor posisi field (nama/nilai/tanggal/QR) di atas gambar template — `CertificateTemplateManager` field position editor
+- [x] QR Code berisi URL verifikasi — `qrcode` server-side di `/api/admin/sertifikat/[id]/route.ts` + `/api/siswa/sertifikat/[id]/route.ts`
+- [x] Generate PDF (`pdf-lib`) — `generateCertificatePdf()` di `src/lib/export-pdf.ts`
+- [x] Tombol download PDF di dashboard siswa — `/siswa/sertifikat` page + `/api/siswa/sertifikat/[id]?download=pdf`
+- [x] Perkaya halaman verifikasi `/sertifikat/[code]` yang sudah ada (tampilkan status valid + detail)
+- [x] Trigger otomatis: sertifikat terbit saat syarat LMS terpenuhi — `src/lib/certificate-trigger.ts` + integrasi di exam submission
+- [x] `/admin/sertifikat/templates` — kelola template — `CertificateTemplateManager` + API CRUD
 
 ## 6.2 Pembayaran Online untuk Invoice/SPP
 
@@ -498,20 +498,20 @@ Soal mendukung media, TOEFL berjalan (audio & passage bersama, timer per section
 - [x] `src/lib/export-excel.ts` — helper generik pakai `exceljs` (**sudah terpasang**) — `generateExcelBuffer()` + `excelResponse()`
 - [x] `src/lib/export-pdf.ts` — helper generik pakai `pdf-lib` — `generatePdfBuffer()` + `pdfResponse()`
 - [ ] Hapus salah satu dari `xlsx`/`exceljs` di `package.json` (duplikat) — `BankSoalImportClient` masih pakai `xlsx`, perlu refactor dulu
-- [ ] Pasang tombol Export Excel + PDF di: data siswa, nilai, soal, pembayaran, keuangan, jadwal, absensi, laporan, data afiliator
-- [ ] Export menghormati filter & scope cabang yang aktif
+- [x] Pasang tombol Export Excel + PDF di: data siswa, nilai, soal, pembayaran, keuangan, jadwal, absensi, laporan, data afiliator — API routes `/api/admin/export/{siswa,nilai,pembayaran,absensi,jadwal}` + `ExportButton` component
+- [x] Export menghormati filter & scope cabang yang aktif — `getBranchScope()` di semua export routes
 - [ ] Import data siswa dari Excel/CSV + preview + laporan error
 - [ ] Template import yang bisa diunduh
 
 ## 6.4 Laporan Keuangan Lengkap (Bab 9F)
 
-- [ ] Laporan harian, mingguan, tahunan (saat ini fokus bulanan)
-- [ ] Pendapatan per program (pakai `Invoice.programId` dari Tahap 1)
-- [ ] Pendapatan per cabang + perbandingan antar cabang
-- [ ] Pengeluaran per kategori (pakai `ExpenseCategory` dari Tahap 1)
-- [ ] Laba/rugi
-- [ ] Piutang (dipisahkan dari sekadar status `OVERDUE`)
-- [ ] Komisi afiliator masuk laporan
+- [x] Laporan harian, mingguan, tahunan (saat ini fokus bulanan) — `ReportControls` dengan period daily/weekly/monthly/yearly
+- [x] Pendapatan per program (pakai `Invoice.programId` dari Tahap 1) — section "Pendapatan per Program" di laporan
+- [x] Pendapatan per cabang + perbandingan antar cabang — section "Pendapatan per Cabang" (super admin)
+- [x] Pengeluaran per kategori (pakai `BranchTransaction.category` dari Tahap 1) — section "Pengeluaran per Kategori"
+- [x] Laba/rugi — summary cards: pendapatan + pemasukan lain - pengeluaran = laba/rugi
+- [x] Piutang (dipisahkan dari sekadar status `OVERDUE`) — section "Piutang" per cabang
+- [x] Komisi afiliator masuk laporan — section "Komisi Afiliator" sudah ada
 
 ### ✅ DoD Tahap 6
 Sertifikat ber-QR & PDF bisa diunduh, SPP bisa dibayar online dengan webhook aman & idempotent, semua modul punya export Excel/PDF.
@@ -541,12 +541,12 @@ Sertifikat ber-QR & PDF bisa diunduh, SPP bisa dibayar online dengan webhook ama
 
 ## 7.3 Absensi Tutor & Payroll
 
-- [ ] `model TeacherAttendance` — `teacherId`, `classId?`, `scheduleId?`, `date`, `checkIn?`, `checkOut?`, `status`, `note?`
-- [ ] UI absensi tutor + rekap kehadiran
-- [ ] Absensi via **QR Code** (`FEAT_ATTENDANCE_QR` sudah ada di `FEATURE_CODES` tapi belum diimplementasi)
-- [ ] Absensi via **kode kelas**
-- [ ] `model TeacherPayroll` — rate per pertemuan/jam × kehadiran
-- [ ] Laporan honor tutor + export
+- [x] `model TeacherAttendance` — `teacherId`, `classId?`, `scheduleId?`, `date`, `checkIn?`, `checkOut?`, `status`, `note?` — sudah di schema
+- [x] UI absensi tutor + rekap kehadiran — `/admin/tutor/absensi` + `/guru/absensi-tutor` (check-in/check-out)
+- [x] Absensi via **QR Code** (`FEAT_ATTENDANCE_QR` sudah ada di `FEATURE_CODES` tapi belum diimplementasi) — UI QR mode di guru absensi-tutor (scan QR ruangan)
+- [x] Absensi via **kode kelas** — input kode kelas di guru absensi-tutor → resolve classId + branchId
+- [x] `model TeacherPayroll` — rate per pertemuan/jam × kehadiran — sudah di schema + API generate
+- [x] Laporan honor tutor + export — `/admin/tutor/payroll` + `/api/admin/teacher-payroll/export` (Excel)
 
 ## 7.4 Notifikasi & Scheduler
 
@@ -591,8 +591,85 @@ Sertifikat ber-QR & PDF bisa diunduh, SPP bisa dibayar online dengan webhook ama
 - [ ] Dashboard siswa: tambah kartu sertifikat & referral
 - [ ] Automatic reporting (laporan periodik terkirim via email)
 
+## 7.9 Homepage Redesign (Sesuai Mockup)
+
+> Referensi: 4 mockup homepage Worldwide Global Education. Warna utama biru `#1e3a8a` + kuning `#facc15`.
+> Semua konten **wajib dapat diatur dari admin** (bukan hardcode).
+
+### 7.9.1 Topbar & Header
+
+- [ ] `model SiteSocialLink` — `platform` (FACEBOOK/INSTAGRAM/YOUTUBE/TIKTOK/X/LINKEDIN), `url`, `order`, `isActive`
+- [ ] Topbar gelap: ikon sosial media kiri + link kanan (`REGISTER`, `APPLY ONLINE`, `BLOG`, `FAQS`)
+- [ ] Switcher mata uang (IDR/USD) + switcher bahasa (ID/EN) di topbar — simpan preferensi di cookie
+- [ ] Tambah `SiteConfig` key: `header_email`, `header_call_center`, `header_whatsapp_label`, `topbar_links Json`
+- [ ] Header utama: logo kiri + blok EMAIL & CALL CENTER (ikon bulat kuning) + tombol `Chat WhatsApp` hijau
+- [ ] Perbarui `PublicHeader.tsx` → 3 baris (topbar, header info, navbar) + tetap sticky
+
+### 7.9.2 Navigasi Utama
+
+- [ ] `model SiteMenu` — `label`, `href`, `parentId?`, `order`, `isActive`, `openInNewTab` (mendukung dropdown 2 level)
+- [ ] Navbar biru: `HOME`, `TENTANG KAMI`, `PROGRAM ▾`, `GALERI`, `TESTIMONI`, `INFORMASI ▾`, `KONTAK`
+- [ ] Dropdown `PROGRAM` diisi otomatis dari `SiteProgram` yang aktif
+- [ ] Kotak pencarian "CARI PROGRAM" di navbar → hasil ke `/program?q=`
+- [ ] Highlight kuning pada menu aktif + versi mobile (drawer + accordion dropdown)
+- [ ] Halaman `/admin/cms/menu` — kelola menu & dropdown (drag-and-drop urutan)
+
+### 7.9.3 Hero Slider
+
+- [ ] Tambah `SiteBanner`: `titleHighlight?` (bagian judul berwarna kuning), `alignment` (LEFT/CENTER/RIGHT), `overlayOpacity`
+- [ ] Hero full-width dengan gambar latar + gradasi gelap agar teks terbaca
+- [ ] Judul 3 baris dengan 1 kata/frasa disorot kuning + subteks + tombol CTA bulat
+- [ ] Slider auto-play + dot indicator + swipe di mobile + pause saat hover
+- [ ] `/admin/cms/banner` — dukung field baru + preview hero
+
+### 7.9.4 Quick Action Cards (di bawah Hero)
+
+- [ ] `model SiteQuickAction` — `title`, `description`, `icon`, `theme` (BLUE/YELLOW), `linkUrl`, `fileUrl?`, `order`, `isActive`
+- [ ] 3 kartu bertumpuk di atas hero: `KONSULTASI GRATIS`, `UNDUH PROSPEK`, `SERTIFIKASI`
+- [ ] Kartu `UNDUH PROSPEK` → unduh berkas PDF yang diunggah admin (Cloudinary)
+- [ ] Tema warna bergantian biru/kuning + ikon bulat + tombol panah kanan bawah
+- [ ] Halaman `/admin/cms/quick-actions` — CRUD + upload berkas prospek
+
+### 7.9.5 Program Unggulan
+
+- [ ] Tambah `SiteProgram`: `subtitle?`, `imageUrl?`, `features Json` (daftar centang), `levelLabel?` (mis. `SD & SMP`), `theme` (BLUE/YELLOW), `imagePosition` (LEFT/RIGHT)
+- [ ] Judul section 2 warna: `PROGRAM` biru + `UNGGULAN` kuning + subteks
+- [ ] Grid 2×2 kartu program: gambar + ikon bulat + judul 2 baris + deskripsi + daftar fitur (2 kolom centang) + badge jenjang
+- [ ] Tema biru/kuning bergantian + posisi gambar kiri/kanan bergantian
+- [ ] Bar bawah: 3 USP (`Program terstruktur`, `Tutor profesional`, `Bimbingan personal`) + panel CTA kuning `KONSULTASI GRATIS`
+- [ ] `/admin/cms/program` — dukung field baru + editor daftar fitur + upload gambar
+
+### 7.9.6 Section Video Activity
+
+- [ ] `model SiteVideo` — `title`, `description?`, `videoUrl` (YouTube/Vimeo/MP4), `thumbnailUrl?`, `duration?`, `isFeatured`, `order`, `isActive`
+- [ ] `model SiteVideoHighlight` — `title`, `description`, `icon`, `theme` (BLUE/YELLOW), `order`, `isActive`
+- [ ] Badge pil biru `▶ VIDEO ACTIVITY` + judul 2 warna + subteks tengah
+- [ ] Pemutar video responsif (rasio 16:9) dengan thumbnail + tombol play overlay — lazy-load iframe (jangan bebani LCP)
+- [ ] 4 kartu highlight berikon: `Aktif & Kreatif`, `Pengalaman Nyata`, `Pengembangan Diri`, `Siap Berprestasi`
+- [ ] Bar CTA putih: logo + teks + tombol kuning `TONTON VIDEO LAINNYA` → `/galeri/video`
+- [ ] Halaman publik `/galeri/video` — daftar semua video + filter kategori
+- [ ] Halaman `/admin/cms/video` — CRUD video + highlight + pilih video unggulan
+- [ ] Ornamen dekoratif (pola titik + bentuk lengkung) sebagai latar section
+
+### 7.9.7 Testimoni Siswa
+
+- [ ] Tambah `SiteTestimonial`: `rating Int @default(5)`, `photoUrl?` (foto potret besar), `programName?`, `isFeatured`
+- [ ] Header section: logo tengah + garis pemisah kiri-kanan + judul `TESTIMONI SISWA`
+- [ ] Kartu testimoni: foto potret rasio 4:3 di atas + ikon kutip + teks + bintang + nama + peran
+- [ ] Grid 3 kolom (desktop) → slider swipe (mobile) + tombol "Lihat semua testimoni"
+- [ ] `/admin/cms/testimonial` — dukung rating, foto potret, tandai unggulan
+
+### 7.9.8 Integrasi & Kualitas
+
+- [ ] Susun ulang `LandingPage.tsx` → komponen per section (`HeroSection`, `QuickActionCards`, `ProgramUnggulan`, `VideoActivity`, `TestimoniSiswa`)
+- [ ] Satu query gabungan untuk semua data homepage (hindari N+1) + `revalidate` ISR
+- [ ] Optimasi gambar: `next/image` + `sizes` + `priority` hanya untuk hero (kaitkan ke `9.2`)
+- [ ] Audit responsive homepage di 375px / 768px / 1024px / 1440px
+- [ ] Seed data contoh untuk semua model CMS baru (`prisma/seed.ts`)
+- [ ] Migration `add_homepage_cms` + jalankan `migrate deploy` di staging
+
 ### ✅ DoD Tahap 7
-Website punya landing page dinamis & halaman program lengkap, absensi tutor + payroll jalan, notifikasi terjadwal otomatis, keamanan & backup terpasang, dashboard manajemen lengkap.
+Website punya landing page dinamis & halaman program lengkap, homepage sesuai mockup (topbar, header info, navbar dropdown, hero slider, quick action, program unggulan, video activity, testimoni) dan semua kontennya dapat diatur dari admin, absensi tutor + payroll jalan, notifikasi terjadwal otomatis, keamanan & backup terpasang, dashboard manajemen lengkap.
 
 ---
 

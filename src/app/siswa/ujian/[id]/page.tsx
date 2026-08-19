@@ -15,9 +15,11 @@ export default async function TakeExamPage({ params }: { params: Promise<{ id: s
     include: {
       class: { select: { name: true, subject: { select: { name: true, color: true } } } },
       questions: {
-        select: { id: true, type: true, content: true, imageUrl: true, audioUrl: true, videoUrl: true, options: true, score: true },
-        orderBy: { createdAt: "asc" },
+        select: { id: true, type: true, content: true, imageUrl: true, audioUrl: true, videoUrl: true, options: true, score: true, groupId: true, sectionId: true, order: true },
+        orderBy: { order: "asc" },
       },
+      sections: { orderBy: { order: "asc" } },
+      questionGroups: { orderBy: { order: "asc" } },
     },
   });
 

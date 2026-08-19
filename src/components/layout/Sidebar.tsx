@@ -10,7 +10,8 @@ import {
   Megaphone, MessagesSquare, MessageSquare, Video, Gamepad2, Award,
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
   Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
-  DoorOpen, ScrollText, Share2, DollarSign, UserCheck,
+  DoorOpen, ScrollText, Share2, DollarSign, UserCheck, FileText,
+  NotebookPen, Clock,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -19,7 +20,8 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Megaphone, MessagesSquare, MessageSquare, Video, Gamepad2, Award,
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
   Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
-  DoorOpen, ScrollText, Share2, DollarSign, UserCheck,
+  DoorOpen, ScrollText, Share2, DollarSign, UserCheck, FileText,
+  NotebookPen, Clock,
 };
 
 interface NavItem {
@@ -28,31 +30,40 @@ interface NavItem {
   icon: string;
   featureFlag?: string;
   superAdminOnly?: boolean;
+  roles?: string[];
 }
+
+const ALL_ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_KEUANGAN", "ADMIN_AKADEMIK"];
 
 const NAV_ADMIN: NavItem[] = [
   { title: "Dashboard", href: "/admin", icon: "LayoutDashboard" },
-  { title: "Fitur & Modul", href: "/admin/features", icon: "ToggleLeft" },
-  { title: "Pengguna", href: "/admin/users", icon: "Users", featureFlag: "FEAT_USER_MANAGEMENT" },
-  { title: "Orang Tua & Anak", href: "/admin/parents", icon: "Users2" },
-  { title: "Kelas & Jadwal", href: "/admin/classes", icon: "CalendarDays", featureFlag: "FEAT_CLASS_SCHEDULE" },
-  { title: "Kalender Akademik", href: "/admin/academic-calendar", icon: "CalendarDays" },
-  { title: "Keuangan", href: "/admin/finance", icon: "Wallet", featureFlag: "FEAT_PAYMENT_MANUAL" },
-  { title: "Multi-Cabang", href: "/admin/branches", icon: "Building2", featureFlag: "FEAT_MULTI_BRANCH" },
-  { title: "PPDB", href: "/admin/ppdb", icon: "UserCheck", featureFlag: "FEAT_PPDB" },
-  { title: "Afiliator", href: "/admin/afiliator", icon: "Share2", featureFlag: "FEAT_AFFILIATE" },
-  { title: "Program & Jenjang", href: "/admin/master/programs", icon: "GraduationCap" },
-  { title: "Gedung & Ruangan", href: "/admin/master/ruangan", icon: "DoorOpen", featureFlag: "FEAT_ROOM_MANAGEMENT" },
-  { title: "Analitik", href: "/admin/analytics", icon: "BarChart3", featureFlag: "FEAT_ANALYTICS" },
+  { title: "Fitur & Modul", href: "/admin/features", icon: "ToggleLeft", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG"] },
+  { title: "Pengguna", href: "/admin/users", icon: "Users", featureFlag: "FEAT_USER_MANAGEMENT", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_AKADEMIK"] },
+  { title: "Orang Tua & Anak", href: "/admin/parents", icon: "Users2", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG"] },
+  { title: "Kelas & Jadwal", href: "/admin/classes", icon: "CalendarDays", featureFlag: "FEAT_CLASS_SCHEDULE", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_AKADEMIK"] },
+  { title: "Kalender Akademik", href: "/admin/academic-calendar", icon: "CalendarDays", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_AKADEMIK"] },
+  { title: "Keuangan", href: "/admin/finance", icon: "Wallet", featureFlag: "FEAT_PAYMENT_MANUAL", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_KEUANGAN"] },
+  { title: "Multi-Cabang", href: "/admin/branches", icon: "Building2", featureFlag: "FEAT_MULTI_BRANCH", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG"] },
+  { title: "PPDB", href: "/admin/ppdb", icon: "UserCheck", featureFlag: "FEAT_PPDB", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_KEUANGAN"] },
+  { title: "Afiliator", href: "/admin/afiliator", icon: "Share2", featureFlag: "FEAT_AFFILIATE", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_KEUANGAN"] },
+  { title: "Program & Jenjang", href: "/admin/master/programs", icon: "GraduationCap", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_AKADEMIK"] },
+  { title: "Gedung & Ruangan", href: "/admin/master/ruangan", icon: "DoorOpen", featureFlag: "FEAT_ROOM_MANAGEMENT", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG"] },
+  { title: "Tutor - Absensi", href: "/admin/tutor/absensi", icon: "CheckSquare", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_AKADEMIK"] },
+  { title: "Tutor - Payroll", href: "/admin/tutor/payroll", icon: "Wallet", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_KEUANGAN"] },
+  { title: "Analitik", href: "/admin/analytics", icon: "BarChart3", featureFlag: "FEAT_ANALYTICS", roles: ALL_ADMIN_ROLES },
   { title: "Audit Log", href: "/admin/audit-log", icon: "ScrollText", superAdminOnly: true },
-  { title: "Pengumuman", href: "/admin/announcements", icon: "Megaphone", featureFlag: "FEAT_ANNOUNCEMENTS" },
-  { title: "Event Berbayar", href: "/admin/events", icon: "Trophy", featureFlag: "FEAT_EVENTS" },
-  { title: "Sertifikat", href: "/admin/sertifikat", icon: "Award" },
-  { title: "Media Manager", href: "/admin/media", icon: "Image" },
-  { title: "CMS Landing Page", href: "/admin/landing-pages", icon: "Globe" },
-  { title: "FAQ & Tim", href: "/admin/faq", icon: "FileText" },
-  { title: "Site Gallery", href: "/admin/site", icon: "Image" },
-  { title: "Pengaturan", href: "/admin/settings", icon: "Settings" },
+  { title: "Pengumuman", href: "/admin/announcements", icon: "Megaphone", featureFlag: "FEAT_ANNOUNCEMENTS", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG"] },
+  { title: "Event Berbayar", href: "/admin/events", icon: "Trophy", featureFlag: "FEAT_EVENTS", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG"] },
+  { title: "Jurnal Mengajar", href: "/admin/jurnal", icon: "NotebookPen", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_AKADEMIK"] },
+  { title: "Raport", href: "/admin/raport", icon: "FileText", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_AKADEMIK"] },
+  { title: "Bank Soal", href: "/admin/bank-soal", icon: "Database", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_AKADEMIK"] },
+  { title: "Sertifikat", href: "/admin/sertifikat", icon: "Award", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG"] },
+  { title: "Sertifikat Template", href: "/admin/sertifikat/templates", icon: "Award", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG"] },
+  { title: "Media Manager", href: "/admin/media", icon: "Image", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG"] },
+  { title: "CMS Landing Page", href: "/admin/landing-pages", icon: "Globe", roles: ["SUPER_ADMIN", "ADMIN"] },
+  { title: "FAQ & Tim", href: "/admin/faq", icon: "FileText", roles: ["SUPER_ADMIN", "ADMIN"] },
+  { title: "Site Gallery", href: "/admin/site", icon: "Image", roles: ["SUPER_ADMIN", "ADMIN"] },
+  { title: "Pengaturan", href: "/admin/settings", icon: "Settings", roles: ["SUPER_ADMIN", "ADMIN"] },
   { title: "Profil Saya", href: "/profile", icon: "User" },
 ];
 
@@ -63,8 +74,11 @@ const NAV_GURU: NavItem[] = [
   { title: "Materi", href: "/guru/materi", icon: "BookOpen", featureFlag: "FEAT_MATERIALS" },
   { title: "Tugas", href: "/guru/tugas", icon: "ClipboardList", featureFlag: "FEAT_ASSIGNMENTS" },
   { title: "Ujian", href: "/guru/ujian", icon: "FileCheck" },
+  { title: "Jurnal Mengajar", href: "/guru/jurnal", icon: "NotebookPen" },
+  { title: "Raport", href: "/guru/raport", icon: "FileText" },
   { title: "Bank Soal", href: "/guru/bank-soal", icon: "Database" },
-  { title: "Absensi", href: "/guru/absensi", icon: "CheckSquare", featureFlag: "FEAT_ATTENDANCE" },
+  { title: "Absensi Siswa", href: "/guru/absensi", icon: "CheckSquare", featureFlag: "FEAT_ATTENDANCE" },
+  { title: "Absensi Tutor", href: "/guru/absensi-tutor", icon: "Clock" },
   { title: "Nilai", href: "/guru/nilai", icon: "GraduationCap", featureFlag: "FEAT_GRADES" },
   { title: "Forum", href: "/guru/forum", icon: "MessagesSquare", featureFlag: "FEAT_FORUM" },
   { title: "Chat", href: "/guru/chat", icon: "MessageSquare", featureFlag: "FEAT_CHAT" },
@@ -83,6 +97,8 @@ const NAV_SISWA: NavItem[] = [
   { title: "Tryout", href: "/siswa/tryout", icon: "Trophy", featureFlag: "FEAT_TRYOUT" },
   { title: "Absensi", href: "/siswa/absensi", icon: "CheckSquare", featureFlag: "FEAT_ATTENDANCE" },
   { title: "Nilai", href: "/siswa/nilai", icon: "GraduationCap", featureFlag: "FEAT_GRADES" },
+  { title: "Raport", href: "/siswa/raport", icon: "FileText" },
+  { title: "Sertifikat", href: "/siswa/sertifikat", icon: "Award" },
   { title: "Tagihan", href: "/siswa/tagihan", icon: "Wallet", featureFlag: "FEAT_PAYMENT_MANUAL" },
   { title: "Forum", href: "/siswa/forum", icon: "MessagesSquare", featureFlag: "FEAT_FORUM" },
   { title: "Chat", href: "/siswa/chat", icon: "MessageSquare", featureFlag: "FEAT_CHAT" },
@@ -97,6 +113,7 @@ const NAV_ORANGTUA: NavItem[] = [
   { title: "Progress Anak", href: "/orangtua/progress", icon: "BarChart3" },
   { title: "Absensi Anak", href: "/orangtua/absensi", icon: "CheckSquare", featureFlag: "FEAT_ATTENDANCE" },
   { title: "Nilai Anak", href: "/orangtua/nilai", icon: "GraduationCap", featureFlag: "FEAT_GRADES" },
+  { title: "Raport Anak", href: "/orangtua/raport", icon: "FileText" },
   { title: "Tagihan", href: "/orangtua/tagihan", icon: "Wallet" },
   { title: "Chat dengan Guru", href: "/orangtua/chat", icon: "MessageSquare", featureFlag: "FEAT_CHAT" },
   { title: "Profil Saya", href: "/profile", icon: "User" },
@@ -158,6 +175,7 @@ export function Sidebar({ role, userName, userEmail, siteName, logoUrl }: Sideba
 
   const visibleItems = navItems.filter((item) => {
     if (item.superAdminOnly && role !== "SUPER_ADMIN") return false;
+    if (item.roles && !item.roles.includes(role)) return false;
     if (!item.featureFlag) return true;
     if (isLoading) return false;
     return isFeatureActive(item.featureFlag);

@@ -55,9 +55,13 @@ export function getRoleLabel(role: string): string {
   const labels: Record<string, string> = {
     SUPER_ADMIN: "Super Admin",
     ADMIN: "Admin",
+    ADMIN_CABANG: "Admin Cabang",
+    ADMIN_KEUANGAN: "Admin Keuangan",
+    ADMIN_AKADEMIK: "Admin Akademik",
     GURU: "Guru",
     SISWA: "Siswa",
     ORANG_TUA: "Orang Tua",
+    AFILIATOR: "Afiliator",
   };
   return labels[role] ?? role;
 }
@@ -66,9 +70,13 @@ export function getRoleColor(role: string): string {
   const colors: Record<string, string> = {
     SUPER_ADMIN: "text-red-600 bg-red-50",
     ADMIN: "text-orange-600 bg-orange-50",
+    ADMIN_CABANG: "text-amber-600 bg-amber-50",
+    ADMIN_KEUANGAN: "text-emerald-600 bg-emerald-50",
+    ADMIN_AKADEMIK: "text-indigo-600 bg-indigo-50",
     GURU: "text-yellow-600 bg-yellow-50",
     SISWA: "text-green-600 bg-green-50",
     ORANG_TUA: "text-blue-600 bg-blue-50",
+    AFILIATOR: "text-purple-600 bg-purple-50",
   };
   return colors[role] ?? "text-gray-600 bg-gray-50";
 }

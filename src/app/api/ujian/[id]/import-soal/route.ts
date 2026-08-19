@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "GURU") {
+  if (!session?.user || !["GURU", "SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_AKADEMIK"].includes(session.user.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -21,27 +21,44 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     include: { class: { select: { teacherId: true } } },
   });
 
-  if (!exam || exam.class?.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Ujian tidak ditemukan atau bukan milik kamu" }, { status: 404 });
+  if (!exam) {
+    return NextResponse.json({ error: "Ujian tidak ditemukan" }, { status: 404 });
+  }
+
+  if (session.user.role === "GURU" && exam.class?.teacherId !== session.user.id) {
+    return NextResponse.json({ error: "Ujian bukan milik kamu" }, { status: 403 });
   }
 
   const bankQuestions = await db.question.findMany({
     where: { id: { in: questionIds } },
   });
 
-  const created = await db.question.createMany({
-    data: bankQuestions.map((q) => ({
-      examId,
-      subjectId: q.subjectId,
-      type: q.type,
-      content: q.content,
-      options: q.options ?? undefined,
-      correctAnswer: q.correctAnswer,
-      explanation: q.explanation,
-      score: q.score,
-      difficulty: q.difficulty,
-    })),
+  const existing = await db.examQuestion.findMany({
+    where: { examId, questionId: { in: questionIds } },
+    select: { questionId: true },
   });
+  const existingIds = new Set(existing.map((e) => e.questionId));
+
+  const maxOrder = await db.examQuestion.aggregate({
+    where: { examId },
+    _max: { order: true },
+  });
+  let nextOrder = (maxOrder._max.order ?? 0) + 1;
+
+  const toCreate = bankQuestions
+    .filter((q) => !existingIds.has(q.id))
+    .map((q) => ({
+      examId,
+      questionId: q.id,
+      order: nextOrder++,
+      score: q.score,
+    }));
+
+  if (toCreate.length === 0) {
+    return NextResponse.json({ imported: 0, message: "Semua soal sudah ada di ujian ini" });
+  }
+
+  const created = await db.examQuestion.createMany({ data: toCreate });
 
   return NextResponse.json({ imported: created.count }, { status: 201 });
 }

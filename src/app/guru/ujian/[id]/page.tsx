@@ -28,9 +28,24 @@ export default async function UjianDetailPage({ params }: { params: Promise<{ id
 
   const attempts = await db.examAttempt.findMany({
     where: { examId: id, isCompleted: true },
-    include: { student: { select: { name: true } } },
+    include: { student: { select: { id: true, name: true } } },
     orderBy: { submittedAt: "desc" },
   });
+
+  const subjects = await db.subject.findMany({
+    select: { id: true, name: true, color: true },
+    orderBy: { name: "asc" },
+  });
+
+  const essayQuestions = exam.questions.filter((q) => q.type === "ESSAY").map((q) => ({ id: q.id, content: q.content, score: q.score }));
+  const essayAttempts = attempts.map((a) => ({
+    id: a.id,
+    studentId: a.studentId,
+    studentName: a.student.name,
+    score: a.score,
+    answers: a.answers as Record<string, string> | null,
+    submittedAt: a.submittedAt,
+  }));
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -50,6 +65,9 @@ export default async function UjianDetailPage({ params }: { params: Promise<{ id
       <UjianDetailClient
         exam={JSON.parse(JSON.stringify(exam))}
         attempts={JSON.parse(JSON.stringify(attempts))}
+        subjects={JSON.parse(JSON.stringify(subjects))}
+        essayQuestions={JSON.parse(JSON.stringify(essayQuestions))}
+        essayAttempts={JSON.parse(JSON.stringify(essayAttempts))}
       />
     </div>
   );

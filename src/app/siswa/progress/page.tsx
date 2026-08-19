@@ -1,8 +1,10 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
+import dynamic from "next/dynamic";
 import { TrendingUp, BookOpen, ClipboardList, FileCheck, CalendarDays, Award } from "lucide-react";
-import ProgressClient from "@/components/siswa/ProgressClient";
+
+const ProgressClient = dynamic(() => import("@/components/siswa/ProgressClient"), { loading: () => <div className="h-64 animate-pulse bg-gray-100 rounded-lg" /> });
 
 export const metadata = { title: "Progress Belajar" };
 

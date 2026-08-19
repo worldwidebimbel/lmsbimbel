@@ -25,7 +25,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const exam = await db.exam.findFirst({
     where: { eventId: id },
     include: {
-      questions: { orderBy: { createdAt: "asc" } },
+      questions: { orderBy: { order: "asc" } },
+      sections: { orderBy: { order: "asc" }, include: { _count: { select: { questions: true } } } },
+      questionGroups: { orderBy: { order: "asc" }, include: { _count: { select: { questions: true } } } },
       _count: { select: { attempts: true } },
     },
   });
@@ -87,7 +89,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!exam) return NextResponse.json({ error: "Ujian belum dibuat" }, { status: 404 });
 
   const body = await req.json();
-  const { title, description, duration, startTime, endTime, isRandomized, passingScore, isPublished } = body;
+  const { title, description, duration, startTime, endTime, isRandomized, shuffleOptions, passingScore, isPublished } = body;
 
   const updated = await db.exam.update({
     where: { id: exam.id },
@@ -98,6 +100,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(startTime !== undefined && { startTime: startTime ? new Date(startTime) : null }),
       ...(endTime !== undefined && { endTime: endTime ? new Date(endTime) : null }),
       ...(isRandomized !== undefined && { isRandomized: Boolean(isRandomized) }),
+      ...(shuffleOptions !== undefined && { shuffleOptions: Boolean(shuffleOptions) }),
       ...(passingScore !== undefined && { passingScore: Number(passingScore) }),
       ...(isPublished !== undefined && { isPublished: Boolean(isPublished) }),
     },

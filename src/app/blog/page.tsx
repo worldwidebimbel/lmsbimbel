@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { db } from "@/lib/db";
 import PublicShell from "@/components/landing/PublicShell";
 
@@ -32,8 +33,8 @@ export default async function BlogPage() {
               {posts.map((post) => (
                 <article key={post.id} className="group flex flex-col rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                   {post.coverImage && (
-                    <div className="aspect-video bg-gray-100 overflow-hidden">
-                      <img src={post.coverImage} alt={post.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <div className="relative aspect-video bg-gray-100 overflow-hidden">
+                      <Image src={post.coverImage} alt={post.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
                     </div>
                   )}
                   <div className="flex flex-1 flex-col p-5">

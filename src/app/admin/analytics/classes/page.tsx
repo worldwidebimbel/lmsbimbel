@@ -3,9 +3,11 @@ import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
+import dynamic from "next/dynamic";
 import { BarChart3, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import ClassStatsClient from "@/components/admin/ClassStatsClient";
+
+const ClassStatsClient = dynamic(() => import("@/components/admin/ClassStatsClient"), { loading: () => <div className="h-64 animate-pulse bg-gray-100 rounded-lg" /> });
 
 export const metadata = { title: "Statistik Per Kelas" };
 
