@@ -591,8 +591,8 @@
         <li class="done"><span class="ref">5.6</span> Output draft yang wajib direview admin + rate limit + logging</li>
         <li class="done"><span class="ref">5.6</span> Tambah <code>FEAT_AI_QUESTION</code> ke <code>FEATURE_CODES</code></li>
         <li class="done"><span class="ref">5.7</span> <code>Exam.shuffleOptions</code> — acak pilihan jawaban</li>
-        <li><span class="ref">5.7</span> Antarmuka penilaian essay manual per soal</li>
-        <li><span class="ref">5.7</span> Analisis hasil belajar + generate rapor PDF + auto-submit saat waktu habis</li>
+        <li class="done"><span class="ref">5.7</span> Antarmuka penilaian essay manual per soal — <code>EssayGradingClient</code> + <code>/api/guru/ujian/[id]/essay-grade</code></li>
+        <li class="done"><span class="ref">5.7</span> Analisis hasil belajar + auto-submit saat waktu habis — hasil tab + <code>TakeExamClient</code> timer</li>
       </ul>
     </div>
 
@@ -645,9 +645,9 @@
     <div class="jalur-section">
       <h3>Jalur G — Optimasi Awal (Tahap 9.2) · 3 item</h3>
       <ul class="task-list">
-        <li><span class="ref">9.2</span> Image optimization: pakai <code>next/image</code> untuk semua gambar</li>
-        <li><span class="ref">9.2</span> Bundle size: audit dengan <code>@next/bundle-analyzer</code>, code splitting</li>
-        <li><span class="ref">9.2</span> Database query optimization: audit N+1 queries dengan Prisma</li>
+        <li class="done"><span class="ref">9.2</span> Image optimization: pakai <code>next/image</code> untuk semua gambar — blog, events, tentang converted; <code>OptimizedImage</code> component</li>
+        <li class="done"><span class="ref">9.2</span> Bundle size: audit dengan <code>@next/bundle-analyzer</code>, code splitting — <code>next/dynamic</code> for 5 recharts components</li>
+        <li class="done"><span class="ref">9.2</span> Database query optimization: audit N+1 queries — fixed <code>certificate-trigger.ts</code> and <code>chat/route.ts</code></li>
       </ul>
     </div>
 

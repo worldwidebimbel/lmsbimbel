@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "StimulusType" AS ENUM ('AUDIO', 'READING');
+
 -- CreateTable
 CREATE TABLE "exam_sections" (
     "id" TEXT NOT NULL,
@@ -25,9 +28,6 @@ CREATE TABLE "question_groups" (
 
     CONSTRAINT "question_groups_pkey" PRIMARY KEY ("id")
 );
-
--- CreateEnum
-CREATE TYPE "StimulusType" AS ENUM ('AUDIO', 'READING');
 
 -- AddColumn: Exam.shuffleOptions
 ALTER TABLE "exams" ADD COLUMN "shuffleOptions" BOOLEAN NOT NULL DEFAULT false;

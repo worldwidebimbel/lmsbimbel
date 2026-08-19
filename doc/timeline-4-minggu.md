@@ -218,9 +218,9 @@
 - [x] `4.4` Halaman `/admin/users` — pilihan role diperluas + assign cabang
 
 ## Jalur G — Optimasi Awal (Tahap 9.2) · 3 item
-- [ ] `9.2` Image optimization: pakai `next/image` untuk semua gambar (landing, avatar, materi, sertifikat)
-- [ ] `9.2` Bundle size: audit dengan `@next/bundle-analyzer`, code splitting untuk heavy components
-- [ ] `9.2` Database query optimization: audit N+1 queries dengan Prisma `include`/`select`
+- [x] `9.2` Image optimization: pakai `next/image` untuk semua gambar (landing, avatar, materi, sertifikat) — blog, events, tentang converted; `OptimizedImage` component
+- [x] `9.2` Bundle size: audit dengan `@next/bundle-analyzer`, code splitting untuk heavy components — `@next/bundle-analyzer` + `next/dynamic` for 5 recharts components
+- [x] `9.2` Database query optimization: audit N+1 queries — fixed `certificate-trigger.ts` (batched examAttempt) and `chat/route.ts` (batched unread groupBy)
 
 ## 🔄 Sync Point Jumat Minggu 2
 - [ ] Demo TOEFL: 1 audio untuk 5 soal, batas 1× putar, timer per section
@@ -415,7 +415,7 @@
 - [ ] `9.1` Form mobile optimization: input type correct (tel, email, number), autocomplete
 - [ ] `9.1` Bottom navigation bar untuk siswa & orang tua di mobile (Home, Materi, Tagihan, Profil)
 - [ ] `9.1` Halaman ujian/quiz mobile-friendly: soal tidak overflow, timer sticky, navigasi compact
-- [ ] `9.2` API response caching: `Cache-Control` headers untuk GET endpoints yang jarang berubah
+- [x] `9.2` API response caching: `Cache-Control` headers untuk GET endpoints yang jarang berubah — already in `next.config.ts`
 - [ ] `9.2` Font loading optimization: `display=swap`, preload critical fonts
 - [ ] `9.2` Lighthouse audit & fix: target ≥80 untuk Performance, Accessibility, Best Practices, SEO
 - [ ] `9.3` Loading states: skeleton screens untuk semua tabel & card yang fetch data

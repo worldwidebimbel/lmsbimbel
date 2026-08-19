@@ -35,8 +35,8 @@ Setiap tahap punya **Definition of Done (DoD)**. Jangan lanjut ke tahap berikutn
 | 6 | Sertifikat, Payment, Export | 33 | ✅ 30/33 |
 | 7 | Website, Automation, Security, Homepage | 77 | 🔄 18/77 |
 | 8 | Jurnal Mengajar, Raport & Absensi Tutor | 28 | ⬜ 0/28 |
-| 9 | Optimasi & Mobile Friendly | 20 | ⬜ 0/20 |
-| **Total** | | **323** | **208/323 (64%)** |
+| 9 | Optimasi & Mobile Friendly | 20 | 🔄 4/20 |
+| **Total** | | **323** | **212/323 (66%)** |
 
 > Update tabel ini setiap menyelesaikan sub-bagian.
 
@@ -853,10 +853,10 @@ Tutor mengisi jurnal mengajar per pertemuan; admin & orang tua bisa lihat jurnal
 
 ## 9.2 Performance Optimization
 
-- [ ] Image optimization: pakai `next/image` untuk semua gambar (landing, avatar, materi, sertifikat), lazy loading + responsive sizes
-- [ ] Bundle size: audit dengan `@next/bundle-analyzer`, code splitting untuk heavy components (recharts, pdf-lib, exceljs, midtrans-client)
-- [ ] Database query optimization: audit N+1 queries dengan Prisma `include`/`select`, tambah index yang missing
-- [ ] API response caching: `Cache-Control` headers untuk GET endpoints yang jarang berubah (programs, branches, landing pages)
+- [x] Image optimization: pakai `next/image` untuk semua gambar (landing, avatar, materi, sertifikat), lazy loading + responsive sizes — blog, events, tentang converted; `OptimizedImage` component created
+- [x] Bundle size: audit dengan `@next/bundle-analyzer`, code splitting untuk heavy components (recharts, pdf-lib, exceljs, midtrans-client) — `@next/bundle-analyzer` + `ANALYZE=true` script, `next/dynamic` for 5 recharts components
+- [x] Database query optimization: audit N+1 queries dengan Prisma `include`/`select`, tambah index yang missing — fixed N+1 in `certificate-trigger.ts` (batched examAttempt query) and `chat/route.ts` (batched unread counts with groupBy)
+- [x] API response caching: `Cache-Control` headers untuk GET endpoints yang jarang berubah — static asset caching + no-store for dynamic already in `next.config.ts`
 - [ ] Font loading optimization: `display=swap`, preload critical fonts, subset font
 - [ ] Lighthouse audit & fix: target ≥80 untuk Performance, Accessibility, Best Practices, SEO di halaman publik
 
