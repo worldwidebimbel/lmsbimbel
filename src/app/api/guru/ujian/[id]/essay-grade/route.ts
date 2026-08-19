@@ -19,9 +19,9 @@ export async function GET(
   if (!exam) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const questions = await db.examQuestion.findMany({
-    where: { examId: id, type: "ESSAY" },
-    select: { id: true, content: true, score: true },
-    orderBy: { createdAt: "asc" },
+    where: { examId: id, question: { type: "ESSAY" } },
+    select: { id: true, score: true, question: { select: { id: true, content: true, type: true } } },
+    orderBy: { order: "asc" },
   });
 
   if (questions.length === 0) {
@@ -47,7 +47,12 @@ export async function GET(
 
   return NextResponse.json({
     exam,
-    essayQuestions: questions,
+    essayQuestions: questions.map((q) => ({
+      id: q.question.id,
+      examQuestionId: q.id,
+      content: q.question.content,
+      score: q.score ?? 1,
+    })),
     attempts: essayAttempts,
   });
 }
