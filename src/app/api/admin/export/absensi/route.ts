@@ -21,9 +21,10 @@ export async function GET(req: NextRequest) {
   if (classId) attWhere.classId = classId;
   if (branchId && !classId) attWhere.class = { branchId };
   if (from || to) {
-    attWhere.date = {};
-    if (from) attWhere.date.gte = new Date(from);
-    if (to) attWhere.date.lte = new Date(to);
+    const dateFilter: Record<string, Date> = {};
+    if (from) dateFilter.gte = new Date(from);
+    if (to) dateFilter.lte = new Date(to);
+    attWhere.date = dateFilter;
   }
   if (Object.keys(attWhere).length > 0) where.attendance = attWhere;
 
