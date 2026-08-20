@@ -32,7 +32,7 @@ export async function checkAndIssueClassCompletionCertificate(
   const attemptMap = new Map(bestAttempts.map((a) => [a.examId, a.score]));
   for (const exam of cls.exams) {
     const bestScore = attemptMap.get(exam.id);
-    if (bestScore === undefined || bestScore < exam.passingScore) {
+    if (bestScore === undefined || bestScore === null || bestScore < exam.passingScore) {
       return { issued: false, reason: "Not all exams passed" };
     }
   }
