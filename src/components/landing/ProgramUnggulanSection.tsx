@@ -2,10 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { CheckCircle, ArrowRight, Phone } from "lucide-react";
 
-interface ProgramFeature {
-  title?: string;
-  desc?: string;
-}
+type ProgramFeature = string | { title?: string; desc?: string; };
 
 interface Program {
   id: string;
@@ -81,7 +78,7 @@ export default function ProgramUnggulanSection({ programs }: { programs: Program
                         {features.slice(0, 4).map((f, i) => (
                           <div key={i} className="flex items-start gap-1.5">
                             <CheckCircle className={`mt-0.5 h-4 w-4 shrink-0 ${isYellow ? "text-yellow-500" : "text-blue-600"}`} />
-                            <span className="text-xs text-gray-600">{f.title ?? f}</span>
+                            <span className="text-xs text-gray-600">{typeof f === "string" ? f : f.title}</span>
                           </div>
                         ))}
                       </div>
