@@ -44,8 +44,9 @@ export async function GET() {
 function buildMenuTree(
   menus: { id: string; label: string; href: string | null; parentId: string | null; order: number; openInNewTab: boolean }[]
 ) {
-  const map = new Map(menus.map((m) => [m.id, { ...m, children: [] as typeof menus }]));
-  const roots: typeof menus[] = [];
+  type MenuNode = { id: string; label: string; href: string | null; parentId: string | null; order: number; openInNewTab: boolean; children: MenuNode[] };
+  const map = new Map<string, MenuNode>(menus.map((m) => [m.id, { ...m, children: [] }]));
+  const roots: MenuNode[] = [];
   for (const m of menus) {
     if (m.parentId) {
       const parent = map.get(m.parentId);
