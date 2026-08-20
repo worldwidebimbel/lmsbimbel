@@ -1428,16 +1428,19 @@ model SiteConfig {
 }
 
 model SiteBanner {
-  id          String   @id @default(cuid())
-  title       String
-  subtitle    String?
-  imageUrl    String?
-  linkUrl     String?
-  linkLabel   String?
-  isActive    Boolean  @default(true)
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  title           String
+  titleHighlight  String?
+  subtitle        String?
+  imageUrl        String?
+  linkUrl         String?
+  linkLabel       String?
+  alignment       String   @default("left")
+  overlayOpacity  Float    @default(0.4)
+  isActive        Boolean  @default(true)
+  order           Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@map("site_banners")
 }
@@ -1457,31 +1460,41 @@ model SiteGallery {
 }
 
 model SiteProgram {
-  id          String   @id @default(cuid())
-  title       String   @unique
-  slug        String   @unique @default(cuid())
-  description String?
-  icon        String   @default("GraduationCap")
-  color       String   @default("bg-blue-100 text-blue-700")
-  linkUrl     String?
-  order       Int      @default(0)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  title         String   @unique
+  slug          String   @unique @default(cuid())
+  subtitle      String?
+  description   String?  @db.Text
+  icon          String   @default("GraduationCap")
+  color         String   @default("bg-blue-100 text-blue-700")
+  imageUrl      String?
+  features      Json?
+  levelLabel    String?
+  theme         String   @default("blue")
+  imagePosition String   @default("left")
+  linkUrl       String?
+  order         Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@map("site_programs")
 }
 
 model SiteTestimonial {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  role      String?
-  text      String
-  avatarUrl String?
-  order     Int      @default(0)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  name        String   @unique
+  role        String?
+  text        String   @db.Text
+  avatarUrl   String?
+  photoUrl    String?
+  rating      Int      @default(5)
+  programName String?
+  isFeatured  Boolean  @default(false)
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("site_testimonials")
 }
@@ -1566,6 +1579,83 @@ model SiteTeamMember {
   updatedAt  DateTime @updatedAt
 
   @@map("site_team_members")
+}
+
+model SiteSocialLink {
+  id        String   @id @default(cuid())
+  platform  String
+  url       String
+  icon      String?
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("site_social_links")
+}
+
+model SiteMenu {
+  id           String   @id @default(cuid())
+  label        String
+  href         String?
+  parentId     String?
+  order        Int      @default(0)
+  openInNewTab Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  parent      SiteMenu?  @relation("MenuChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children    SiteMenu[] @relation("MenuChildren")
+
+  @@index([parentId])
+  @@map("site_menus")
+}
+
+model SiteQuickAction {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  icon        String?
+  theme       String   @default("blue")
+  linkUrl     String?
+  fileUrl     String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("site_quick_actions")
+}
+
+model SiteVideo {
+  id           String   @id @default(cuid())
+  title        String
+  videoUrl     String
+  thumbnailUrl String?
+  duration     String?
+  category     String   @default("Umum")
+  isFeatured   Boolean  @default(false)
+  order        Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("site_videos")
+}
+
+model SiteVideoHighlight {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  icon        String?
+  theme       String   @default("blue")
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("site_video_highlights")
 }
 
 // ============================

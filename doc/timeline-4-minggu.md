@@ -317,60 +317,60 @@
 > 🎨 Referensi 4 mockup Worldwide Global Education. Biru `#1e3a8a` + kuning `#facc15`. Semua konten dari admin, bukan hardcode.
 
 ### Hari 1 — Schema & Migration
-- [ ] 🔥 `7.9.1` `model SiteSocialLink` — platform, url, order, isActive
-- [ ] 🔥 `7.9.2` `model SiteMenu` — label, href, parentId (dropdown 2 level), order, openInNewTab
-- [ ] 🔥 `7.9.4` `model SiteQuickAction` — title, description, icon, theme, linkUrl, fileUrl
-- [ ] 🔥 `7.9.6` `model SiteVideo` — title, videoUrl, thumbnailUrl, duration, isFeatured
-- [ ] 🔥 `7.9.6` `model SiteVideoHighlight` — title, description, icon, theme, order
-- [ ] 🔥 `7.9.3` Tambah `SiteBanner`: titleHighlight, alignment, overlayOpacity
-- [ ] 🔥 `7.9.5` Tambah `SiteProgram`: subtitle, imageUrl, features Json, levelLabel, theme, imagePosition
-- [ ] 🔥 `7.9.7` Tambah `SiteTestimonial`: rating, photoUrl, programName, isFeatured
-- [ ] 🔥 `7.9.8` Migration `add_homepage_cms` + `migrate deploy` di staging
-- [ ] `7.9.1` Tambah `SiteConfig` key: header_email, header_call_center, header_whatsapp_label, topbar_links
+- [x] 🔥 `7.9.1` `model SiteSocialLink` — platform, url, order, isActive
+- [x] 🔥 `7.9.2` `model SiteMenu` — label, href, parentId (dropdown 2 level), order, openInNewTab
+- [x] 🔥 `7.9.4` `model SiteQuickAction` — title, description, icon, theme, linkUrl, fileUrl
+- [x] 🔥 `7.9.6` `model SiteVideo` — title, videoUrl, thumbnailUrl, duration, isFeatured
+- [x] 🔥 `7.9.6` `model SiteVideoHighlight` — title, description, icon, theme, order
+- [x] 🔥 `7.9.3` Tambah `SiteBanner`: titleHighlight, alignment, overlayOpacity
+- [x] 🔥 `7.9.5` Tambah `SiteProgram`: subtitle, imageUrl, features Json, levelLabel, theme, imagePosition
+- [x] 🔥 `7.9.7` Tambah `SiteTestimonial`: rating, photoUrl, programName, isFeatured
+- [x] 🔥 `7.9.8` Migration `add_homepage_cms` + `migrate deploy` di staging
+- [x] `7.9.1` Tambah `SiteConfig` key: header_email, header_call_center, header_whatsapp_label, topbar_links
 
 ### Hari 2 — Topbar, Header & Navigasi
-- [ ] `7.9.1` Topbar gelap: ikon sosial kiri + link kanan (REGISTER, APPLY ONLINE, BLOG, FAQS)
+- [x] `7.9.1` Topbar gelap: ikon sosial kiri + link kanan (REGISTER, APPLY ONLINE, BLOG, FAQS)
 - [ ] `7.9.1` Switcher mata uang (IDR/USD) + bahasa (ID/EN) — preferensi di cookie
-- [ ] `7.9.1` Header utama: logo + blok EMAIL & CALL CENTER (ikon bulat kuning) + tombol Chat WhatsApp hijau
-- [ ] `7.9.1` Perbarui `PublicHeader.tsx` → 3 baris (topbar, header info, navbar) + sticky
-- [ ] `7.9.2` Navbar biru: HOME, TENTANG KAMI, PROGRAM ▾, GALERI, TESTIMONI, INFORMASI ▾, KONTAK
-- [ ] `7.9.2` Dropdown PROGRAM otomatis dari `SiteProgram` aktif
-- [ ] `7.9.2` Kotak pencarian "CARI PROGRAM" → `/program?q=`
-- [ ] `7.9.2` Highlight kuning menu aktif + mobile drawer + accordion dropdown
-- [ ] `7.9.2` Halaman `/admin/cms/menu` — kelola menu & dropdown (drag-and-drop)
+- [x] `7.9.1` Header utama: logo + blok EMAIL & CALL CENTER (ikon bulat kuning) + tombol Chat WhatsApp hijau
+- [x] `7.9.1` Perbarui `PublicHeader.tsx` → 3 baris (topbar, header info, navbar) + sticky
+- [x] `7.9.2` Navbar biru: HOME, TENTANG KAMI, PROGRAM ▾, GALERI, TESTIMONI, INFORMASI ▾, KONTAK
+- [x] `7.9.2` Dropdown PROGRAM otomatis dari `SiteProgram` aktif
+- [x] `7.9.2` Kotak pencarian "CARI PROGRAM" → `/program?q=`
+- [x] `7.9.2` Highlight kuning menu aktif + mobile drawer + accordion dropdown
+- [x] `7.9.2` Halaman `/admin/cms/menu` — kelola menu & dropdown (drag-and-drop)
 
 ### Hari 3 — Hero & Quick Action
-- [ ] `7.9.3` Hero full-width: gambar latar + gradasi gelap agar teks terbaca
-- [ ] `7.9.3` Judul 3 baris dengan 1 frasa disorot kuning + subteks + CTA bulat
-- [ ] `7.9.3` Slider auto-play + dot indicator + swipe mobile + pause saat hover
+- [x] `7.9.3` Hero full-width: gambar latar + gradasi gelap agar teks terbaca
+- [x] `7.9.3` Judul 3 baris dengan 1 frasa disorot kuning + subteks + CTA bulat
+- [x] `7.9.3` Slider auto-play + dot indicator + swipe mobile + pause saat hover
 - [ ] `7.9.3` `/admin/cms/banner` — dukung field baru + preview hero
-- [ ] `7.9.4` 3 kartu bertumpuk di atas hero: KONSULTASI GRATIS, UNDUH PROSPEK, SERTIFIKASI
-- [ ] `7.9.4` Kartu UNDUH PROSPEK → unduh PDF yang diunggah admin (Cloudinary)
-- [ ] `7.9.4` Tema biru/kuning bergantian + ikon bulat + tombol panah kanan bawah
-- [ ] `7.9.4` Halaman `/admin/cms/quick-actions` — CRUD + upload berkas prospek
+- [x] `7.9.4` 3 kartu bertumpuk di atas hero: KONSULTASI GRATIS, UNDUH PROSPEK, SERTIFIKASI
+- [x] `7.9.4` Kartu UNDUH PROSPEK → unduh PDF yang diunggah admin (Cloudinary)
+- [x] `7.9.4` Tema biru/kuning bergantian + ikon bulat + tombol panah kanan bawah
+- [x] `7.9.4` Halaman `/admin/cms/quick-actions` — CRUD + upload berkas prospek
 
 ### Hari 4 — Program Unggulan & Video Activity
-- [ ] `7.9.5` Judul 2 warna: PROGRAM biru + UNGGULAN kuning + subteks
-- [ ] `7.9.5` Grid 2×2 kartu: gambar + ikon + judul 2 baris + deskripsi + fitur centang 2 kolom + badge jenjang
-- [ ] `7.9.5` Tema biru/kuning bergantian + posisi gambar kiri/kanan bergantian
-- [ ] `7.9.5` Bar bawah: 3 USP + panel CTA kuning KONSULTASI GRATIS
+- [x] `7.9.5` Judul 2 warna: PROGRAM biru + UNGGULAN kuning + subteks
+- [x] `7.9.5` Grid 2×2 kartu: gambar + ikon + judul 2 baris + deskripsi + fitur centang 2 kolom + badge jenjang
+- [x] `7.9.5` Tema biru/kuning bergantian + posisi gambar kiri/kanan bergantian
+- [x] `7.9.5` Bar bawah: 3 USP + panel CTA kuning KONSULTASI GRATIS
 - [ ] `7.9.5` `/admin/cms/program` — field baru + editor daftar fitur + upload gambar
-- [ ] `7.9.6` Badge pil biru ▶ VIDEO ACTIVITY + judul 2 warna + subteks tengah
-- [ ] `7.9.6` Pemutar video 16:9 + thumbnail + play overlay — lazy-load iframe (jaga LCP)
-- [ ] `7.9.6` 4 kartu highlight: Aktif & Kreatif, Pengalaman Nyata, Pengembangan Diri, Siap Berprestasi
-- [ ] `7.9.6` Bar CTA putih: logo + teks + tombol kuning TONTON VIDEO LAINNYA
-- [ ] `7.9.6` Halaman publik `/galeri/video` — daftar video + filter kategori
-- [ ] `7.9.6` Halaman `/admin/cms/video` — CRUD video + highlight + pilih unggulan
-- [ ] `7.9.6` Ornamen dekoratif (pola titik + bentuk lengkung) latar section
+- [x] `7.9.6` Badge pil biru ▶ VIDEO ACTIVITY + judul 2 warna + subteks tengah
+- [x] `7.9.6` Pemutar video 16:9 + thumbnail + play overlay — lazy-load iframe (jaga LCP)
+- [x] `7.9.6` 4 kartu highlight: Aktif & Kreatif, Pengalaman Nyata, Pengembangan Diri, Siap Berprestasi
+- [x] `7.9.6` Bar CTA putih: logo + teks + tombol kuning TONTON VIDEO LAINNYA
+- [x] `7.9.6` Halaman publik `/galeri/video` — daftar video + filter kategori
+- [x] `7.9.6` Halaman `/admin/cms/video` — CRUD video + highlight + pilih unggulan
+- [x] `7.9.6` Ornamen dekoratif (pola titik + bentuk lengkung) latar section
 
 ### Hari 5 — Testimoni, Integrasi & QA
-- [ ] `7.9.7` Header section: logo tengah + garis pemisah kiri-kanan + judul TESTIMONI SISWA
-- [ ] `7.9.7` Kartu: foto potret 4:3 + ikon kutip + teks + bintang + nama + peran
-- [ ] `7.9.7` Grid 3 kolom desktop → slider swipe mobile + tombol "Lihat semua testimoni"
+- [x] `7.9.7` Header section: logo tengah + garis pemisah kiri-kanan + judul TESTIMONI SISWA
+- [x] `7.9.7` Kartu: foto potret 4:3 + ikon kutip + teks + bintang + nama + peran
+- [x] `7.9.7` Grid 3 kolom desktop → slider swipe mobile + tombol "Lihat semua testimoni"
 - [ ] `7.9.7` `/admin/cms/testimonial` — rating, foto potret, tandai unggulan
-- [ ] `7.9.8` Susun ulang `LandingPage.tsx` → komponen per section
-- [ ] `7.9.8` Satu query gabungan data homepage (hindari N+1) + `revalidate` ISR
-- [ ] `7.9.8` Optimasi gambar: `next/image` + `sizes` + `priority` hanya hero
+- [x] `7.9.8` Susun ulang `LandingPage.tsx` → komponen per section
+- [x] `7.9.8` Satu query gabungan data homepage (hindari N+1) + `revalidate` ISR
+- [x] `7.9.8` Optimasi gambar: `next/image` + `sizes` + `priority` hanya hero
 - [ ] `7.9.8` Audit responsive homepage 375px / 768px / 1024px / 1440px
 - [ ] `7.9.8` Seed data contoh semua model CMS baru (`prisma/seed.ts`)
 

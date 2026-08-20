@@ -20,6 +20,10 @@ export const SITE_DEFAULTS = {
   popupLinkLabel: "Daftar Sekarang",
   logoUrl: "",
   faviconUrl: "",
+  header_email: "info@edubimbel.id",
+  header_call_center: "0812-3456-7890",
+  header_whatsapp_label: "Chat WhatsApp",
+  topbar_links: "REGISTER,APPLY ONLINE,BLOG,FAQS",
 };
 
 export type SiteConfigKeys = keyof typeof SITE_DEFAULTS;

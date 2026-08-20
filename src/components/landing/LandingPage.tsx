@@ -3,9 +3,14 @@ import Image from "next/image";
 import { GraduationCap, BookOpen, Users, Award, ArrowRight, CheckCircle, Star, Phone, FlaskConical, Calculator, Monitor, PenTool, Layers, Rocket } from "lucide-react";
 import { db } from "@/lib/db";
 import { getSiteConfig } from "@/lib/site-config";
+import { getHomepageData } from "@/lib/homepage-data";
 import LandingInquiryForm from "@/components/landing/LandingInquiryForm";
 import HeroBannerSlider from "@/components/landing/HeroBannerSlider";
 import PromoPopup from "@/components/landing/PromoPopup";
+import QuickActionCards from "@/components/landing/QuickActionCards";
+import ProgramUnggulanSection from "@/components/landing/ProgramUnggulanSection";
+import VideoActivitySection from "@/components/landing/VideoActivitySection";
+import TestimoniSection from "@/components/landing/TestimoniSection";
 
 const PROGRAM_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   GraduationCap,
@@ -22,25 +27,32 @@ const PROGRAM_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 
 async function getLandingData() {
   try {
-    const [students, teachers, classes, subjects, banners, gallery, programs, testimonials] = await Promise.all([
+    const [students, teachers, classes, subjects, gallery, homepage] = await Promise.all([
       db.user.count({ where: { role: "SISWA", isActive: true } }),
       db.user.count({ where: { role: "GURU", isActive: true } }),
       db.class.count({ where: { isActive: true } }),
       db.subject.count({ where: { isActive: true } }),
-      db.siteBanner.findMany({ where: { isActive: true }, orderBy: { order: "asc" } }),
       db.siteGallery.findMany({ where: { isActive: true }, orderBy: [{ category: "asc" }, { order: "asc" }] }),
-      db.siteProgram.findMany({ where: { isActive: true }, orderBy: { order: "asc" } }),
-      db.siteTestimonial.findMany({ where: { isActive: true }, orderBy: { order: "asc" } }),
+      getHomepageData(),
     ]);
-    return { students, teachers, classes, subjects, banners, gallery, programs, testimonials };
+    return {
+      students, teachers, classes, subjects,
+      gallery,
+      banners: homepage.banners,
+      quickActions: homepage.quickActions,
+      programs: homepage.programs,
+      videos: homepage.videos,
+      videoHighlights: homepage.videoHighlights,
+      testimonials: homepage.testimonials,
+    };
   } catch {
-    return { students: 0, teachers: 0, classes: 0, subjects: 0, banners: [], gallery: [], programs: [], testimonials: [] };
+    return { students: 0, teachers: 0, classes: 0, subjects: 0, gallery: [], banners: [], quickActions: [], programs: [], videos: [], videoHighlights: [], testimonials: [] };
   }
 }
 
 export default async function LandingPage() {
   const [data, cfg] = await Promise.all([getLandingData(), getSiteConfig()]);
-  const { students, teachers, classes, subjects, banners, gallery, programs, testimonials } = data;
+  const { students, teachers, classes, subjects, banners, gallery, programs, quickActions, videos, videoHighlights, testimonials } = data;
 
   const groupedGallery: Record<string, typeof gallery> = {};
   for (const item of gallery) {
@@ -123,6 +135,9 @@ export default async function LandingPage() {
         </section>
       )}
 
+      {/* Quick Action Cards (overlapping hero) */}
+      <QuickActionCards actions={quickActions} />
+
       {/* Stats Section */}
       <section id="statistik" className="border-y border-gray-100 bg-gray-50/50 py-14">
         <div className="mx-auto max-w-7xl px-6">
@@ -135,24 +150,11 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Program Section */}
-      <section id="program" className="py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Program Unggulan</h2>
-            <p className="mt-3 text-gray-500">Pilih program yang sesuai dengan kebutuhan belajar Anda</p>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {programs.length > 0 ? (
-              programs.map((program) => <ProgramCard key={program.id} program={program} />)
-            ) : (
-              <div className="col-span-full text-center text-sm text-gray-400">
-                Belum ada program yang dipublikasikan. Kelola program di menu Admin → CMS Landing Page.
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      {/* Program Unggulan Section */}
+      <ProgramUnggulanSection programs={programs} />
+
+      {/* Video Activity Section */}
+      <VideoActivitySection videos={videos} highlights={videoHighlights} />
 
       {/* Features */}
       <section className="bg-gray-50 py-20">
@@ -189,19 +191,7 @@ export default async function LandingPage() {
 
       {/* Testimonials */}
       {testimonials.length > 0 && (
-        <section id="testimoni" className="py-20">
-          <div className="mx-auto max-w-7xl px-6">
-            <div className="mb-12 text-center">
-              <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Apa Kata Mereka?</h2>
-              <p className="mt-3 text-gray-500">Testimoni dari siswa & orang tua yang telah merasakan manfaatnya</p>
-            </div>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {testimonials.map((t) => (
-                <TestimonialCard key={t.id} name={t.name} role={t.role} text={t.text} avatarUrl={t.avatarUrl} />
-              ))}
-            </div>
-          </div>
-        </section>
+        <TestimoniSection testimonials={testimonials} />
       )}
 
       {/* Gallery Section */}
