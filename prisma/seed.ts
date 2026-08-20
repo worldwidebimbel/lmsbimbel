@@ -604,6 +604,116 @@ async function main() {
   }
   console.log(`✅ ${samplePosts.length} blog posts seeded`);
 
+  // ============================
+  // HOMEPAGE CMS SEED DATA
+  // ============================
+
+  // Social Links
+  const socialLinks = [
+    { platform: "Facebook", url: "https://facebook.com/worldwideeducation", icon: "Facebook", order: 1, isActive: true },
+    { platform: "Instagram", url: "https://instagram.com/worldwideeducation", icon: "Instagram", order: 2, isActive: true },
+    { platform: "YouTube", url: "https://youtube.com/@worldwideeducation", icon: "Youtube", order: 3, isActive: true },
+    { platform: "TikTok", url: "https://tiktok.com/@worldwideeducation", icon: "Music", order: 4, isActive: true },
+  ];
+  for (const s of socialLinks) {
+    await prisma.siteSocialLink.upsert({ where: { id: `seed-social-${s.platform}` }, update: s, create: { id: `seed-social-${s.platform}`, ...s } });
+  }
+  console.log(`✅ ${socialLinks.length} social links seeded`);
+
+  // Menus (with dropdown children)
+  const menuHome = await prisma.siteMenu.upsert({ where: { id: "seed-menu-home" }, update: {}, create: { id: "seed-menu-home", label: "HOME", href: "/", order: 1, isActive: true } });
+  const menuTentang = await prisma.siteMenu.upsert({ where: { id: "seed-menu-tentang" }, update: {}, create: { id: "seed-menu-tentang", label: "TENTANG KAMI", href: "/tentang", order: 2, isActive: true } });
+  const menuProgram = await prisma.siteMenu.upsert({ where: { id: "seed-menu-program" }, update: {}, create: { id: "seed-menu-program", label: "PROGRAM", href: "/#program", order: 3, isActive: true } });
+  await prisma.siteMenu.upsert({ where: { id: "seed-menu-program-sma" }, update: {}, create: { id: "seed-menu-program-sma", label: "Program SMA", href: "/program/sma", parentId: menuProgram.id, order: 1, isActive: true } });
+  await prisma.siteMenu.upsert({ where: { id: "seed-menu-program-smp" }, update: {}, create: { id: "seed-menu-program-smp", label: "Program SMP", href: "/program/smp", parentId: menuProgram.id, order: 2, isActive: true } });
+  await prisma.siteMenu.upsert({ where: { id: "seed-menu-menu-galeri" }, update: {}, create: { id: "seed-menu-menu-galeri", label: "GALERI", href: "/galeri", order: 4, isActive: true } });
+  await prisma.siteMenu.upsert({ where: { id: "seed-menu-testimoni" }, update: {}, create: { id: "seed-menu-testimoni", label: "TESTIMONI", href: "/#testimoni", order: 5, isActive: true } });
+  const menuInfo = await prisma.siteMenu.upsert({ where: { id: "seed-menu-info" }, update: {}, create: { id: "seed-menu-info", label: "INFORMASI", href: "#", order: 6, isActive: true } });
+  await prisma.siteMenu.upsert({ where: { id: "seed-menu-info-blog" }, update: {}, create: { id: "seed-menu-info-blog", label: "Blog", href: "/blog", parentId: menuInfo.id, order: 1, isActive: true } });
+  await prisma.siteMenu.upsert({ where: { id: "seed-menu-info-faq" }, update: {}, create: { id: "seed-menu-info-faq", label: "FAQ", href: "/faq", parentId: menuInfo.id, order: 2, isActive: true } });
+  await prisma.siteMenu.upsert({ where: { id: "seed-menu-info-event" }, update: {}, create: { id: "seed-menu-info-event", label: "Event", href: "/events", parentId: menuInfo.id, order: 3, isActive: true } });
+  await prisma.siteMenu.upsert({ where: { id: "seed-menu-kontak" }, update: {}, create: { id: "seed-menu-kontak", label: "KONTAK", href: "/#kontak", order: 7, isActive: true } });
+  console.log(`✅ 12 menus seeded (with dropdown children)`);
+
+  // Banners
+  const banners = [
+    { id: "seed-banner-1", title: "Wujudkan Mimpi", titleHighlight: "Cemerlang", subtitle: "Bimbingan belajar terbaik untuk masa depan cerah", imageUrl: null, linkUrl: "/daftar", linkLabel: "Daftar Sekarang", alignment: "left", overlayOpacity: 0.4, order: 1, isActive: true },
+    { id: "seed-banner-2", title: "Belajar Lebih", titleHighlight: "Interaktif", subtitle: "Teknologi pembelajaran modern dengan guru profesional", imageUrl: null, linkUrl: "/#program", linkLabel: "Lihat Program", alignment: "left", overlayOpacity: 0.5, order: 2, isActive: true },
+  ];
+  for (const b of banners) {
+    await prisma.siteBanner.upsert({ where: { id: b.id }, update: b, create: b });
+  }
+  console.log(`✅ ${banners.length} banners seeded`);
+
+  // Quick Actions
+  const quickActions = [
+    { id: "seed-qa-1", title: "KONSULTASI GRATIS", description: "Konsultasi gratis dengan tim kami", icon: "Phone", theme: "blue", linkUrl: "/kontak", fileUrl: null, order: 1, isActive: true },
+    { id: "seed-qa-2", title: "UNDUH PROSPEK", description: "Unduh brosur program kami", icon: "Download", theme: "yellow", linkUrl: null, fileUrl: "https://example.com/prospek.pdf", order: 2, isActive: true },
+    { id: "seed-qa-3", title: "SERTIFIKASI", description: "Program bersertifikasi resmi", icon: "Award", theme: "blue", linkUrl: "/#program", fileUrl: null, order: 3, isActive: true },
+  ];
+  for (const qa of quickActions) {
+    await prisma.siteQuickAction.upsert({ where: { id: qa.id }, update: qa, create: qa });
+  }
+  console.log(`✅ ${quickActions.length} quick actions seeded`);
+
+  // Programs
+  const programs = [
+    { id: "seed-prog-1", title: "Program SMA", slug: "program-sma", subtitle: "Persiapan UTBK & SNMPTN", description: "Program bimbingan belajar untuk siswa SMA kelas 10-12", icon: "GraduationCap", color: "bg-blue-100 text-blue-700", imageUrl: null, features: [{ title: "Materi UTBK" }, { title: "Simulasi UTBK" }, { title: "Bank Soal" }, { title: "Tryout Online" }], levelLabel: "SMA", theme: "blue", imagePosition: "left", linkUrl: "/program/sma", order: 1, isActive: true },
+    { id: "seed-prog-2", title: "Program SMP", slug: "program-smp", subtitle: "Persiapan AKM & Asesmen", description: "Program bimbingan belajar untuk siswa SMP kelas 7-9", icon: "BookOpen", color: "bg-yellow-100 text-yellow-700", imageUrl: null, features: [{ title: "Materi AKM" }, { title: "Tryout Online" }, { title: "Pembelajaran Interaktif" }, { title: "Laporan Progres" }], levelLabel: "SMP", theme: "yellow", imagePosition: "right", linkUrl: "/program/smp", order: 2, isActive: true },
+    { id: "seed-prog-3", title: "Program SD", slug: "program-sd", subtitle: "Fundasi Akademik Kuat", description: "Program bimbingan belajar untuk siswa SD kelas 1-6", icon: "Users", color: "bg-blue-100 text-blue-700", imageUrl: null, features: [{ title: "Belajar Sambil Bermain" }, { title: "Pendampingan Personal" }, { title: "Materi Kurikulum Merdeka" }, { title: "Rapor Berkala" }], levelLabel: "SD", theme: "blue", imagePosition: "left", linkUrl: "/program/sd", order: 3, isActive: true },
+    { id: "seed-prog-4", title: "Program TOEFL", slug: "program-toefl", subtitle: "Persiapan TOEFL ITP/PBT", description: "Program persiapan tes TOEFL dengan simulasi penuh", icon: "Award", color: "bg-yellow-100 text-yellow-700", imageUrl: null, features: [{ title: "Simulasi TOEFL" }, { title: "Audio Practice" }, { title: "Grammar Lengkap" }, { title: "Sertifikat" }], levelLabel: "Umum", theme: "yellow", imagePosition: "right", linkUrl: "/program/toefl", order: 4, isActive: true },
+  ];
+  for (const p of programs) {
+    await prisma.siteProgram.upsert({ where: { id: p.id }, update: p, create: p });
+  }
+  console.log(`✅ ${programs.length} programs seeded`);
+
+  // Videos
+  const videos = [
+    { id: "seed-video-1", title: "Pembelajaran Interaktif di EduBimbel", videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", thumbnailUrl: null, duration: "3:45", category: "Pembelajaran", isFeatured: true, order: 1, isActive: true },
+    { id: "seed-video-2", title: "Kegiatan Tryout Online", videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", thumbnailUrl: null, duration: "2:30", category: "Kegiatan", isFeatured: false, order: 2, isActive: true },
+  ];
+  for (const v of videos) {
+    await prisma.siteVideo.upsert({ where: { id: v.id }, update: v, create: v });
+  }
+  console.log(`✅ ${videos.length} videos seeded`);
+
+  // Video Highlights
+  const videoHighlights = [
+    { id: "seed-vh-1", title: "Aktif & Kreatif", description: "Pembelajaran yang menyenangkan", icon: "Zap", theme: "blue", order: 1, isActive: true },
+    { id: "seed-vh-2", title: "Pengalaman Nyata", description: "Praktik langsung dengan simulasi", icon: "Globe", theme: "yellow", order: 2, isActive: true },
+    { id: "seed-vh-3", title: "Pengembangan Diri", description: "Soft skill & karakter", icon: "Users", theme: "blue", order: 3, isActive: true },
+    { id: "seed-vh-4", title: "Siap Berprestasi", description: "Hasil terbukti & terukur", icon: "TrendingUp", theme: "yellow", order: 4, isActive: true },
+  ];
+  for (const h of videoHighlights) {
+    await prisma.siteVideoHighlight.upsert({ where: { id: h.id }, update: h, create: h });
+  }
+  console.log(`✅ ${videoHighlights.length} video highlights seeded`);
+
+  // Testimonials
+  const testimonials = [
+    { id: "seed-test-1", name: "Budi Santoso", role: "Orang Tua", text: "Anak saya naik kelas dengan nilai yang sangat memuaskan berkat bimbingan di EduBimbel. Guru-gurunya sabar dan profesional.", photoUrl: null, avatarUrl: null, rating: 5, programName: "Program SMA", isFeatured: true, order: 1, isActive: true },
+    { id: "seed-test-2", name: "Siti Rahayu", role: "Siswa", text: "Metode belajarnya interaktif dan tidak membosankan. Tryout online-nya sangat membantu persiapan UTBK.", photoUrl: null, avatarUrl: null, rating: 5, programName: "Program SMA", isFeatured: true, order: 2, isActive: true },
+    { id: "seed-test-3", name: "Ahmad Hidayat", role: "Orang Tua", text: "Laporan progres anak saya selalu update. Saya bisa memantau perkembangannya kapan saja.", photoUrl: null, avatarUrl: null, rating: 5, programName: "Program SMP", isFeatured: true, order: 3, isActive: true },
+  ];
+  for (const t of testimonials) {
+    await prisma.siteTestimonial.upsert({ where: { id: t.id }, update: t, create: t });
+  }
+  console.log(`✅ ${testimonials.length} testimonials seeded`);
+
+  // SiteConfig keys for header
+  const siteConfigs = [
+    { key: "header_email", value: "info@edubimbel.id" },
+    { key: "header_call_center", value: "0812-3456-7890" },
+    { key: "header_whatsapp_label", value: "Chat WhatsApp" },
+    { key: "topbar_links", value: "REGISTER,APPLY ONLINE,BLOG,FAQS" },
+  ];
+  for (const c of siteConfigs) {
+    const existing = await prisma.siteConfig.findUnique({ where: { key: c.key } });
+    if (!existing) await prisma.siteConfig.create({ data: c });
+  }
+  console.log(`✅ 4 site config keys seeded`);
+
   console.log(`✅ Users seeded: superadmin, admincabang, adminkeuangan, adminakademik, afiliator, guru, siswa, orangtua`);
   console.log("\n📋 Demo Credentials:");
   console.log("  Super Admin      : admin@lmsbimbel.id / admin123");

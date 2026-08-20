@@ -343,7 +343,7 @@
 - [x] `7.9.3` Hero full-width: gambar latar + gradasi gelap agar teks terbaca
 - [x] `7.9.3` Judul 3 baris dengan 1 frasa disorot kuning + subteks + CTA bulat
 - [x] `7.9.3` Slider auto-play + dot indicator + swipe mobile + pause saat hover
-- [ ] `7.9.3` `/admin/cms/banner` — dukung field baru + preview hero
+- [x] `7.9.3` `/admin/cms/banner` — dukung field baru + preview hero
 - [x] `7.9.4` 3 kartu bertumpuk di atas hero: KONSULTASI GRATIS, UNDUH PROSPEK, SERTIFIKASI
 - [x] `7.9.4` Kartu UNDUH PROSPEK → unduh PDF yang diunggah admin (Cloudinary)
 - [x] `7.9.4` Tema biru/kuning bergantian + ikon bulat + tombol panah kanan bawah
@@ -354,7 +354,7 @@
 - [x] `7.9.5` Grid 2×2 kartu: gambar + ikon + judul 2 baris + deskripsi + fitur centang 2 kolom + badge jenjang
 - [x] `7.9.5` Tema biru/kuning bergantian + posisi gambar kiri/kanan bergantian
 - [x] `7.9.5` Bar bawah: 3 USP + panel CTA kuning KONSULTASI GRATIS
-- [ ] `7.9.5` `/admin/cms/program` — field baru + editor daftar fitur + upload gambar
+- [x] `7.9.5` `/admin/cms/program` — field baru + editor daftar fitur + upload gambar
 - [x] `7.9.6` Badge pil biru ▶ VIDEO ACTIVITY + judul 2 warna + subteks tengah
 - [x] `7.9.6` Pemutar video 16:9 + thumbnail + play overlay — lazy-load iframe (jaga LCP)
 - [x] `7.9.6` 4 kartu highlight: Aktif & Kreatif, Pengalaman Nyata, Pengembangan Diri, Siap Berprestasi
@@ -367,12 +367,12 @@
 - [x] `7.9.7` Header section: logo tengah + garis pemisah kiri-kanan + judul TESTIMONI SISWA
 - [x] `7.9.7` Kartu: foto potret 4:3 + ikon kutip + teks + bintang + nama + peran
 - [x] `7.9.7` Grid 3 kolom desktop → slider swipe mobile + tombol "Lihat semua testimoni"
-- [ ] `7.9.7` `/admin/cms/testimonial` — rating, foto potret, tandai unggulan
+- [x] `7.9.7` `/admin/cms/testimonial` — rating, foto potret, tandai unggulan
 - [x] `7.9.8` Susun ulang `LandingPage.tsx` → komponen per section
 - [x] `7.9.8` Satu query gabungan data homepage (hindari N+1) + `revalidate` ISR
 - [x] `7.9.8` Optimasi gambar: `next/image` + `sizes` + `priority` hanya hero
 - [ ] `7.9.8` Audit responsive homepage 375px / 768px / 1024px / 1440px
-- [ ] `7.9.8` Seed data contoh semua model CMS baru (`prisma/seed.ts`)
+- [x] `7.9.8` Seed data contoh semua model CMS baru (`prisma/seed.ts`)
 
 ## 🔄 Sync Point Jumat Minggu 3
 - [ ] Demo jurnal mengajar: tutor input → admin lihat → orang tua lihat
