@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useFeatureFlags } from "@/context/FeatureFlagContext";
@@ -11,7 +12,7 @@ import {
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
   Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
   DoorOpen, ScrollText, Share2, DollarSign, UserCheck, FileText,
-  NotebookPen, Clock, Zap,
+  NotebookPen, Clock, Zap, ChevronDown,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -21,7 +22,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
   Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
   DoorOpen, ScrollText, Share2, DollarSign, UserCheck, FileText,
-  NotebookPen, Clock, Zap,
+  NotebookPen, Clock, Zap, ChevronDown,
 };
 
 interface NavItem {
@@ -31,6 +32,7 @@ interface NavItem {
   featureFlag?: string;
   superAdminOnly?: boolean;
   roles?: string[];
+  children?: NavItem[];
 }
 
 const ALL_ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_KEUANGAN", "ADMIN_AKADEMIK"];
@@ -60,15 +62,23 @@ const NAV_ADMIN: NavItem[] = [
   { title: "Sertifikat", href: "/admin/sertifikat", icon: "Award", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG"] },
   { title: "Sertifikat Template", href: "/admin/sertifikat/templates", icon: "Award", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG"] },
   { title: "Media Manager", href: "/admin/media", icon: "Image", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG"] },
-  { title: "CMS Landing Page", href: "/admin/landing-pages", icon: "Globe", roles: ["SUPER_ADMIN", "ADMIN"] },
-  { title: "CMS Homepage", href: "/admin/cms/settings", icon: "Settings", roles: ["SUPER_ADMIN", "ADMIN"] },
-  { title: "CMS Banner", href: "/admin/cms/banner", icon: "Image", roles: ["SUPER_ADMIN", "ADMIN"] },
-  { title: "CMS Program", href: "/admin/cms/program", icon: "GraduationCap", roles: ["SUPER_ADMIN", "ADMIN"] },
-  { title: "CMS Video", href: "/admin/cms/video", icon: "Video", roles: ["SUPER_ADMIN", "ADMIN"] },
-  { title: "CMS Testimoni", href: "/admin/cms/testimonial", icon: "MessageSquare", roles: ["SUPER_ADMIN", "ADMIN"] },
-  { title: "CMS Menu", href: "/admin/cms/menu", icon: "BookOpen", roles: ["SUPER_ADMIN", "ADMIN"] },
-  { title: "CMS Quick Actions", href: "/admin/cms/quick-actions", icon: "Zap", roles: ["SUPER_ADMIN", "ADMIN"] },
-  { title: "CMS Social Links", href: "/admin/cms/social-links", icon: "Share2", roles: ["SUPER_ADMIN", "ADMIN"] },
+  {
+    title: "CMS",
+    href: "/admin/cms",
+    icon: "Globe",
+    roles: ["SUPER_ADMIN", "ADMIN"],
+    children: [
+      { title: "Homepage", href: "/admin/cms/settings", icon: "Settings", roles: ["SUPER_ADMIN", "ADMIN"] },
+      { title: "Banner", href: "/admin/cms/banner", icon: "Image", roles: ["SUPER_ADMIN", "ADMIN"] },
+      { title: "Program", href: "/admin/cms/program", icon: "GraduationCap", roles: ["SUPER_ADMIN", "ADMIN"] },
+      { title: "Video", href: "/admin/cms/video", icon: "Video", roles: ["SUPER_ADMIN", "ADMIN"] },
+      { title: "Testimoni", href: "/admin/cms/testimonial", icon: "MessageSquare", roles: ["SUPER_ADMIN", "ADMIN"] },
+      { title: "Menu", href: "/admin/cms/menu", icon: "BookOpen", roles: ["SUPER_ADMIN", "ADMIN"] },
+      { title: "Quick Actions", href: "/admin/cms/quick-actions", icon: "Zap", roles: ["SUPER_ADMIN", "ADMIN"] },
+      { title: "Social Links", href: "/admin/cms/social-links", icon: "Share2", roles: ["SUPER_ADMIN", "ADMIN"] },
+      { title: "Landing Pages", href: "/admin/landing-pages", icon: "Globe", roles: ["SUPER_ADMIN", "ADMIN"] },
+    ],
+  },
   { title: "FAQ & Tim", href: "/admin/faq", icon: "FileText", roles: ["SUPER_ADMIN", "ADMIN"] },
   { title: "Site Gallery", href: "/admin/site", icon: "Image", roles: ["SUPER_ADMIN", "ADMIN"] },
   { title: "Pengaturan", href: "/admin/settings", icon: "Settings", roles: ["SUPER_ADMIN", "ADMIN"] },
@@ -179,15 +189,34 @@ interface SidebarProps {
 export function Sidebar({ role, userName, userEmail, siteName, logoUrl }: SidebarProps) {
   const pathname = usePathname();
   const { isFeatureActive, isLoading } = useFeatureFlags();
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const navItems = NAV_MAP[role] ?? [];
 
-  const visibleItems = navItems.filter((item) => {
+  const filterItem = (item: NavItem): boolean => {
     if (item.superAdminOnly && role !== "SUPER_ADMIN") return false;
     if (item.roles && !item.roles.includes(role)) return false;
     if (!item.featureFlag) return true;
     if (isLoading) return false;
     return isFeatureActive(item.featureFlag);
+  };
+
+  const visibleItems = navItems.filter((item) => {
+    if (!filterItem(item)) return false;
+    if (item.children) {
+      const visibleChildren = item.children.filter(filterItem);
+      if (visibleChildren.length === 0) return false;
+    }
+    return true;
   });
+
+  const toggleGroup = (title: string) => {
+    setExpandedGroups((prev) => ({ ...prev, [title]: !prev[title] }));
+  };
+
+  const isGroupActive = (item: NavItem) => {
+    if (!item.children) return false;
+    return item.children.some((child) => pathname === child.href || pathname.startsWith(child.href));
+  };
 
   return (
     <aside className="fixed inset-y-0 left-0 w-64 bg-sidebar flex flex-col z-40 border-r border-sidebar-border">
@@ -213,6 +242,56 @@ export function Sidebar({ role, userName, userEmail, siteName, logoUrl }: Sideba
         <div className="space-y-0.5">
           {visibleItems.map((item) => {
             const Icon = ICON_MAP[item.icon] ?? LayoutDashboard;
+
+            // Collapsible group
+            if (item.children) {
+              const visibleChildren = item.children.filter(filterItem);
+              const groupActive = isGroupActive(item);
+              const isExpanded = expandedGroups[item.title] ?? groupActive;
+
+              return (
+                <div key={item.title}>
+                  <button
+                    onClick={() => toggleGroup(item.title)}
+                    className={cn(
+                      "flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                      groupActive
+                        ? "text-white"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-white"
+                    )}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="flex-1 text-left">{item.title}</span>
+                    <ChevronDown className={cn("w-4 h-4 shrink-0 transition-transform", isExpanded && "rotate-180")} />
+                  </button>
+                  {isExpanded && (
+                    <div className="mt-0.5 ml-4 space-y-0.5 border-l border-sidebar-border pl-2">
+                      {visibleChildren.map((child) => {
+                        const ChildIcon = ICON_MAP[child.icon] ?? LayoutDashboard;
+                        const childActive = pathname === child.href || (child.href !== "/" && pathname.startsWith(child.href) && child.href.split("/").length > 2);
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className={cn(
+                              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all",
+                              childActive
+                                ? "bg-sidebar-primary text-white shadow-sm"
+                                : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white"
+                            )}
+                          >
+                            <ChildIcon className="w-3.5 h-3.5 shrink-0" />
+                            {child.title}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            // Regular link
             const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href) && item.href.split("/").length > 2);
 
             return (
