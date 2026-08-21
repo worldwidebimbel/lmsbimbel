@@ -21,13 +21,16 @@ export async function POST(req: NextRequest) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
-      { error: "AI Question Generator belum dikonfigurasi. Admin perlu set OPENAI_API_KEY di environment variables." },
+      { error: "AI Question Generator belum dikonfigurasi. Admin perlu set OPENAI_API_KEY (atau AI_API_KEY) di environment variables." },
       { status: 503 }
     );
   }
 
+  // Configurable AI provider — defaults to APIClaude gateway
+  const aiBaseUrl = process.env.AI_BASE_URL || "https://apiclaude.net/v1";
+
   const body = await req.json();
-  const { topic, subjectName, questionType, difficulty, count, subjectId, examId } = body as {
+  const { topic, subjectName, questionType, difficulty, count, subjectId, examId, aiModel: clientModel } = body as {
     topic: string;
     subjectName?: string;
     questionType: string;
@@ -35,7 +38,11 @@ export async function POST(req: NextRequest) {
     count: number;
     subjectId?: string;
     examId?: string;
+    aiModel?: string;
   };
+
+  // Use client-selected model if provided, otherwise fall back to env
+  const aiModel = clientModel || process.env.AI_MODEL || "langgananku/claude-sonnet-4-20250514";
 
   if (!topic || !questionType || !count) {
     return NextResponse.json({ error: "topic, questionType, count wajib diisi" }, { status: 400 });
@@ -131,14 +138,14 @@ Example:
   userPrompt += `\n\nReturn ONLY a valid JSON array of ${count} question objects. No markdown, no code fences, no explanation.`;
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch(`${aiBaseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+        model: aiModel,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -150,7 +157,7 @@ Example:
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("OpenAI API error:", errText);
+      console.error("AI API error:", errText);
       return NextResponse.json(
         { error: "AI service error. Coba lagi nanti." },
         { status: 502 }

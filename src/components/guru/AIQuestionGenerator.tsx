@@ -16,6 +16,14 @@ interface GeneratedQuestion {
   score?: number;
 }
 
+const AI_MODELS = [
+  { value: "langgananku/claude-sonnet-4-20250514", label: "Claude Sonnet 4 (Recommended)" },
+  { value: "langgananku/claude-opus-5", label: "Claude Opus 5" },
+  { value: "cbcn/glm-5.2", label: "GLM 5.2" },
+  { value: "cbcn/deepseek-v3", label: "DeepSeek V3" },
+  { value: "gcli/grok-3", label: "Grok 3" },
+];
+
 const TYPE_OPTIONS = [
   { value: "PILGAN", label: "Pilihan Ganda" },
   { value: "PILGAN_KOMPLEK", label: "Pilgan Kompleks" },
@@ -50,6 +58,7 @@ export default function AIQuestionGenerator({
     questionType: "PILGAN",
     difficulty: 2,
     count: 5,
+    aiModel: "",
   });
 
   async function handleGenerate() {
@@ -71,6 +80,7 @@ export default function AIQuestionGenerator({
           count: form.count,
           subjectId: form.subjectId || null,
           examId: examId ?? null,
+          aiModel: form.aiModel || undefined,
         }),
       });
 
@@ -104,6 +114,7 @@ export default function AIQuestionGenerator({
           subjectId: form.subjectId || null,
           examId: examId ?? null,
           saveToBank: true,
+          aiModel: form.aiModel || undefined,
         }),
       });
 
@@ -126,7 +137,7 @@ export default function AIQuestionGenerator({
     setQuestions([]);
     setError(null);
     setSavedCount(0);
-    setForm({ topic: "", subjectId: subjectId ?? "", questionType: "PILGAN", difficulty: 2, count: 5 });
+    setForm({ topic: "", subjectId: subjectId ?? "", questionType: "PILGAN", difficulty: 2, count: 5, aiModel: "" });
   }
 
   return (
@@ -173,6 +184,20 @@ export default function AIQuestionGenerator({
                   placeholder="Contoh: Turunan, Fotosintesis, Sejarah Indonesia..."
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-600">AI Model</label>
+                <select
+                  value={form.aiModel}
+                  onChange={(e) => setForm({ ...form, aiModel: e.target.value })}
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                >
+                  <option value="">— Default (server) —</option>
+                  {AI_MODELS.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
