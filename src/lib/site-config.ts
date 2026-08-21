@@ -24,6 +24,7 @@ export const SITE_DEFAULTS = {
   header_call_center: "0812-3456-7890",
   header_whatsapp_label: "Chat WhatsApp",
   topbar_links: "REGISTER,APPLY ONLINE,BLOG,FAQS",
+  hero_type: "slider",
 };
 
 export type SiteConfigKeys = keyof typeof SITE_DEFAULTS;

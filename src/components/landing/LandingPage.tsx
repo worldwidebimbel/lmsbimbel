@@ -6,6 +6,8 @@ import { getSiteConfig } from "@/lib/site-config";
 import { getHomepageData } from "@/lib/homepage-data";
 import LandingInquiryForm from "@/components/landing/LandingInquiryForm";
 import HeroBannerSlider from "@/components/landing/HeroBannerSlider";
+import HeroVideoBackground from "@/components/landing/HeroVideoBackground";
+import HeroSplitLayout from "@/components/landing/HeroSplitLayout";
 import PromoPopup from "@/components/landing/PromoPopup";
 import QuickActionCards from "@/components/landing/QuickActionCards";
 import ProgramUnggulanSection from "@/components/landing/ProgramUnggulanSection";
@@ -64,10 +66,12 @@ export default async function LandingPage() {
     <>
       {cfg.popupEnabled === "true" && <PromoPopup config={cfg} />}
 
-      {/* Hero / Banner Slider */}
-      {banners.length > 0 ? (
-        <HeroBannerSlider banners={banners} colorPrimary={cfg.colorPrimary} />
-      ) : (
+      {/* Hero — switch by cfg.hero_type */}
+      {cfg.hero_type === "video" && banners.length > 0 ? (
+        <HeroVideoBackground banners={banners} />
+      ) : cfg.hero_type === "split" ? (
+        <HeroSplitLayout banners={banners} tagline={cfg.tagline} description={cfg.description} colorPrimary={cfg.colorPrimary} students={students} />
+      ) : cfg.hero_type === "default" ? (
         <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-20 sm:py-28">
           <div className="mx-auto max-w-7xl px-6">
             <div className="grid items-center gap-12 lg:grid-cols-2">
@@ -133,6 +137,10 @@ export default async function LandingPage() {
             </div>
           </div>
         </section>
+      ) : banners.length > 0 ? (
+        <HeroBannerSlider banners={banners} colorPrimary={cfg.colorPrimary} />
+      ) : (
+        <HeroSplitLayout banners={[]} tagline={cfg.tagline} description={cfg.description} colorPrimary={cfg.colorPrimary} students={students} />
       )}
 
       {/* Quick Action Cards (overlapping hero) */}

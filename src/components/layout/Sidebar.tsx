@@ -11,7 +11,7 @@ import {
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
   Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
   DoorOpen, ScrollText, Share2, DollarSign, UserCheck, FileText,
-  NotebookPen, Clock,
+  NotebookPen, Clock, Zap,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -21,7 +21,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
   Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
   DoorOpen, ScrollText, Share2, DollarSign, UserCheck, FileText,
-  NotebookPen, Clock,
+  NotebookPen, Clock, Zap,
 };
 
 interface NavItem {
@@ -61,6 +61,14 @@ const NAV_ADMIN: NavItem[] = [
   { title: "Sertifikat Template", href: "/admin/sertifikat/templates", icon: "Award", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG"] },
   { title: "Media Manager", href: "/admin/media", icon: "Image", roles: ["SUPER_ADMIN", "ADMIN", "ADMIN_CABANG"] },
   { title: "CMS Landing Page", href: "/admin/landing-pages", icon: "Globe", roles: ["SUPER_ADMIN", "ADMIN"] },
+  { title: "CMS Homepage", href: "/admin/cms/settings", icon: "Settings", roles: ["SUPER_ADMIN", "ADMIN"] },
+  { title: "CMS Banner", href: "/admin/cms/banner", icon: "Image", roles: ["SUPER_ADMIN", "ADMIN"] },
+  { title: "CMS Program", href: "/admin/cms/program", icon: "GraduationCap", roles: ["SUPER_ADMIN", "ADMIN"] },
+  { title: "CMS Video", href: "/admin/cms/video", icon: "Video", roles: ["SUPER_ADMIN", "ADMIN"] },
+  { title: "CMS Testimoni", href: "/admin/cms/testimonial", icon: "MessageSquare", roles: ["SUPER_ADMIN", "ADMIN"] },
+  { title: "CMS Menu", href: "/admin/cms/menu", icon: "BookOpen", roles: ["SUPER_ADMIN", "ADMIN"] },
+  { title: "CMS Quick Actions", href: "/admin/cms/quick-actions", icon: "Zap", roles: ["SUPER_ADMIN", "ADMIN"] },
+  { title: "CMS Social Links", href: "/admin/cms/social-links", icon: "Share2", roles: ["SUPER_ADMIN", "ADMIN"] },
   { title: "FAQ & Tim", href: "/admin/faq", icon: "FileText", roles: ["SUPER_ADMIN", "ADMIN"] },
   { title: "Site Gallery", href: "/admin/site", icon: "Image", roles: ["SUPER_ADMIN", "ADMIN"] },
   { title: "Pengaturan", href: "/admin/settings", icon: "Settings", roles: ["SUPER_ADMIN", "ADMIN"] },
