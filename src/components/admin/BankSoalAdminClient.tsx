@@ -8,6 +8,7 @@ import {
 import MathRenderer from "@/components/ui/MathRenderer";
 import BankSoalImportClient from "@/components/guru/BankSoalImportClient";
 import AIQuestionGenerator from "@/components/guru/AIQuestionGenerator";
+import AIPromptWizard from "@/components/guru/AIPromptWizard";
 
 type QuestionType = "PILGAN" | "PILGAN_KOMPLEK" | "BENAR_SALAH" | "MENJODOHKAN" | "MENGURUTKAN" | "SETUJU_TIDAK" | "ESSAY" | "ISIAN";
 
@@ -299,6 +300,7 @@ export default function BankSoalAdminClient({
             <FileUp className="h-4 w-4" /> Import Excel
           </button>
           <AIQuestionGenerator subjects={subjects} onSaved={() => window.location.reload()} />
+          <AIPromptWizard subjects={subjects} onSaved={() => window.location.reload()} />
           <button
             onClick={() => setShowAdd(true)}
             className="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700"
