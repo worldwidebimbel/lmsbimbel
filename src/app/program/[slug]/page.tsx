@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, CheckCircle, Clock, Users, MapPin } from "lucide-react";
 import type { Metadata } from "next";
+import PublicShell from "@/components/landing/PublicShell";
 
 export const dynamic = "force-dynamic";
 
@@ -34,8 +35,9 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
   const displayPrice = hasPromo ? program.promoPrice! : program.price;
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto px-4 py-12 space-y-8">
+    <PublicShell>
+      <div className="bg-white">
+        <div className="max-w-4xl mx-auto px-4 py-12 space-y-8">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900">{program.name}</h1>
           {program.description && (
@@ -118,17 +120,18 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
           </div>
         )}
 
-        <div className="rounded-xl bg-indigo-600 text-white p-6 text-center">
-          <h3 className="text-xl font-bold mb-2">Tertarik dengan program ini?</h3>
-          <p className="text-white/90 mb-4">Daftar sekarang dan mulai perjalanan belajar Anda</p>
-          <Link
-            href="/ppdb"
-            className="inline-flex items-center gap-2 px-8 py-3 bg-white text-indigo-700 rounded-xl font-semibold hover:bg-indigo-50 transition-colors"
-          >
-            Daftar Sekarang <ArrowRight className="h-4 w-4" />
-          </Link>
+          <div className="rounded-xl bg-indigo-600 text-white p-6 text-center">
+            <h3 className="text-xl font-bold mb-2">Tertarik dengan program ini?</h3>
+            <p className="text-white/90 mb-4">Daftar sekarang dan mulai perjalanan belajar Anda</p>
+            <Link
+              href="/ppdb"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-white text-indigo-700 rounded-xl font-semibold hover:bg-indigo-50 transition-colors"
+            >
+              Daftar Sekarang <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </div>
-    </div>
+    </PublicShell>
   );
 }

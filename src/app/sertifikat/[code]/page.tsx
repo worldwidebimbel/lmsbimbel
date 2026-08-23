@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { PrintButton, VerifyNote } from "./PrintControls";
 
 async function getTemplate() {
   const keys = ["cert_bg_url", "cert_title_prefix", "cert_subtitle", "cert_signature_name", "cert_signature_title", "cert_logo_url", "cert_org_name"];
@@ -53,16 +54,7 @@ export default async function SertifikatPage({ params }: { params: Promise<{ cod
         }
       `}</style>
 
-      {/* Print / Download button */}
-      <div className="no-print fixed top-4 right-4 z-50 flex gap-2">
-        <button
-          onClick={() => window.print()}
-          className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2 rounded-lg shadow-lg text-sm"
-          suppressHydrationWarning
-        >
-          🖨️ Cetak / Simpan PDF
-        </button>
-      </div>
+      <PrintButton />
 
       <div className="min-h-screen flex items-center justify-center p-8">
         <div
@@ -131,11 +123,7 @@ export default async function SertifikatPage({ params }: { params: Promise<{ cod
           </div>
         </div>
 
-        {/* Verification note */}
-        <p className="no-print text-center text-xs text-gray-400 mt-4 absolute bottom-4 left-0 right-0">
-          Verifikasi sertifikat: {typeof window !== "undefined" ? window.location.href : ""}
-          &nbsp;· Kode: {cert.code}
-        </p>
+        <VerifyNote code={cert.code} />
       </div>
     </>
   );

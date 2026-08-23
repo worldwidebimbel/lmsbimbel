@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Shield } from "lucide-react";
+import PublicShell from "@/components/landing/PublicShell";
 
 export const metadata: Metadata = {
   title: "Kebijakan Privasi — EduBimbel LMS",
@@ -8,8 +9,9 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-3xl mx-auto px-4 py-12">
+    <PublicShell>
+      <div className="bg-white">
+        <div className="max-w-3xl mx-auto px-4 py-12">
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-100 mb-4">
             <Shield className="h-6 w-6 text-indigo-600" />
@@ -165,12 +167,13 @@ export default function PrivacyPolicyPage() {
           </section>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-gray-100 text-center">
-          <a href="/" className="text-sm text-indigo-600 hover:underline">
-            ← Kembali ke Beranda
-          </a>
+          <div className="mt-12 pt-8 border-t border-gray-100 text-center">
+            <a href="/" className="text-sm text-indigo-600 hover:underline">
+              ← Kembali ke Beranda
+            </a>
+          </div>
         </div>
       </div>
-    </div>
+    </PublicShell>
   );
 }

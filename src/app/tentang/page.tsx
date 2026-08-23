@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import Image from "next/image";
 import type { Metadata } from "next";
+import PublicShell from "@/components/landing/PublicShell";
 
 export const metadata: Metadata = {
   title: "Tentang Kami — Visi, Misi & Tim",
@@ -24,8 +25,9 @@ export default async function TentangPage() {
   const profil = configMap["profil_lembaga"] ?? "";
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto px-4 py-12 space-y-12">
+    <PublicShell>
+      <div className="bg-white">
+        <div className="max-w-4xl mx-auto px-4 py-12 space-y-12">
         <div className="text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Tentang Kami</h1>
           {profil && <p className="mt-4 text-gray-600 whitespace-pre-wrap">{profil}</p>}
@@ -72,8 +74,9 @@ export default async function TentangPage() {
               ))}
             </div>
           </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </PublicShell>
   );
 }

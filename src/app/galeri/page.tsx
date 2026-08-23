@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { Image as ImageIcon, Trophy } from "lucide-react";
+import PublicShell from "@/components/landing/PublicShell";
 
 export const metadata: Metadata = {
   title: "Galeri & Prestasi",
@@ -23,8 +24,9 @@ export default async function GaleriPage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-5xl mx-auto px-4 py-12 space-y-12">
+    <PublicShell>
+      <div className="bg-white">
+        <div className="max-w-5xl mx-auto px-4 py-12 space-y-12">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-100 mb-4">
             <ImageIcon className="h-6 w-6 text-indigo-600" />
@@ -77,8 +79,9 @@ export default async function GaleriPage() {
 
         {galleries.length === 0 && prestasi.length === 0 && (
           <p className="text-center text-gray-400">Belum ada galeri.</p>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </PublicShell>
   );
 }

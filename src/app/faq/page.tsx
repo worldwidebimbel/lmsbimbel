@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import type { Metadata } from "next";
 import { HelpCircle } from "lucide-react";
+import PublicShell from "@/components/landing/PublicShell";
 
 export const metadata: Metadata = {
   title: "FAQ — Pertanyaan yang Sering Diajukan",
@@ -18,8 +19,9 @@ export default async function FaqPage() {
   const categories = [...new Set(faqs.map((f) => f.category))];
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-3xl mx-auto px-4 py-12">
+    <PublicShell>
+      <div className="bg-white">
+        <div className="max-w-3xl mx-auto px-4 py-12">
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-100 mb-4">
             <HelpCircle className="h-6 w-6 text-indigo-600" />
@@ -49,8 +51,9 @@ export default async function FaqPage() {
               </div>
             ))}
           </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </PublicShell>
   );
 }
