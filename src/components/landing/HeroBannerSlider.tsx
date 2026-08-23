@@ -52,24 +52,29 @@ export default function HeroBannerSlider({ banners, colorPrimary }: { banners: B
         />
 
         <div
-          className={`relative z-10 flex flex-col justify-center px-6 py-20 sm:px-12 sm:py-28 text-white ${isCenter ? "items-center text-center" : isRight ? "items-end text-right ml-auto" : "items-start text-left"}`}
-          style={{ minHeight: "500px", maxWidth: "750px" }}
+          className="relative z-10 mx-auto flex w-full max-w-7xl px-4 py-20 sm:py-28"
+          style={{ minHeight: "500px" }}
         >
-          <h1 className="text-3xl sm:text-5xl font-extrabold leading-tight">
-            {b.title}
-            {b.titleHighlight && (
-              <span className="text-yellow-400"> {b.titleHighlight}</span>
+          <div
+            className={`flex flex-col justify-center text-white ${isCenter ? "mx-auto items-center text-center" : isRight ? "ml-auto items-end text-right" : "mr-auto items-start text-left"}`}
+            style={{ maxWidth: "750px" }}
+          >
+            <h1 className="text-3xl sm:text-5xl font-extrabold leading-tight">
+              {b.title}
+              {b.titleHighlight && (
+                <span className="text-yellow-400"> {b.titleHighlight}</span>
+              )}
+            </h1>
+            {b.subtitle && <p className="mt-4 text-lg text-white/90 max-w-xl">{b.subtitle}</p>}
+            {b.linkUrl && (
+              <a
+                href={b.linkUrl}
+                className="mt-8 inline-flex items-center gap-2 rounded-full px-7 py-3 text-base font-semibold text-blue-950 bg-yellow-400 hover:bg-yellow-300 transition-colors"
+              >
+                {b.linkLabel || "Selengkapnya"}
+              </a>
             )}
-          </h1>
-          {b.subtitle && <p className="mt-4 text-lg text-white/90 max-w-xl">{b.subtitle}</p>}
-          {b.linkUrl && (
-            <a
-              href={b.linkUrl}
-              className="mt-8 inline-flex items-center gap-2 rounded-full px-7 py-3 text-base font-semibold text-blue-950 bg-yellow-400 hover:bg-yellow-300 transition-colors"
-            >
-              {b.linkLabel || "Selengkapnya"}
-            </a>
-          )}
+          </div>
         </div>
       </div>
 

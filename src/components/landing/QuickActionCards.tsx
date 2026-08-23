@@ -27,12 +27,12 @@ export default function QuickActionCards({ actions }: { actions: QuickAction[] }
   return (
     <div className="relative z-20 -mt-16 sm:-mt-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-3">
           {actions.slice(0, 3).map((action) => {
             const Icon = ICON_MAP[action.icon ?? "CheckCircle"] ?? CheckCircle;
             const isYellow = action.theme === "yellow";
             const content = (
-              <div className={`group relative overflow-hidden rounded-2xl p-6 shadow-lg transition-transform hover:-translate-y-1 ${isYellow ? "bg-yellow-400 text-blue-950" : "bg-blue-900 text-white"}`}>
+              <div className={`group relative flex h-full flex-col overflow-hidden rounded-2xl p-6 shadow-lg transition-transform hover:-translate-y-1 ${isYellow ? "bg-yellow-400 text-blue-950" : "bg-blue-900 text-white"}`}>
                 <div className="flex items-start justify-between">
                   <div className={`flex h-12 w-12 items-center justify-center rounded-full ${isYellow ? "bg-blue-950 text-yellow-400" : "bg-yellow-400 text-blue-950"}`}>
                     <Icon className="h-6 w-6" />
@@ -43,24 +43,25 @@ export default function QuickActionCards({ actions }: { actions: QuickAction[] }
                 </div>
                 <h3 className="mt-4 text-lg font-bold">{action.title}</h3>
                 {action.description && <p className={`mt-1 text-sm ${isYellow ? "text-blue-950/70" : "text-white/70"}`}>{action.description}</p>}
+                <div className="flex-1" />
               </div>
             );
 
             if (action.fileUrl) {
               return (
-                <a key={action.id} href={action.fileUrl} target="_blank" rel="noopener noreferrer" download>
+                <a key={action.id} href={action.fileUrl} target="_blank" rel="noopener noreferrer" download className="h-full">
                   {content}
                 </a>
               );
             }
             if (action.linkUrl) {
               return (
-                <Link key={action.id} href={action.linkUrl}>
+                <Link key={action.id} href={action.linkUrl} className="h-full">
                   {content}
                 </Link>
               );
             }
-            return <div key={action.id}>{content}</div>;
+            return <div key={action.id} className="h-full">{content}</div>;
           })}
         </div>
       </div>

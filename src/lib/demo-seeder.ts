@@ -86,9 +86,9 @@ export async function seedAkademik() {
 
   // Subjects
   const [sMtk, sIpa, sBin] = await Promise.all([
-    db.subject.create({ data: { name: "Matematika", code: "DEMO_AKD_MTK", color: "#3B82F6", description: "Pelajaran Matematika (Demo)" } }),
-    db.subject.create({ data: { name: "IPA", code: "DEMO_AKD_IPA", color: "#10B981", description: "Ilmu Pengetahuan Alam (Demo)" } }),
-    db.subject.create({ data: { name: "Bahasa Indonesia", code: "DEMO_AKD_BIN", color: "#F59E0B", description: "Bahasa Indonesia (Demo)" } }),
+    db.subject.create({ data: { name: "Matematika [Demo]", code: "DEMO_AKD_MTK", color: "#3B82F6", description: "Pelajaran Matematika (Demo)" } }),
+    db.subject.create({ data: { name: "IPA [Demo]", code: "DEMO_AKD_IPA", color: "#10B981", description: "Ilmu Pengetahuan Alam (Demo)" } }),
+    db.subject.create({ data: { name: "Bahasa Indonesia [Demo]", code: "DEMO_AKD_BIN", color: "#F59E0B", description: "Bahasa Indonesia (Demo)" } }),
   ]);
 
   // Guru
@@ -266,8 +266,8 @@ export async function seedUTBK() {
   const pw = await hash("demo123", 10);
 
   const [sTPS, sLit] = await Promise.all([
-    db.subject.create({ data: { name: "TPS (Tes Potensi Skolastik)", code: "DEMO_UTBK_TPS", color: "#8B5CF6" } }),
-    db.subject.create({ data: { name: "Literasi & Penalaran Matematika", code: "DEMO_UTBK_LIT", color: "#EC4899" } }),
+    db.subject.create({ data: { name: "TPS (Tes Potensi Skolastik) [Demo]", code: "DEMO_UTBK_TPS", color: "#8B5CF6" } }),
+    db.subject.create({ data: { name: "Literasi & Penalaran Matematika [Demo]", code: "DEMO_UTBK_LIT", color: "#EC4899" } }),
   ]);
   const [gTPS, gLit] = await Promise.all([
     makeUser("Reza Firmansyah, S.Pd (UTBK)", "reza.utbk", "GURU", pw),
@@ -326,8 +326,8 @@ export async function seedKedinasan() {
   const pw = await hash("demo123", 10);
 
   const [sTWK, sTKP] = await Promise.all([
-    db.subject.create({ data: { name: "TWK & TIU (Tes Wawasan)", code: "DEMO_KDN_TWK", color: "#EF4444" } }),
-    db.subject.create({ data: { name: "TKP (Tes Karakteristik Pribadi)", code: "DEMO_KDN_TKP", color: "#F97316" } }),
+    db.subject.create({ data: { name: "TWK & TIU (Tes Wawasan) [Demo]", code: "DEMO_KDN_TWK", color: "#EF4444" } }),
+    db.subject.create({ data: { name: "TKP (Tes Karakteristik Pribadi) [Demo]", code: "DEMO_KDN_TKP", color: "#F97316" } }),
   ]);
   const [gTWK, gTKP] = await Promise.all([
     makeUser("Agus Setiawan, S.H (Kedinasan)", "agus.kdn", "GURU", pw),
@@ -378,9 +378,9 @@ export async function seedBahasa() {
   const pw = await hash("demo123", 10);
 
   const [sEng, sMnd, sJpn] = await Promise.all([
-    db.subject.create({ data: { name: "Bahasa Inggris", code: "DEMO_BHS_ENG", color: "#3B82F6" } }),
-    db.subject.create({ data: { name: "Bahasa Mandarin", code: "DEMO_BHS_MND", color: "#EF4444" } }),
-    db.subject.create({ data: { name: "Bahasa Jepang", code: "DEMO_BHS_JPN", color: "#F59E0B" } }),
+    db.subject.create({ data: { name: "Bahasa Inggris [Demo]", code: "DEMO_BHS_ENG", color: "#3B82F6" } }),
+    db.subject.create({ data: { name: "Bahasa Mandarin [Demo]", code: "DEMO_BHS_MND", color: "#EF4444" } }),
+    db.subject.create({ data: { name: "Bahasa Jepang [Demo]", code: "DEMO_BHS_JPN", color: "#F59E0B" } }),
   ]);
   const [gEng, gMnd, gJpn] = await Promise.all([
     makeUser("Mrs. Diana Kusuma (English)", "diana.bhs", "GURU", pw),
