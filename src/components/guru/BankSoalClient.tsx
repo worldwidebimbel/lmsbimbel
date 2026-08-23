@@ -94,6 +94,30 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
     setSelected((prev) => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
   }
 
+  /** Resize the answer choices (3 for SD, 4 for SMP, 5 for SMA) keeping entered values. */
+  function setOptionCount(n: number) {
+    setForm((prev) => ({
+      ...prev,
+      options: Array.from({ length: n }, (_, i) => prev.options[i] ?? ""),
+      optionImages: Array.from({ length: n }, (_, i) => prev.optionImages[i] ?? ""),
+      correctIndices: prev.correctIndices.filter((i) => i < n),
+    }));
+  }
+
+  function OptionCountSelect() {
+    return (
+      <select
+        value={form.options.length}
+        onChange={(e) => setOptionCount(Number(e.target.value))}
+        className="rounded-lg border border-gray-200 px-2 py-1 text-xs"
+      >
+        <option value={3}>3 Opsi (A-C) — SD</option>
+        <option value={4}>4 Opsi (A-D) — SMP</option>
+        <option value={5}>5 Opsi (A-E) — SMA</option>
+      </select>
+    );
+  }
+
   async function handleAdd() {
     const content = form.contentImageUrl
       ? `${form.content}\n\n<img src="${form.contentImageUrl}" alt="Soal" class="max-h-48 rounded-lg" />`

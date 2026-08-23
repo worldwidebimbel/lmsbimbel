@@ -607,7 +607,22 @@ function AddQuestionModal({
 
         {(form.type === "PILGAN" || form.type === "PILGAN_KOMPLEK") && (
           <div className="space-y-2">
-            <label className="text-xs font-medium text-gray-600">Pilihan Jawaban</label>
+            <div className="flex items-center justify-between gap-3">
+              <label className="text-xs font-medium text-gray-600">Pilihan Jawaban</label>
+              <select
+                value={form.options.length}
+                onChange={(e) => {
+                  const n = Number(e.target.value);
+                  const next = Array.from({ length: n }, (_, i) => form.options[i] ?? "");
+                  setForm({ ...form, options: next });
+                }}
+                className="rounded-lg border border-gray-200 px-2 py-1 text-xs"
+              >
+                <option value={3}>3 Opsi (A-C) — SD</option>
+                <option value={4}>4 Opsi (A-D) — SMP</option>
+                <option value={5}>5 Opsi (A-E) — SMA</option>
+              </select>
+            </div>
             {form.options.map((opt, i) => (
               <div key={i} className="flex items-center gap-2">
                 <span className="w-6 text-center text-xs font-medium text-gray-500">

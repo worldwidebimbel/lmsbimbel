@@ -12,6 +12,34 @@ interface GeneratedQuestion {
   score?: number;
 }
 
+const LETTER_INDEX: Record<string, number> = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+
+/**
+ * The model answers with option LETTERS, but the grader compares against option
+ * TEXT. Translate letters into their option text so generated questions can
+ * actually be scored. Falls back to the raw value when it isn't a letter.
+ */
+function resolveCorrectAnswer(q: GeneratedQuestion): string | null {
+  const raw = (q.correctAnswer ?? "").trim();
+  if (!raw) return null;
+
+  const opts = Array.isArray(q.options) ? q.options : null;
+  if (!opts) return raw;
+
+  const separator = raw.includes("|") ? "|" : raw.includes(",") ? "," : null;
+
+  if (separator) {
+    const texts = raw
+      .split(separator)
+      .map((part) => opts[LETTER_INDEX[part.trim().toUpperCase()]])
+      .filter((t): t is string => typeof t === "string");
+    return texts.length > 0 ? texts.join("|") : raw;
+  }
+
+  const idx = LETTER_INDEX[raw.toUpperCase()];
+  return idx !== undefined && opts[idx] !== undefined ? opts[idx] : raw;
+}
+
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user || !["GURU", "SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_AKADEMIK"].includes(session.user.role)) {
@@ -30,7 +58,23 @@ export async function POST(req: NextRequest) {
   const aiBaseUrl = process.env.AI_BASE_URL || "https://apiclaude.net/v1";
 
   const body = await req.json();
-  const { topic, subjectName, questionType, difficulty, count, subjectId, examId, aiModel: clientModel } = body as {
+  const {
+    topic,
+    subjectName,
+    questionType,
+    difficulty,
+    count,
+    subjectId,
+    examId,
+    aiModel: clientModel,
+    jenjang,
+    kurikulum,
+    bahasa,
+    optionCount,
+    detailInstruction,
+    sourceMaterial,
+    strictMode,
+  } = body as {
     topic: string;
     subjectName?: string;
     questionType: string;
@@ -39,6 +83,13 @@ export async function POST(req: NextRequest) {
     subjectId?: string;
     examId?: string;
     aiModel?: string;
+    jenjang?: string;
+    kurikulum?: string;
+    bahasa?: string;
+    optionCount?: number;
+    detailInstruction?: string;
+    sourceMaterial?: string;
+    strictMode?: boolean;
   };
 
   // Use client-selected model if provided, otherwise fall back to env
@@ -61,25 +112,54 @@ export async function POST(req: NextRequest) {
   const typeDesc = typeLabels[questionType] ?? questionType;
   const diffLabel = diffLabels[difficulty] ?? "Sedang";
 
+  const lang = bahasa?.trim() || "Bahasa Indonesia";
+  const nOpts = Math.min(5, Math.max(3, Number(optionCount) || 4));
+  const lastLetter = ["A", "B", "C", "D", "E"][nOpts - 1];
+
   const systemPrompt = `You are an expert exam question generator for Indonesian education (bimbel/tutoring).
-Generate high-quality exam questions in Indonesian language.
+Write every question, option and explanation in ${lang}.
 Return ONLY a JSON array, no markdown, no explanation.`;
 
   let userPrompt = `Generate ${count} exam question(s) with these specifications:
 - Topic: ${topic}
-- Subject: ${subjectName ?? "General"}
+- Subject: ${subjectName || "General"}
+- Education level: ${jenjang || "Umum"}
+- Curriculum: ${kurikulum || "Kurikulum Merdeka"}
 - Question type: ${typeDesc}
 - Difficulty: ${diffLabel}
-- Language: Indonesian (Bahasa Indonesia)
+- Language: ${lang} (use it for ALL question text, options and explanations)
+`;
 
+  if (detailInstruction?.trim()) {
+    userPrompt += `
+DETAILED INSTRUCTIONS (MUST FOLLOW):
+${detailInstruction.trim()}
+`;
+  }
+
+  if (sourceMaterial?.trim()) {
+    userPrompt += `
+SOURCE MATERIAL:
+"""
+${sourceMaterial.trim()}
+"""
+${
+  strictMode
+    ? "STRICT: Base the questions ONLY on the source material above. Do NOT use outside knowledge or facts."
+    : "Use the source material above as the primary reference."
+}
+`;
+  }
+
+  userPrompt += `
 `;
 
   if (questionType === "PILGAN") {
     userPrompt += `For each question, provide:
 - "type": "PILGAN"
 - "content": the question text
-- "options": array of 4-5 answer choices (text only, no letter prefixes)
-- "correctAnswer": the LETTER of the correct answer (A, B, C, D, or E)
+- "options": array of EXACTLY ${nOpts} answer choices (text only, no letter prefixes)
+- "correctAnswer": the LETTER of the correct answer (A to ${lastLetter})
 - "explanation": brief explanation of why the answer is correct
 - "difficulty": ${difficulty}
 - "score": 1
@@ -90,8 +170,8 @@ Example format:
     userPrompt += `For each question, provide:
 - "type": "PILGAN_KOMPLEK"
 - "content": the question text
-- "options": array of 4-5 answer choices
-- "correctAnswer": pipe-separated letters of ALL correct answers (e.g. "A|C|D")
+- "options": array of EXACTLY ${nOpts} answer choices
+- "correctAnswer": pipe-separated letters of ALL correct answers within A to ${lastLetter} (e.g. "A|C")
 - "explanation": brief explanation
 - "difficulty": ${difficulty}
 - "score": 2
@@ -192,10 +272,11 @@ Example:
         type: q.type as never,
         content: q.content,
         options: (q.options ?? null) as never,
-        correctAnswer: q.correctAnswer ?? null,
+        correctAnswer: resolveCorrectAnswer(q),
         explanation: q.explanation ?? null,
         score: q.score ?? 1,
         difficulty: q.difficulty ?? 2,
+        tags: (topic ? [topic] : null) as never,
       }));
 
       const created = await db.question.createMany({ data: toInsert });

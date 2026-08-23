@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Wand2, X, Copy, Check, ArrowRight, ArrowLeft, Loader2, AlertCircle, Save, ExternalLink } from "lucide-react";
+import SelectOrCustom from "@/components/ui/SelectOrCustom";
 
 interface Subject { id: string; name: string }
 
@@ -117,6 +118,7 @@ export default function AIPromptWizard({
 
   const [composition, setComposition] = useState<CompositionRow[]>(DEFAULT_COMPOSITION);
   const [materi, setMateri] = useState("");
+  const [detailInstruction, setDetailInstruction] = useState("");
   const [strictMode, setStrictMode] = useState(false);
 
   const totalSoal = composition.reduce((sum, r) => sum + r.count, 0);
@@ -142,8 +144,16 @@ export default function AIPromptWizard({
     });
 
     const strictLine = strictMode
-      ? "(WAJIB: Buat soal HANYA berdasarkan materi di atas. JANGAN gunakan pengetahuan di luar teks tersebut.)"
+      ? "(WAJIB: Buat soal HANYA berdasarkan materi di atas. JANGAN gunakan pengetahuan atau fakta di luar teks tersebut. Jika materi tidak cukup, buat soal dari bagian yang tersedia saja.)"
       : "(Gunakan materi di atas sebagai referensi utama.)";
+
+    const detailBlock = detailInstruction.trim()
+      ? `\nINSTRUKSI DETAIL (WAJIB DIIKUTI):\n${detailInstruction.trim()}\n`
+      : "";
+
+    const materiBlock = materi.trim()
+      ? `\nMATERI / SUMBER:\n"""\n${materi.trim()}\n"""\n${strictLine}\n`
+      : "";
 
     return `PERAN: Anda adalah penulis soal ujian profesional untuk jenjang ${identity.jenjang}.
 TUGAS: Buat soal ujian ${identity.jenisUjian} yang valid, reliabel, dan bebas bias.
@@ -158,14 +168,7 @@ KONTEKS SPESIFIK:
 
 KOMPOSISI SOAL (Total ${totalSoal} butir):
 ${komposisiLines.join("\n")}
-
-
-MATERI / SUMBER:
-"""
-${materi}
-"""
-${strictLine}
-
+${detailBlock}${materiBlock}
 ATURAN VALUE "TYPE" (WAJIB PERSIS):
 Agar sistem bisa membaca, gunakan KODE berikut pada field "type" (Jangan diterjemahkan):
 1. Pilihan Ganda Biasa -> "PG"
@@ -354,70 +357,54 @@ OUTPUT HARUS HANYA JSON ARRAY (WAJIB ADA ${totalSoal} SOAL):
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label className="mb-1 block text-sm font-semibold text-gray-700">Jenjang</label>
-                      <select
-                        value={identity.jenjang}
-                        onChange={(e) => setIdentity({ ...identity, jenjang: e.target.value })}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                      >
-                        {JENJANG_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-sm font-semibold text-gray-700">Kurikulum</label>
-                      <select
-                        value={identity.kurikulum}
-                        onChange={(e) => setIdentity({ ...identity, kurikulum: e.target.value })}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                      >
-                        {KURIKULUM_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-sm font-semibold text-gray-700">Fase</label>
-                      <select
-                        value={identity.fase}
-                        onChange={(e) => setIdentity({ ...identity, fase: e.target.value })}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                      >
-                        {FASE_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-                      </select>
-                    </div>
+                    <SelectOrCustom
+                      label="Jenjang"
+                      value={identity.jenjang}
+                      onChange={(v) => setIdentity({ ...identity, jenjang: v })}
+                      options={JENJANG_OPTIONS}
+                      placeholder="Contoh: Paket C / Kejar Paket"
+                    />
+                    <SelectOrCustom
+                      label="Kurikulum"
+                      value={identity.kurikulum}
+                      onChange={(v) => setIdentity({ ...identity, kurikulum: v })}
+                      options={KURIKULUM_OPTIONS}
+                      placeholder="Contoh: Kurikulum Nasional 2027"
+                    />
+                    <SelectOrCustom
+                      label="Fase / Kelas"
+                      value={identity.fase}
+                      onChange={(v) => setIdentity({ ...identity, fase: v })}
+                      options={FASE_OPTIONS}
+                      placeholder="Contoh: Kelas 5 semester 2"
+                    />
                   </div>
 
-                  <div>
-                    <label className="mb-1 block text-sm font-semibold text-gray-700">Level Kognitif (Bloom)</label>
-                    <select
-                      value={identity.kognitif}
-                      onChange={(e) => setIdentity({ ...identity, kognitif: e.target.value })}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                    >
-                      {KOGNITIF_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-                    </select>
-                  </div>
+                  <SelectOrCustom
+                    label="Level Kognitif (Bloom)"
+                    value={identity.kognitif}
+                    onChange={(v) => setIdentity({ ...identity, kognitif: v })}
+                    options={KOGNITIF_OPTIONS}
+                    placeholder="Contoh: C3 dominan, sedikit C4"
+                  />
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="mb-1 block text-sm font-semibold text-gray-700">Jenis Ujian</label>
-                      <select
-                        value={identity.jenisUjian}
-                        onChange={(e) => setIdentity({ ...identity, jenisUjian: e.target.value })}
-                        className="w-full rounded-lg border border-blue-400 bg-blue-50 px-3 py-2 text-sm"
-                      >
-                        {JENIS_UJIAN_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-sm font-semibold text-gray-700">Bahasa Pengantar Soal</label>
-                      <select
-                        value={identity.bahasa}
-                        onChange={(e) => setIdentity({ ...identity, bahasa: e.target.value })}
-                        className="w-full rounded-lg border border-green-400 bg-green-50 px-3 py-2 text-sm"
-                      >
-                        {BAHASA_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-                      </select>
-                    </div>
+                    <SelectOrCustom
+                      label="Jenis Ujian"
+                      value={identity.jenisUjian}
+                      onChange={(v) => setIdentity({ ...identity, jenisUjian: v })}
+                      options={JENIS_UJIAN_OPTIONS}
+                      placeholder="Contoh: Try Out Mandiri"
+                      selectClassName="border-blue-400 bg-blue-50"
+                    />
+                    <SelectOrCustom
+                      label="Bahasa Pengantar Soal"
+                      value={identity.bahasa}
+                      onChange={(v) => setIdentity({ ...identity, bahasa: v })}
+                      options={BAHASA_OPTIONS}
+                      placeholder="Contoh: Bahasa Mandarin"
+                      selectClassName="border-green-400 bg-green-50"
+                    />
                   </div>
 
                   <div>
@@ -537,28 +524,48 @@ OUTPUT HARUS HANYA JSON ARRAY (WAJIB ADA ${totalSoal} SOAL):
               {/* STEP 3: Materi */}
               {step === 3 && (
                 <>
-                  <h3 className="text-lg font-bold text-blue-600">Langkah 3: Materi / Sumber</h3>
+                  <h3 className="text-lg font-bold text-blue-600">Langkah 3: Detail &amp; Materi</h3>
 
                   <div>
-                    <label className="mb-1 block text-sm font-semibold text-gray-700">Paste Materi / Artikel / Topik Detail</label>
+                    <label className="mb-1 block text-sm font-semibold text-gray-700">
+                      Detail Instruksi Soal <span className="font-normal text-gray-400">(opsional, sangat disarankan)</span>
+                    </label>
+                    <textarea
+                      value={detailInstruction}
+                      onChange={(e) => setDetailInstruction(e.target.value)}
+                      rows={4}
+                      placeholder={"Contoh:\n- Buat soal cerita tentang kehidupan sehari-hari\n- Butuh 2 langkah perhitungan untuk menemukan jawaban\n- Gunakan nama tokoh Indonesia\n- Hindari angka desimal"}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Buat soal jadi jauh lebih spesifik daripada hanya mengandalkan topik.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-semibold text-gray-700">
+                      Paste Materi / Artikel / Sumber Khusus <span className="font-normal text-gray-400">(opsional)</span>
+                    </label>
                     <textarea
                       value={materi}
                       onChange={(e) => setMateri(e.target.value)}
-                      rows={8}
-                      placeholder="Paste teks bacaan, rangkuman materi, atau detail instruksi di sini agar AI membuat soal yang relevan..."
+                      rows={7}
+                      placeholder="Paste teks bacaan, rangkuman materi, atau bab buku di sini agar AI fokus pada sumber tersebut..."
                       className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
                     />
                   </div>
 
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className={`flex items-center gap-2 ${materi.trim() ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}>
                     <input
                       type="checkbox"
-                      checked={strictMode}
+                      checked={strictMode && materi.trim() !== ""}
+                      disabled={!materi.trim()}
                       onChange={(e) => setStrictMode(e.target.checked)}
                       className="h-4 w-4 rounded border-gray-300"
                     />
                     <span className="text-sm text-gray-700">
                       Buat soal <strong>HANYA</strong> berdasarkan teks di atas (Strict Mode).
+                      {!materi.trim() && <span className="text-gray-400"> — isi materi dulu</span>}
                     </span>
                   </label>
 

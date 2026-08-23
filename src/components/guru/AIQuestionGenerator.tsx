@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { Sparkles, Loader2, X, CheckCircle, Save, AlertCircle } from "lucide-react";
 import MathRenderer from "@/components/ui/MathRenderer";
+import SelectOrCustom from "@/components/ui/SelectOrCustom";
+
+const JENJANG_OPTIONS = ["SD / MI", "SMP / MTs", "SMA / MA", "SMK", "Perguruan Tinggi"];
+const KURIKULUM_OPTIONS = ["Kurikulum Merdeka", "Kurikulum 2013", "Kurikulum Cambridge", "Kurikulum IB"];
+const BAHASA_OPTIONS = ["Bahasa Indonesia", "Bahasa Inggris (English)", "Bahasa Jawa", "Bahasa Arab"];
 
 interface Subject { id: string; name: string }
 
@@ -55,11 +60,46 @@ export default function AIQuestionGenerator({
   const [form, setForm] = useState({
     topic: "",
     subjectId: subjectId ?? "",
+    customSubject: "",
     questionType: "PILGAN",
     difficulty: 2,
     count: 5,
     aiModel: "",
+    jenjang: JENJANG_OPTIONS[0],
+    kurikulum: KURIKULUM_OPTIONS[0],
+    bahasa: BAHASA_OPTIONS[0],
+    optionCount: 4,
+    detailInstruction: "",
+    sourceMaterial: "",
+    strictMode: false,
   });
+
+  /** Prefer the typed subject name, else the selected subject from the list. */
+  const effectiveSubjectName =
+    form.customSubject.trim() || subjects.find((s) => s.id === form.subjectId)?.name || "";
+
+  const isMultipleChoice = form.questionType === "PILGAN" || form.questionType === "PILGAN_KOMPLEK";
+
+  function buildPayload(saveToBank: boolean) {
+    return {
+      topic: form.topic,
+      subjectName: effectiveSubjectName,
+      questionType: form.questionType,
+      difficulty: form.difficulty,
+      count: form.count,
+      subjectId: form.subjectId || null,
+      examId: examId ?? null,
+      aiModel: form.aiModel || undefined,
+      jenjang: form.jenjang,
+      kurikulum: form.kurikulum,
+      bahasa: form.bahasa,
+      optionCount: isMultipleChoice ? form.optionCount : undefined,
+      detailInstruction: form.detailInstruction.trim() || undefined,
+      sourceMaterial: form.sourceMaterial.trim() || undefined,
+      strictMode: form.strictMode && form.sourceMaterial.trim() !== "",
+      saveToBank,
+    };
+  }
 
   async function handleGenerate() {
     if (!form.topic) return;
@@ -72,16 +112,7 @@ export default function AIQuestionGenerator({
       const res = await fetch("/api/guru/bank-soal/ai-generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          topic: form.topic,
-          subjectName: subjects.find((s) => s.id === form.subjectId)?.name,
-          questionType: form.questionType,
-          difficulty: form.difficulty,
-          count: form.count,
-          subjectId: form.subjectId || null,
-          examId: examId ?? null,
-          aiModel: form.aiModel || undefined,
-        }),
+        body: JSON.stringify(buildPayload(false)),
       });
 
       const data = await res.json();
@@ -105,17 +136,7 @@ export default function AIQuestionGenerator({
       const res = await fetch("/api/guru/bank-soal/ai-generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          topic: form.topic,
-          subjectName: subjects.find((s) => s.id === form.subjectId)?.name,
-          questionType: form.questionType,
-          difficulty: form.difficulty,
-          count: form.count,
-          subjectId: form.subjectId || null,
-          examId: examId ?? null,
-          saveToBank: true,
-          aiModel: form.aiModel || undefined,
-        }),
+        body: JSON.stringify(buildPayload(true)),
       });
 
       const data = await res.json();
@@ -137,7 +158,22 @@ export default function AIQuestionGenerator({
     setQuestions([]);
     setError(null);
     setSavedCount(0);
-    setForm({ topic: "", subjectId: subjectId ?? "", questionType: "PILGAN", difficulty: 2, count: 5, aiModel: "" });
+    setForm({
+      topic: "",
+      subjectId: subjectId ?? "",
+      customSubject: "",
+      questionType: "PILGAN",
+      difficulty: 2,
+      count: 5,
+      aiModel: "",
+      jenjang: JENJANG_OPTIONS[0],
+      kurikulum: KURIKULUM_OPTIONS[0],
+      bahasa: BAHASA_OPTIONS[0],
+      optionCount: 4,
+      detailInstruction: "",
+      sourceMaterial: "",
+      strictMode: false,
+    });
   }
 
   return (
@@ -202,7 +238,7 @@ export default function AIQuestionGenerator({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">Mapel</label>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Mapel (simpan ke)</label>
                   <select
                     value={form.subjectId}
                     onChange={(e) => setForm({ ...form, subjectId: e.target.value })}
@@ -215,6 +251,44 @@ export default function AIQuestionGenerator({
                   </select>
                 </div>
                 <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">
+                    Nama Mapel Custom <span className="text-gray-400">(opsional)</span>
+                  </label>
+                  <input
+                    value={form.customSubject}
+                    onChange={(e) => setForm({ ...form, customSubject: e.target.value })}
+                    placeholder="Contoh: Informatika / Coding"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <SelectOrCustom
+                  label="Jenjang"
+                  value={form.jenjang}
+                  onChange={(v) => setForm({ ...form, jenjang: v })}
+                  options={JENJANG_OPTIONS}
+                  placeholder="Contoh: Paket C"
+                />
+                <SelectOrCustom
+                  label="Kurikulum"
+                  value={form.kurikulum}
+                  onChange={(v) => setForm({ ...form, kurikulum: v })}
+                  options={KURIKULUM_OPTIONS}
+                  placeholder="Contoh: Kurikulum 2027"
+                />
+                <SelectOrCustom
+                  label="Bahasa Soal"
+                  value={form.bahasa}
+                  onChange={(v) => setForm({ ...form, bahasa: v })}
+                  options={BAHASA_OPTIONS}
+                  placeholder="Contoh: Bahasa Mandarin"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
                   <label className="mb-1 block text-xs font-medium text-gray-600">Tipe Soal</label>
                   <select
                     value={form.questionType}
@@ -224,6 +298,21 @@ export default function AIQuestionGenerator({
                     {TYPE_OPTIONS.map((t) => (
                       <option key={t.value} value={t.value}>{t.label}</option>
                     ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">
+                    Jumlah Opsi {!isMultipleChoice && <span className="text-gray-400">(n/a)</span>}
+                  </label>
+                  <select
+                    value={form.optionCount}
+                    disabled={!isMultipleChoice}
+                    onChange={(e) => setForm({ ...form, optionCount: Number(e.target.value) })}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-400"
+                  >
+                    <option value={3}>3 Opsi (A-C) — SD</option>
+                    <option value={4}>4 Opsi (A-D) — SMP</option>
+                    <option value={5}>5 Opsi (A-E) — SMA</option>
                   </select>
                 </div>
               </div>
@@ -252,6 +341,44 @@ export default function AIQuestionGenerator({
                     className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-600">
+                  Detail Instruksi <span className="text-gray-400">(opsional, bikin soal lebih spesifik)</span>
+                </label>
+                <textarea
+                  value={form.detailInstruction}
+                  onChange={(e) => setForm({ ...form, detailInstruction: e.target.value })}
+                  rows={3}
+                  placeholder={"Contoh:\n- Buat soal cerita tentang kehidupan sehari-hari\n- Butuh 2 langkah perhitungan untuk menemukan jawaban"}
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-600">
+                  Sumber Materi Khusus <span className="text-gray-400">(opsional)</span>
+                </label>
+                <textarea
+                  value={form.sourceMaterial}
+                  onChange={(e) => setForm({ ...form, sourceMaterial: e.target.value })}
+                  rows={4}
+                  placeholder="Paste teks bacaan / rangkuman materi agar AI fokus pada sumber ini..."
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <label className={`mt-1.5 flex items-center gap-2 ${form.sourceMaterial.trim() ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}>
+                  <input
+                    type="checkbox"
+                    checked={form.strictMode && form.sourceMaterial.trim() !== ""}
+                    disabled={!form.sourceMaterial.trim()}
+                    onChange={(e) => setForm({ ...form, strictMode: e.target.checked })}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <span className="text-xs text-gray-700">
+                    Buat soal <strong>HANYA</strong> dari materi di atas (Strict Mode)
+                  </span>
+                </label>
               </div>
 
               <button
