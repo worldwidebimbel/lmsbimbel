@@ -13,6 +13,8 @@ interface PromptQuestion {
   opt_e?: string;
   answer_key?: string;
   discussion?: string;
+  image_prompt?: string;
+  image_url?: string;
 }
 
 const TYPE_MAP: Record<string, string> = {
@@ -41,6 +43,13 @@ function collectOptions(q: PromptQuestion): string[] {
 /** Strip the HTML hint appended by the prompt template. */
 function stripHint(text: string): string {
   return (text ?? "").replace(/<br>\s*<small[^>]*>[\s\S]*?<\/small>/gi, "").trim();
+}
+
+/** Append an uploaded image to the question content so it renders with the question. */
+function withImage(content: string, imageUrl?: string): string {
+  const url = (imageUrl ?? "").trim();
+  if (!url) return content;
+  return `${content}\n\n<img src="${url}" alt="Soal" class="max-h-48 rounded-lg" />`;
 }
 
 export async function POST(req: NextRequest) {
@@ -146,7 +155,7 @@ export async function POST(req: NextRequest) {
       examId: examId ?? null,
       subjectId: subjectId ?? null,
       type: dbType,
-      content,
+      content: withImage(content, q.image_url),
       options,
       correctAnswer,
       explanation,

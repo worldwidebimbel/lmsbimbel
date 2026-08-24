@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus, Trash2, Upload, Search, BookMarked, X, FileDown, FileUp, Download } from "lucide-react";
+import { Plus, Trash2, Upload, Search, BookMarked, X, FileDown, FileUp, Download, Edit3 } from "lucide-react";
 import ImageUploadButton from "./ImageUploadButton";
 import { normalizeOptions, optionText, toOptionPayload } from "@/lib/question-options";
 import BankSoalImportClient from "./BankSoalImportClient";
@@ -57,6 +57,8 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
   const [filterTag, setFilterTag] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showAdd, setShowAdd] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showExport, setShowExport] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showXlsxImport, setShowXlsxImport] = useState(false);
   const [targetExam, setTargetExam] = useState("");
@@ -116,6 +118,85 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
         <option value={5}>5 Opsi (A-E) — SMA</option>
       </select>
     );
+  }
+
+  function parseQuestionToForm(q: Question): typeof BLANK_FORM {
+    const imgMatch = q.content.match(/<img\s+src="([^"]+)"/);
+    const contentImageUrl = imgMatch?.[1] ?? "";
+    const contentText = q.content.replace(/<img[^>]*>/g, "").replace(/\n\s*\n+$/, "").trim();
+
+    const opts = normalizeOptions(q.options as unknown[] | null);
+    const optTexts = opts.map((o) => o.text);
+    const optImages = opts.map((o) => o.imageUrl ?? "");
+    while (optTexts.length < 4) { optTexts.push(""); optImages.push(""); }
+
+    let correctIndices: number[] = [];
+    if (q.type === "PILGAN_KOMPLEK" && q.correctAnswer) {
+      const correctTexts = q.correctAnswer.split("|");
+      correctIndices = optTexts.map((t, i) => correctTexts.includes(t) ? i : -1).filter((i) => i >= 0);
+    }
+
+    let pairs = BLANK_FORM.pairs;
+    if (q.type === "MENJODOHKAN" && q.options) {
+      const raw = q.options as unknown[];
+      pairs = raw.map((o) => {
+        if (o && typeof o === "object" && "left" in o) {
+          const obj = o as Record<string, unknown>;
+          return { left: String(obj.left ?? ""), right: String(obj.right ?? "") };
+        }
+        return { left: "", right: "" };
+      });
+      while (pairs.length < 2) pairs = [...pairs, { left: "", right: "" }];
+    }
+
+    let orderedItems = BLANK_FORM.orderedItems;
+    let orderedItemImages = BLANK_FORM.orderedItemImages;
+    if (q.type === "MENGURUTKAN") {
+      orderedItems = [...optTexts];
+      orderedItemImages = [...optImages];
+      while (orderedItems.length < 4) { orderedItems.push(""); orderedItemImages.push(""); }
+    }
+
+    let statements = BLANK_FORM.statements;
+    if (q.type === "SETUJU_TIDAK" && q.options && q.correctAnswer) {
+      const answers = q.correctAnswer.split(",");
+      statements = (q.options as string[]).map((text, i) => ({
+        text,
+        answer: (answers[i] === "TIDAK" ? "TIDAK" : "SETUJU") as "SETUJU" | "TIDAK",
+        imageUrl: "",
+      }));
+      if (statements.length === 0) statements = [{ text: "", answer: "SETUJU", imageUrl: "" }];
+    }
+
+    return {
+      subjectId: q.subjectId ?? "",
+      type: q.type,
+      content: contentText,
+      contentImageUrl,
+      options: optTexts,
+      optionImages: optImages,
+      correctAnswer: q.correctAnswer ?? "",
+      correctIndices,
+      pairs,
+      orderedItems,
+      orderedItemImages,
+      statements,
+      explanation: q.explanation ?? "",
+      score: q.score,
+      difficulty: q.difficulty,
+    };
+  }
+
+  function startEdit(q: Question) {
+    setForm(parseQuestionToForm(q));
+    setEditingId(q.id);
+    setShowAdd(true);
+  }
+
+  function startAdd() {
+    setForm(BLANK_FORM);
+    setEditingId(null);
+    setShowAdd(true);
   }
 
   async function handleAdd() {
@@ -179,15 +260,29 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
         break;
     }
 
-    const res = await fetch("/api/guru/bank-soal", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (res.ok) {
-      const q = await res.json();
-      setQuestions((prev) => [q, ...prev]);
-      setShowAdd(false);
-      setForm(BLANK_FORM);
+    if (editingId) {
+      const res = await fetch(`/api/guru/bank-soal/${editingId}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const q = await res.json();
+        setQuestions((prev) => prev.map((old) => (old.id === editingId ? q : old)));
+        setShowAdd(false);
+        setEditingId(null);
+        setForm(BLANK_FORM);
+      }
+    } else {
+      const res = await fetch("/api/guru/bank-soal", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const q = await res.json();
+        setQuestions((prev) => [q, ...prev]);
+        setShowAdd(false);
+        setForm(BLANK_FORM);
+      }
     }
   }
 
@@ -213,13 +308,14 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
     });
   }
 
-  async function handleExport(format: "xlsx" | "json") {
+  async function handleExport(format: "xlsx" | "json" | "doc") {
     const params = new URLSearchParams({ format });
     if (filterSubject) params.set("subjectId", filterSubject);
     if (filterType) params.set("type", filterType);
     const a = document.createElement("a");
     a.href = `/api/guru/bank-soal/export?${params.toString()}`;
     a.click();
+    setShowExport(false);
   }
 
   return (
@@ -255,18 +351,24 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
               <Upload className="h-4 w-4" /> Pakai di Ujian ({selected.size})
             </button>
           )}
-          <div className="relative group">
-            <button className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          <div className="relative">
+            <button onClick={() => setShowExport(!showExport)}
+              className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
               <FileDown className="h-4 w-4" /> Export
             </button>
-            <div className="absolute right-0 top-full mt-1 hidden group-hover:flex flex-col bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-20 min-w-[150px]">
-              <button onClick={() => handleExport("xlsx")} className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left">
-                <Download className="h-4 w-4 text-green-600" /> Export Excel
-              </button>
-              <button onClick={() => handleExport("json")} className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left">
-                <Download className="h-4 w-4 text-blue-600" /> Export JSON
-              </button>
-            </div>
+            {showExport && (
+              <div className="absolute right-0 top-full pt-1 flex flex-col bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-20 min-w-[160px]">
+                <button onClick={() => handleExport("xlsx")} className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left">
+                  <Download className="h-4 w-4 text-green-600" /> Export Excel
+                </button>
+                <button onClick={() => handleExport("doc")} className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left">
+                  <Download className="h-4 w-4 text-indigo-600" /> Export Word
+                </button>
+                <button onClick={() => handleExport("json")} className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left">
+                  <Download className="h-4 w-4 text-blue-600" /> Export JSON
+                </button>
+              </div>
+            )}
           </div>
           <button onClick={() => setShowXlsxImport(true)}
             className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100">
@@ -274,7 +376,7 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
           </button>
           <AIQuestionGenerator subjects={subjects} onSaved={() => window.location.reload()} />
           <AIPromptWizard subjects={subjects} onSaved={() => window.location.reload()} />
-          <button onClick={() => setShowAdd(true)}
+          <button onClick={() => startAdd()}
             className="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700">
             <Plus className="h-4 w-4" /> Tambah Soal
           </button>
@@ -327,9 +429,14 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
                     <p className="mt-1 text-xs text-green-600">✓ <MathRenderer content={q.correctAnswer} /></p>
                   )}
                 </div>
-                <button onClick={() => handleDelete(q.id)} className="shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                <div className="flex shrink-0 gap-1">
+                  <button onClick={() => startEdit(q)} className="rounded-lg p-1.5 text-gray-400 hover:bg-amber-50 hover:text-amber-600">
+                    <Edit3 className="h-4 w-4" />
+                  </button>
+                  <button onClick={() => handleDelete(q.id)} className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -341,8 +448,8 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto">
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 space-y-4 my-8">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900">Tambah Soal ke Bank</h2>
-              <button onClick={() => setShowAdd(false)} className="rounded-lg p-1 hover:bg-gray-100">
+              <h2 className="text-lg font-bold text-gray-900">{editingId ? "Edit Soal" : "Tambah Soal ke Bank"}</h2>
+              <button onClick={() => { setShowAdd(false); setEditingId(null); }} className="rounded-lg p-1 hover:bg-gray-100">
                 <X className="h-4 w-4 text-gray-500" />
               </button>
             </div>
@@ -576,10 +683,10 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
             </div>
 
             <div className="flex gap-3 pt-1">
-              <button onClick={() => setShowAdd(false)} className="flex-1 rounded-xl border border-gray-200 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Batal</button>
+              <button onClick={() => { setShowAdd(false); setEditingId(null); }} className="flex-1 rounded-xl border border-gray-200 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Batal</button>
               <button onClick={handleAdd} disabled={!form.content}
                 className="flex-1 rounded-xl bg-amber-600 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50">
-                Simpan ke Bank
+                {editingId ? "Simpan Perubahan" : "Simpan ke Bank"}
               </button>
             </div>
           </div>

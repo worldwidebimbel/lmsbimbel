@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Loader2, X, CheckCircle, Save, AlertCircle } from "lucide-react";
+import { Sparkles, Loader2, X, CheckCircle, Save, AlertCircle, ImageIcon, Copy, Check, ExternalLink } from "lucide-react";
 import MathRenderer from "@/components/ui/MathRenderer";
 import SelectOrCustom from "@/components/ui/SelectOrCustom";
+import ImageUploadButton from "./ImageUploadButton";
+import { AI_PROVIDERS, AIProviderId, DEFAULT_PROVIDER_ID, getProvider } from "@/lib/ai-providers";
 
 const JENJANG_OPTIONS = ["SD / MI", "SMP / MTs", "SMA / MA", "SMK", "Perguruan Tinggi"];
 const KURIKULUM_OPTIONS = ["Kurikulum Merdeka", "Kurikulum 2013", "Kurikulum Cambridge", "Kurikulum IB"];
@@ -11,31 +13,43 @@ const BAHASA_OPTIONS = ["Bahasa Indonesia", "Bahasa Inggris (English)", "Bahasa 
 
 interface Subject { id: string; name: string }
 
+interface MatchingPair {
+  left: string;
+  right: string;
+}
+
 interface GeneratedQuestion {
   type: string;
   content: string;
-  options?: string[];
+  options?: string[] | MatchingPair[];
   correctAnswer?: string;
   explanation?: string;
   difficulty?: number;
   score?: number;
+  imagePrompt?: string;
+  imageUrl?: string;
 }
 
-const AI_MODELS = [
-  { value: "langgananku/claude-sonnet-4-20250514", label: "Claude Sonnet 4 (Recommended)" },
-  { value: "langgananku/claude-opus-5", label: "Claude Opus 5" },
-  { value: "cbcn/glm-5.2", label: "GLM 5.2" },
-  { value: "cbcn/deepseek-v3", label: "DeepSeek V3" },
-  { value: "gcli/grok-3", label: "Grok 3" },
+const IMAGE_AI_SITES = [
+  { name: "ChatGPT / DALL·E", url: "https://chat.openai.com/" },
+  { name: "Gemini Imagen", url: "https://gemini.google.com/" },
+  { name: "Leonardo AI", url: "https://app.leonardo.ai/" },
+  { name: "Bing Image Creator", url: "https://www.bing.com/images/create" },
 ];
 
 const TYPE_OPTIONS = [
   { value: "PILGAN", label: "Pilihan Ganda" },
   { value: "PILGAN_KOMPLEK", label: "Pilgan Kompleks" },
   { value: "BENAR_SALAH", label: "Benar / Salah" },
+  { value: "MENJODOHKAN", label: "Menjodohkan" },
   { value: "ESSAY", label: "Essay" },
   { value: "ISIAN", label: "Isian Singkat" },
 ];
+
+/** Type guard so matching pairs can be rendered differently from plain options. */
+function isPairList(options: GeneratedQuestion["options"]): options is MatchingPair[] {
+  return Array.isArray(options) && typeof options[0] === "object" && options[0] !== null;
+}
 
 const DIFF_LABELS: Record<number, string> = { 1: "Mudah", 2: "Sedang", 3: "Sulit" };
 
@@ -56,6 +70,7 @@ export default function AIQuestionGenerator({
   const [error, setError] = useState<string | null>(null);
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
   const [savedCount, setSavedCount] = useState(0);
+  const [copiedImgIdx, setCopiedImgIdx] = useState<number | null>(null);
 
   const [form, setForm] = useState({
     topic: "",
@@ -64,6 +79,7 @@ export default function AIQuestionGenerator({
     questionType: "PILGAN",
     difficulty: 2,
     count: 5,
+    aiProvider: DEFAULT_PROVIDER_ID as AIProviderId,
     aiModel: "",
     jenjang: JENJANG_OPTIONS[0],
     kurikulum: KURIKULUM_OPTIONS[0],
@@ -72,6 +88,7 @@ export default function AIQuestionGenerator({
     detailInstruction: "",
     sourceMaterial: "",
     strictMode: false,
+    imageMode: false,
   });
 
   /** Prefer the typed subject name, else the selected subject from the list. */
@@ -79,6 +96,13 @@ export default function AIQuestionGenerator({
     form.customSubject.trim() || subjects.find((s) => s.id === form.subjectId)?.name || "";
 
   const isMultipleChoice = form.questionType === "PILGAN" || form.questionType === "PILGAN_KOMPLEK";
+  const isMatching = form.questionType === "MENJODOHKAN";
+  const providerModels = getProvider(form.aiProvider).models;
+
+  /** Model slugs differ per provider, so reset the model when the provider changes. */
+  function handleProviderChange(providerId: AIProviderId) {
+    setForm((f) => ({ ...f, aiProvider: providerId, aiModel: "" }));
+  }
 
   function buildPayload(saveToBank: boolean) {
     return {
@@ -89,14 +113,16 @@ export default function AIQuestionGenerator({
       count: form.count,
       subjectId: form.subjectId || null,
       examId: examId ?? null,
+      aiProvider: form.aiProvider,
       aiModel: form.aiModel || undefined,
       jenjang: form.jenjang,
       kurikulum: form.kurikulum,
       bahasa: form.bahasa,
-      optionCount: isMultipleChoice ? form.optionCount : undefined,
+      optionCount: isMultipleChoice || isMatching ? form.optionCount : undefined,
       detailInstruction: form.detailInstruction.trim() || undefined,
       sourceMaterial: form.sourceMaterial.trim() || undefined,
       strictMode: form.strictMode && form.sourceMaterial.trim() !== "",
+      imageMode: form.imageMode,
       saveToBank,
     };
   }
@@ -128,15 +154,29 @@ export default function AIQuestionGenerator({
     }
   }
 
+  async function handleCopyImagePrompt(idx: number, text: string) {
+    await navigator.clipboard.writeText(text);
+    setCopiedImgIdx(idx);
+    setTimeout(() => setCopiedImgIdx(null), 2000);
+  }
+
   async function handleSaveAll() {
+    if (questions.length === 0) return;
     setSaving(true);
     setError(null);
 
     try {
+      // Send back the previewed questions (with any uploaded images) so nothing
+      // is regenerated and the images stay attached to their question.
       const res = await fetch("/api/guru/bank-soal/ai-generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildPayload(true)),
+        body: JSON.stringify({
+          questionsToSave: questions,
+          subjectId: form.subjectId || null,
+          examId: examId ?? null,
+          topic: form.topic,
+        }),
       });
 
       const data = await res.json();
@@ -158,6 +198,7 @@ export default function AIQuestionGenerator({
     setQuestions([]);
     setError(null);
     setSavedCount(0);
+    setCopiedImgIdx(null);
     setForm({
       topic: "",
       subjectId: subjectId ?? "",
@@ -165,6 +206,7 @@ export default function AIQuestionGenerator({
       questionType: "PILGAN",
       difficulty: 2,
       count: 5,
+      aiProvider: DEFAULT_PROVIDER_ID,
       aiModel: "",
       jenjang: JENJANG_OPTIONS[0],
       kurikulum: KURIKULUM_OPTIONS[0],
@@ -173,6 +215,7 @@ export default function AIQuestionGenerator({
       detailInstruction: "",
       sourceMaterial: "",
       strictMode: false,
+      imageMode: false,
     });
   }
 
@@ -222,18 +265,32 @@ export default function AIQuestionGenerator({
                 />
               </div>
 
-              <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">AI Model</label>
-                <select
-                  value={form.aiModel}
-                  onChange={(e) => setForm({ ...form, aiModel: e.target.value })}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
-                >
-                  <option value="">— Default (server) —</option>
-                  {AI_MODELS.map((m) => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">AI Provider</label>
+                  <select
+                    value={form.aiProvider}
+                    onChange={(e) => handleProviderChange(e.target.value as AIProviderId)}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                  >
+                    {AI_PROVIDERS.map((p) => (
+                      <option key={p.id} value={p.id}>{p.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">AI Model</label>
+                  <select
+                    value={form.aiModel}
+                    onChange={(e) => setForm({ ...form, aiModel: e.target.value })}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                  >
+                    <option value="">— Default (server) —</option>
+                    {providerModels.map((m) => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -302,17 +359,28 @@ export default function AIQuestionGenerator({
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-gray-600">
-                    Jumlah Opsi {!isMultipleChoice && <span className="text-gray-400">(n/a)</span>}
+                    {isMatching ? "Jumlah Pasangan" : "Jumlah Opsi"}{" "}
+                    {!isMultipleChoice && !isMatching && <span className="text-gray-400">(n/a)</span>}
                   </label>
                   <select
                     value={form.optionCount}
-                    disabled={!isMultipleChoice}
+                    disabled={!isMultipleChoice && !isMatching}
                     onChange={(e) => setForm({ ...form, optionCount: Number(e.target.value) })}
                     className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-400"
                   >
-                    <option value={3}>3 Opsi (A-C) — SD</option>
-                    <option value={4}>4 Opsi (A-D) — SMP</option>
-                    <option value={5}>5 Opsi (A-E) — SMA</option>
+                    {isMatching ? (
+                      <>
+                        <option value={3}>3 Pasangan</option>
+                        <option value={4}>4 Pasangan</option>
+                        <option value={5}>5 Pasangan</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value={3}>3 Opsi (A-C) — SD</option>
+                        <option value={4}>4 Opsi (A-D) — SMP</option>
+                        <option value={5}>5 Opsi (A-E) — SMA</option>
+                      </>
+                    )}
                   </select>
                 </div>
               </div>
@@ -341,6 +409,43 @@ export default function AIQuestionGenerator({
                     className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-gray-600">Mode Soal</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setForm({ ...form, imageMode: false })}
+                    className={`flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-2.5 text-sm font-medium transition-all ${
+                      !form.imageMode
+                        ? "border-purple-500 bg-purple-50 text-purple-800"
+                        : "border-gray-200 text-gray-600 hover:border-gray-300"
+                    }`}
+                  >
+                    <span className={`flex h-4 w-4 items-center justify-center rounded-full border-2 ${!form.imageMode ? "border-purple-600" : "border-gray-300"}`}>
+                      {!form.imageMode && <span className="h-2 w-2 rounded-full bg-purple-600" />}
+                    </span>
+                    Tidak Bergambar
+                  </button>
+                  <button
+                    onClick={() => setForm({ ...form, imageMode: true })}
+                    className={`flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-2.5 text-sm font-medium transition-all ${
+                      form.imageMode
+                        ? "border-indigo-500 bg-indigo-50 text-indigo-800"
+                        : "border-gray-200 text-gray-600 hover:border-gray-300"
+                    }`}
+                  >
+                    <span className={`flex h-4 w-4 items-center justify-center rounded-full border-2 ${form.imageMode ? "border-indigo-600" : "border-gray-300"}`}>
+                      {form.imageMode && <span className="h-2 w-2 rounded-full bg-indigo-600" />}
+                    </span>
+                    <ImageIcon className="h-4 w-4" /> Bergambar
+                  </button>
+                </div>
+                {form.imageMode && (
+                  <p className="mt-1.5 text-xs text-indigo-700">
+                    AI akan menyertakan <strong>prompt gambar</strong> di tiap soal. Buat gambarnya di AI image generator, lalu unggah di preview.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -423,6 +528,28 @@ export default function AIQuestionGenerator({
                   </button>
                 </div>
 
+                {questions.some((q) => q.imagePrompt) && (
+                  <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+                    <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-indigo-800">
+                      <ImageIcon className="h-3.5 w-3.5" />
+                      Salin prompt gambar tiap soal ke AI image generator, lalu unggah hasilnya:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {IMAGE_AI_SITES.map((s) => (
+                        <a
+                          key={s.name}
+                          href={s.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 rounded-lg border border-indigo-300 bg-white px-3 py-1.5 text-xs font-medium text-indigo-800 hover:bg-indigo-100"
+                        >
+                          {s.name} <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="max-h-96 overflow-y-auto space-y-2">
                   {questions.map((q, i) => (
                     <div key={i} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
@@ -433,19 +560,71 @@ export default function AIQuestionGenerator({
                         <span className="text-xs text-gray-500">
                           {DIFF_LABELS[q.difficulty ?? 2]} • Skor: {q.score ?? 1}
                         </span>
+                        {q.imagePrompt && (
+                          <span className="flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                            <ImageIcon className="h-3 w-3" /> Bergambar
+                          </span>
+                        )}
                       </div>
+
+                      {q.imagePrompt && (
+                        <div className="mb-2 rounded-lg border border-indigo-200 bg-indigo-50 p-2.5">
+                          <div className="mb-1.5 flex items-center justify-between gap-2">
+                            <span className="text-xs font-semibold text-indigo-800">Prompt Gambar</span>
+                            <button
+                              onClick={() => handleCopyImagePrompt(i, q.imagePrompt ?? "")}
+                              className="flex items-center gap-1 rounded-md bg-indigo-600 px-2 py-1 text-xs font-medium text-white hover:bg-indigo-700"
+                            >
+                              {copiedImgIdx === i
+                                ? <><Check className="h-3 w-3" /> Tersalin</>
+                                : <><Copy className="h-3 w-3" /> Copy</>}
+                            </button>
+                          </div>
+                          <p className="text-xs italic text-indigo-900">{q.imagePrompt}</p>
+                          <div className="mt-2 flex items-center gap-2">
+                            <ImageUploadButton
+                              url={q.imageUrl}
+                              onChange={(url) =>
+                                setQuestions((prev) =>
+                                  prev.map((item, j) => (j === i ? { ...item, imageUrl: url } : item))
+                                )
+                              }
+                              label={`Gambar soal ${i + 1}`}
+                              size="md"
+                            />
+                            <p className="text-xs text-indigo-700">
+                              {q.imageUrl
+                                ? "Gambar siap — akan otomatis terhubung ke soal ini."
+                                : "Buat gambar dari prompt di atas, lalu unggah di sini."}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
                       <p className="text-sm text-gray-800 mb-1">
                         <span className="font-medium">{i + 1}.</span>{" "}
                         <MathRenderer content={q.content} />
                       </p>
                       {q.options && q.options.length > 0 && (
-                        <div className="ml-4 space-y-0.5">
-                          {q.options.map((opt, j) => (
-                            <p key={j} className="text-xs text-gray-600">
-                              <span className="font-medium">{String.fromCharCode(65 + j)}.</span> {opt}
-                            </p>
-                          ))}
-                        </div>
+                        isPairList(q.options) ? (
+                          <div className="ml-4 space-y-0.5">
+                            {q.options.map((pair, j) => (
+                              <p key={j} className="text-xs text-gray-600">
+                                <span className="font-medium">{j + 1}.</span> {pair.left}
+                                <span className="mx-1 text-purple-500">↔</span>
+                                {pair.right}
+                              </p>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="ml-4 space-y-0.5">
+                            {q.options.map((opt, j) => (
+                              <p key={j} className="text-xs text-gray-600">
+                                <span className="font-medium">{String.fromCharCode(65 + j)}.</span> {opt}
+                              </p>
+                            ))}
+                          </div>
+                        )
                       )}
                       {q.correctAnswer && (
                         <p className="mt-1 text-xs text-green-600">

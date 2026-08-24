@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { AIProviderId, DEFAULT_PROVIDER_ID, getProvider, resolveProviderConfig } from "@/lib/ai-providers";
+
+interface MatchingPair {
+  left: string;
+  right: string;
+}
 
 interface GeneratedQuestion {
   type: string;
   content: string;
-  options?: string[];
+  options?: string[] | MatchingPair[];
   correctAnswer?: string;
   explanation?: string;
   difficulty?: number;
   score?: number;
+  imagePrompt?: string;
+  imageUrl?: string;
 }
 
 const LETTER_INDEX: Record<string, number> = { A: 0, B: 1, C: 2, D: 3, E: 4 };
@@ -23,8 +31,13 @@ function resolveCorrectAnswer(q: GeneratedQuestion): string | null {
   const raw = (q.correctAnswer ?? "").trim();
   if (!raw) return null;
 
-  const opts = Array.isArray(q.options) ? q.options : null;
-  if (!opts) return raw;
+  // Matching questions carry their answer inside the pairs, not a letter key.
+  if (q.type === "MENJODOHKAN") return null;
+
+  const opts = Array.isArray(q.options)
+    ? (q.options.filter((o) => typeof o === "string") as string[])
+    : null;
+  if (!opts || opts.length === 0) return raw;
 
   const separator = raw.includes("|") ? "|" : raw.includes(",") ? "," : null;
 
@@ -40,24 +53,81 @@ function resolveCorrectAnswer(q: GeneratedQuestion): string | null {
   return idx !== undefined && opts[idx] !== undefined ? opts[idx] : raw;
 }
 
+/** Append an uploaded image to the question content so it renders with the question. */
+function withImage(content: string, imageUrl?: string): string {
+  const url = (imageUrl ?? "").trim();
+  if (!url) return content;
+  return `${content}\n\n<img src="${url}" alt="Soal" class="max-h-48 rounded-lg" />`;
+}
+
+/**
+ * Matching questions must be stored as `{ left, right }` pairs. Models sometimes
+ * answer with `"Kiri || Kanan"` strings instead, so accept both shapes.
+ */
+function normalizeOptions(q: GeneratedQuestion): unknown {
+  if (!Array.isArray(q.options)) return null;
+  if (q.type !== "MENJODOHKAN") return q.options;
+
+  const pairs = (q.options as unknown[])
+    .map((raw) => {
+      if (typeof raw === "string") {
+        const [left, right] = raw.split("||").map((s) => s.trim());
+        return left && right ? { left, right } : null;
+      }
+      if (raw && typeof raw === "object") {
+        const o = raw as Record<string, unknown>;
+        const left = typeof o.left === "string" ? o.left.trim() : "";
+        const right = typeof o.right === "string" ? o.right.trim() : "";
+        return left && right ? { left, right } : null;
+      }
+      return null;
+    })
+    .filter((p): p is { left: string; right: string } => p !== null);
+
+  return pairs.length > 0 ? pairs : null;
+}
+
+function buildInsertRows(
+  questions: GeneratedQuestion[],
+  examId: string | null,
+  subjectId: string | null,
+  topic?: string
+) {
+  return questions.map((q) => ({
+    examId: examId ?? null,
+    subjectId: subjectId ?? null,
+    type: q.type as never,
+    content: withImage(q.content, q.imageUrl),
+    options: normalizeOptions(q) as never,
+    correctAnswer: resolveCorrectAnswer(q),
+    explanation: q.explanation ?? null,
+    score: q.score ?? 1,
+    difficulty: q.difficulty ?? 2,
+    tags: (topic ? [topic] : null) as never,
+  }));
+}
+
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user || !["GURU", "SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_AKADEMIK"].includes(session.user.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "AI Question Generator belum dikonfigurasi. Admin perlu set OPENAI_API_KEY (atau AI_API_KEY) di environment variables." },
-      { status: 503 }
+  const body = await req.json();
+
+  // Direct save path: the client sends back the previewed questions (possibly
+  // with uploaded images) so nothing is regenerated and images are preserved.
+  if (Array.isArray(body.questionsToSave) && body.questionsToSave.length > 0) {
+    const rows = buildInsertRows(
+      body.questionsToSave as GeneratedQuestion[],
+      body.examId ?? null,
+      body.subjectId ?? null,
+      body.topic
     );
+    const created = await db.question.createMany({ data: rows });
+    return NextResponse.json({ questions: body.questionsToSave, saved: created.count });
   }
 
-  // Configurable AI provider — defaults to APIClaude gateway
-  const aiBaseUrl = process.env.AI_BASE_URL || "https://apiclaude.net/v1";
-
-  const body = await req.json();
   const {
     topic,
     subjectName,
@@ -66,6 +136,7 @@ export async function POST(req: NextRequest) {
     count,
     subjectId,
     examId,
+    aiProvider,
     aiModel: clientModel,
     jenjang,
     kurikulum,
@@ -74,6 +145,7 @@ export async function POST(req: NextRequest) {
     detailInstruction,
     sourceMaterial,
     strictMode,
+    imageMode,
   } = body as {
     topic: string;
     subjectName?: string;
@@ -82,6 +154,7 @@ export async function POST(req: NextRequest) {
     count: number;
     subjectId?: string;
     examId?: string;
+    aiProvider?: AIProviderId;
     aiModel?: string;
     jenjang?: string;
     kurikulum?: string;
@@ -90,10 +163,24 @@ export async function POST(req: NextRequest) {
     detailInstruction?: string;
     sourceMaterial?: string;
     strictMode?: boolean;
+    imageMode?: boolean;
   };
 
-  // Use client-selected model if provided, otherwise fall back to env
-  const aiModel = clientModel || process.env.AI_MODEL || "langgananku/claude-sonnet-4-20250514";
+  const provider = getProvider(aiProvider ?? DEFAULT_PROVIDER_ID);
+  const providerConfig = resolveProviderConfig(provider.id);
+
+  if (!providerConfig.apiKey) {
+    return NextResponse.json(
+      {
+        error: `AI Question Generator belum dikonfigurasi untuk provider ${provider.label}. Admin perlu set ${providerConfig.keyEnvName} di environment variables.`,
+      },
+      { status: 503 }
+    );
+  }
+
+  const aiBaseUrl = providerConfig.baseUrl;
+  // Use client-selected model if provided, otherwise fall back to the provider default
+  const aiModel = clientModel || providerConfig.defaultModel;
 
   if (!topic || !questionType || !count) {
     return NextResponse.json({ error: "topic, questionType, count wajib diisi" }, { status: 400 });
@@ -103,6 +190,7 @@ export async function POST(req: NextRequest) {
     PILGAN: "Pilihan Ganda (single answer, A-E)",
     PILGAN_KOMPLEK: "Pilihan Ganda Kompleks (multiple answers, pipe-separated)",
     BENAR_SALAH: "Benar / Salah",
+    MENJODOHKAN: "Menjodohkan (matching pairs)",
     ESSAY: "Essay (open-ended)",
     ISIAN: "Isian Singkat (short answer)",
   };
@@ -189,6 +277,22 @@ Example:
 
 Example:
 [{"type":"BENAR_SALAH","content":"Air mendidih pada suhu 100°C di tekanan 1 atm.","correctAnswer":"Benar","explanation":"Titik didih air = 100°C pada 1 atm.","difficulty":1,"score":1}]`;
+  } else if (questionType === "MENJODOHKAN") {
+    userPrompt += `For each question, provide:
+- "type": "MENJODOHKAN"
+- "content": the instruction text (e.g. "Jodohkan negara dengan ibu kotanya!")
+- "options": array of EXACTLY ${nOpts} pair objects, each shaped {"left":"...","right":"..."}
+- "correctAnswer": "" (leave empty — the pairing itself is the answer)
+- "explanation": brief explanation of the pairings
+- "difficulty": ${difficulty}
+- "score": ${nOpts}
+
+RULES:
+- "left" holds the prompt item, "right" holds its matching item. Each left must match exactly one right.
+- Keep both sides short (1-5 words) and unambiguous.
+
+Example:
+[{"type":"MENJODOHKAN","content":"Jodohkan negara dengan ibu kotanya!","options":[{"left":"Indonesia","right":"Jakarta"},{"left":"Jepang","right":"Tokyo"},{"left":"Mesir","right":"Kairo"}],"correctAnswer":"","explanation":"Ibu kota masing-masing negara.","difficulty":2,"score":3}]`;
   } else if (questionType === "ESSAY") {
     userPrompt += `For each question, provide:
 - "type": "ESSAY"
@@ -217,12 +321,25 @@ Example:
 
   userPrompt += `\n\nReturn ONLY a valid JSON array of ${count} question objects. No markdown, no code fences, no explanation.`;
 
+  if (imageMode) {
+    userPrompt += `
+
+IMAGE MODE (MANDATORY):
+- Every question MUST be designed so that an image/illustration is required to answer it.
+- Add an extra key "imagePrompt" to each object: a detailed image description in ${lang}, ready to paste into an AI image generator (mention objects, activity, setting and illustration style).
+- The "imagePrompt" MUST be synchronised with the question and its options.
+- Start "content" with a reference sentence such as "Perhatikan gambar berikut!" followed by a newline and the actual question.
+- Answer options must relate to what is shown in the image, including plausible distractors.
+- Do NOT write placeholders like [Image of ...] inside "content" — the visual description belongs ONLY in "imagePrompt".`;
+  }
+
   try {
     const response = await fetch(`${aiBaseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${providerConfig.apiKey}`,
+        ...providerConfig.headers,
       },
       body: JSON.stringify({
         model: aiModel,
@@ -237,9 +354,9 @@ Example:
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("AI API error:", errText);
+      console.error(`AI API error (${provider.id}/${aiModel}):`, errText);
       return NextResponse.json(
-        { error: "AI service error. Coba lagi nanti." },
+        { error: `AI service error dari ${provider.label} (model: ${aiModel}). Coba model lain atau ulangi nanti.` },
         { status: 502 }
       );
     }
@@ -266,19 +383,7 @@ Example:
     }
 
     if (body.saveToBank) {
-      const toInsert = questions.map((q) => ({
-        examId: examId ?? null,
-        subjectId: subjectId ?? null,
-        type: q.type as never,
-        content: q.content,
-        options: (q.options ?? null) as never,
-        correctAnswer: resolveCorrectAnswer(q),
-        explanation: q.explanation ?? null,
-        score: q.score ?? 1,
-        difficulty: q.difficulty ?? 2,
-        tags: (topic ? [topic] : null) as never,
-      }));
-
+      const toInsert = buildInsertRows(questions, examId ?? null, subjectId ?? null, topic);
       const created = await db.question.createMany({ data: toInsert });
       return NextResponse.json({ questions, saved: created.count });
     }

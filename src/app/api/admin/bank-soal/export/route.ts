@@ -53,6 +53,54 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  if (format === "doc") {
+    const labels = ["A", "B", "C", "D", "E"];
+    const rows = questions.map((q, idx) => {
+      const opts = Array.isArray(q.options) ? q.options : [];
+      const soalText = stripHtml(q.content);
+      const soalImg = extractImageUrl(q.content);
+      let kunci = q.correctAnswer ?? "";
+      if (q.type === "PILGAN") {
+        const optsText = opts.map(getOptionText);
+        const ki = optsText.indexOf(kunci);
+        if (ki >= 0) kunci = labels[ki];
+      } else if (q.type === "PILGAN_KOMPLEK") {
+        const keys = kunci.split("|");
+        const optsText = opts.map(getOptionText);
+        kunci = keys.map((k) => {
+          const ki = optsText.indexOf(k);
+          return ki >= 0 ? labels[ki] : k;
+        }).join(", ");
+      }
+      const tagsArr = Array.isArray(q.tags) ? (q.tags as string[]) : [];
+      const optHtml = opts.map((o, i) => {
+        const text = getOptionText(o);
+        const img = getOptionImage(o);
+        const imgTag = img ? `<br/><img src="${img}" style="max-height:80px;"/>` : "";
+        return `<div style="margin-left:20px;margin-bottom:4px;">${labels[i] ?? ""}. ${text}${imgTag}</div>`;
+      }).join("");
+      const soalImgTag = soalImg ? `<br/><img src="${soalImg}" style="max-height:150px;"/>` : "";
+      const diffLabel = q.difficulty === 1 ? "Mudah" : q.difficulty === 2 ? "Sedang" : "Sulit";
+      return `<div style="margin-bottom:16px;border-bottom:1px solid #ccc;padding-bottom:12px;">
+        <p style="font-weight:bold;">${idx + 1}. ${soalText}${soalImgTag}</p>
+        ${optHtml}
+        <p style="color:green;margin-top:4px;">Kunci: ${kunci}</p>
+        ${q.explanation ? `<p style="color:#666;font-size:0.9em;">Pembahasan: ${stripHtml(q.explanation)}</p>` : ""}
+        <p style="font-size:0.8em;color:#999;">Tipe: ${q.type} | Skor: ${q.score} | Kesulitan: ${diffLabel} | Mapel: ${q.subject?.name ?? "-"} | Tags: ${tagsArr.join(", ")}</p>
+      </div>`;
+    }).join("");
+    const html = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+      <head><meta charset="utf-8"><title>Bank Soal</title>
+      <style>body{font-family:Arial,sans-serif;font-size:12pt;} img{max-height:150px;}</style>
+      </head><body><h2>Bank Soal Export</h2>${rows}</body></html>`;
+    return new NextResponse(html, {
+      headers: {
+        "Content-Type": "application/msword",
+        "Content-Disposition": 'attachment; filename="bank-soal.doc"',
+      },
+    });
+  }
+
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("SOAL");
   ws.views = [{ state: "frozen", ySplit: 1 }];

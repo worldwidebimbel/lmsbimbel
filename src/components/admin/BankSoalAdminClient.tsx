@@ -6,6 +6,8 @@ import {
   Download, Database, BarChart3, Edit3, CheckCircle2,
 } from "lucide-react";
 import MathRenderer from "@/components/ui/MathRenderer";
+import ImageUploadButton from "@/components/guru/ImageUploadButton";
+import { normalizeOptions, optionText, toOptionPayload } from "@/lib/question-options";
 import BankSoalImportClient from "@/components/guru/BankSoalImportClient";
 import AIQuestionGenerator from "@/components/guru/AIQuestionGenerator";
 import AIPromptWizard from "@/components/guru/AIPromptWizard";
@@ -74,6 +76,8 @@ export default function BankSoalAdminClient({
   const [filterTag, setFilterTag] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showAdd, setShowAdd] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [showExport, setShowExport] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showXlsxImport, setShowXlsxImport] = useState(false);
   const [showStats, setShowStats] = useState(false);
@@ -131,13 +135,14 @@ export default function BankSoalAdminClient({
     });
   }
 
-  async function handleExport(format: "xlsx" | "json") {
+  async function handleExport(format: "xlsx" | "json" | "doc") {
     const params = new URLSearchParams({ format });
     if (filterSubject) params.set("subjectId", filterSubject);
     if (filterType) params.set("type", filterType);
     const a = document.createElement("a");
     a.href = `/api/admin/bank-soal/export?${params.toString()}`;
     a.click();
+    setShowExport(false);
   }
 
   return (
@@ -274,24 +279,35 @@ export default function BankSoalAdminClient({
               <Upload className="h-4 w-4" /> Import ke Ujian ({selected.size})
             </button>
           )}
-          <div className="relative group">
-            <button className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          <div className="relative">
+            <button
+              onClick={() => setShowExport(!showExport)}
+              className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
               <FileDown className="h-4 w-4" /> Export
             </button>
-            <div className="absolute right-0 top-full mt-1 hidden group-hover:flex flex-col bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-20 min-w-[150px]">
-              <button
-                onClick={() => handleExport("xlsx")}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left"
-              >
-                <Download className="h-4 w-4 text-green-600" /> Export Excel
-              </button>
-              <button
-                onClick={() => handleExport("json")}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left"
-              >
-                <Download className="h-4 w-4 text-blue-600" /> Export JSON
-              </button>
-            </div>
+            {showExport && (
+              <div className="absolute right-0 top-full pt-1 flex flex-col bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-20 min-w-[160px]">
+                <button
+                  onClick={() => handleExport("xlsx")}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left"
+                >
+                  <Download className="h-4 w-4 text-green-600" /> Export Excel
+                </button>
+                <button
+                  onClick={() => handleExport("doc")}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left"
+                >
+                  <Download className="h-4 w-4 text-indigo-600" /> Export Word
+                </button>
+                <button
+                  onClick={() => handleExport("json")}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left"
+                >
+                  <Download className="h-4 w-4 text-blue-600" /> Export JSON
+                </button>
+              </div>
+            )}
           </div>
           <button
             onClick={() => setShowXlsxImport(true)}
@@ -302,7 +318,7 @@ export default function BankSoalAdminClient({
           <AIQuestionGenerator subjects={subjects} onSaved={() => window.location.reload()} />
           <AIPromptWizard subjects={subjects} onSaved={() => window.location.reload()} />
           <button
-            onClick={() => setShowAdd(true)}
+            onClick={() => { setEditingQuestion(null); setShowAdd(true); }}
             className="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700"
           >
             <Plus className="h-4 w-4" /> Tambah Soal
@@ -408,12 +424,20 @@ export default function BankSoalAdminClient({
                     </div>
                   )}
                 </div>
-                <button
-                  onClick={() => handleDelete(q.id)}
-                  className="shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                <div className="flex shrink-0 gap-1">
+                  <button
+                    onClick={() => { setEditingQuestion(q); setShowAdd(true); }}
+                    className="rounded-lg p-1.5 text-gray-400 hover:bg-amber-50 hover:text-amber-600"
+                  >
+                    <Edit3 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(q.id)}
+                    className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -421,7 +445,7 @@ export default function BankSoalAdminClient({
       )}
 
       {/* Add Modal */}
-      {showAdd && <AddQuestionModal subjects={subjects} onClose={() => setShowAdd(false)} onAdded={(q) => { setQuestions((prev) => [q, ...prev]); setShowAdd(false); }} />}
+      {showAdd && <AddQuestionModal subjects={subjects} editingQuestion={editingQuestion} onClose={() => { setShowAdd(false); setEditingQuestion(null); }} onAdded={(q) => { setQuestions((prev) => [q, ...prev]); setShowAdd(false); setEditingQuestion(null); }} onEdited={(q) => { setQuestions((prev) => prev.map((old) => (old.id === q.id ? q : old))); setShowAdd(false); setEditingQuestion(null); }} />}
 
       {/* Excel Import Modal */}
       {showXlsxImport && (
@@ -496,30 +520,77 @@ export default function BankSoalAdminClient({
 
 function AddQuestionModal({
   subjects,
+  editingQuestion,
   onClose,
   onAdded,
+  onEdited,
 }: {
   subjects: Subject[];
+  editingQuestion: Question | null;
   onClose: () => void;
   onAdded: (q: Question) => void;
+  onEdited: (q: Question) => void;
 }) {
-  const [form, setForm] = useState({
+  function parseQuestionToForm(q: Question) {
+    const imgMatch = q.content.match(/<img\s+src="([^"]+)"/);
+    const contentImageUrl = imgMatch?.[1] ?? "";
+    const contentText = q.content.replace(/<img[^>]*>/g, "").replace(/\n\s*\n+$/, "").trim();
+
+    const opts = normalizeOptions(q.options as unknown[] | null);
+    const optTexts = opts.map((o) => o.text);
+    const optImages = opts.map((o) => o.imageUrl ?? "");
+    while (optTexts.length < 4) { optTexts.push(""); optImages.push(""); }
+
+    return {
+      subjectId: q.subjectId ?? "",
+      type: q.type,
+      content: contentText,
+      contentImageUrl,
+      options: optTexts,
+      optionImages: optImages,
+      correctAnswer: q.correctAnswer ?? "",
+      explanation: q.explanation ?? "",
+      score: q.score,
+      difficulty: q.difficulty,
+      tags: ((q.tags as string[] | null) ?? []).join(", "),
+    };
+  }
+
+  const blankForm = {
     subjectId: "",
     type: "PILGAN" as QuestionType,
     content: "",
+    contentImageUrl: "",
     options: ["", "", "", ""] as string[],
+    optionImages: ["", "", "", ""] as string[],
     correctAnswer: "",
     explanation: "",
     score: 1,
     difficulty: 2,
     tags: "",
-  });
+  };
 
-  async function handleAdd() {
+  const [form, setForm] = useState(
+    editingQuestion ? parseQuestionToForm(editingQuestion) : blankForm
+  );
+
+  function setOptionCount(n: number) {
+    setForm((prev) => ({
+      ...prev,
+      options: Array.from({ length: n }, (_, i) => prev.options[i] ?? ""),
+      optionImages: Array.from({ length: n }, (_, i) => prev.optionImages[i] ?? ""),
+    }));
+  }
+
+  async function handleSave() {
+    const content = form.contentImageUrl
+      ? `${form.content}\n\n<img src="${form.contentImageUrl}" alt="Soal" class="max-h-48 rounded-lg" />`
+      : form.content;
+
     const body: Record<string, unknown> = {
       subjectId: form.subjectId || null,
       type: form.type,
-      content: form.content,
+      content,
       explanation: form.explanation || null,
       score: form.score,
       difficulty: form.difficulty,
@@ -528,7 +599,9 @@ function AddQuestionModal({
 
     switch (form.type) {
       case "PILGAN":
-        body.options = form.options.filter((o) => o.trim());
+        body.options = form.options
+          .map((text, i) => toOptionPayload(text, form.optionImages[i]))
+          .filter((o) => optionText(o));
         body.correctAnswer = form.correctAnswer || null;
         break;
       case "BENAR_SALAH":
@@ -540,19 +613,33 @@ function AddQuestionModal({
         body.correctAnswer = form.correctAnswer || null;
         break;
       default:
-        body.options = form.options.filter((o) => o.trim());
+        body.options = form.options
+          .map((text, i) => toOptionPayload(text, form.optionImages[i]))
+          .filter((o) => optionText(o));
         body.correctAnswer = form.correctAnswer || null;
         break;
     }
 
-    const res = await fetch("/api/admin/bank-soal", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (res.ok) {
-      const q = await res.json();
-      onAdded(q);
+    if (editingQuestion) {
+      const res = await fetch(`/api/admin/bank-soal/${editingQuestion.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const q = await res.json();
+        onEdited(q);
+      }
+    } else {
+      const res = await fetch("/api/admin/bank-soal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const q = await res.json();
+        onAdded(q);
+      }
     }
   }
 
@@ -560,7 +647,7 @@ function AddQuestionModal({
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto">
       <div className="w-full max-w-lg rounded-2xl bg-white p-6 space-y-4 my-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-900">Tambah Soal ke Bank</h2>
+          <h2 className="text-lg font-bold text-gray-900">{editingQuestion ? "Edit Soal" : "Tambah Soal ke Bank"}</h2>
           <button onClick={onClose} className="rounded-lg p-1 hover:bg-gray-100">
             <X className="h-4 w-4 text-gray-500" />
           </button>
@@ -596,13 +683,21 @@ function AddQuestionModal({
 
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-600">Soal *</label>
-          <textarea
-            value={form.content}
-            onChange={(e) => setForm({ ...form, content: e.target.value })}
-            rows={3}
-            placeholder="Ketik soal di sini..."
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
-          />
+          <div className="flex gap-3">
+            <textarea
+              value={form.content}
+              onChange={(e) => setForm({ ...form, content: e.target.value })}
+              rows={3}
+              placeholder="Ketik soal di sini..."
+              className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+            <ImageUploadButton
+              url={form.contentImageUrl}
+              onChange={(url) => setForm({ ...form, contentImageUrl: url })}
+              label="Gambar soal"
+              size="md"
+            />
+          </div>
         </div>
 
         {(form.type === "PILGAN" || form.type === "PILGAN_KOMPLEK") && (
@@ -611,11 +706,7 @@ function AddQuestionModal({
               <label className="text-xs font-medium text-gray-600">Pilihan Jawaban</label>
               <select
                 value={form.options.length}
-                onChange={(e) => {
-                  const n = Number(e.target.value);
-                  const next = Array.from({ length: n }, (_, i) => form.options[i] ?? "");
-                  setForm({ ...form, options: next });
-                }}
+                onChange={(e) => setOptionCount(Number(e.target.value))}
                 className="rounded-lg border border-gray-200 px-2 py-1 text-xs"
               >
                 <option value={3}>3 Opsi (A-C) — SD</option>
@@ -637,6 +728,15 @@ function AddQuestionModal({
                   }}
                   className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm"
                   placeholder={`Opsi ${String.fromCharCode(65 + i)}`}
+                />
+                <ImageUploadButton
+                  url={form.optionImages[i]}
+                  onChange={(url) => {
+                    const imgs = [...form.optionImages];
+                    imgs[i] = url;
+                    setForm({ ...form, optionImages: imgs });
+                  }}
+                  label={`Gambar opsi ${String.fromCharCode(65 + i)}`}
                 />
               </div>
             ))}
@@ -738,11 +838,11 @@ function AddQuestionModal({
             Batal
           </button>
           <button
-            onClick={handleAdd}
+            onClick={handleSave}
             disabled={!form.content}
             className="flex-1 rounded-xl bg-amber-600 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
           >
-            Simpan ke Bank
+            {editingQuestion ? "Simpan Perubahan" : "Simpan ke Bank"}
           </button>
         </div>
       </div>

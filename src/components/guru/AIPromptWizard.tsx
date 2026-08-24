@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Wand2, X, Copy, Check, ArrowRight, ArrowLeft, Loader2, AlertCircle, Save, ExternalLink } from "lucide-react";
+import { Wand2, X, Copy, Check, ArrowRight, ArrowLeft, Loader2, AlertCircle, Save, ExternalLink, ImageIcon } from "lucide-react";
 import SelectOrCustom from "@/components/ui/SelectOrCustom";
+import ImageUploadButton from "./ImageUploadButton";
 
 interface Subject { id: string; name: string }
 
@@ -28,6 +29,7 @@ interface ParsedQuestion {
   opt_e?: string;
   answer_key?: string;
   discussion?: string;
+  image_prompt?: string;
 }
 
 const JENJANG_OPTIONS = ["SD / MI", "SMP / MTs", "SMA / MA", "SMK", "Perguruan Tinggi"];
@@ -82,6 +84,13 @@ const AI_SITES = [
   { name: "DeepSeek", url: "https://chat.deepseek.com/" },
 ];
 
+const IMAGE_AI_SITES = [
+  { name: "ChatGPT / DALL·E", url: "https://chat.openai.com/" },
+  { name: "Gemini Imagen", url: "https://gemini.google.com/" },
+  { name: "Leonardo AI", url: "https://app.leonardo.ai/" },
+  { name: "Bing Image Creator", url: "https://www.bing.com/images/create" },
+];
+
 const OPTION_LETTERS = ["A", "B", "C", "D", "E"];
 
 export default function AIPromptWizard({
@@ -120,6 +129,9 @@ export default function AIPromptWizard({
   const [materi, setMateri] = useState("");
   const [detailInstruction, setDetailInstruction] = useState("");
   const [strictMode, setStrictMode] = useState(false);
+  const [imageMode, setImageMode] = useState(false);
+  const [imageUrls, setImageUrls] = useState<Record<number, string>>({});
+  const [copiedImgIdx, setCopiedImgIdx] = useState<number | null>(null);
 
   const totalSoal = composition.reduce((sum, r) => sum + r.count, 0);
 
@@ -155,6 +167,24 @@ export default function AIPromptWizard({
       ? `\nMATERI / SUMBER:\n"""\n${materi.trim()}\n"""\n${strictLine}\n`
       : "";
 
+    const imageRule = imageMode
+      ? `
+7. **MODE BERGAMBAR (WAJIB):**
+   - Setiap soal HARUS dirancang agar membutuhkan sebuah gambar/ilustrasi untuk dijawab.
+   - Tambahkan key "image_prompt" berisi deskripsi gambar dalam Bahasa Indonesia yang SINKRON dengan soal.
+   - "image_prompt" harus detail dan siap dipakai di AI image generator (sebutkan objek, aktivitas, latar, dan gaya ilustrasi).
+   - Mulai 'question_text' dengan kalimat rujukan gambar, contoh: "Perhatikan gambar berikut!" lalu baris baru dan pertanyaannya.
+   - Opsi jawaban harus berkaitan dengan isi gambar (buat pengecoh yang masuk akal).
+   - JANGAN menulis penanda seperti [Image of...] di dalam question_text — deskripsi gambar HANYA di "image_prompt".
+`
+      : `
+7. **NO IMAGE PLACEHOLDER:** 
+   - JANGAN tuliskan teks penanda gambar seperti [Image of...], (Gambar...), atau [Insert Diagram].
+   - question_text harus BERSIH, hanya berisi kalimat pertanyaan saja.
+`;
+
+    const jsonImageKey = imageMode ? `\n    "image_prompt": "...",` : "";
+
     return `PERAN: Anda adalah penulis soal ujian profesional untuk jenjang ${identity.jenjang}.
 TUGAS: Buat soal ujian ${identity.jenisUjian} yang valid, reliabel, dan bebas bias.
 
@@ -164,7 +194,7 @@ KONTEKS SPESIFIK:
 - Kurikulum: ${identity.kurikulum}
 - Target Peserta: ${identity.fase}
 - Level Kognitif: ${identity.kognitif}
-- BAHASA: ${identity.bahasa} (Gunakan untuk SEMUA teks soal/opsi/pembahasan).
+- BAHASA: ${identity.bahasa} (Gunakan untuk SEMUA teks soal/opsi/pembahasan).${imageMode ? "\n- MODE: BERGAMBAR (setiap soal disertai prompt gambar)." : ""}
 
 KOMPOSISI SOAL (Total ${totalSoal} butir):
 ${komposisiLines.join("\n")}
@@ -203,16 +233,12 @@ ATURAN FORMAT JSON (CRITICAL):
    - **JANGAN MENGHAPUS KEY DARI JSON.**
 
 6. **ANTI-NULL:** Jangan biarkan value null. Gunakan string kosong "" jika tidak ada data.
-
-7. **NO IMAGE PLACEHOLDER:** 
-   - JANGAN tuliskan teks penanda gambar seperti [Image of...], (Gambar...), atau [Insert Diagram].
-   - question_text harus BERSIH, hanya berisi kalimat pertanyaan saja.
-
+${imageRule}
 OUTPUT HARUS HANYA JSON ARRAY (WAJIB ADA ${totalSoal} SOAL):
 [
   {
     "type": "PG", 
-    "weight": 10,
+    "weight": 10,${jsonImageKey}
     "question_text": "...",
     "opt_a": "...",
     "opt_b": "...",
@@ -249,9 +275,16 @@ OUTPUT HARUS HANYA JSON ARRAY (WAJIB ADA ${totalSoal} SOAL):
         return;
       }
       setParsed(data as ParsedQuestion[]);
+      setImageUrls({});
     } catch (e) {
       setError(`JSON tidak valid: ${(e as Error).message}`);
     }
+  }
+
+  async function handleCopyImagePrompt(idx: number, text: string) {
+    await navigator.clipboard.writeText(text);
+    setCopiedImgIdx(idx);
+    setTimeout(() => setCopiedImgIdx(null), 2000);
   }
 
   async function handleSave() {
@@ -260,11 +293,16 @@ OUTPUT HARUS HANYA JSON ARRAY (WAJIB ADA ${totalSoal} SOAL):
     setError(null);
 
     try {
+      const payload = parsed.map((q, i) => ({
+        ...q,
+        image_url: imageUrls[i] || undefined,
+      }));
+
       const res = await fetch("/api/guru/bank-soal/ai-prompt-import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          questions: parsed,
+          questions: payload,
           subjectId: identity.subjectId || null,
           examId: examId ?? null,
           topic: identity.topik,
@@ -293,6 +331,8 @@ OUTPUT HARUS HANYA JSON ARRAY (WAJIB ADA ${totalSoal} SOAL):
     setError(null);
     setSavedCount(0);
     setCopied(false);
+    setImageUrls({});
+    setCopiedImgIdx(null);
   }
 
   const canProceedStep1 = identity.mapel.trim() !== "" && identity.topik.trim() !== "";
@@ -527,6 +567,47 @@ OUTPUT HARUS HANYA JSON ARRAY (WAJIB ADA ${totalSoal} SOAL):
                   <h3 className="text-lg font-bold text-blue-600">Langkah 3: Detail &amp; Materi</h3>
 
                   <div>
+                    <label className="mb-2 block text-sm font-semibold text-gray-700">Mode Soal</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => setImageMode(false)}
+                        className={`flex items-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all ${
+                          !imageMode
+                            ? "border-amber-500 bg-amber-50 text-amber-800"
+                            : "border-gray-200 text-gray-600 hover:border-gray-300"
+                        }`}
+                      >
+                        <span className={`flex h-4 w-4 items-center justify-center rounded-full border-2 ${!imageMode ? "border-amber-600" : "border-gray-300"}`}>
+                          {!imageMode && <span className="h-2 w-2 rounded-full bg-amber-600" />}
+                        </span>
+                        Tidak Bergambar
+                      </button>
+                      <button
+                        onClick={() => setImageMode(true)}
+                        className={`flex items-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all ${
+                          imageMode
+                            ? "border-indigo-500 bg-indigo-50 text-indigo-800"
+                            : "border-gray-200 text-gray-600 hover:border-gray-300"
+                        }`}
+                      >
+                        <span className={`flex h-4 w-4 items-center justify-center rounded-full border-2 ${imageMode ? "border-indigo-600" : "border-gray-300"}`}>
+                          {imageMode && <span className="h-2 w-2 rounded-full bg-indigo-600" />}
+                        </span>
+                        <ImageIcon className="h-4 w-4" /> Bergambar
+                      </button>
+                    </div>
+                    {imageMode && (
+                      <div className="mt-2 flex items-start gap-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+                        <AlertCircle className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
+                        <p className="text-xs text-indigo-800">
+                          AI akan membuat <strong>prompt gambar</strong> untuk setiap soal. Salin prompt tersebut ke AI image generator,
+                          lalu unggah hasilnya di langkah 4 — gambar otomatis terhubung ke soal.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
                     <label className="mb-1 block text-sm font-semibold text-gray-700">
                       Detail Instruksi Soal <span className="font-normal text-gray-400">(opsional, sangat disarankan)</span>
                     </label>
@@ -635,6 +716,29 @@ OUTPUT HARUS HANYA JSON ARRAY (WAJIB ADA ${totalSoal} SOAL):
                     </div>
                   </div>
 
+                  {/* Image AI site links */}
+                  {imageMode && (
+                    <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+                      <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-indigo-800">
+                        <ImageIcon className="h-3.5 w-3.5" />
+                        Setelah parse JSON, salin tiap prompt gambar ke AI image generator berikut:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {IMAGE_AI_SITES.map((s) => (
+                          <a
+                            key={s.name}
+                            href={s.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 rounded-lg border border-indigo-300 bg-white px-3 py-1.5 text-xs font-medium text-indigo-800 hover:bg-indigo-100"
+                          >
+                            {s.name} <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* JSON paste */}
                   <div>
                     <label className="mb-1.5 block text-sm font-semibold text-gray-700">Paste Hasil JSON dari AI</label>
@@ -681,7 +785,43 @@ OUTPUT HARUS HANYA JSON ARRAY (WAJIB ADA ${totalSoal} SOAL):
                             <div className="mb-1.5 flex items-center gap-2">
                               <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">{q.type}</span>
                               <span className="text-xs text-gray-500">Bobot: {q.weight ?? 10}</span>
+                              {q.image_prompt && (
+                                <span className="flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                                  <ImageIcon className="h-3 w-3" /> Bergambar
+                                </span>
+                              )}
                             </div>
+
+                            {q.image_prompt && (
+                              <div className="mb-2 rounded-lg border border-indigo-200 bg-indigo-50 p-2.5">
+                                <div className="mb-1.5 flex items-center justify-between gap-2">
+                                  <span className="text-xs font-semibold text-indigo-800">Prompt Gambar</span>
+                                  <button
+                                    onClick={() => handleCopyImagePrompt(i, q.image_prompt ?? "")}
+                                    className="flex items-center gap-1 rounded-md bg-indigo-600 px-2 py-1 text-xs font-medium text-white hover:bg-indigo-700"
+                                  >
+                                    {copiedImgIdx === i
+                                      ? <><Check className="h-3 w-3" /> Tersalin</>
+                                      : <><Copy className="h-3 w-3" /> Copy</>}
+                                  </button>
+                                </div>
+                                <p className="text-xs italic text-indigo-900">{q.image_prompt}</p>
+                                <div className="mt-2 flex items-center gap-2">
+                                  <ImageUploadButton
+                                    url={imageUrls[i]}
+                                    onChange={(url) => setImageUrls((prev) => ({ ...prev, [i]: url }))}
+                                    label={`Gambar soal ${i + 1}`}
+                                    size="md"
+                                  />
+                                  <p className="text-xs text-indigo-700">
+                                    {imageUrls[i]
+                                      ? "Gambar siap — akan otomatis terhubung ke soal ini."
+                                      : "Buat gambar dari prompt di atas, lalu unggah di sini."}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
                             <p
                               className="text-sm text-gray-800"
                               dangerouslySetInnerHTML={{ __html: `${i + 1}. ${q.question_text ?? ""}` }}
