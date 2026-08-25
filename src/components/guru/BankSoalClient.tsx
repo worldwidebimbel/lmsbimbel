@@ -2,14 +2,17 @@
 
 import { useState, useTransition } from "react";
 import { Plus, Trash2, Upload, Search, BookMarked, X, FileDown, FileUp, Download, Edit3 } from "lucide-react";
-import ImageUploadButton from "./ImageUploadButton";
+import MediaUploadButton, { type MediaValue, parseMediaFromContent, mediaToHtml, stripMediaFromContent } from "./MediaUploadButton";
 import { normalizeOptions, optionText, toOptionPayload } from "@/lib/question-options";
+import { getInstruction, getBenarSalahLabels, getSetujuTidakLabels, type QuestionLang } from "@/lib/question-instructions";
 import BankSoalImportClient from "./BankSoalImportClient";
 import AIQuestionGenerator from "./AIQuestionGenerator";
 import AIPromptWizard from "./AIPromptWizard";
 import MathRenderer from "@/components/ui/MathRenderer";
 
 type QuestionType = "PILGAN" | "PILGAN_KOMPLEK" | "BENAR_SALAH" | "MENJODOHKAN" | "MENGURUTKAN" | "SETUJU_TIDAK" | "ESSAY" | "ISIAN";
+
+const LANG_LABELS: Record<QuestionLang, string> = { id: "Bahasa Indonesia", en: "English", ar: "العربية" };
 
 interface Question {
   id: string;
@@ -70,16 +73,17 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
 
   const BLANK_FORM = {
     subjectId: "", type: "PILGAN" as QuestionType,
+    lang: "id" as QuestionLang,
     content: "",
-    contentImageUrl: "",
+    media: { type: "none", url: "" } as MediaValue,
     options: ["", "", "", ""] as string[],
     optionImages: ["", "", "", ""] as string[],
     correctAnswer: "",
     correctIndices: [] as number[],
-    pairs: [{ left: "", right: "" }, { left: "", right: "" }, { left: "", right: "" }] as { left: string; right: string; leftImage?: string; rightImage?: string }[],
+    pairs: [{ left: "", right: "" }, { left: "", right: "" }, { left: "", right: "" }] as { left: string; right: string }[],
     orderedItems: ["", "", "", ""] as string[],
     orderedItemImages: ["", "", "", ""] as string[],
-    statements: [{ text: "", answer: "SETUJU" as "SETUJU" | "TIDAK", imageUrl: "" }, { text: "", answer: "SETUJU" as "SETUJU" | "TIDAK", imageUrl: "" }] as { text: string; answer: "SETUJU" | "TIDAK"; imageUrl: string }[],
+    statements: [{ text: "", answer: "SETUJU" as "SETUJU" | "TIDAK" }, { text: "", answer: "SETUJU" as "SETUJU" | "TIDAK" }] as { text: string; answer: "SETUJU" | "TIDAK" }[],
     explanation: "", score: 1, difficulty: 2,
   };
   const [form, setForm] = useState(BLANK_FORM);
@@ -121,9 +125,8 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
   }
 
   function parseQuestionToForm(q: Question): typeof BLANK_FORM {
-    const imgMatch = q.content.match(/<img\s+src="([^"]+)"/);
-    const contentImageUrl = imgMatch?.[1] ?? "";
-    const contentText = q.content.replace(/<img[^>]*>/g, "").replace(/\n\s*\n+$/, "").trim();
+    const media = parseMediaFromContent(q.content);
+    const contentText = stripMediaFromContent(q.content);
 
     const opts = normalizeOptions(q.options as unknown[] | null);
     const optTexts = opts.map((o) => o.text);
@@ -163,16 +166,16 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
       statements = (q.options as string[]).map((text, i) => ({
         text,
         answer: (answers[i] === "TIDAK" ? "TIDAK" : "SETUJU") as "SETUJU" | "TIDAK",
-        imageUrl: "",
       }));
-      if (statements.length === 0) statements = [{ text: "", answer: "SETUJU", imageUrl: "" }];
+      if (statements.length === 0) statements = [{ text: "", answer: "SETUJU" }];
     }
 
     return {
       subjectId: q.subjectId ?? "",
       type: q.type,
+      lang: "id" as QuestionLang,
       content: contentText,
-      contentImageUrl,
+      media,
       options: optTexts,
       optionImages: optImages,
       correctAnswer: q.correctAnswer ?? "",
@@ -200,9 +203,12 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
   }
 
   async function handleAdd() {
-    const content = form.contentImageUrl
-      ? `${form.content}\n\n<img src="${form.contentImageUrl}" alt="Soal" class="max-h-48 rounded-lg" />`
-      : form.content;
+    const instruction = getInstruction(form.type, form.lang);
+    const mediaHtml = mediaToHtml(form.media);
+    const contentParts = [form.content];
+    if (instruction) contentParts.push(`<p class="text-xs text-gray-500 italic">${instruction}</p>`);
+    if (mediaHtml) contentParts.push(mediaHtml);
+    const content = contentParts.filter(Boolean).join("\n\n");
 
     const body: Record<string, unknown> = {
       subjectId: form.subjectId || null,
@@ -212,6 +218,9 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
       score: form.score,
       difficulty: form.difficulty,
     };
+
+    const bsLabels = getBenarSalahLabels(form.lang);
+    const stLabels = getSetujuTidakLabels(form.lang);
 
     switch (form.type) {
       case "PILGAN": {
@@ -231,7 +240,7 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
         break;
       }
       case "BENAR_SALAH":
-        body.options = ["Benar", "Salah"];
+        body.options = [bsLabels.benar, bsLabels.salah];
         body.correctAnswer = form.correctAnswer || null;
         break;
       case "MENJODOHKAN": {
@@ -415,6 +424,15 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
                   {q.content.includes("<img") && (
                     <div className="mt-2 text-xs text-indigo-600">📎 memiliki gambar soal</div>
                   )}
+                  {q.content.includes("<audio") && (
+                    <div className="mt-2 text-xs text-purple-600">🎵 memiliki audio soal</div>
+                  )}
+                  {q.content.includes("<video") && (
+                    <div className="mt-2 text-xs text-blue-600">🎬 memiliki video soal</div>
+                  )}
+                  {q.content.includes("<iframe") && (
+                    <div className="mt-2 text-xs text-red-600">▶️ memiliki video YouTube soal</div>
+                  )}
                   {(q.tags as string[] | null)?.length ? (
                     <div className="flex flex-wrap gap-1 mt-1.5">
                       {(q.tags as string[]).map((tag) => (
@@ -446,7 +464,7 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
       {/* Add Modal */}
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 space-y-4 my-8">
+          <div className="w-full max-w-2xl rounded-2xl bg-white p-6 space-y-4 my-8">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">{editingId ? "Edit Soal" : "Tambah Soal ke Bank"}</h2>
               <button onClick={() => { setShowAdd(false); setEditingId(null); }} className="rounded-lg p-1 hover:bg-gray-100">
@@ -454,12 +472,12 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
               </button>
             </div>
 
-            {/* Tipe + Mapel */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Tipe + Mapel + Bahasa */}
+            <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className="mb-1 block text-xs font-medium text-gray-600">Tipe Soal</label>
                 <select value={form.type}
-                  onChange={(e) => setForm({ ...BLANK_FORM, type: e.target.value as QuestionType, subjectId: form.subjectId, score: form.score, difficulty: form.difficulty })}
+                  onChange={(e) => setForm({ ...BLANK_FORM, type: e.target.value as QuestionType, subjectId: form.subjectId, lang: form.lang, score: form.score, difficulty: form.difficulty })}
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
                   {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
@@ -472,9 +490,25 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
                   {subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-600">Bahasa</label>
+                <select value={form.lang} onChange={(e) => setForm({ ...form, lang: e.target.value as QuestionLang })}
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                  {Object.entries(LANG_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+              </div>
             </div>
 
-            {/* Pertanyaan */}
+            {/* Instruksi otomatis */}
+            {(() => { const inst = getInstruction(form.type, form.lang); return inst ? (
+              <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+                <p className="text-xs text-amber-700">
+                  <span className="font-medium">Instruksi otomatis ({LANG_LABELS[form.lang]}):</span> &ldquo;{inst}&rdquo;
+                </p>
+              </div>
+            ) : null; })()}
+
+            {/* Soal + Media */}
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-600">
                 {form.type === "MENJODOHKAN" || form.type === "SETUJU_TIDAK" || form.type === "MENGURUTKAN"
@@ -489,32 +523,52 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
                     : "Ketik soal di sini..."
                   }
                   className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500" />
-                <ImageUploadButton
-                  url={form.contentImageUrl}
-                  onChange={(url) => setForm({ ...form, contentImageUrl: url })}
-                  label="Gambar soal"
+                <MediaUploadButton
+                  value={form.media}
+                  onChange={(val) => setForm({ ...form, media: val })}
+                  label="Media soal"
                   size="md"
                 />
               </div>
+              {form.media.url && form.media.type !== "none" && (
+                <div className="mt-2 rounded-lg border border-gray-100 bg-gray-50 p-2">
+                  <p className="text-xs text-gray-500 mb-1">Preview media:</p>
+                  {form.media.type === "image" && <img src={form.media.url} alt="" className="max-h-32 rounded" />}
+                  {form.media.type === "audio" && <audio controls src={form.media.url} className="w-full" />}
+                  {form.media.type === "video" && <video controls src={form.media.url} className="max-h-32 rounded w-full" />}
+                  {form.media.type === "youtube" && (
+                    <iframe width="100%" height="120" src={form.media.url.replace("watch?v=", "embed/")} className="rounded" />
+                  )}
+                </div>
+              )}
             </div>
 
             {/* PILGAN */}
             {form.type === "PILGAN" && (
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-600">Pilihan Jawaban</label>
+              <div className="space-y-2 rounded-lg bg-gray-50 p-3 border border-gray-100">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-gray-700">Pilihan Jawaban</label>
+                  <select value={form.options.length} onChange={(e) => setOptionCount(Number(e.target.value))}
+                    className="rounded-lg border border-gray-200 px-2 py-1 text-xs">
+                    <option value={3}>3 Opsi (A-C)</option>
+                    <option value={4}>4 Opsi (A-D)</option>
+                    <option value={5}>5 Opsi (A-E)</option>
+                  </select>
+                </div>
                 {form.options.map((opt, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="w-6 text-center text-xs font-medium text-gray-500">{String.fromCharCode(65 + i)}.</span>
+                  <div key={i} className="flex items-center gap-2 bg-white rounded-lg p-1.5">
+                    <span className="w-6 text-center text-xs font-bold text-gray-500">{String.fromCharCode(65 + i)}.</span>
                     <input value={opt} onChange={(e) => { const o = [...form.options]; o[i] = e.target.value; setForm({ ...form, options: o }); }}
-                      className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm" placeholder={`Opsi ${String.fromCharCode(65 + i)}`} />
-                    <ImageUploadButton
-                      url={form.optionImages[i]}
-                      onChange={(url) => { const imgs = [...form.optionImages]; imgs[i] = url; setForm({ ...form, optionImages: imgs }); }}
+                      className="flex-1 rounded border border-gray-200 px-3 py-1.5 text-sm" placeholder={`Opsi ${String.fromCharCode(65 + i)}`} />
+                    <MediaUploadButton
+                      value={{ type: form.optionImages[i] ? "image" : "none", url: form.optionImages[i] }}
+                      onChange={(val) => { const imgs = [...form.optionImages]; imgs[i] = val.url; setForm({ ...form, optionImages: imgs }); }}
                       label={`Gambar opsi ${String.fromCharCode(65 + i)}`}
+                      size="sm"
                     />
                   </div>
                 ))}
-                <div>
+                <div className="pt-1">
                   <label className="mb-1 block text-xs font-medium text-gray-600">Kunci Jawaban (tulis teks opsi yang benar)</label>
                   <input value={form.correctAnswer} onChange={(e) => setForm({ ...form, correctAnswer: e.target.value })}
                     placeholder="Contoh: Paris" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
@@ -524,26 +578,32 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
 
             {/* PILGAN_KOMPLEK */}
             {form.type === "PILGAN_KOMPLEK" && (
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-600">Pilihan Jawaban (centang semua yang benar)</label>
+              <div className="space-y-2 rounded-lg bg-gray-50 p-3 border border-gray-100">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-gray-700">Pilihan Jawaban (centang semua yang benar)</label>
+                  <select value={form.options.length} onChange={(e) => setOptionCount(Number(e.target.value))}
+                    className="rounded-lg border border-gray-200 px-2 py-1 text-xs">
+                    <option value={3}>3 Opsi</option>
+                    <option value={4}>4 Opsi</option>
+                    <option value={5}>5 Opsi</option>
+                  </select>
+                </div>
                 {form.options.map((opt, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <input type="checkbox" id={`ck-${i}`}
-                      checked={form.correctIndices.includes(i)}
+                  <div key={i} className="flex items-center gap-2 bg-white rounded-lg p-1.5">
+                    <input type="checkbox" checked={form.correctIndices.includes(i)}
                       onChange={(e) => {
-                        const ci = e.target.checked
-                          ? [...form.correctIndices, i]
-                          : form.correctIndices.filter((x) => x !== i);
+                        const ci = e.target.checked ? [...form.correctIndices, i] : form.correctIndices.filter((x) => x !== i);
                         setForm({ ...form, correctIndices: ci });
                       }}
                       className="h-4 w-4 rounded accent-amber-600" />
-                    <span className="w-5 text-xs font-medium text-gray-500">{String.fromCharCode(65 + i)}.</span>
+                    <span className="w-5 text-xs font-bold text-gray-500">{String.fromCharCode(65 + i)}.</span>
                     <input value={opt} onChange={(e) => { const o = [...form.options]; o[i] = e.target.value; setForm({ ...form, options: o }); }}
-                      className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm" placeholder={`Opsi ${String.fromCharCode(65 + i)}`} />
-                    <ImageUploadButton
-                      url={form.optionImages[i]}
-                      onChange={(url) => { const imgs = [...form.optionImages]; imgs[i] = url; setForm({ ...form, optionImages: imgs }); }}
+                      className="flex-1 rounded border border-gray-200 px-3 py-1.5 text-sm" placeholder={`Opsi ${String.fromCharCode(65 + i)}`} />
+                    <MediaUploadButton
+                      value={{ type: form.optionImages[i] ? "image" : "none", url: form.optionImages[i] }}
+                      onChange={(val) => { const imgs = [...form.optionImages]; imgs[i] = val.url; setForm({ ...form, optionImages: imgs }); }}
                       label={`Gambar opsi ${String.fromCharCode(65 + i)}`}
+                      size="sm"
                     />
                   </div>
                 ))}
@@ -552,39 +612,46 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
             )}
 
             {/* BENAR_SALAH */}
-            {form.type === "BENAR_SALAH" && (
-              <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">Jawaban Benar</label>
+            {form.type === "BENAR_SALAH" && (() => {
+              const bs = getBenarSalahLabels(form.lang);
+              return (
+              <div className="rounded-lg bg-gray-50 p-3 border border-gray-100">
+                <label className="mb-2 block text-xs font-semibold text-gray-700">Jawaban Benar</label>
                 <div className="flex gap-3">
-                  {["Benar", "Salah"].map((val) => (
+                  {[bs.benar, bs.salah].map((val) => (
                     <label key={val} className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 py-2.5 text-sm font-medium transition-all ${
                       form.correctAnswer === val ? "border-amber-500 bg-amber-50 text-amber-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
                     }`}>
                       <input type="radio" className="sr-only" checked={form.correctAnswer === val}
                         onChange={() => setForm({ ...form, correctAnswer: val })} />
-                      {val === "Benar" ? "✓ Benar" : "✗ Salah"}
+                      {val === bs.benar ? `✓ ${val}` : `✗ ${val}`}
                     </label>
                   ))}
                 </div>
               </div>
-            )}
+              );
+            })()}
 
             {/* MENJODOHKAN */}
             {form.type === "MENJODOHKAN" && (
-              <div className="space-y-2">
+              <div className="space-y-2 rounded-lg bg-gray-50 p-3 border border-gray-100">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium text-gray-600">Pasangan (Kiri → Kanan)</label>
+                  <label className="text-xs font-semibold text-gray-700">Pasangan (Kiri → Kanan)</label>
                   <button onClick={() => setForm({ ...form, pairs: [...form.pairs, { left: "", right: "" }] })}
                     className="text-xs text-amber-600 hover:underline">+ Tambah pasangan</button>
                 </div>
+                <div className="grid grid-cols-2 gap-2 text-xs font-medium text-gray-500 px-1">
+                  <span>Kolom Kiri</span>
+                  <span>Kolom Kanan</span>
+                </div>
                 {form.pairs.map((pair, i) => (
-                  <div key={i} className="flex items-center gap-2">
+                  <div key={i} className="flex items-center gap-2 bg-white rounded-lg p-1.5">
                     <span className="w-5 text-xs text-gray-400">{i + 1}.</span>
                     <input value={pair.left} onChange={(e) => { const p = [...form.pairs]; p[i] = { ...p[i], left: e.target.value }; setForm({ ...form, pairs: p }); }}
-                      placeholder="Sisi kiri" className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm" />
-                    <span className="text-gray-400">→</span>
+                      placeholder="Sisi kiri" className="flex-1 rounded border border-gray-200 px-3 py-1.5 text-sm" />
+                    <span className="text-gray-400 text-lg">→</span>
                     <input value={pair.right} onChange={(e) => { const p = [...form.pairs]; p[i] = { ...p[i], right: e.target.value }; setForm({ ...form, pairs: p }); }}
-                      placeholder="Pasangan kanan" className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm" />
+                      placeholder="Pasangan kanan" className="flex-1 rounded border border-gray-200 px-3 py-1.5 text-sm" />
                     {form.pairs.length > 2 && (
                       <button onClick={() => setForm({ ...form, pairs: form.pairs.filter((_, j) => j !== i) })}
                         className="text-red-400 hover:text-red-600"><X className="h-3.5 w-3.5" /></button>
@@ -596,21 +663,22 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
 
             {/* MENGURUTKAN */}
             {form.type === "MENGURUTKAN" && (
-              <div className="space-y-2">
+              <div className="space-y-2 rounded-lg bg-gray-50 p-3 border border-gray-100">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium text-gray-600">Item (tulis dalam urutan yang BENAR, dari 1 ke terakhir)</label>
+                  <label className="text-xs font-semibold text-gray-700">Item (tulis dalam urutan yang BENAR)</label>
                   <button onClick={() => setForm({ ...form, orderedItems: [...form.orderedItems, ""], orderedItemImages: [...form.orderedItemImages, ""] })}
                     className="text-xs text-amber-600 hover:underline">+ Tambah item</button>
                 </div>
                 {form.orderedItems.map((item, i) => (
-                  <div key={i} className="flex items-center gap-2">
+                  <div key={i} className="flex items-center gap-2 bg-white rounded-lg p-1.5">
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">{i + 1}</span>
                     <input value={item} onChange={(e) => { const o = [...form.orderedItems]; o[i] = e.target.value; setForm({ ...form, orderedItems: o }); }}
-                      placeholder={`Item ke-${i + 1}`} className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm" />
-                    <ImageUploadButton
-                      url={form.orderedItemImages[i]}
-                      onChange={(url) => { const imgs = [...form.orderedItemImages]; imgs[i] = url; setForm({ ...form, orderedItemImages: imgs }); }}
+                      placeholder={`Item ke-${i + 1}`} className="flex-1 rounded border border-gray-200 px-3 py-1.5 text-sm" />
+                    <MediaUploadButton
+                      value={{ type: form.orderedItemImages[i] ? "image" : "none", url: form.orderedItemImages[i] }}
+                      onChange={(val) => { const imgs = [...form.orderedItemImages]; imgs[i] = val.url; setForm({ ...form, orderedItemImages: imgs }); }}
                       label={`Gambar item ${i + 1}`}
+                      size="sm"
                     />
                     {form.orderedItems.length > 2 && (
                       <button onClick={() => setForm({ ...form, orderedItems: form.orderedItems.filter((_, j) => j !== i), orderedItemImages: form.orderedItemImages.filter((_, j) => j !== i) })}
@@ -623,23 +691,25 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
             )}
 
             {/* SETUJU_TIDAK */}
-            {form.type === "SETUJU_TIDAK" && (
-              <div className="space-y-2">
+            {form.type === "SETUJU_TIDAK" && (() => {
+              const st = getSetujuTidakLabels(form.lang);
+              return (
+              <div className="space-y-2 rounded-lg bg-gray-50 p-3 border border-gray-100">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium text-gray-600">Pernyataan + Jawaban Benar</label>
-                  <button onClick={() => setForm({ ...form, statements: [...form.statements, { text: "", answer: "SETUJU", imageUrl: "" }] })}
+                  <label className="text-xs font-semibold text-gray-700">Pernyataan + Jawaban Benar</label>
+                  <button onClick={() => setForm({ ...form, statements: [...form.statements, { text: "", answer: "SETUJU" }] })}
                     className="text-xs text-amber-600 hover:underline">+ Tambah pernyataan</button>
                 </div>
                 {form.statements.map((stmt, i) => (
-                  <div key={i} className="flex items-center gap-2">
+                  <div key={i} className="flex items-center gap-2 bg-white rounded-lg p-1.5">
                     <span className="w-5 text-xs text-gray-400">{i + 1}.</span>
                     <input value={stmt.text} onChange={(e) => { const s = [...form.statements]; s[i] = { ...s[i], text: e.target.value }; setForm({ ...form, statements: s }); }}
-                      placeholder={`Pernyataan ${i + 1}`} className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm" />
+                      placeholder={`Pernyataan ${i + 1}`} className="flex-1 rounded border border-gray-200 px-3 py-1.5 text-sm" />
                     <select value={stmt.answer}
                       onChange={(e) => { const s = [...form.statements]; s[i] = { ...s[i], answer: e.target.value as "SETUJU" | "TIDAK" }; setForm({ ...form, statements: s }); }}
                       className="rounded-lg border border-gray-200 px-2 py-1.5 text-xs">
-                      <option value="SETUJU">✓ Setuju</option>
-                      <option value="TIDAK">✗ Tidak</option>
+                      <option value="SETUJU">✓ {st.setuju}</option>
+                      <option value="TIDAK">✗ {st.tidak}</option>
                     </select>
                     {form.statements.length > 1 && (
                       <button onClick={() => setForm({ ...form, statements: form.statements.filter((_, j) => j !== i) })}
@@ -648,21 +718,30 @@ export default function BankSoalClient({ initialQuestions, subjects, exams }: {
                   </div>
                 ))}
               </div>
-            )}
+              );
+            })()}
 
             {/* ISIAN */}
             {form.type === "ISIAN" && (
-              <div>
+              <div className="rounded-lg bg-gray-50 p-3 border border-gray-100">
                 <label className="mb-1 block text-xs font-medium text-gray-600">Kunci Jawaban</label>
                 <input value={form.correctAnswer} onChange={(e) => setForm({ ...form, correctAnswer: e.target.value })}
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" placeholder="Jawaban yang diharapkan" />
               </div>
             )}
 
-            {/* ESSAY — no correct answer */}
+            {/* ESSAY */}
             {form.type === "ESSAY" && (
-              <p className="text-xs text-gray-400 italic">Essay dinilai manual oleh guru.</p>
+              <p className="text-xs text-gray-400 italic rounded-lg bg-gray-50 p-3 border border-gray-100">Essay dinilai manual oleh guru.</p>
             )}
+
+            {/* Pembahasan */}
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">Pembahasan (opsional, bisa diedit)</label>
+              <textarea value={form.explanation} onChange={(e) => setForm({ ...form, explanation: e.target.value })}
+                rows={2} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
+                placeholder="Pembahasan jawaban..." />
+            </div>
 
             {/* Skor + Kesulitan */}
             <div className="grid grid-cols-2 gap-3">

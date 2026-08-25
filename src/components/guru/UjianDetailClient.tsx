@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Loader2, Eye, EyeOff, CheckCircle, XCircle, BookMarked } from "lucide-react";
 import ImageUploadButton from "./ImageUploadButton";
@@ -40,6 +40,7 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [exam, setExam] = useState(initial);
+  useEffect(() => { setExam(initial); }, [initial]);
   const [showForm, setShowForm] = useState(false);
   const [tab, setTab] = useState<"soal" | "hasil" | "toefl" | "essay">("soal");
   const [showPickBank, setShowPickBank] = useState(false);

@@ -26,6 +26,8 @@ export async function POST(req: NextRequest) {
 
   const allowedTypes = [
     "image/",
+    "audio/",
+    "video/",
     "application/pdf",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/msword",
@@ -40,8 +42,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Tipe file tidak didukung: ${file.type}` }, { status: 400 });
   }
 
-  const resourceType: "image" | "raw" = file.type.startsWith("image/") ? "image" : "raw";
-  const maxMb = resourceType === "image" ? 20 : 50;
+  const resourceType: "image" | "video" | "raw" =
+    file.type.startsWith("image/") ? "image" :
+    file.type.startsWith("video/") || file.type.startsWith("audio/") ? "video" : "raw";
+  const maxMb = resourceType === "image" ? 20 : resourceType === "video" ? 100 : 50;
   if (file.size > maxMb * 1024 * 1024) {
     return NextResponse.json({ error: `Ukuran file maksimal ${maxMb}MB` }, { status: 400 });
   }

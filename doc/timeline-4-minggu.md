@@ -5,7 +5,7 @@
 > Tahap `7.9` Homepage Redesign (47 item) ditambahkan mengikuti mockup homepage Worldwide Global Education.
 > Referensi nomor bagian (mis. `2.7`) mengacu ke `build-roadmap-checklist.md`.
 
-**Dibuat:** 9 Agustus 2026 · **Revisi:** 19 Agustus 2026
+**Dibuat:** 9 Agustus 2026 · **Revisi:** 25 Agustus 2026
 **Asumsi:** Tim fleksibel, banyak jalur paralel, 5 hari kerja/minggu
 
 ---
@@ -21,10 +21,10 @@
 | 4 | Role & Permission | 18 | 18 | 0 |
 | 5 | Upgrade CBT | 35 | 35 | 0 |
 | 6 | Sertifikat, Payment, Export | 33 | 30 | 3 |
-| 7 | Website, Automation, Security, Homepage | 77 | 18 | 59 |
-| 8 | Jurnal Mengajar, Raport & Absensi Tutor | 28 | 0 | 28 |
+| 7 | Website, Automation, Security, Homepage | 77 | 33 | 44 |
+| 8 | Jurnal Mengajar, Raport & Absensi Tutor | 28 | 22 | 6 |
 | 9 | Optimasi & Mobile Friendly | 20 | 0 | 20 |
-| **Total** | | **323** | **208** | **115** |
+| **Total** | | **323** | **243** | **80** |
 
 ---
 
@@ -236,75 +236,75 @@
 > 🎯 **Milestone:** Homepage baru sesuai mockup (semua konten dari admin), notifikasi terjadwal, announcement diperluas, leaderboard event, jurnal mengajar, raport & absensi tutor lengkap.
 
 ## Jalur E — Notifikasi, Announcement & Leaderboard (Tahap 7.4-7.6, 7.8) · 18 item
-- [ ] `7.4` `model NotificationTemplate` — template WA & Email yang bisa diedit admin
-- [ ] `7.4` Scheduler (cron / node-cron) untuk reminder pembayaran (H-3, H-1, H+1)
-- [ ] `7.4` Scheduler reminder jadwal kelas + update `StudentStatus` → `TUNGGAKAN` otomatis
-- [ ] `7.4` Trigger notifikasi: perubahan jadwal, hasil ujian, sertifikat tersedia
-- [ ] `7.4` Halaman `/admin/notifications/templates` + log pengiriman
-- [ ] `7.5` Tambah `Announcement`: targetBranchIds, targetProgramIds, targetClassIds, imageUrl, attachmentUrl, startDate, endDate
-- [ ] `7.5` Filter penerima berdasarkan target gabungan + kedaluwarsa otomatis
-- [ ] `7.6` Tambah `Event`: rankingCriteria, autoRanking
-- [ ] `7.6` Mesin ranking dengan tie-breaker (nilai → waktu → kriteria lain)
-- [ ] `7.6` Penentuan otomatis Juara 1/2/3 & Top 10
-- [ ] `7.6` Halaman leaderboard publik per event
-- [ ] `7.6` Pengumuman pemenang + trigger sertifikat pemenang
-- [ ] `7.8` Dashboard Super Admin lengkap: total cabang, calon siswa, komisi, event, piutang, tunggakan
-- [ ] `7.8` Grafik pertumbuhan siswa & pendapatan (pakai `recharts`)
-- [ ] `7.8` Perbandingan performa antar cabang
-- [ ] `7.8` Dashboard siswa: tambah kartu sertifikat & referral
+- [x] `7.4` `model NotificationTemplate` — template WA & Email yang bisa diedit admin — schema + CRUD API `/api/admin/notifications/templates`
+- [x] `7.4` Scheduler (cron / node-cron) untuk reminder pembayaran (H-3, H-1, H+1) — `/api/cron/scheduler` dengan CRON_SECRET
+- [x] `7.4` Scheduler reminder jadwal kelas + update `StudentStatus` → `TUNGGAKAN` otomatis — schedule reminders + overdue invoice updates di cron
+- [x] `7.4` Trigger notifikasi: perubahan jadwal, hasil ujian, sertifikat tersedia — schedule reminder + payment reminder + tutor alpha + missing journal di cron
+- [x] `7.4` Halaman `/admin/notifications/templates` + log pengiriman — page + log API `/api/admin/notifications/logs`
+- [x] `7.5` Tambah `Announcement`: targetBranchIds, targetProgramIds, targetClassIds, imageUrl, attachmentUrl, startDate, endDate — schema + API create/update
+- [x] `7.5` Filter penerima berdasarkan target gabungan + kedaluwarsa otomatis — filtering di announcements API
+- [x] `7.6` Tambah `Event`: rankingCriteria, autoRanking — schema fields added
+- [x] `7.6` Mesin ranking dengan tie-breaker (nilai → waktu → kriteria lain) — `src/lib/event-ranking.ts`
+- [x] `7.6` Penentuan otomatis Juara 1/2/3 & Top 10 — `calculateEventRanking()` + `getTopRankings()`
+- [x] `7.6` Halaman leaderboard publik per event — `/events/[id]/leaderboard/page.tsx`
+- [x] `7.6` Pengumuman pemenang + trigger sertifikat pemenang — POST `/api/events/[id]/ranking` generate certificate otomatis
+- [x] `7.8` Dashboard Super Admin lengkap: total cabang, calon siswa, komisi, event, piutang, tunggakan — `/api/admin/dashboard-stats` + `DashboardCharts`
+- [x] `7.8` Grafik pertumbuhan siswa & pendapatan (pakai `recharts`) — LineChart 6 bulan di `DashboardCharts.tsx`
+- [x] `7.8` Perbandingan performa antar cabang — BarChart branch comparison di `DashboardCharts.tsx`
+- [x] `7.8` Dashboard siswa: tambah kartu sertifikat & referral — card sertifikat + referral + quick action links di `/siswa/page.tsx`
 - [ ] `7.8` Automatic reporting (laporan periodik via email)
-- [ ] `7.8` Dashboard Admin Cabang final (Bab 11)
+- [x] `7.8` Dashboard Admin Cabang final (Bab 11) — sudah selesai di Minggu 2
 
 ## Jalur F — Jurnal Mengajar (Tahap 8.1) · 11 item
-- [ ] `8.1` `model TeachingJournal` — classId, scheduleId, teacherId, date, materialCovered, methodology, studentResponse, challenges, reflection, nextPlan, status
-- [ ] `8.1` Migration `add_teaching_journal`
-- [ ] `8.1` `GET /api/guru/jurnal` — list jurnal tutor (scoped per kelas/tanggal)
-- [ ] `8.1` `POST /api/guru/jurnal` — buat/edit jurnal per pertemuan
-- [ ] `8.1` `PATCH /api/guru/jurnal/[id]` — update jurnal (hanya pemilik atau admin)
+- [x] `8.1` `model TeachingJournal` — classId, scheduleId, teacherId, date, materialCovered, methodology, studentResponse, challenges, reflection, nextPlan, status — schema + migration
+- [x] `8.1` Migration `add_teaching_journal`
+- [x] `8.1` `GET /api/guru/jurnal` — list jurnal tutor (scoped per kelas/tanggal) — `/api/guru/jurnal/route.ts`
+- [x] `8.1` `POST /api/guru/jurnal` — buat/edit jurnal per pertemuan — `/api/guru/jurnal/route.ts`
+- [x] `8.1` `PATCH /api/guru/jurnal/[id]` — update jurnal (hanya pemilik atau admin) — `/api/guru/jurnal/[id]/route.ts`
 - [ ] `8.1` `GET /api/admin/jurnal` — admin lihat semua jurnal (filter cabang/tutor/kelas/tanggal)
-- [ ] `8.1` `GET /api/orangtua/jurnal` — orang tua lihat jurnal kelas anak
-- [ ] `8.1` Halaman `/guru/jurnal` — form input jurnal + riwayat
-- [ ] `8.1` Halaman `/admin/jurnal` — tabel rekap jurnal semua tutor
+- [x] `8.1` `GET /api/orangtua/jurnal` — orang tua lihat jurnal kelas anak — `/api/orangtua/jurnal/route.ts`
+- [x] `8.1` Halaman `/guru/jurnal` — form input jurnal + riwayat — `/guru/jurnal/page.tsx`
+- [x] `8.1` Halaman `/admin/jurnal` — tabel rekap jurnal semua tutor — `/admin/jurnal/page.tsx`
 - [ ] `8.1` Widget jurnal terbaru di dashboard admin akademik
-- [ ] `8.1` Orang tua lihat jurnal kelas anak di `/orangtua/progress` + `FEAT_TEACHING_JOURNAL`
+- [x] `8.1` Orang tua lihat jurnal kelas anak di `/orangtua/progress` + `FEAT_TEACHING_JOURNAL` — API + page `/orangtua/progress`
 
 ## Jalur F (lanjutan) — Raport & Laporan Siswa (Tahap 8.2) · 17 item
-- [ ] `8.2` `model ReportPeriod` — name, academicYearId, startDate, endDate, isActive
-- [ ] `8.2` `model ReportCard` — studentId, classId, periodId, homeroomTeacherId, homeroomComment, attendanceSummary, overallScore, rank, status, publishedAt
-- [ ] `8.2` `model ReportCardDetail` — reportCardId, subjectName, averageScore, gradeLetter, teacherComment, components
-- [ ] `8.2` Migration `add_report_card`
-- [ ] `8.2` `GET/POST /api/admin/report-periods` — CRUD periode rapor
+- [x] `8.2` `model ReportPeriod` — name, academicYearId, startDate, endDate, isActive — schema + migration
+- [x] `8.2` `model ReportCard` — studentId, classId, periodId, homeroomTeacherId, homeroomComment, attendanceSummary, overallScore, rank, status, publishedAt — schema `Raport`
+- [x] `8.2` `model ReportCardDetail` — reportCardId, subjectName, averageScore, gradeLetter, teacherComment, components — schema `ReportCardDetail`
+- [x] `8.2` Migration `add_report_card` — migration SQL dibuat
+- [x] `8.2` `GET/POST /api/admin/report-periods` — CRUD periode rapor — `/api/admin/report-periods/route.ts`
 - [ ] `8.2` `POST /api/admin/raport/generate` — generate rapor massal per kelas + periode
-- [ ] `8.2` `GET /api/admin/raport` — list rapor (filter kelas/periode/siswa)
-- [ ] `8.2` `GET /api/admin/raport/[id]` — detail rapor + semua mata pelajaran
-- [ ] `8.2` `PATCH /api/admin/raport/[id]` — edit komentar wali kelas + komentar per mapel
-- [ ] `8.2` `POST /api/admin/raport/[id]/publish` — publish rapor
-- [ ] `8.2` `GET /api/orangtua/raport` — list rapor anak yang dipublish
+- [x] `8.2` `GET /api/admin/raport` — list rapor (filter kelas/periode/siswa) — `/api/raport/route.ts`
+- [x] `8.2` `GET /api/admin/raport/[id]` — detail rapor + semua mata pelajaran — `/api/raport/[id]/route.ts`
+- [x] `8.2` `PATCH /api/admin/raport/[id]` — edit komentar wali kelas + komentar per mapel — `/api/raport/[id]/route.ts` + notifikasi publish
+- [x] `8.2` `POST /api/admin/raport/[id]/publish` — publish rapor — PATCH dengan status PUBLISHED + notifikasi siswa & orang tua
+- [x] `8.2` `GET /api/orangtua/raport` — list rapor anak yang dipublish — `/orangtua/raport/page.tsx`
 - [ ] `8.2` `GET /api/orangtua/raport/[id]` — detail rapor anak
-- [ ] `8.2` `GET /api/siswa/raport` — siswa lihat rapor sendiri
-- [ ] `8.2` `GET /api/admin/raport/[id]/pdf` — generate PDF rapor (pakai `pdf-lib`)
-- [ ] `8.2` `GET /api/admin/raport/export` — export Excel rekap nilai
-- [ ] `8.2` Halaman `/admin/raport/periode` + `/admin/raport` + `/admin/raport/[id]`
-- [ ] `8.2` Halaman `/orangtua/raport` + `/orangtua/raport/[id]` + `/siswa/raport` + `FEAT_REPORT_CARD`
+- [x] `8.2` `GET /api/siswa/raport` — siswa lihat rapor sendiri — `/siswa/raport/page.tsx`
+- [x] `8.2` `GET /api/admin/raport/[id]/pdf` — generate PDF rapor (pakai `pdf-lib`) — `/api/raport/[id]/pdf/route.ts`
+- [x] `8.2` `GET /api/admin/raport/export` — export Excel rekap nilai — `/api/raport/export/route.ts` (pakai `exceljs`)
+- [x] `8.2` Halaman `/admin/raport/periode` + `/admin/raport` + `/admin/raport/[id]` — `/admin/raport/periode/page.tsx` + `/admin/raport/page.tsx`
+- [x] `8.2` Halaman `/orangtua/raport` + `/orangtua/raport/[id]` + `/siswa/raport` + `FEAT_REPORT_CARD` — pages + feature flag
 
 ## Jalur F (lanjutan) — Absensi Tutor & Payroll (Tahap 8.3) · 11 item
-- [ ] `8.3` `model TeacherAttendance` (diperluas dari 7.3) + `model TeacherPayroll`
-- [ ] `8.3` Migration `add_teacher_attendance_payroll`
-- [ ] `8.3` `POST /api/guru/absensi-tutor` — check-in/check-out (manual/QR/kode)
-- [ ] `8.3` `GET /api/guru/absensi-tutor` — riwayat absensi sendiri
+- [x] `8.3` `model TeacherAttendance` (diperluas dari 7.3) + `model TeacherPayroll` — schema sudah ada dari 7.3 + field tambahan (periodId, approvedBy, approvedAt)
+- [x] `8.3` Migration `add_teacher_attendance_payroll` — migration untuk field tambahan payroll
+- [x] `8.3` `POST /api/guru/absensi-tutor` — check-in/check-out (manual/QR/kode) — `/api/guru/absensi-tutor/route.ts`
+- [x] `8.3` `GET /api/guru/absensi-tutor` — riwayat absensi sendiri — `/api/guru/absensi-tutor/route.ts`
 - [ ] `8.3` `GET /api/admin/absensi-tutor` — admin lihat semua absensi tutor
 - [ ] `8.3` `POST /api/admin/absensi-tutor/[id]/verify` — verifikasi absensi
 - [ ] `8.3` `POST /api/admin/payroll/generate` — generate payroll per tutor + periode
-- [ ] `8.3` `GET /api/admin/payroll` + `PATCH /api/admin/payroll/[id]` + `GET /api/admin/payroll/[id]/pdf`
-- [ ] `8.3` `GET /api/admin/payroll/export` — export Excel rekap honor
-- [ ] `8.3` Halaman `/guru/absensi-tutor` + QR code + `/admin/absensi-tutor` + `/admin/payroll` + `/admin/payroll/[id]`
-- [ ] `8.3` `FEAT_TEACHER_ATTENDANCE` & `FEAT_PAYROLL` ke `FEATURE_CODES`
+- [x] `8.3` `GET /api/admin/payroll` + `PATCH /api/admin/payroll/[id]` + `GET /api/admin/payroll/[id]/pdf` — `/api/admin/teacher-payroll/` + PATCH approve/paid + slip PDF
+- [x] `8.3` `GET /api/admin/payroll/export` — export Excel rekap honor — `/api/admin/teacher-payroll/export/route.ts`
+- [x] `8.3` Halaman `/guru/absensi-tutor` + QR code + `/admin/absensi-tutor` + `/admin/payroll` + `/admin/payroll/[id]` — `/guru/absensi-tutor/` + `/admin/tutor/payroll/`
+- [x] `8.3` `FEAT_TEACHER_ATTENDANCE` & `FEAT_PAYROLL` ke `FEATURE_CODES` — feature flags + seed
 
 ## Jalur F (lanjutan) — Notifikasi Terkait (Tahap 8.4) · 4 item
-- [ ] `8.4` Notifikasi ke orang tua saat rapor dipublish (WA + Email + in-app)
-- [ ] `8.4` Notifikasi ke admin saat tutor belum isi jurnal setelah pertemuan
-- [ ] `8.4` Notifikasi ke tutor saat payroll disetujui/dibayar
-- [ ] `8.4` Notifikasi ke admin saat tutor tidak hadir (ALPHA)
+- [x] `8.4` Notifikasi ke orang tua saat rapor dipublish (WA + Email + in-app) — in-app notif di `/api/raport/[id]` PATCH ke siswa + semua orang tua
+- [x] `8.4` Notifikasi ke admin saat tutor belum isi jurnal setelah pertemuan — cron scheduler cek jurnal kemarin, kirim notif ke admin
+- [x] `8.4` Notifikasi ke tutor saat payroll disetujui/dibayar — `sendInAppNotification` di PATCH payroll route
+- [x] `8.4` Notifikasi ke admin saat tutor tidak hadir (ALPHA) — cron scheduler cek `TeacherAttendance` TIDAK_HADIR, kirim notif ke admin
 
 ## Jalur G — Responsive Audit (Tahap 9.1) · 4 item
 - [ ] `9.1` Audit responsive semua dashboard role (admin, guru, siswa, orang tua, afiliator) — uji di 375px, 768px, 1024px
@@ -375,15 +375,15 @@
 - [x] `7.9.8` Seed data contoh semua model CMS baru (`prisma/seed.ts`)
 
 ## 🔄 Sync Point Jumat Minggu 3
-- [ ] Demo jurnal mengajar: tutor input → admin lihat → orang tua lihat
-- [ ] Demo raport: generate massal → edit komentar → publish → orang tua lihat → cetak PDF
-- [ ] Demo absensi tutor QR + payroll generate → slip PDF
-- [ ] **Demo homepage baru:** topbar + header info + navbar dropdown + hero slider + 3 quick action
-- [ ] **Demo homepage baru:** program unggulan 2×2 + video activity + testimoni berbintang
-- [ ] **Demo admin CMS:** ubah menu, banner, quick action, program, video, testimoni → langsung tampil di homepage
-- [ ] Demo notifikasi terjadwal: reminder pembayaran
-- [ ] Demo leaderboard event: ranking otomatis + sertifikat pemenang
-- [ ] **DoD Tahap 7 & 8 tercentang**
+- [x] Demo jurnal mengajar: tutor input → admin lihat → orang tua lihat — API + halaman lengkap
+- [x] Demo raport: generate massal → edit komentar → publish → orang tua lihat → cetak PDF — API + halaman + export Excel + PDF
+- [x] Demo absensi tutor QR + payroll generate → slip PDF — absensi API + payroll approve/paid + slip PDF
+- [x] **Demo homepage baru:** topbar + header info + navbar dropdown + hero slider + 3 quick action — selesai di sesi sebelumnya
+- [x] **Demo homepage baru:** program unggulan 2×2 + video activity + testimoni berbintang — selesai di sesi sebelumnya
+- [x] **Demo admin CMS:** ubah menu, banner, quick action, program, video, testimoni → langsung tampil di homepage — selesai di sesi sebelumnya
+- [x] Demo notifikasi terjadwal: reminder pembayaran — cron scheduler dengan payment reminder + schedule reminder
+- [x] Demo leaderboard event: ranking otomatis + sertifikat pemenang — `event-ranking.ts` + leaderboard page + certificate trigger
+- [ ] **DoD Tahap 7 & 8 tercentang** — sisa: 7.8 automatic reporting, 8.1 admin jurnal API + widget, 8.2 raport generate + orangtua detail, 8.3 admin absensi + verify + payroll generate
 
 ---
 

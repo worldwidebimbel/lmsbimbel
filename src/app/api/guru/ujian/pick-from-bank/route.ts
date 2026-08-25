@@ -50,31 +50,48 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const existing = await db.examQuestion.findMany({
-    where: { examId, questionId: { in: questionIds } },
-    select: { questionId: true },
-  });
-  const existingSet = new Set(existing.map((e) => e.questionId));
-
-  const maxOrder = await db.examQuestion.aggregate({
-    where: { examId },
-    _max: { order: true },
-  });
-
-  let order = (maxOrder._max.order ?? 0) + 1;
-  const toCreate: { examId: string; questionId: string; order: number }[] = [];
-  for (const qId of questionIds) {
-    if (!existingSet.has(qId)) {
-      toCreate.push({ examId, questionId: qId, order });
-      order++;
-    }
+  const bankQuestions = await db.question.findMany({ where: { id: { in: questionIds } } });
+  if (bankQuestions.length === 0) {
+    return NextResponse.json({ error: "Soal tidak ditemukan" }, { status: 404 });
   }
 
-  if (toCreate.length === 0) {
+  const examQuestions = await db.question.findMany({
+    where: { examId },
+    select: { content: true, order: true },
+  });
+  const existingContent = new Set(examQuestions.map((q) => q.content));
+  const toClone = bankQuestions.filter((q) => !existingContent.has(q.content));
+
+  if (toClone.length === 0) {
     return NextResponse.json({ created: 0, message: "Semua soal sudah terpasang di ujian ini" });
   }
 
-  const result = await db.examQuestion.createMany({ data: toCreate });
+  let order = examQuestions.reduce((max, q) => Math.max(max, q.order), 0) + 1;
+
+  const result = await db.question.createMany({
+    data: toClone.map((q) => ({
+      examId,
+      subjectId: q.subjectId,
+      type: q.type,
+      content: q.content,
+      imageUrl: q.imageUrl,
+      audioUrl: q.audioUrl,
+      videoUrl: q.videoUrl,
+      options: q.options ?? undefined,
+      correctAnswer: q.correctAnswer,
+      explanation: q.explanation,
+      score: q.score,
+      difficulty: q.difficulty,
+      tags: q.tags ?? undefined,
+      order: order++,
+    })),
+  });
+
+  await db.examQuestion.createMany({
+    data: toClone.map((q, i) => ({ examId, questionId: q.id, order: i })),
+    skipDuplicates: true,
+  });
+
   return NextResponse.json({ created: result.count });
 }
 

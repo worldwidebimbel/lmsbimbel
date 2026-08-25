@@ -7,6 +7,7 @@ import {
   GraduationCap, CheckSquare, Wallet, ArrowUpRight,
   UserCheck, Share2, FileText, Globe,
 } from "lucide-react";
+import DashboardCharts from "@/components/admin/DashboardCharts";
 
 async function getDashboardStats(branchId: string | null, isSuperAdmin: boolean) {
   const branchFilter = isSuperAdmin ? {} : branchId ? { branchId } : {};
@@ -204,6 +205,10 @@ export default async function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {isSuperAdmin && (
+        <DashboardCharts />
+      )}
     </div>
   );
 }

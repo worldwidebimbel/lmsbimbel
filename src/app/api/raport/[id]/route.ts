@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { sendInAppNotification } from "@/lib/notification-helper";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -63,7 +64,29 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(status === "PUBLISHED" && { status, publishedAt: new Date() }),
       ...(status === "DRAFT" && { status, publishedAt: null }),
     },
+    include: { student: { select: { id: true, name: true } } },
   });
+
+  if (status === "PUBLISHED") {
+    await sendInAppNotification(
+      updated.studentId,
+      "Rapor Telah Dipublikasi",
+      `Rapor ${updated.student.name} untuk ${updated.semester} telah dipublikasi. Silakan lihat di menu Rapor.`,
+      "/siswa/raport",
+    );
+    const parents = await db.parentChild.findMany({
+      where: { childId: updated.studentId },
+      select: { parentId: true },
+    });
+    for (const p of parents) {
+      await sendInAppNotification(
+        p.parentId,
+        "Rapor Anak Telah Dipublikasi",
+        `Rapor ${updated.student.name} telah dipublikasi. Silakan lihat di menu Rapor.`,
+        "/orangtua/raport",
+      );
+    }
+  }
 
   return NextResponse.json(updated);
 }

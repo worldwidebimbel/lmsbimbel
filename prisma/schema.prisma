@@ -265,6 +265,8 @@ model User {
   teacherPayrolls    TeacherPayroll[]
   teachingJournals   TeachingJournal[]
   raports            Raport[]
+  approvedPayrolls   TeacherPayroll[] @relation("ApprovedPayrolls")
+  notificationLogs   NotificationLog[]
 
   @@map("users")
 }
@@ -818,27 +820,33 @@ model TeacherAttendance {
 }
 
 model TeacherPayroll {
-  id           String   @id @default(cuid())
-  teacherId    String
-  branchId     String?
-  periodStart  DateTime
-  periodEnd    DateTime
-  ratePerMeeting Float  @default(0)
-  ratePerHour    Float  @default(0)
-  totalMeetings Int    @default(0)
-  totalHours    Float  @default(0)
-  totalAmount   Float  @default(0)
-  status        String @default("DRAFT")
-  paidAt        DateTime?
-  note          String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String    @id @default(cuid())
+  teacherId       String
+  branchId        String?
+  periodId        String?
+  periodStart     DateTime
+  periodEnd       DateTime
+  ratePerMeeting  Float     @default(0)
+  ratePerHour     Float     @default(0)
+  totalMeetings   Int       @default(0)
+  totalHours      Float     @default(0)
+  totalAmount     Float     @default(0)
+  status          String    @default("DRAFT")
+  approvedBy      String?
+  approvedAt      DateTime?
+  paidAt          DateTime?
+  note            String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  teacher      User     @relation(fields: [teacherId], references: [id])
-  branch       Branch?  @relation(fields: [branchId], references: [id])
+  teacher         User      @relation(fields: [teacherId], references: [id])
+  branch          Branch?   @relation(fields: [branchId], references: [id])
+  period          ReportPeriod? @relation(fields: [periodId], references: [id])
+  approver        User?     @relation("ApprovedPayrolls", fields: [approvedBy], references: [id])
 
   @@index([teacherId])
   @@index([branchId])
+  @@index([status])
   @@map("teacher_payrolls")
 }
 
@@ -884,6 +892,7 @@ model Raport {
   branchId       String?
   semester       String   @default("GANJIL")
   period         String?
+  periodId       String?
   finalGrade     Float?
   predicate      String?
   description    String?
@@ -900,12 +909,51 @@ model Raport {
   class          Class    @relation(fields: [classId], references: [id])
   academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
   branch         Branch?  @relation(fields: [branchId], references: [id])
+  reportPeriod   ReportPeriod? @relation(fields: [periodId], references: [id])
+  details        ReportCardDetail[]
 
   @@unique([studentId, classId, semester, period])
   @@map("raports")
   @@index([studentId])
   @@index([classId])
   @@index([branchId])
+  @@index([periodId])
+}
+
+model ReportPeriod {
+  id        String   @id @default(cuid())
+  name      String
+  academicYearId String?
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  academicYear AcademicYear? @relation(fields: [academicYearId], references: [id])
+  raports      Raport[]
+  payrolls     TeacherPayroll[]
+
+  @@map("report_periods")
+  @@index([academicYearId])
+}
+
+model ReportCardDetail {
+  id            String   @id @default(cuid())
+  raportId      String
+  subjectId     String?
+  subjectName   String
+  averageScore  Float
+  gradeLetter   String?
+  teacherComment String?
+  components    Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  raport        Raport   @relation(fields: [raportId], references: [id], onDelete: Cascade)
+
+  @@map("report_card_details")
+  @@index([raportId])
 }
 
 // ============================
@@ -1062,18 +1110,64 @@ model Notification {
   @@map("notifications")
 }
 
-model Announcement {
-  id          String    @id @default(cuid())
-  title       String
-  content     String
-  authorId    String
-  targetRoles String[]
-  isPinned    Boolean   @default(false)
-  publishedAt DateTime  @default(now())
-  expiresAt   DateTime?
-  createdAt   DateTime  @default(now())
+model NotificationTemplate {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  channel     String   @default("WA")
+  subject     String?
+  body        String   @db.Text
+  variables   String[]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  author      User      @relation(fields: [authorId], references: [id])
+  logs        NotificationLog[]
+
+  @@map("notification_templates")
+}
+
+model NotificationLog {
+  id          String   @id @default(cuid())
+  templateId  String?
+  userId      String?
+  channel     String
+  recipient   String
+  subject     String?
+  body        String   @db.Text
+  status      String   @default("PENDING")
+  error       String?
+  sentAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  template    NotificationTemplate? @relation(fields: [templateId], references: [id])
+  user        User?                 @relation(fields: [userId], references: [id])
+
+  @@map("notification_logs")
+  @@index([templateId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Announcement {
+  id               String    @id @default(cuid())
+  title            String
+  content          String
+  authorId         String
+  targetRoles      String[]
+  targetBranchIds  String[]  @default([])
+  targetProgramIds String[]  @default([])
+  targetClassIds   String[]  @default([])
+  imageUrl         String?
+  attachmentUrl    String?
+  startDate        DateTime?
+  isPinned         Boolean   @default(false)
+  publishedAt      DateTime  @default(now())
+  expiresAt        DateTime?
+  createdAt        DateTime  @default(now())
+
+  author           User      @relation(fields: [authorId], references: [id])
 
   @@map("announcements")
 }
@@ -1304,6 +1398,8 @@ model Event {
   image                String?
   maxParticipants      Int?
   isPaid               Boolean       @default(false)
+  rankingCriteria      Json?
+  autoRanking          Boolean       @default(false)
   createdBy            String
   createdAt            DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
@@ -1751,8 +1847,9 @@ model AcademicYear {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  classes   Class[]
-  raports   Raport[]
+  classes       Class[]
+  raports       Raport[]
+  reportPeriods ReportPeriod[]
 
   @@map("academic_years")
 }

@@ -1,9 +1,9 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { BookOpen, ClipboardList, FileCheck, CalendarDays, GraduationCap, TrendingUp } from "lucide-react";
+import { BookOpen, ClipboardList, FileCheck, CalendarDays, GraduationCap, TrendingUp, Award, Share2 } from "lucide-react";
 
 async function getSiswaStats(userId: string) {
-  const [myClasses, pendingTasks, upcomingExams, recentGrades] = await Promise.all([
+  const [myClasses, pendingTasks, upcomingExams, recentGrades, myCertificates, myReferrals] = await Promise.all([
     db.classStudent.count({ where: { studentId: userId } }),
     db.submission.count({
       where: { studentId: userId, score: null, assignment: { dueDate: { gte: new Date() } } },
@@ -21,8 +21,10 @@ async function getSiswaStats(userId: string) {
       orderBy: { updatedAt: "desc" },
       take: 5,
     }),
+    db.certificate.count({ where: { userId } }),
+    db.referral.count({ where: { affiliateId: userId } }),
   ]);
-  return { myClasses, pendingTasks, upcomingExams, recentGrades };
+  return { myClasses, pendingTasks, upcomingExams, recentGrades, myCertificates, myReferrals };
 }
 
 export default async function SiswaDashboard() {
@@ -33,6 +35,8 @@ export default async function SiswaDashboard() {
     { label: "Kelas Diikuti", value: stats.myClasses, icon: BookOpen, color: "text-blue-600", bg: "bg-blue-50" },
     { label: "Tugas Pending", value: stats.pendingTasks, icon: ClipboardList, color: "text-orange-600", bg: "bg-orange-50" },
     { label: "Ujian Mendatang", value: stats.upcomingExams, icon: FileCheck, color: "text-purple-600", bg: "bg-purple-50" },
+    { label: "Sertifikat", value: stats.myCertificates, icon: Award, color: "text-yellow-600", bg: "bg-yellow-50" },
+    { label: "Referral", value: stats.myReferrals, icon: Share2, color: "text-pink-600", bg: "bg-pink-50" },
   ];
 
   return (
@@ -42,7 +46,7 @@ export default async function SiswaDashboard() {
         <p className="text-green-100 text-sm mt-1">Semangat belajar hari ini!</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {cards.map((card) => {
           const Icon = card.icon;
           return (
@@ -94,6 +98,8 @@ export default async function SiswaDashboard() {
               { label: "Ikut Ujian", href: "/siswa/ujian", icon: FileCheck },
               { label: "Lihat Jadwal", href: "/siswa/jadwal", icon: CalendarDays },
               { label: "Cek Nilai Saya", href: "/siswa/nilai", icon: TrendingUp },
+              { label: "Sertifikat Saya", href: "/siswa/sertifikat", icon: Award },
+              { label: "Lihat Rapor", href: "/siswa/raport", icon: GraduationCap },
             ].map((item) => {
               const Icon = item.icon;
               return (

@@ -81,11 +81,17 @@ export default function PickFromBankModal({
       body: JSON.stringify({ examId, questionIds: [...selected] }),
     });
     setSaving(false);
-    if (res.ok) {
-      const data = await res.json();
-      alert(`${data.created} soal berhasil ditambahkan ke ujian.`);
-      onPicked();
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      alert(data?.error ?? "Gagal menambahkan soal ke ujian.");
+      return;
     }
+    if (!data?.created) {
+      alert(data?.message ?? "Tidak ada soal baru yang ditambahkan.");
+      return;
+    }
+    alert(`${data.created} soal berhasil ditambahkan ke ujian.`);
+    onPicked();
   }
 
   const filtered = questions.filter((q) => {
