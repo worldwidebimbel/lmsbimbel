@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
-import { Plus, Users, BookOpen, Building2 } from "lucide-react";
+import { Plus, Users, BookOpen } from "lucide-react";
+import { ClassBranchFilter } from "@/components/admin/ClassBranchFilter";
 
 async function getClasses(branchId: string | null) {
   const where = branchId ? { branchId } : {};
@@ -30,9 +31,12 @@ const CLASS_TYPE_COLOR: Record<string, string> = {
   ONLINE: "bg-green-100 text-green-700",
 };
 
-export default async function ClassesPage() {
-  const { branchId, isSuperAdmin, allBranches } = await getBranchScope();
-  const classes = await getClasses(branchId);
+export default async function ClassesPage({ searchParams }: { searchParams: Promise<{ branchId?: string }> }) {
+  const params = await searchParams;
+  const { branchId: scopeBranchId, isSuperAdmin, allBranches } = await getBranchScope();
+
+  const selectedBranchId = params.branchId ?? scopeBranchId ?? null;
+  const classes = await getClasses(selectedBranchId);
 
   return (
     <div className="space-y-6">
@@ -43,13 +47,7 @@ export default async function ClassesPage() {
         </div>
         <div className="flex items-center gap-2">
           {isSuperAdmin && allBranches.length > 0 && (
-            <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg bg-white">
-              <Building2 className="w-4 h-4 text-gray-500" />
-              <select name="branch" defaultValue={branchId ?? "all"} className="text-sm bg-transparent outline-none">
-                <option value="all">Semua Cabang</option>
-                {allBranches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
-            </div>
+            <ClassBranchFilter branches={allBranches} currentBranchId={selectedBranchId} />
           )}
           <a href="/admin/classes/new"
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">

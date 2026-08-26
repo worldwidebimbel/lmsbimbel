@@ -606,6 +606,7 @@ pm2 logs lms-bimbel --lines 10 --err
 
  ```bash
  cd /var/www/lms-bimbel
+nano .env.local
 
 # 1. Buat folder migration baseline
 mkdir -p prisma/migrations/0_init

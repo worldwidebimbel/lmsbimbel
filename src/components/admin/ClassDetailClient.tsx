@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Users, Loader2, Trash2, UserPlus, BookOpen, ClipboardList, ToggleLeft, ToggleRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Users, Loader2, Trash2, UserPlus, BookOpen, ClipboardList, ToggleLeft, ToggleRight, AlertTriangle } from "lucide-react";
 
 interface Student { id: string; name: string; email: string }
 interface ClassStudent { student: Student }
@@ -36,6 +37,7 @@ const DAY_LABEL: Record<string, string> = {
 };
 
 export default function ClassDetailClient({ cls, allStudents, subjects, teachers, branches, rooms, isSuperAdmin }: { cls: ClassData; allStudents: Student[]; subjects: Subject[]; teachers: Teacher[]; branches: Branch[]; rooms: Room[]; isSuperAdmin: boolean }) {
+  const router = useRouter();
   const [students, setStudents] = useState<ClassStudent[]>(cls.students);
   const [isActive, setIsActive] = useState(cls.isActive);
   const [selectedStudent, setSelectedStudent] = useState("");
@@ -54,6 +56,9 @@ export default function ClassDetailClient({ cls, allStudents, subjects, teachers
   });
   const [editError, setEditError] = useState("");
   const [editPending, startEditTransition] = useTransition();
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteCounts, setDeleteCounts] = useState<{ students: number; schedules: number; materials: number; assignments: number } | null>(null);
+  const [deletePending, startDeleteTransition] = useTransition();
 
   const enrolledIds = new Set(students.map((cs) => cs.student.id));
   const availableStudents = allStudents.filter((s) => !enrolledIds.has(s.id));
@@ -120,6 +125,48 @@ export default function ClassDetailClient({ cls, allStudents, subjects, teachers
     });
   }
 
+  function handleDeleteClass() {
+    setDeleteError("");
+    setDeleteCounts(null);
+    if (!confirm(`Hapus kelas "${cls.name}"? Kelas akan dinonaktifkan.`)) return;
+    startDeleteTransition(async () => {
+      const res = await fetch(`/api/admin/classes/${cls.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (res.status === 409) {
+        const d = await res.json();
+        setDeleteCounts(d.counts);
+        return;
+      }
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setDeleteError(d.error ?? "Gagal menghapus kelas");
+        return;
+      }
+      router.push("/admin/classes");
+      router.refresh();
+    });
+  }
+
+  function handleForceDelete() {
+    startDeleteTransition(async () => {
+      const res = await fetch(`/api/admin/classes/${cls.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force: true }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setDeleteError(d.error ?? "Gagal menghapus kelas");
+        return;
+      }
+      router.push("/admin/classes");
+      router.refresh();
+    });
+  }
+
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
       <div className="lg:col-span-1 space-y-4">
@@ -139,6 +186,41 @@ export default function ClassDetailClient({ cls, allStudents, subjects, teachers
               </button>
             </div>
           </div>
+
+          {deleteError && (
+            <p className="text-xs text-red-600">{deleteError}</p>
+          )}
+
+          {deleteCounts && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-2">
+              <div className="flex items-center gap-2 text-amber-700">
+                <AlertTriangle className="h-4 w-4" />
+                <span className="text-xs font-medium">Kelas masih memiliki data terkait</span>
+              </div>
+              <div className="text-xs text-amber-600 space-y-0.5">
+                {deleteCounts.students > 0 && <div>• {deleteCounts.students} siswa terdaftar</div>}
+                {deleteCounts.schedules > 0 && <div>• {deleteCounts.schedules} jadwal</div>}
+                {deleteCounts.materials > 0 && <div>• {deleteCounts.materials} materi</div>}
+                {deleteCounts.assignments > 0 && <div>• {deleteCounts.assignments} tugas</div>}
+              </div>
+              <p className="text-xs text-amber-600">Nonaktifkan kelas saja, atau hapus paksa (data tetap ada di database)?</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleForceDelete}
+                  disabled={deletePending}
+                  className="flex-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                >
+                  {deletePending ? "Memproses..." : "Hapus Paksa"}
+                </button>
+                <button
+                  onClick={() => setDeleteCounts(null)}
+                  className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+                >
+                  Batal
+                </button>
+              </div>
+            </div>
+          )}
 
           {isEditing ? (
             <div className="space-y-3">
@@ -239,6 +321,17 @@ export default function ClassDetailClient({ cls, allStudents, subjects, teachers
           )}
           {cls.description && !isEditing && (
             <p className="text-xs text-gray-500 pt-2 border-t border-gray-100">{cls.description}</p>
+          )}
+
+          {!isEditing && !deleteCounts && (
+            <button
+              onClick={handleDeleteClass}
+              disabled={deletePending}
+              className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+            >
+              {deletePending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+              Hapus Kelas
+            </button>
           )}
         </div>
 

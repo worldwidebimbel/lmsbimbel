@@ -74,3 +74,42 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   return NextResponse.json(updated);
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session?.user || !isAdminRole(session.user.role)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { id } = await params;
+  const { isSuperAdmin, branchId } = await getBranchScope();
+
+  const existing = await db.class.findUnique({
+    where: { id },
+    select: {
+      branchId: true,
+      isActive: true,
+      _count: { select: { students: true, schedules: true, materials: true, assignments: true } },
+    },
+  });
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!isSuperAdmin && existing.branchId !== branchId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { force } = await req.json().catch(() => ({ force: false }));
+
+  if (!force && (existing._count.students > 0 || existing._count.schedules > 0 || existing._count.materials > 0 || existing._count.assignments > 0)) {
+    return NextResponse.json({
+      error: "Kelas masih memiliki data terkait",
+      counts: existing._count,
+    }, { status: 409 });
+  }
+
+  await db.class.update({
+    where: { id },
+    data: { isActive: false },
+  });
+
+  return NextResponse.json({ success: true });
+}
