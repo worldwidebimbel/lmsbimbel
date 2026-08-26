@@ -62,7 +62,15 @@ export function ProgramsManager({ initialPrograms, educationLevels, branches }: 
       });
       if (res.ok) {
         const updated = await res.json();
-        setPrograms((prev) => prev.map((p) => (p.id === editing.id ? updated : p)));
+        const normalized = {
+          ...updated,
+          promoUntil: updated.promoUntil ? new Date(updated.promoUntil).toISOString() : null,
+          branches: updated.branches ?? [],
+          educationLevels: updated.educationLevels ?? [],
+          levels: updated.levels ?? [],
+          _count: updated._count ?? { classes: 0, invoices: 0 },
+        };
+        setPrograms((prev) => prev.map((p) => (p.id === editing.id ? normalized : p)));
         setShowForm(false);
         setEditing(null);
       }
@@ -74,7 +82,15 @@ export function ProgramsManager({ initialPrograms, educationLevels, branches }: 
       });
       if (res.ok) {
         const created = await res.json();
-        setPrograms((prev) => [...prev,created]);
+        const normalized = {
+          ...created,
+          promoUntil: created.promoUntil ? new Date(created.promoUntil).toISOString() : null,
+          branches: created.branches ?? [],
+          educationLevels: created.educationLevels ?? [],
+          levels: created.levels ?? [],
+          _count: created._count ?? { classes: 0, invoices: 0 },
+        };
+        setPrograms((prev) => [...prev, normalized]);
         setShowForm(false);
       }
     }
@@ -141,7 +157,7 @@ export function ProgramsManager({ initialPrograms, educationLevels, branches }: 
                 {p.description && <p className="text-sm text-gray-600 line-clamp-2">{p.description}</p>}
 
                 <div className="flex flex-wrap gap-1">
-                  {p.educationLevels.map((el) => (
+                  {(p.educationLevels ?? []).map((el) => (
                     <span key={el.id} className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded">
                       {el.name}
                     </span>
@@ -149,16 +165,16 @@ export function ProgramsManager({ initialPrograms, educationLevels, branches }: 
                 </div>
 
                 <div className="flex flex-wrap gap-1">
-                  {p.branches.map((b) => (
+                  {(p.branches ?? []).map((b) => (
                     <span key={b.id} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
                       {b.code}
                     </span>
                   ))}
                 </div>
 
-                {p.levels.length > 0 && (
+                {(p.levels ?? []).length > 0 && (
                   <div className="flex flex-wrap gap-1">
-                    {p.levels.map((l) => (
+                    {(p.levels ?? []).map((l) => (
                       <span key={l.id} className="text-xs bg-purple-50 text-purple-600 px-2 py-0.5 rounded">
                         <Layers className="w-3 h-3 inline mr-0.5" />{l.name}
                       </span>

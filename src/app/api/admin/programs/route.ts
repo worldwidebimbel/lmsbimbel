@@ -75,6 +75,12 @@ export async function POST(req: NextRequest) {
           ? { connect: educationLevelIds.map((id: string) => ({ id })) }
           : undefined,
       },
+      include: {
+        branches: { select: { id: true, name: true, code: true } },
+        educationLevels: { select: { id: true, name: true, code: true, order: true, isActive: true } },
+        levels: { orderBy: { order: "asc" } },
+        _count: { select: { classes: true, invoices: true } },
+      },
     });
 
     await logAudit({
