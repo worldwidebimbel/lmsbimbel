@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
   const scope = await getBranchScope();
   const body = await req.json();
-  const { name, branchId } = body;
+  const { name, address, description, photoUrl, branchId } = body;
 
   if (!name) {
     return NextResponse.json({ error: "name wajib diisi" }, { status: 400 });
@@ -51,7 +51,13 @@ export async function POST(req: NextRequest) {
 
   try {
     const building = await db.building.create({
-      data: { name, branchId: targetBranchId },
+      data: {
+        name,
+        address: address || null,
+        description: description || null,
+        photoUrl: photoUrl || null,
+        branchId: targetBranchId,
+      },
     });
     return NextResponse.json(building, { status: 201 });
   } catch {

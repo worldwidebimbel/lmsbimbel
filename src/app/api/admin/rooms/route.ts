@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
     capacity,
     floor,
     facilities,
+    photoUrl,
   } = body;
 
   if (!name || !buildingId) {
@@ -81,6 +82,7 @@ export async function POST(req: NextRequest) {
         capacity: capacity ?? 30,
         floor: floor || null,
         facilities: facilities || undefined,
+        photoUrl: photoUrl || null,
       },
     });
     return NextResponse.json(room, { status: 201 });

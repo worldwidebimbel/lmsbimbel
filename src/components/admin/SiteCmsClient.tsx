@@ -254,7 +254,46 @@ export default function SiteCmsClient({
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
               />
             </div>
-            {field("trialText", "Teks CTA Section")}
+            {field("trialText", "Teks Paragraf CTA Section")}
+            {field("ctaHeading", "Heading CTA Section (h2)", "text", "Siap Meraih Prestasi?")}
+            <div className="border-t border-gray-100 pt-4 space-y-4">
+              <h3 className="text-sm font-semibold text-gray-800">Tombol Utama (Daftar)</h3>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {field("ctaPrimaryLabel", "Label Tombol Utama", "text", "Daftar Sekarang")}
+                {field("ctaPrimaryLink", "Link Tombol Utama", "text", "#daftar atau /daftar")}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Warna Tombol Utama</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={cfg.ctaPrimaryColor ?? "#FFFFFF"}
+                    onChange={(e) => setCfg((p) => ({ ...p, ctaPrimaryColor: e.target.value }))}
+                    className="h-10 w-14 rounded-lg border border-gray-300 cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={cfg.ctaPrimaryColor ?? "#FFFFFF"}
+                    onChange={(e) => setCfg((p) => ({ ...p, ctaPrimaryColor: e.target.value }))}
+                    placeholder="#FFFFFF"
+                    className="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                  />
+                  <div
+                    className="flex-1 rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-center"
+                    style={{ backgroundColor: cfg.ctaPrimaryColor ?? "#FFFFFF", color: cfg.colorPrimary ?? "#2563EB" }}
+                  >
+                    {cfg.ctaPrimaryLabel || "Daftar Sekarang"}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-gray-100 pt-4 space-y-4">
+              <h3 className="text-sm font-semibold text-gray-800">Tombol Sekunder (Hubungi)</h3>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {field("ctaSecondaryLabel", "Label Tombol Sekunder", "text", "Hubungi Kami")}
+                {field("ctaSecondaryLink", "Link Tombol Sekunder", "text", "Kosongkan untuk WhatsApp otomatis")}
+              </div>
+            </div>
           </div>
 
           <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">

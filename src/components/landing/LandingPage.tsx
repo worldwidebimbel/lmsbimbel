@@ -246,14 +246,18 @@ export default async function LandingPage() {
       {/* CTA Section */}
       <section className="py-16" style={{ backgroundColor: cfg.colorPrimary }}>
         <div className="mx-auto max-w-4xl px-6 text-center">
-          <h2 className="text-3xl font-bold text-white sm:text-4xl">Siap Meraih Prestasi?</h2>
+          <h2 className="text-3xl font-bold text-white sm:text-4xl">{cfg.ctaHeading}</h2>
           <p className="mt-4 text-lg text-blue-100">{cfg.trialText}</p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <a href="#daftar" className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-base font-semibold transition-colors" style={{ color: cfg.colorPrimary }}>
-              Daftar Sekarang <ArrowRight className="h-4 w-4" />
+            <a href={cfg.ctaPrimaryLink || "#daftar"} className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-base font-semibold transition-colors" style={{ backgroundColor: cfg.ctaPrimaryColor || "#FFFFFF", color: cfg.colorPrimary }}>
+              {cfg.ctaPrimaryLabel || "Daftar Sekarang"} <ArrowRight className="h-4 w-4" />
             </a>
-            <a href={`https://wa.me/${cfg.whatsapp}`} target="_blank" className="inline-flex items-center gap-2 rounded-xl border-2 border-white px-6 py-3 text-base font-semibold text-white hover:bg-white/10 transition-colors">
-              <Phone className="h-4 w-4" /> Hubungi Kami
+            <a
+              href={cfg.ctaSecondaryLink || `https://wa.me/${cfg.whatsapp}`}
+              target={cfg.ctaSecondaryLink ? undefined : "_blank"}
+              className="inline-flex items-center gap-2 rounded-xl border-2 border-white px-6 py-3 text-base font-semibold text-white hover:bg-white/10 transition-colors"
+            >
+              <Phone className="h-4 w-4" /> {cfg.ctaSecondaryLabel || "Hubungi Kami"}
             </a>
           </div>
         </div>

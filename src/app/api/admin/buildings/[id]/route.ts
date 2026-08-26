@@ -14,12 +14,18 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await req.json();
-  const { name, isActive } = body;
+  const { name, address, description, photoUrl, isActive } = body;
 
   try {
     const building = await db.building.update({
       where: { id },
-      data: { name, isActive },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(address !== undefined && { address: address || null }),
+        ...(description !== undefined && { description: description || null }),
+        ...(photoUrl !== undefined && { photoUrl: photoUrl || null }),
+        ...(isActive !== undefined && { isActive }),
+      },
     });
     return NextResponse.json(building);
   } catch {

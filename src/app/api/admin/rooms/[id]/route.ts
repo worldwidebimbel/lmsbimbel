@@ -14,18 +14,20 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await req.json();
-  const { name, roomNumber, capacity, floor, facilities, isActive } = body;
+  const { name, roomNumber, buildingId, capacity, floor, facilities, photoUrl, isActive } = body;
 
   try {
     const room = await db.room.update({
       where: { id },
       data: {
-        name,
-        roomNumber,
-        capacity,
-        floor,
-        facilities,
-        isActive,
+        ...(name !== undefined && { name }),
+        ...(roomNumber !== undefined && { roomNumber: roomNumber || null }),
+        ...(buildingId !== undefined && { buildingId }),
+        ...(capacity !== undefined && { capacity: Number(capacity) }),
+        ...(floor !== undefined && { floor: floor || null }),
+        ...(facilities !== undefined && { facilities }),
+        ...(photoUrl !== undefined && { photoUrl: photoUrl || null }),
+        ...(isActive !== undefined && { isActive }),
       },
     });
     return NextResponse.json(room);
