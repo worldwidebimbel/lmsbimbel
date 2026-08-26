@@ -13,7 +13,7 @@ export default async function RoomsPage() {
     redirect("/admin");
   }
 
-  const [buildings, rooms] = await Promise.all([
+  const [buildings, rooms, branches] = await Promise.all([
     db.building.findMany({
       include: {
         _count: { select: { rooms: true } },
@@ -25,6 +25,11 @@ export default async function RoomsPage() {
         building: { select: { id: true, name: true } },
         _count: { select: { classes: true, schedules: true } },
       },
+      orderBy: { name: "asc" },
+    }),
+    db.branch.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, code: true },
       orderBy: { name: "asc" },
     }),
   ]);
@@ -40,7 +45,12 @@ export default async function RoomsPage() {
         </div>
       </div>
 
-      <RoomsManager initialBuildings={buildings} initialRooms={rooms} />
+      <RoomsManager
+        initialBuildings={buildings}
+        initialRooms={rooms}
+        branches={branches}
+        isSuperAdmin={session.user.role === "SUPER_ADMIN"}
+      />
     </div>
   );
 }

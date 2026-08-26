@@ -26,12 +26,16 @@ type Room = {
   _count: { classes: number; schedules: number };
 };
 
+type Branch = { id: string; name: string; code: string };
+
 interface Props {
   initialBuildings: Building[];
   initialRooms: (Omit<Room, "facilities"> & { facilities: unknown })[];
+  branches: Branch[];
+  isSuperAdmin: boolean;
 }
 
-export function RoomsManager({ initialBuildings, initialRooms }: Props) {
+export function RoomsManager({ initialBuildings, initialRooms, branches, isSuperAdmin }: Props) {
   const normalizedRooms = initialRooms.map((r) => ({
     ...r,
     facilities: Array.isArray(r.facilities) ? (r.facilities as string[]) : null,
@@ -277,6 +281,8 @@ export function RoomsManager({ initialBuildings, initialRooms }: Props) {
       {showBuildingForm && (
         <BuildingForm
           editing={editingBuilding}
+          branches={branches}
+          isSuperAdmin={isSuperAdmin}
           onSave={saveBuilding}
           onClose={() => { setShowBuildingForm(false); setEditingBuilding(null); }}
         />
@@ -368,10 +374,14 @@ function PhotoUpload({
 
 function BuildingForm({
   editing,
+  branches,
+  isSuperAdmin,
   onSave,
   onClose,
 }: {
   editing: Building | null;
+  branches: Branch[];
+  isSuperAdmin: boolean;
   onSave: (data: Record<string, unknown>) => void;
   onClose: () => void;
 }) {
@@ -379,6 +389,7 @@ function BuildingForm({
   const [address, setAddress] = useState(editing?.address ?? "");
   const [description, setDescription] = useState(editing?.description ?? "");
   const [photoUrl, setPhotoUrl] = useState(editing?.photoUrl ?? "");
+  const [branchId, setBranchId] = useState("");
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -393,6 +404,21 @@ function BuildingForm({
         </div>
 
         <div className="p-5 space-y-4">
+          {isSuperAdmin && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Cabang *</label>
+              <select
+                value={branchId}
+                onChange={(e) => setBranchId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Pilih cabang...</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nama Gedung *</label>
             <input
@@ -435,8 +461,8 @@ function BuildingForm({
             Batal
           </button>
           <button
-            onClick={() => { if (name) onSave({ name, address: address || undefined, description: description || undefined, photoUrl: photoUrl || undefined }); }}
-            disabled={!name}
+            onClick={() => { if (name && (!isSuperAdmin || branchId)) onSave({ name, address: address || undefined, description: description || undefined, photoUrl: photoUrl || undefined, branchId: branchId || undefined }); }}
+            disabled={!name || (isSuperAdmin && !branchId)}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50"
           >
             Simpan
