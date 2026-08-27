@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Video, Link2, BookOpen, Youtube, CheckCircle, ExternalLink, Loader2, ChevronRight } from "lucide-react";
+import { FileText, Video, Link2, BookOpen, Youtube, CheckCircle, Loader2, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -60,27 +60,6 @@ export function MaterialCard({ material, isCompleted: initialCompleted, studentI
   const [loading, setLoading] = useState(false);
 
   const Icon = TYPE_ICON[material.type] ?? FileText;
-
-  const handleOpen = async () => {
-    if (material.fileUrl) {
-      window.open(material.fileUrl, "_blank", "noopener,noreferrer");
-    }
-    if (!completed) {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/materi/${material.id}/progress`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ studentId }),
-        });
-        if (res.ok) setCompleted(true);
-      } catch {
-        // fail silently — progress tracking is non-critical
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
 
   const handleMarkDone = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -142,17 +121,22 @@ export function MaterialCard({ material, isCompleted: initialCompleted, studentI
         </div>
 
         <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
-          {material.fileUrl ? (
-            <button
-              onClick={handleOpen}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              Buka Materi
-            </button>
-          ) : (
-            <span className="flex-1 text-center text-xs text-gray-400 py-2">Materi belum tersedia</span>
-          )}
+          <Link
+            href={`/siswa/materi/${material.id}`}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+          >
+            {completed ? (
+              <>
+                <BookOpen className="w-3.5 h-3.5" />
+                Ulasan
+              </>
+            ) : (
+              <>
+                <ChevronRight className="w-3.5 h-3.5" />
+                {initialCompleted ? "Lanjutkan" : "Mulai"}
+              </>
+            )}
+          </Link>
 
           {!completed && (
             <button
@@ -168,13 +152,6 @@ export function MaterialCard({ material, isCompleted: initialCompleted, studentI
               Selesai
             </button>
           )}
-
-          <Link
-            href={`/siswa/materi/${material.id}`}
-            className="flex items-center gap-1 px-3 py-2 text-xs font-medium text-gray-600 hover:text-indigo-600 transition-colors"
-          >
-            Detail <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
         </div>
       </div>
     </div>
