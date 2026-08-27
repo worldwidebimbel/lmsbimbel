@@ -31,7 +31,11 @@ async function getGuruMateri(uploaderId: string, branchId: string | null) {
       select: { id: true, name: true, color: true, code: true },
     }),
   ]);
-  return { materials, classes, subjects };
+  const typedMaterials = materials.map((m) => ({
+    ...m,
+    keyPoints: (m.keyPoints as string[] | null) ?? null,
+  }));
+  return { materials: typedMaterials, classes, subjects };
 }
 
 export const metadata = { title: "Materi Pembelajaran" };
