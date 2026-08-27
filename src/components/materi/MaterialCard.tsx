@@ -18,6 +18,7 @@ interface MaterialCardProps {
     uploader: { name: string };
     subject: Subject | null;
     class: Class | null;
+    chapterTitle?: string | null;
     createdAt: Date | string;
   };
   isCompleted: boolean;
@@ -126,6 +127,11 @@ export function MaterialCard({ material, isCompleted: initialCompleted, studentI
                 <span className="flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: material.subject.color }} />
                   {material.subject.name}
+                </span>
+              )}
+              {material.chapterTitle && (
+                <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 truncate max-w-[140px]">
+                  {material.chapterTitle}
                 </span>
               )}
             </div>

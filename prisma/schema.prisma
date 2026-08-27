@@ -531,20 +531,26 @@ model AcademicCalendar {
 // ============================
 
 model Material {
-  id          String       @id @default(cuid())
-  title       String
-  description String?
-  classId     String?
-  subjectId   String?
-  uploaderId  String
-  type        MaterialType @default(PDF)
-  fileUrl     String?
-  fileSize    Int?
-  duration    Int?
-  order       Int          @default(0)
-  isPublished Boolean      @default(false)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id           String       @id @default(cuid())
+  title        String
+  description  String?
+  classId      String?
+  subjectId    String?
+  uploaderId   String
+  type         MaterialType @default(PDF)
+  fileUrl      String?
+  fileSize     Int?
+  duration     Int?
+  order        Int          @default(0)
+  isPublished  Boolean      @default(false)
+  chapterTitle String?
+  chapterOrder Int          @default(0)
+  content      String?      @db.Text
+  keyPoints    Json?
+  tips         String?      @db.Text
+  slideCount   Int?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   class       Class?       @relation(fields: [classId], references: [id])
   subject     Subject?     @relation(fields: [subjectId], references: [id])

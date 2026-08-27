@@ -22,9 +22,9 @@
 | 5 | Upgrade CBT | 35 | 35 | 0 |
 | 6 | Sertifikat, Payment, Export | 33 | 30 | 3 |
 | 7 | Website, Automation, Security, Homepage | 77 | 33 | 44 |
-| 8 | Jurnal Mengajar, Raport & Absensi Tutor | 28 | 22 | 6 |
+| 8 | Jurnal Mengajar, Raport, Absensi Tutor & Halaman Belajar Materi | 40 | 31 | 9 |
 | 9 | Optimasi & Mobile Friendly | 20 | 0 | 20 |
-| **Total** | | **323** | **243** | **80** |
+| **Total** | | **335** | **252** | **83** |
 
 ---
 
@@ -305,6 +305,26 @@
 - [x] `8.4` Notifikasi ke admin saat tutor belum isi jurnal setelah pertemuan — cron scheduler cek jurnal kemarin, kirim notif ke admin
 - [x] `8.4` Notifikasi ke tutor saat payroll disetujui/dibayar — `sendInAppNotification` di PATCH payroll route
 - [x] `8.4` Notifikasi ke admin saat tutor tidak hadir (ALPHA) — cron scheduler cek `TeacherAttendance` TIDAK_HADIR, kirim notif ke admin
+
+## Jalur F (lanjutan) — Halaman Belajar Materi (Video/Artikel/PPT) untuk Siswa (Tahap 8.5) · 12 item
+
+> 🎨 Referensi 3 mockup Worldwide Global Education (halaman "Kursus" siswa): breadcrumb Program Saya > Kelas > Bab > Materi, konten utama menyesuaikan tipe materi (video/artikel/PPT), sidebar kanan "Rangkaian Aktivitas" + "Materi Bab" + "Butuh Bantuan".
+
+- [x] `8.5` Tambah field `Material`: `chapterTitle`, `chapterOrder`, `content` (rich text/markdown-lite), `keyPoints` (Json), `tips`, `slideCount` — schema + migration `20260827000001_add_material_learn_view`
+- [x] `8.5` Form guru (`MaterialUploadModal`) — input Judul Bab, Urutan Bab, Konten/Ringkasan, Poin Penting, Tips Belajar, Jumlah Slide (khusus PPT)
+- [x] `8.5` `ArticleRenderer` — parser markdown-lite (heading `#`/`##`, **bold**, daftar bernomor jadi badge lingkaran berwarna, tabel pipe `|`) tanpa dependency baru
+- [x] `8.5` `ActivitySequence` — sidebar "Rangkaian Aktivitas": urutan materi dalam 1 Bab + ujian terlampir, status Selesai/Sedang Dipelajari/Belum Dimulai
+- [x] `8.5` `MaterialBabList` + `MaterialHelpBox` — sidebar "Materi Bab" (poin dari artikel) + "Butuh Bantuan" (link chat ke guru kelas)
+- [x] `8.5` `MaterialLearnClient` — tampilan konten sesuai tipe:
+  - [x] VIDEO/YOUTUBE: player (iframe embed YouTube/Vimeo atau `<video>` native) + box hijau "Video ini membahas" + box kuning "Tips Belajar" + ringkasan artikel di bawah
+  - [x] TEXT (Artikel): kartu putih dengan `ArticleRenderer` penuh (heading, tabel, daftar bernomor)
+  - [x] PRESENTATION (PPT): chrome slide viewer (nama file + indikator halaman + fullscreen) + iframe embed + box hijau/kuning
+  - [x] Fallback PDF/DOCUMENT/LINK: kartu + tombol "Buka Materi"
+- [x] `8.5` Rebuild `/siswa/materi/[id]` — breadcrumb, header "Bab X" + subtitle langkah, tombol "Tandai Selesai", navigasi Materi Sebelumnya/Berikutnya (label dinamis: "Lanjut ke Artikel Materi" / "Lanjut ke Latihan"), quiz/ujian terlampir tetap tampil
+- [x] `8.5` `MaterialCard` — badge Judul Bab di listing materi siswa & guru
+- [ ] `8.5` Migrasi data lama: isi `chapterTitle`/`content`/`keyPoints` untuk materi existing (opsional, per mapel prioritas)
+- [ ] `8.5` Uji end-to-end: guru buat 1 Bab (Video → Artikel → PPT → Latihan) → siswa buka & selesaikan berurutan
+- [ ] `8.5` Responsive audit halaman belajar materi (mobile: sidebar jadi accordion/tab)
 
 ## Jalur G — Responsive Audit (Tahap 9.1) · 4 item
 - [ ] `9.1` Audit responsive semua dashboard role (admin, guru, siswa, orang tua, afiliator) — uji di 375px, 768px, 1024px

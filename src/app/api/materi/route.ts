@@ -61,7 +61,10 @@ export async function POST(req: NextRequest) {
 
   const { isSuperAdmin, branchId } = await getBranchScope();
   const body = await req.json();
-  const { title, description, classId, subjectId, type, fileUrl, fileSize, duration, order } = body;
+  const {
+    title, description, classId, subjectId, type, fileUrl, fileSize, duration, order,
+    chapterTitle, chapterOrder, content, keyPoints, tips, slideCount,
+  } = body;
 
   if (!title || !type) {
     return NextResponse.json({ error: "title dan type wajib diisi" }, { status: 400 });
@@ -88,6 +91,12 @@ export async function POST(req: NextRequest) {
       duration,
       order: order ?? 0,
       isPublished: false,
+      chapterTitle: chapterTitle || null,
+      chapterOrder: chapterOrder ?? 0,
+      content: content || null,
+      keyPoints: keyPoints ?? undefined,
+      tips: tips || null,
+      slideCount: slideCount ?? null,
     },
     include: {
       subject: { select: { name: true, color: true } },

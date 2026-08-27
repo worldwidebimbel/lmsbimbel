@@ -42,6 +42,12 @@ export function MaterialUploadModal({ classes, subjects, editData, onClose, onSa
     fileUrl: editData?.fileUrl ?? "",
     order: editData?.order ?? 0,
     isPublished: editData?.isPublished ?? false,
+    chapterTitle: editData?.chapterTitle ?? "",
+    chapterOrder: editData?.chapterOrder ?? 0,
+    content: editData?.content ?? "",
+    keyPoints: (editData?.keyPoints ?? []).join("\n"),
+    tips: editData?.tips ?? "",
+    slideCount: editData?.slideCount ?? "",
   });
 
   const set = (field: string, value: unknown) =>
@@ -95,6 +101,11 @@ export function MaterialUploadModal({ classes, subjects, editData, onClose, onSa
           subjectId: form.subjectId || null,
           fileUrl: form.fileUrl || null,
           fileSize: file?.size ?? null,
+          chapterTitle: form.chapterTitle || null,
+          content: form.content || null,
+          keyPoints: form.keyPoints.split("\n").map((s) => s.trim()).filter(Boolean),
+          tips: form.tips || null,
+          slideCount: form.slideCount ? Number(form.slideCount) : null,
         }),
       });
 
@@ -247,6 +258,93 @@ export function MaterialUploadModal({ classes, subjects, editData, onClose, onSa
                   {form.fileUrl ? "Pilih file lain" : "Pilih file"}
                 </span>
               </label>
+            </div>
+          )}
+
+          {/* Bab / Chapter */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                Judul Bab (opsional)
+              </label>
+              <input
+                value={form.chapterTitle}
+                onChange={(e) => set("chapterTitle", e.target.value)}
+                placeholder="Contoh: Bab 1: Structure Basics"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-gray-400 mt-1">Materi dengan judul Bab yang sama akan dikelompokkan sebagai rangkaian aktivitas berurutan.</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                Urutan Bab
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={form.chapterOrder}
+                onChange={(e) => set("chapterOrder", parseInt(e.target.value) || 0)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Konten Halaman Belajar */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1.5">
+              {form.type === "TEXT" ? "Isi Artikel" : "Ringkasan Materi"}
+            </label>
+            <textarea
+              value={form.content}
+              onChange={(e) => set("content", e.target.value)}
+              rows={5}
+              placeholder={form.type === "TEXT"
+                ? "Gunakan # Judul, ## Sub Judul, **tebal**, baris `1. item` untuk daftar bernomor, dan tabel dengan | Kolom | Kolom |"
+                : "Ringkasan singkat materi yang ditampilkan di bawah video/slide..."}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                Poin Penting (satu per baris)
+              </label>
+              <textarea
+                value={form.keyPoints}
+                onChange={(e) => set("keyPoints", e.target.value)}
+                rows={3}
+                placeholder={"Jenis-jenis Soal Structure\nAturan grammar penting\nStrategi menjawab soal"}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                Tips Belajar
+              </label>
+              <textarea
+                value={form.tips}
+                onChange={(e) => set("tips", e.target.value)}
+                rows={3}
+                placeholder="Tonton video sampai selesai, catat poin penting..."
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+            </div>
+          </div>
+
+          {form.type === "PRESENTATION" && (
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                Jumlah Slide
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={form.slideCount}
+                onChange={(e) => set("slideCount", e.target.value)}
+                placeholder="18"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
           )}
 

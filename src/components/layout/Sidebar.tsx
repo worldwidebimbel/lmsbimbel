@@ -12,7 +12,7 @@ import {
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
   Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
   DoorOpen, ScrollText, Share2, DollarSign, UserCheck, FileText,
-  NotebookPen, Clock, Zap, ChevronDown,
+  NotebookPen, Clock, Zap, ChevronDown, HelpCircle,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -22,7 +22,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
   Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
   DoorOpen, ScrollText, Share2, DollarSign, UserCheck, FileText,
-  NotebookPen, Clock, Zap, ChevronDown,
+  NotebookPen, Clock, Zap, ChevronDown, HelpCircle,
 };
 
 interface NavItem {
@@ -82,6 +82,7 @@ const NAV_ADMIN: NavItem[] = [
   { title: "FAQ & Tim", href: "/admin/faq", icon: "FileText", roles: ["SUPER_ADMIN", "ADMIN"] },
   { title: "Site Gallery", href: "/admin/site", icon: "Image", roles: ["SUPER_ADMIN", "ADMIN"] },
   { title: "Pengaturan", href: "/admin/settings", icon: "Settings", roles: ["SUPER_ADMIN", "ADMIN"] },
+  { title: "Guidance", href: "/admin/guidance", icon: "HelpCircle", roles: ALL_ADMIN_ROLES },
   { title: "Profil Saya", href: "/profile", icon: "User" },
 ];
 

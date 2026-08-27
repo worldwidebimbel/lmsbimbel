@@ -9,6 +9,12 @@ export type MaterialItem = {
   fileUrl: string | null;
   isPublished: boolean;
   order: number;
+  chapterTitle?: string | null;
+  chapterOrder?: number;
+  content?: string | null;
+  keyPoints?: string[] | null;
+  tips?: string | null;
+  slideCount?: number | null;
   createdAt: Date | string;
   subject: MaterialSubject | null;
   class: MaterialClass | null;
