@@ -51,8 +51,9 @@ export async function POST(req: NextRequest) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const slug = file.name.replace(/[^a-zA-Z0-9.]/g, "_").replace(/\.[^.]+$/, "");
-  const filename = `${slug}_${Date.now()}`;
+  const ext = file.name.match(/\.([^.]+)$/)?.[1] ?? "";
+  const slug = file.name.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9]/g, "_");
+  const filename = ext ? `${slug}_${Date.now()}.${ext}` : `${slug}_${Date.now()}`;
 
   try {
     const result = await uploadToCloudinary(buffer, folder, filename, resourceType);
