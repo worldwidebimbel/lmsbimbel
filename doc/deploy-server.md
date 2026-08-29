@@ -274,6 +274,8 @@ server {
     listen 80;
     server_name lmsbimbel.digsan.id;
 
+    client_max_body_size 50M;
+
     location / {
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
@@ -287,6 +289,10 @@ server {
     }
 }
 ```
+
+> **Penting:** Tanpa `client_max_body_size`, nginx default hanya mengizinkan body request **1MB**, menyebabkan error `413 Request Entity Too Large` saat upload file materi (PPT/PDF/video). Batas aplikasi (`src/app/api/upload/route.ts`) sudah mengizinkan hingga 50MB untuk dokumen/PPT, 100MB untuk video, dan 20MB untuk gambar — pastikan nginx tidak membatasi di bawah itu.
+>
+> **Jika error 413 muncul di server yang sudah berjalan**, edit file yang sama (`nano /etc/nginx/sites-available/lmsbimbel`), tambahkan baris `client_max_body_size 50M;` di dalam blok `server {}`, lalu jalankan `nginx -t && systemctl reload nginx`.
 
 Aktifkan dan test:
 

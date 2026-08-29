@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CheckCircle, Loader2, CheckCircle2, Lightbulb, ExternalLink, Maximize2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, Loader2, CheckCircle2, Lightbulb, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { ArticleRenderer } from "./ArticleRenderer";
 
-function toEmbedUrl(url: string): string {
+function toEmbedUrl(url: string, isSlide = false): string {
   const watch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
   if (watch) return `https://www.youtube.com/embed/${watch[1]}`;
+  if (isSlide && !url.includes("officeapps.live.com") && !url.includes("docs.google.com")) {
+    return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
+  }
   return url;
 }
 
@@ -54,7 +57,7 @@ export default function MaterialLearnClient({
   const isVideo = type === "VIDEO" || type === "YOUTUBE";
   const isArticle = type === "TEXT";
   const isSlide = type === "PRESENTATION";
-  const embedUrl = fileUrl ? toEmbedUrl(fileUrl) : null;
+  const embedUrl = fileUrl ? toEmbedUrl(fileUrl, isSlide) : null;
   const isIframeEmbed = embedUrl && (embedUrl.includes("youtube.com/embed") || embedUrl.includes("player.vimeo.com") || embedUrl.includes("docs.google.com") || embedUrl.includes("officeapps.live.com"));
 
   return (
@@ -120,27 +123,28 @@ export default function MaterialLearnClient({
       {/* PRESENTATION / PPT VIEW */}
       {isSlide && (
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-xl border border-gray-200">
-            <div className="flex items-center justify-between bg-gray-900 px-4 py-2 text-xs text-gray-300">
-              <span className="truncate">{fileName ?? "Materi Presentasi.pptx"}</span>
-              <div className="flex items-center gap-3">
-                {slideCount && <span>1 / {slideCount}</span>}
-                {fileUrl && (
-                  <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="hover:text-white">
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                )}
-                <Maximize2 className="h-3.5 w-3.5" />
-              </div>
-            </div>
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-900">
             {fileUrl ? (
-              <iframe src={embedUrl!} className="aspect-[16/10] w-full bg-white" allowFullScreen />
+              <iframe
+                src={embedUrl!}
+                className="h-[600px] w-full bg-white"
+                allowFullScreen
+                title={fileName ?? "Materi Presentasi"}
+              />
             ) : (
-              <div className="flex aspect-[16/10] w-full items-center justify-center text-sm text-gray-400">
+              <div className="flex h-[400px] w-full items-center justify-center text-sm text-gray-400">
                 Slide belum tersedia
               </div>
             )}
           </div>
+          {fileUrl && (
+            <div className="flex items-center justify-between text-xs text-gray-400">
+              <span className="truncate">{fileName ?? "Materi Presentasi.pptx"}{slideCount ? ` · ${slideCount} slide` : ""}</span>
+              <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-blue-600">
+                <ExternalLink className="h-3.5 w-3.5" /> Buka di tab baru
+              </a>
+            </div>
+          )}
 
           <InfoBoxes heading="Setelah mempelajari materi ini, kamu akan:" keyPoints={keyPoints} tips={tips} />
         </div>
