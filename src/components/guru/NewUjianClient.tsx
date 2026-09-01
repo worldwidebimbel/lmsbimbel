@@ -6,13 +6,15 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
 interface Class { id: string; name: string; subject: { name: string } }
+interface EventItem { id: string; title: string; type: string }
 
-export default function NewUjianClient({ classes }: { classes: Class[] }) {
+export default function NewUjianClient({ classes, events }: { classes: Class[]; events: EventItem[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
+  const [linkType, setLinkType] = useState<"class" | "event">("class");
   const [form, setForm] = useState({
-    title: "", description: "", classId: "", duration: "60",
+    title: "", description: "", classId: "", eventId: "", duration: "60",
     startTime: "", endTime: "", isRandomized: false, passingScore: "60",
     maxAttempts: "1", scoringMode: "SUM",
   });
@@ -21,11 +23,16 @@ export default function NewUjianClient({ classes }: { classes: Class[] }) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setError("");
+    const payload = linkType === "event"
+      ? { ...form, classId: null, eventId: form.eventId }
+      : { ...form, eventId: null, classId: form.classId };
+    if (linkType === "class" && !form.classId) { setError("Pilih kelas terlebih dahulu"); return; }
+    if (linkType === "event" && !form.eventId) { setError("Pilih event terlebih dahulu"); return; }
     startTransition(async () => {
       const res = await fetch("/api/guru/ujian", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) { const d = await res.json(); setError(d.error ?? "Gagal"); return; }
       const data = await res.json();
@@ -46,13 +53,39 @@ export default function NewUjianClient({ classes }: { classes: Class[] }) {
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">Kelas *</label>
-        <select required value={form.classId} onChange={(e) => update("classId", e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none">
-          <option value="">Pilih kelas</option>
-          {classes.map((c) => <option key={c.id} value={c.id}>{c.name} — {c.subject.name}</option>)}
-        </select>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700">Terkait dengan *</label>
+        <div className="flex gap-2 mb-2">
+          <button type="button" onClick={() => setLinkType("class")}
+            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${linkType === "class" ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
+            Kelas
+          </button>
+          <button type="button" onClick={() => setLinkType("event")}
+            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${linkType === "event" ? "border-amber-500 bg-amber-50 text-amber-700" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
+            🏆 Event / Tryout
+          </button>
+        </div>
       </div>
+
+      {linkType === "class" ? (
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">Kelas *</label>
+          <select required value={form.classId} onChange={(e) => update("classId", e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none">
+            <option value="">Pilih kelas</option>
+            {classes.map((c) => <option key={c.id} value={c.id}>{c.name} — {c.subject.name}</option>)}
+          </select>
+        </div>
+      ) : (
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">Event *</label>
+          <select required value={form.eventId} onChange={(e) => update("eventId", e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none">
+            <option value="">Pilih event</option>
+            {events.map((ev) => <option key={ev.id} value={ev.id}>{ev.type} — {ev.title}</option>)}
+          </select>
+          {events.length === 0 && <p className="mt-1 text-xs text-gray-400">Belum ada event di cabang Anda.</p>}
+        </div>
+      )}
 
       <div>
         <label className="mb-1.5 block text-sm font-medium text-gray-700">Deskripsi</label>

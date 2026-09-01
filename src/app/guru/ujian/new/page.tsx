@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { FileCheck, ArrowLeft } from "lucide-react";
@@ -11,11 +12,23 @@ export default async function NewUjianPage() {
   const session = await auth();
   if (!session?.user || !["GURU", "ADMIN", "SUPER_ADMIN"].includes(session.user.role)) redirect("/guru");
 
-  const classes = await db.class.findMany({
-    where: { teacherId: session.user.id, isActive: true },
-    select: { id: true, name: true, subject: { select: { name: true } } },
-    orderBy: { name: "asc" },
-  });
+  const { branchId, isSuperAdmin } = await getBranchScope();
+
+  const [classes, events] = await Promise.all([
+    db.class.findMany({
+      where: { teacherId: session.user.id, isActive: true },
+      select: { id: true, name: true, subject: { select: { name: true } } },
+      orderBy: { name: "asc" },
+    }),
+    db.event.findMany({
+      where: {
+        status: { in: ["DRAFT", "PUBLISHED", "ONGOING"] },
+        ...(isSuperAdmin ? {} : branchId ? { branchId } : {}),
+      },
+      select: { id: true, title: true, type: true },
+      orderBy: { startDate: "desc" },
+    }),
+  ]);
 
   return (
     <div className="max-w-lg space-y-6">
@@ -31,7 +44,7 @@ export default async function NewUjianPage() {
           <p className="text-sm text-gray-500">Konfigurasi ujian baru</p>
         </div>
       </div>
-      <NewUjianClient classes={classes} />
+      <NewUjianClient classes={classes} events={events} />
     </div>
   );
 }

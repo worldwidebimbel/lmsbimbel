@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isAdminRole } from "@/lib/permission";
+import { isAdminRole, hasPermission } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+
+async function canManageEvents(role: string | undefined): Promise<boolean> {
+  if (!role) return false;
+  if (isAdminRole(role)) return true;
+  return hasPermission(role, "event.manage");
+}
 
 async function resolveExam(eventId: string, branchId: string | null, isSuperAdmin: boolean) {
   const event = await db.event.findUnique({ where: { id: eventId } });
@@ -15,7 +21,7 @@ async function resolveExam(eventId: string, branchId: string | null, isSuperAdmi
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
-  if (!session?.user || !isAdminRole(session.user.role)) {
+  if (!session?.user || !(await canManageEvents(session.user.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -47,7 +53,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
-  if (!session?.user || !isAdminRole(session.user.role)) {
+  if (!session?.user || !(await canManageEvents(session.user.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

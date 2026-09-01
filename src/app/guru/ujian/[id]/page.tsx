@@ -16,6 +16,7 @@ export default async function UjianDetailPage({ params }: { params: Promise<{ id
     where: { id },
     include: {
       class: { select: { name: true, subject: { select: { name: true, color: true } } } },
+      event: { select: { id: true, title: true, type: true } },
       questions: {
         orderBy: { createdAt: "asc" },
         select: { id: true, type: true, content: true, imageUrl: true, audioUrl: true, videoUrl: true, options: true, correctAnswer: true, explanation: true, score: true, difficulty: true },
@@ -58,7 +59,7 @@ export default async function UjianDetailPage({ params }: { params: Promise<{ id
         </div>
         <div>
           <h1 className="text-xl font-bold text-gray-900">{exam.title}</h1>
-          <p className="text-sm text-gray-500">{exam.class?.subject.name} - {exam.class?.name}</p>
+          <p className="text-sm text-gray-500">{exam.class ? `${exam.class?.subject.name} - ${exam.class?.name}` : exam.event ? `🏆 ${exam.event.type} - ${exam.event.title}` : "Ujian mandiri"}</p>
         </div>
       </div>
 

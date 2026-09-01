@@ -3,9 +3,9 @@ import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { getBranchScope } from "@/lib/branch-context";
-import EventExamAdminClient from "@/components/admin/EventExamAdminClient";
+import EventExamListClient from "@/components/admin/EventExamListClient";
 
-export const metadata = { title: "Kelola Ujian Event" };
+export const metadata = { title: "Ujian Event" };
 
 export default async function AdminEventExamPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -22,31 +22,28 @@ export default async function AdminEventExamPage({ params }: { params: Promise<{
   if (!event) redirect("/admin/events");
   if (!isSuperAdmin && branchId && event.branchId !== branchId) redirect("/admin/events");
 
-  const exam = await db.exam.findFirst({
+  const exams = await db.exam.findMany({
     where: { eventId: id },
-    include: { questions: { orderBy: { createdAt: "asc" } } },
+    include: {
+      _count: { select: { questions: true, attempts: true } },
+    },
+    orderBy: { createdAt: "desc" },
   });
 
-  const serialized = exam
-    ? {
-        ...exam,
-        startTime: exam.startTime?.toISOString() ?? null,
-        endTime: exam.endTime?.toISOString() ?? null,
-        createdAt: exam.createdAt.toISOString(),
-        updatedAt: exam.updatedAt.toISOString(),
-        questions: exam.questions.map((q) => ({
-          ...q,
-          createdAt: q.createdAt.toISOString(),
-          updatedAt: q.updatedAt.toISOString(),
-        })),
-      }
-    : null;
+  const serialized = exams.map((e) => ({
+    ...e,
+    startTime: e.startTime?.toISOString() ?? null,
+    endTime: e.endTime?.toISOString() ?? null,
+    createdAt: e.createdAt.toISOString(),
+    updatedAt: e.updatedAt.toISOString(),
+  }));
 
   return (
-    <EventExamAdminClient
+    <EventExamListClient
       eventId={id}
       eventTitle={event.title}
-      initialExam={serialized}
+      exams={serialized}
+      backHref="/admin/events"
     />
   );
 }

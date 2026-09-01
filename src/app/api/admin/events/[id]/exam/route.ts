@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isAdminRole } from "@/lib/permission";
+import { isAdminRole, hasPermission } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+
+async function canManageEvents(role: string | undefined): Promise<boolean> {
+  if (!role) return false;
+  if (isAdminRole(role)) return true;
+  return hasPermission(role, "event.manage");
+}
 
 async function resolveEvent(id: string, branchId: string | null, isSuperAdmin: boolean) {
   const event = await db.event.findUnique({ where: { id } });
@@ -14,7 +20,7 @@ async function resolveEvent(id: string, branchId: string | null, isSuperAdmin: b
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
-  if (!session?.user || !isAdminRole(session.user.role)) {
+  if (!session?.user || !(await canManageEvents(session.user.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -22,32 +28,27 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const event = await resolveEvent(id, branchId, isSuperAdmin);
   if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const exam = await db.exam.findFirst({
+  const exams = await db.exam.findMany({
     where: { eventId: id },
     include: {
-      questions: { orderBy: { order: "asc" } },
-      sections: { orderBy: { order: "asc" }, include: { _count: { select: { questions: true } } } },
-      questionGroups: { orderBy: { order: "asc" }, include: { _count: { select: { questions: true } } } },
-      _count: { select: { attempts: true } },
+      _count: { select: { questions: true, attempts: true } },
     },
+    orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(exam);
+  return NextResponse.json(exams);
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
-  if (!session?.user || !isAdminRole(session.user.role)) {
+  if (!session?.user || !(await canManageEvents(session.user.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { branchId, isSuperAdmin } = await getBranchScope();
   const event = await resolveEvent(id, branchId, isSuperAdmin);
   if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  const existing = await db.exam.findFirst({ where: { eventId: id } });
-  if (existing) return NextResponse.json({ error: "Event sudah memiliki ujian" }, { status: 409 });
 
   const body = await req.json();
   const { title, description, duration, startTime, endTime, isRandomized, passingScore } = body;
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
-  if (!session?.user || !isAdminRole(session.user.role)) {
+  if (!session?.user || !(await canManageEvents(session.user.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -85,11 +86,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const event = await resolveEvent(id, branchId, isSuperAdmin);
   if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const exam = await db.exam.findFirst({ where: { eventId: id } });
-  if (!exam) return NextResponse.json({ error: "Ujian belum dibuat" }, { status: 404 });
-
   const body = await req.json();
-  const { title, description, duration, startTime, endTime, isRandomized, shuffleOptions, passingScore, isPublished } = body;
+  const { examId, title, description, duration, startTime, endTime, isRandomized, shuffleOptions, passingScore, isPublished } = body;
+
+  if (!examId) return NextResponse.json({ error: "examId wajib diisi" }, { status: 400 });
+
+  const exam = await db.exam.findFirst({ where: { id: examId, eventId: id } });
+  if (!exam) return NextResponse.json({ error: "Ujian tidak ditemukan" }, { status: 404 });
 
   const updated = await db.exam.update({
     where: { id: exam.id },
@@ -103,10 +106,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(shuffleOptions !== undefined && { shuffleOptions: Boolean(shuffleOptions) }),
       ...(passingScore !== undefined && { passingScore: Number(passingScore) }),
       ...(isPublished !== undefined && { isPublished: Boolean(isPublished) }),
-    },
-    include: {
-      questions: { orderBy: { createdAt: "asc" } },
-      _count: { select: { attempts: true } },
     },
   });
 

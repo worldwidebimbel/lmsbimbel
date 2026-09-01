@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { isAdminRole } from "@/lib/permission";
+import { isAdminRole, hasPermission } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 
+async function canManageEvents(role: string | undefined): Promise<boolean> {
+  if (!role) return false;
+  if (isAdminRole(role)) return true;
+  return hasPermission(role, "event.manage");
+}
+
 export async function GET() {
   const session = await auth();
-  if (!session?.user || !isAdminRole(session.user.role)) {
+  if (!session?.user || !(await canManageEvents(session.user.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -27,7 +33,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await auth();
-  if (!session?.user || !isAdminRole(session.user.role)) {
+  if (!session?.user || !(await canManageEvents(session.user.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

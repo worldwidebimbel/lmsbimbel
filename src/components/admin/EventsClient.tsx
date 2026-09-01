@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Calendar, MapPin, Package, Plus, Trash2, Edit2, X, Users, Check, Loader2, BookOpen, UserCheck, Award } from "lucide-react";
+import ImageUploadButton from "@/components/guru/ImageUploadButton";
 
 interface EventPackage {
   id?: string;
@@ -36,7 +37,7 @@ interface Branch {
   code: string;
 }
 
-export default function EventsClient({ isSuperAdmin, userBranchId }: { isSuperAdmin: boolean; userBranchId: string | null }) {
+export default function EventsClient({ isSuperAdmin, userBranchId, basePath = "/admin/events" }: { isSuperAdmin: boolean; userBranchId: string | null; basePath?: string }) {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
@@ -189,10 +190,15 @@ export default function EventsClient({ isSuperAdmin, userBranchId }: { isSuperAd
           return (
             <div key={event.id} className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
               <div className="flex items-start justify-between">
-                <div>
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{event.type}</span>
-                  <h3 className="font-semibold text-gray-900 mt-1">{event.title}</h3>
-                  <p className="text-xs text-gray-500">{branch?.name}</p>
+                <div className="flex gap-3">
+                  {event.image && (
+                    <img src={event.image} alt={event.title} className="h-14 w-14 rounded-lg object-cover shrink-0" />
+                  )}
+                  <div>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{event.type}</span>
+                    <h3 className="font-semibold text-gray-900 mt-1">{event.title}</h3>
+                    <p className="text-xs text-gray-500">{branch?.name}</p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => openEdit(event)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
@@ -229,19 +235,19 @@ export default function EventsClient({ isSuperAdmin, userBranchId }: { isSuperAd
                 </span>
                 <div className="ml-auto flex items-center gap-1">
                   <Link
-                    href={`/admin/events/${event.id}/exam`}
+                    href={`${basePath}/${event.id}/exam`}
                     className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-indigo-200 text-indigo-600 hover:bg-indigo-50"
                   >
                     <BookOpen className="w-3.5 h-3.5" /> Ujian
                   </Link>
                   <Link
-                    href={`/admin/events/${event.id}/registrations`}
+                    href={`${basePath}/${event.id}/registrations`}
                     className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-50"
                   >
                     <UserCheck className="w-3.5 h-3.5" /> Peserta
                   </Link>
                   <Link
-                    href={`/admin/events/${event.id}/sertifikat`}
+                    href={`${basePath}/${event.id}/sertifikat`}
                     className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-amber-200 text-amber-700 hover:bg-amber-50"
                   >
                     <Award className="w-3.5 h-3.5" /> Sertifikat
@@ -329,10 +335,25 @@ export default function EventsClient({ isSuperAdmin, userBranchId }: { isSuperAd
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Gambar URL</label>
-                  <input value={form.image} onChange={(e) => updateField("image", e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Gambar / Banner Event</label>
+                  <div className="flex items-center gap-3">
+                    <ImageUploadButton
+                      url={form.image}
+                      onChange={(url) => updateField("image", url)}
+                      label="Gambar event"
+                      size="md"
+                    />
+                    {form.image && (
+                      <div className="flex-1">
+                        <p className="text-xs text-gray-400 mb-1">Preview:</p>
+                        <img src={form.image} alt="Preview" className="h-24 w-full max-w-xs rounded-lg object-cover border border-gray-200" />
+                      </div>
+                    )}
+                    {!form.image && (
+                      <p className="text-xs text-gray-400">Klik kotak di kiri untuk upload gambar. Kosongkan jika tidak perlu.</p>
+                    )}
+                  </div>
                 </div>
 
                 <div>

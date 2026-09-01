@@ -19,9 +19,15 @@ export default async function GuruUjianPage() {
     : { teacherId: session.user.id };
 
   const exams = await db.exam.findMany({
-    where: { class: classWhere },
+    where: {
+      OR: [
+        { class: classWhere },
+        ...(branchId ? [{ event: { branchId } }] : []),
+      ],
+    },
     include: {
       class: { select: { name: true, subject: { select: { name: true, color: true } } } },
+      event: { select: { id: true, title: true, type: true } },
       _count: { select: { questions: true, attempts: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -59,8 +65,14 @@ export default async function GuruUjianPage() {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: exam.class?.subject.color }} />
-                    <span className="text-xs text-gray-400">{exam.class?.subject.name} · {exam.class?.name}</span>
+                    {exam.class ? (
+                      <>
+                        <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: exam.class?.subject.color }} />
+                        <span className="text-xs text-gray-400">{exam.class?.subject.name} · {exam.class?.name}</span>
+                      </>
+                    ) : exam.event ? (
+                      <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">🏆 {exam.event.type} · {exam.event.title}</span>
+                    ) : null}
                     {exam.isPublished
                       ? <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700"><CheckCircle className="h-3 w-3" />Dipublikasikan</span>
                       : <span className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500"><AlertCircle className="h-3 w-3" />Draft</span>

@@ -11,15 +11,15 @@ import DashboardCharts from "@/components/admin/DashboardCharts";
 
 async function getDashboardStats(branchId: string | null, isSuperAdmin: boolean) {
   const branchFilter = isSuperAdmin ? {} : branchId ? { branchId } : {};
-  const classBranchFilter = isSuperAdmin ? {} : branchId ? { branchId } : {};
+  const userBranchFilter = isSuperAdmin ? {} : branchId ? { defaultBranchId: branchId } : {};
 
   const [
     totalStudents, totalTeachers, totalClasses, unpaidInvoices, activeFlags,
     pendingPpdb, totalAffiliates, pendingCommissions, activeLandingPages, totalFaqs,
   ] = await Promise.all([
-    db.user.count({ where: { role: "SISWA", isActive: true, ...branchFilter } }),
-    db.user.count({ where: { role: "GURU", isActive: true, ...branchFilter } }),
-    db.class.count({ where: { isActive: true, ...classBranchFilter } }),
+    db.user.count({ where: { role: "SISWA", isActive: true, ...userBranchFilter } }),
+    db.user.count({ where: { role: "GURU", isActive: true, ...userBranchFilter } }),
+    db.class.count({ where: { isActive: true, ...branchFilter } }),
     db.invoice.aggregate({ where: { status: "UNPAID", ...branchFilter }, _sum: { amount: true } }),
     db.featureFlag.count({ where: { isActive: true } }),
     db.registration.count({ where: { status: { in: ["SUBMITTED", "WAITING_VERIFICATION"] }, ...branchFilter } }),
