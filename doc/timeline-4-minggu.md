@@ -435,7 +435,7 @@
 - [x] `9.1` Bottom navigation bar untuk siswa & orang tua di mobile (Home, Materi, Tagihan, Profil) — komponen `MobileBottomNav` (md:hidden, safe-area, 56px tap target); siswa: Home/Materi/Tagihan/Profil; orang tua: Home/Nilai/Tagihan/Profil; padding konten pb-20
 - [x] `9.1` Halaman ujian/quiz mobile-friendly: soal tidak overflow, timer sticky, navigasi compact — TakeExamClient: nomor soal & tombol nav 44px mobile, section tabs scroll-x, menjodohkan stack mobile, MathRenderer display-math overflow-x-auto, header sticky responsif
 - [x] `9.2` API response caching: `Cache-Control` headers untuk GET endpoints yang jarang berubah — already in `next.config.ts`
-- [ ] `9.2` Font loading optimization: `display=swap`, preload critical fonts
+- [x] `9.2` Font loading optimization: `display=swap`, preload critical fonts — Inter via next/font/local (swap + auto preload); Amiri/Noto Serif Javanese + KaTeX CSS dari @import render-blocking → link stylesheet + preconnect di head (terverifikasi render 200)
 - [ ] `9.2` Lighthouse audit & fix: target ≥80 untuk Performance, Accessibility, Best Practices, SEO
 - [ ] `9.3` Loading states: skeleton screens untuk semua tabel & card yang fetch data
 - [ ] `9.3` Empty states: ilustrasi/pesan untuk semua halaman kosong
