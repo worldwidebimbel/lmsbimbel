@@ -3,6 +3,7 @@ import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logAudit } from "@/lib/audit";
+import { getBranchScope, assertBranchAccess } from "@/lib/branch-context";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -14,12 +15,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const body = await req.json().catch(() => ({}));
   const reason = body.reason ?? "Bukti pembayaran tidak valid";
 
+  const scope = await getBranchScope();
   const invoice = await db.invoice.findUnique({
     where: { id },
     include: { payments: { where: { confirmedAt: null }, take: 1 } },
   });
 
   if (!invoice) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!assertBranchAccess(invoice.branchId, scope)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   if (invoice.status !== "PENDING") return NextResponse.json({ error: "Tagihan tidak dalam status pending" }, { status: 400 });
 
   const pendingPayment = invoice.payments[0];

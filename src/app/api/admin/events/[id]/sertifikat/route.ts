@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { randomUUID } from "crypto";
 import { logAudit } from "@/lib/audit";
+import { getBranchScope, assertBranchAccess } from "@/lib/branch-context";
 
 export async function POST(
   req: NextRequest,
@@ -18,8 +19,12 @@ export async function POST(
   const body = await req.json().catch(() => ({}));
   const { registrationIds, issueAll } = body as { registrationIds?: string[]; issueAll?: boolean };
 
-  const event = await db.event.findUnique({ where: { id: eventId }, select: { id: true, title: true } });
+  const scope = await getBranchScope();
+  const event = await db.event.findUnique({ where: { id: eventId }, select: { id: true, title: true, branchId: true } });
   if (!event) return NextResponse.json({ error: "Event tidak ditemukan" }, { status: 404 });
+  if (!assertBranchAccess(event.branchId, scope)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const where = issueAll
     ? { eventId, status: { in: ["ATTENDED", "PAID", "CONFIRMED"] as never[] } }
@@ -72,6 +77,12 @@ export async function GET(
   }
 
   const { id: eventId } = await params;
+  const scope = await getBranchScope();
+  const event = await db.event.findUnique({ where: { id: eventId }, select: { branchId: true } });
+  if (!event) return NextResponse.json({ error: "Event tidak ditemukan" }, { status: 404 });
+  if (!assertBranchAccess(event.branchId, scope)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const certs = await db.certificate.findMany({
     where: { eventId },
     include: { user: { select: { name: true, email: true } } },

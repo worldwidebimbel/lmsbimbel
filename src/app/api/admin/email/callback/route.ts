@@ -23,12 +23,22 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const code  = searchParams.get("code");
   const error = searchParams.get("error");
+  const state = searchParams.get("state");
+  const cookieState = req.cookies.get("gmail_oauth_state")?.value;
 
   if (error) {
     return new NextResponse(htmlPage("❌ Otorisasi Ditolak", `
       <p>Google menolak permintaan otorisasi: <code>${error}</code></p>
       <p>Pastikan kamu sudah menambahkan akun Google kamu sebagai <strong>Test User</strong> di Google Cloud Console
          (OAuth consent screen → Test users).</p>
+      <a href="/admin/settings?tab=email" class="btn">← Kembali ke Settings</a>
+    `), { headers: { "Content-Type": "text/html; charset=utf-8" } });
+  }
+
+  if (!state || !cookieState || state !== cookieState) {
+    return new NextResponse(htmlPage("⚠️ Sesi Otorisasi Tidak Valid", `
+      <p>Parameter <code>state</code> tidak valid atau sesi otorisasi sudah kedaluwarsa (maks. 10 menit).</p>
+      <p>Untuk keamanan, ulangi proses otorisasi dari Settings → Email → Gmail OAuth2.</p>
       <a href="/admin/settings?tab=email" class="btn">← Kembali ke Settings</a>
     `), { headers: { "Content-Type": "text/html; charset=utf-8" } });
   }

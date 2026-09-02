@@ -418,7 +418,7 @@
 - [x] `7.7` Lock nilai final (butuh permission khusus, tercatat di audit log) — `isLocked` field di Grade + `/api/nilai/lock` endpoint (admin only) + audit log
 - [x] `7.7` Review header keamanan di `next.config.ts` (CSP, X-Frame-Options) — CSP, X-Frame-Options, HSTS, Referrer-Policy, Permissions-Policy
 - [x] `7.7` Kebijakan kekuatan password + fitur lupa password — `src/lib/password-policy.ts` (min 8, upper, lower, number) + forgot-password + reset-password pages + API
-- [ ] `7.7` Uji akses lintas cabang & lintas role menyeluruh
+- [x] `7.7` Uji akses lintas cabang & lintas role menyeluruh — audit otomatis seluruh route admin: 5 route bocor ditemukan & diperbaiki dengan `assertBranchAccess` (kelas enroll/unenroll siswa, invoice approve/confirm/reject, sertifikat event); Gmail OAuth callback ditambah state validation (CSRF); re-audit: 0 kebocoran, semua route admin punya role check
 
 ## Hari 2-3 — Integrasi & Polish · semua jalur
 - [x] Integrasi PPDB ↔ Afiliator: referral → verifikasi → bayar → komisi VALID — `createReferral` di PPDB register + `advanceCommissionStatus` di status/invoice/convert

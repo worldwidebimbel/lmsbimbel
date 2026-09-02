@@ -43,7 +43,7 @@ export class GmailOAuth2 {
     private readonly redirectUri: string,
   ) {}
 
-  getAuthUrl(): string {
+  getAuthUrl(state?: string): string {
     const params = new URLSearchParams({
       client_id:     this.clientId,
       redirect_uri:  this.redirectUri,
@@ -51,6 +51,7 @@ export class GmailOAuth2 {
       scope:         GmailOAuth2.SCOPE,
       access_type:   "offline",
       prompt:        "consent",
+      ...(state ? { state } : {}),
     });
     return `${GmailOAuth2.AUTH_URL}?${params}`;
   }

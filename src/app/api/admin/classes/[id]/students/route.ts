@@ -3,6 +3,7 @@ import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logAudit } from "@/lib/audit";
+import { getBranchScope, assertBranchAccess } from "@/lib/branch-context";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -14,8 +15,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { studentId } = await req.json();
   if (!studentId) return NextResponse.json({ error: "studentId required" }, { status: 400 });
 
-  const cls = await db.class.findUnique({ where: { id }, select: { maxStudents: true, _count: { select: { students: true } } } });
+  const scope = await getBranchScope();
+
+  const cls = await db.class.findUnique({ where: { id }, select: { branchId: true, maxStudents: true, _count: { select: { students: true } } } });
   if (!cls) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!assertBranchAccess(cls.branchId, scope)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   if (cls._count.students >= cls.maxStudents) {
     return NextResponse.json({ error: "Kelas sudah penuh" }, { status: 409 });
   }
@@ -47,6 +53,13 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { searchParams } = new URL(req.url);
   const studentId = searchParams.get("studentId");
   if (!studentId) return NextResponse.json({ error: "studentId required" }, { status: 400 });
+
+  const scope = await getBranchScope();
+  const cls = await db.class.findUnique({ where: { id }, select: { branchId: true } });
+  if (!cls) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!assertBranchAccess(cls.branchId, scope)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   await db.classStudent.delete({ where: { classId_studentId: { classId: id, studentId } } });
 

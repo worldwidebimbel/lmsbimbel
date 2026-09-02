@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { GmailOAuth2 } from "@/lib/gmail-oauth2";
@@ -30,6 +31,15 @@ export async function GET() {
   }
 
   const callbackUri = `${strip(process.env.NEXTAUTH_URL).replace(/\/$/, "") || "http://localhost:3000"}/api/admin/email/callback`;
+  const state = randomUUID();
   const mailer = new GmailOAuth2(clientId, clientSecret, callbackUri);
-  return NextResponse.json({ url: mailer.getAuthUrl(), callbackUri });
+  const res = NextResponse.json({ url: mailer.getAuthUrl(state), callbackUri });
+  res.cookies.set("gmail_oauth_state", state, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/api/admin/email/callback",
+    maxAge: 600,
+    secure: process.env.NODE_ENV === "production",
+  });
+  return res;
 }
