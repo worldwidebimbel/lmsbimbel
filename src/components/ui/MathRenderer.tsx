@@ -90,7 +90,7 @@ function KatexSpan({ latex, displayMode }: { latex: string; displayMode: boolean
   return (
     <span
       ref={ref}
-      className={displayMode ? "block my-2 text-center" : "inline"}
+      className={displayMode ? "block my-2 text-center overflow-x-auto" : "inline"}
     />
   );
 }

@@ -187,7 +187,7 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       {/* Header */}
-      <div className="sticky top-0 z-10 flex items-center justify-between rounded-xl border border-gray-200 bg-white px-5 py-3 shadow-sm">
+      <div className="sticky top-0 z-10 flex items-center justify-between rounded-xl border border-gray-200 bg-white px-3 sm:px-5 py-3 shadow-sm">
         <div>
           <p className="text-xs text-gray-400">{exam.class.subject.name} · {exam.class.name}</p>
           <p className="font-semibold text-gray-900 text-sm">{exam.title}</p>
@@ -208,12 +208,12 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
 
       {/* Section tabs */}
       {hasSections && (
-        <div className="flex gap-2 rounded-xl border border-gray-200 bg-white p-3">
+        <div className="flex gap-2 overflow-x-auto rounded-xl border border-gray-200 bg-white p-3">
           {exam.sections!.map((sec, i) => (
             <button
               key={sec.id}
               onClick={() => { setActiveSection(i); setCurrent(0); setSectionTimeLeft(sec.duration * 60); }}
-              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 max-md:min-h-[44px] text-sm font-medium transition-colors ${
                 i === activeSection ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
@@ -256,10 +256,10 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
       )}
 
       {/* Question Navigation */}
-      <div className="flex flex-wrap gap-1.5 rounded-xl border border-gray-200 bg-white p-4">
+      <div className="flex flex-wrap gap-1.5 rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
         {displayQuestions.map((_, i) => (
-          <button key={i} onClick={() => setCurrent(i)}
-            className={`h-8 w-8 rounded-lg text-xs font-medium transition-colors ${
+          <button key={i} onClick={() => setCurrent(i)} aria-label={`Soal ${i + 1}`}
+            className={`h-8 w-8 max-md:h-11 max-md:w-11 rounded-lg text-xs font-medium transition-colors ${
               i === current ? "bg-indigo-600 text-white" :
               answers[displayQuestions[i].id] ? "bg-green-100 text-green-700" :
               "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -363,9 +363,9 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
             <div className="space-y-3">
               <p className="text-xs text-indigo-600 font-medium">Pilih pasangan yang tepat untuk setiap item di kiri</p>
               {pairs.map((pair, i) => (
-                <div key={i} className="flex items-center gap-3">
+                <div key={i} className="flex max-md:flex-col md:items-center gap-3">
                   <div className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800">{pair.left}</div>
-                  <span className="text-gray-400 shrink-0">→</span>
+                  <span className="text-gray-400 shrink-0 hidden md:inline">→</span>
                   <select
                     value={studentMap[String(i)] ?? ""}
                     onChange={(e) => {
@@ -415,12 +415,12 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
                     {item.imageUrl && <img src={item.imageUrl} alt="" className="h-10 w-10 rounded object-cover" />}
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <button disabled={i === 0} onClick={() => moveItem(i, i - 1)}
-                      className="rounded p-0.5 text-gray-400 hover:text-indigo-600 disabled:opacity-20">
+                    <button disabled={i === 0} onClick={() => moveItem(i, i - 1)} aria-label="Naikkan"
+                      className="rounded p-0.5 max-md:min-h-[44px] max-md:min-w-[44px] max-md:mx-auto max-md:my-1 text-gray-400 hover:text-indigo-600 disabled:opacity-20">
                       <ArrowUp className="h-4 w-4" />
                     </button>
-                    <button disabled={i === current_order.length - 1} onClick={() => moveItem(i, i + 1)}
-                      className="rounded p-0.5 text-gray-400 hover:text-indigo-600 disabled:opacity-20">
+                    <button disabled={i === current_order.length - 1} onClick={() => moveItem(i, i + 1)} aria-label="Turunkan"
+                      className="rounded p-0.5 max-md:min-h-[44px] max-md:min-w-[44px] max-md:mx-auto max-md:my-1 text-gray-400 hover:text-indigo-600 disabled:opacity-20">
                       <ArrowDown className="h-4 w-4" />
                     </button>
                   </div>
@@ -480,18 +480,18 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
       {/* Navigation */}
       <div className="flex items-center justify-between">
         <button onClick={() => setCurrent((c) => Math.max(0, c - 1))} disabled={current === 0}
-          className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-40">
+          className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 max-md:min-h-[44px] text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-40">
           <ArrowLeft className="h-4 w-4" /> Sebelumnya
         </button>
 
         {current < displayQuestions.length - 1 ? (
           <button onClick={() => setCurrent((c) => Math.min(displayQuestions.length - 1, c + 1))}
-            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 max-md:min-h-[44px] text-sm font-medium text-white hover:bg-indigo-700">
             Selanjutnya <ArrowRight className="h-4 w-4" />
           </button>
         ) : (
           <button onClick={handleSubmit} disabled={isPending}
-            className="flex items-center gap-2 rounded-lg bg-green-600 px-5 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
+            className="flex items-center gap-2 rounded-lg bg-green-600 px-5 py-2 max-md:min-h-[44px] text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
             Kumpulkan Ujian
           </button>
