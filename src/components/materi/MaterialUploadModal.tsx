@@ -128,7 +128,7 @@ export function MaterialUploadModal({ classes, subjects, editData, onClose, onSa
           <h2 className="text-lg font-semibold text-gray-900">
             {isEdit ? "Edit Materi" : "Upload Materi Baru"}
           </h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+          <button onClick={onClose} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>

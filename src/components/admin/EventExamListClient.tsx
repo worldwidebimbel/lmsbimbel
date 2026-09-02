@@ -124,7 +124,7 @@ export default function EventExamListClient({ eventId, eventTitle, exams, backHr
                   <button
                     onClick={() => unlinkExam(exam.id)}
                     disabled={isPending}
-                    className="rounded-lg bg-red-50 p-1.5 text-red-500 hover:bg-red-100"
+                    className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg bg-red-50 p-1.5 text-red-500 hover:bg-red-100"
                     title="Lepas dari event"
                   >
                     <Trash2 className="h-3.5 w-3.5" />

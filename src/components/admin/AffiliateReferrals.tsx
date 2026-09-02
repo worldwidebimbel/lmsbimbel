@@ -103,7 +103,7 @@ export function AffiliateReferrals({ referrals }: { referrals: Referral[] }) {
                       <button
                         onClick={() => cancelReferral(r.id)}
                         disabled={cancelling === r.id}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded disabled:opacity-50"
+                        className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-500 hover:bg-red-50 rounded disabled:opacity-50"
                         title="Batalkan referral"
                       >
                         {cancelling === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />}

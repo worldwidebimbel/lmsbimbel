@@ -103,7 +103,7 @@ export default function LinkAnakClient({ initialChildren }: { initialChildren: S
                   </div>
                 </div>
                 <button onClick={() => handleRemove(child.id, child.name)}
-                  className="rounded-lg p-1.5 text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors">
+                  className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>

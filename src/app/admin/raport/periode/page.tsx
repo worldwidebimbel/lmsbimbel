@@ -114,10 +114,10 @@ export default function ReportPeriodsPage() {
                       {p._count.raports} rapor
                     </span>
                   )}
-                  <button onClick={() => openEdit(p)} className="p-1.5 rounded-md hover:bg-gray-100">
+                  <button onClick={() => openEdit(p)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-md hover:bg-gray-100">
                     <Pencil className="h-4 w-4 text-gray-600" />
                   </button>
-                  <button onClick={() => handleDelete(p.id)} className="p-1.5 rounded-md hover:bg-gray-100">
+                  <button onClick={() => handleDelete(p.id)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-md hover:bg-gray-100">
                     <Trash2 className="h-4 w-4 text-red-500" />
                   </button>
                 </div>

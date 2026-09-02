@@ -220,7 +220,7 @@ export default function JurnalMengajarClient({
                   {j.status === "DRAFT" && (
                     <button
                       onClick={() => handleStatusChange(j.id, "SUBMITTED")}
-                      className="rounded-lg p-1.5 text-gray-400 hover:bg-blue-50 hover:text-blue-500"
+                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-blue-50 hover:text-blue-500"
                       title="Submit"
                     >
                       <CheckCircle className="h-4 w-4" />
@@ -228,14 +228,14 @@ export default function JurnalMengajarClient({
                   )}
                   <button
                     onClick={() => handleEdit(j)}
-                    className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100"
+                    className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-gray-100"
                     title="Edit"
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(j.id)}
-                    className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                    className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
                     title="Hapus"
                   >
                     <Trash2 className="h-4 w-4" />

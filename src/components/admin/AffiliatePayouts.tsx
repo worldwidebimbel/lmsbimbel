@@ -84,7 +84,7 @@ export function AffiliatePayouts({ payouts }: { payouts: Payout[] }) {
                         <button
                           onClick={() => doAction(p.id, "approve")}
                           disabled={actionLoading === p.id}
-                          className="p-1.5 text-green-600 hover:bg-green-50 rounded disabled:opacity-50"
+                          className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-green-600 hover:bg-green-50 rounded disabled:opacity-50"
                           title="Setujui"
                         >
                           {actionLoading === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
@@ -92,7 +92,7 @@ export function AffiliatePayouts({ payouts }: { payouts: Payout[] }) {
                         <button
                           onClick={() => doAction(p.id, "reject")}
                           disabled={actionLoading === p.id}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
+                          className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
                           title="Tolak"
                         >
                           <X className="w-4 h-4" />

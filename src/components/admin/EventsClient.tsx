@@ -201,10 +201,10 @@ export default function EventsClient({ isSuperAdmin, userBranchId, basePath = "/
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => openEdit(event)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                  <button onClick={() => openEdit(event)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
                     <Edit2 className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleDelete(event.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
+                  <button onClick={() => handleDelete(event.id)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>

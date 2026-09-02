@@ -157,10 +157,10 @@ export default function AcademicCalendarManager({ branches }: { branches: Branch
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <button onClick={() => startEdit(e)} className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-indigo-600">
+                      <button onClick={() => startEdit(e)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-indigo-600">
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
-                      <button onClick={() => handleDelete(e.id)} className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-600">
+                      <button onClick={() => handleDelete(e.id)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-600">
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>

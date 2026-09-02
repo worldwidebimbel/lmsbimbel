@@ -223,14 +223,14 @@ export default function RaportAdminClient({
                 <div className="flex shrink-0 items-center gap-1">
                   <a
                     href={`/api/raport/${r.id}/pdf`}
-                    className="rounded-lg p-1.5 text-gray-400 hover:bg-blue-50 hover:text-blue-500"
+                    className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-blue-50 hover:text-blue-500"
                     title="Download PDF"
                   >
                     <Download className="h-4 w-4" />
                   </a>
                   <button
                     onClick={() => startEdit(r)}
-                    className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100"
+                    className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-gray-100"
                     title="Edit Catatan"
                   >
                     <Edit3 className="h-4 w-4" />
@@ -238,7 +238,7 @@ export default function RaportAdminClient({
                   {r.status === "DRAFT" ? (
                     <button
                       onClick={() => handlePublish(r.id)}
-                      className="rounded-lg p-1.5 text-gray-400 hover:bg-green-50 hover:text-green-600"
+                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-green-50 hover:text-green-600"
                       title="Publikasi"
                     >
                       <CheckCircle className="h-4 w-4" />
@@ -246,7 +246,7 @@ export default function RaportAdminClient({
                   ) : (
                     <button
                       onClick={() => handleUnpublish(r.id)}
-                      className="rounded-lg p-1.5 text-gray-400 hover:bg-yellow-50 hover:text-yellow-600"
+                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-yellow-50 hover:text-yellow-600"
                       title="Kembalikan ke Draft"
                     >
                       <X className="h-4 w-4" />
@@ -255,7 +255,7 @@ export default function RaportAdminClient({
                   {!isGuru && (
                     <button
                       onClick={() => handleDelete(r.id)}
-                      className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
                       title="Hapus"
                     >
                       <Trash2 className="h-4 w-4" />

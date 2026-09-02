@@ -90,10 +90,10 @@ export default function AdminCmsMenuPage() {
                 {!menu.isActive && <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-500">Nonaktif</span>}
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => { setEditing(menu); setShowForm(true); }} className="rounded p-1.5 text-gray-500 hover:bg-gray-100">
+                <button onClick={() => { setEditing(menu); setShowForm(true); }} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded p-1.5 text-gray-500 hover:bg-gray-100">
                   <Pencil className="h-4 w-4" />
                 </button>
-                <button onClick={() => handleDelete(menu.id)} className="rounded p-1.5 text-red-500 hover:bg-red-50">
+                <button onClick={() => handleDelete(menu.id)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded p-1.5 text-red-500 hover:bg-red-50">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>

@@ -90,10 +90,10 @@ export default function AdminCmsQuickActionsPage() {
                 {!item.isActive && <span className="mt-2 inline-block rounded bg-gray-200 px-2 py-0.5 text-xs text-gray-600">Nonaktif</span>}
               </div>
               <div className="flex gap-1">
-                <button onClick={() => { setEditing(item); setShowForm(true); }} className="rounded p-1.5 text-gray-500 hover:bg-white">
+                <button onClick={() => { setEditing(item); setShowForm(true); }} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded p-1.5 text-gray-500 hover:bg-white">
                   <Pencil className="h-4 w-4" />
                 </button>
-                <button onClick={() => handleDelete(item.id)} className="rounded p-1.5 text-red-500 hover:bg-white">
+                <button onClick={() => handleDelete(item.id)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded p-1.5 text-red-500 hover:bg-white">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>

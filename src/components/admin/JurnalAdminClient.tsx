@@ -175,14 +175,14 @@ export default function JurnalAdminClient({
                   <div className="flex shrink-0 gap-1">
                     <button
                       onClick={() => handleApprove(j.id)}
-                      className="rounded-lg p-1.5 text-gray-400 hover:bg-green-50 hover:text-green-600"
+                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-green-50 hover:text-green-600"
                       title="Approve"
                     >
                       <CheckCircle className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleReject(j.id)}
-                      className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
                       title="Kembalikan ke Draft"
                     >
                       <XCircle className="h-4 w-4" />

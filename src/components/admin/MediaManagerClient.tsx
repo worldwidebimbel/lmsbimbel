@@ -251,15 +251,15 @@ export default function MediaManagerClient({
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2"
                 onClick={(e) => e.stopPropagation()}>
                 <button onClick={() => copyUrl(f)} title="Salin URL"
-                  className="p-1.5 rounded-lg bg-white text-gray-700 hover:bg-indigo-50">
+                  className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg bg-white text-gray-700 hover:bg-indigo-50">
                   {copiedId === f.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                 </button>
                 <a href={f.url} target="_blank" rel="noreferrer" title="Buka di tab baru"
-                  className="p-1.5 rounded-lg bg-white text-gray-700 hover:bg-indigo-50">
+                  className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg bg-white text-gray-700 hover:bg-indigo-50">
                   <ExternalLink className="w-4 h-4" />
                 </a>
                 <button onClick={() => deleteFile(f.id)} disabled={deleting === f.id} title="Hapus"
-                  className="p-1.5 rounded-lg bg-white text-red-500 hover:bg-red-50 disabled:opacity-50">
+                  className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg bg-white text-red-500 hover:bg-red-50 disabled:opacity-50">
                   {deleting === f.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                 </button>
               </div>
@@ -312,15 +312,15 @@ export default function MediaManagerClient({
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       <button onClick={() => copyUrl(f)} title="Salin URL"
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100">
+                        className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100">
                         {copiedId === f.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                       </button>
                       <a href={f.url} target="_blank" rel="noreferrer" title="Buka di tab baru"
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100">
+                        className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100">
                         <ExternalLink className="w-4 h-4" />
                       </a>
                       <button onClick={() => deleteFile(f.id)} disabled={deleting === f.id} title="Hapus"
-                        className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-50">
+                        className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-50">
                         {deleting === f.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                       </button>
                     </div>

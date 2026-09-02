@@ -171,7 +171,7 @@ export function CommissionRulesManager({ rules, programs }: { rules: Rule[]; pro
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => startEdit(r)} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded">
+                    <button onClick={() => startEdit(r)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded">
                       <Edit className="w-4 h-4" />
                     </button>
                   </td>

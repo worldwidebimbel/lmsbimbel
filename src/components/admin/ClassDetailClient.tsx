@@ -414,7 +414,7 @@ export default function ClassDetailClient({ cls, allStudents, subjects, teachers
                 </div>
                 <button
                   onClick={() => handleRemove(cs.student.id)}
-                  className="rounded-lg p-1.5 text-gray-300 hover:bg-red-50 hover:text-red-500"
+                  className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-300 hover:bg-red-50 hover:text-red-500"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
