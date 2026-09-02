@@ -5,8 +5,12 @@ import { logAudit } from "@/lib/audit";
 import { createReferral } from "@/lib/commission";
 import { z } from "zod";
 import { registrationSchema } from "@/lib/ppdb-validation";
+import { RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
+  const limited = RATE_LIMITS.publicForm(req);
+  if (limited) return limited;
+
   try {
     const body = await req.json();
     const data = registrationSchema.parse(body);

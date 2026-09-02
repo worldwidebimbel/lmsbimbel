@@ -5,7 +5,7 @@ import { getBranchScope } from "@/lib/branch-context";
 import {
   Users, BookOpen, CalendarDays, TrendingUp,
   GraduationCap, CheckSquare, Wallet, ArrowUpRight,
-  UserCheck, Share2, FileText, Globe,
+  UserCheck, Share2, FileText, Globe, NotebookPen,
 } from "lucide-react";
 import DashboardCharts from "@/components/admin/DashboardCharts";
 
@@ -47,6 +47,20 @@ export default async function AdminDashboard() {
   const isFinance = role === "ADMIN_KEUANGAN";
   const isAcademic = role === "ADMIN_AKADEMIK";
   const isCabang = role === "ADMIN_CABANG";
+
+  let recentJournals: Array<{ id: string; activity: string; sessionDate: Date; status: string; teacher: { name: string }; class: { name: string } }> = [];
+  if (isAcademic) {
+    const journalWhere = isSuperAdmin ? {} : branchId ? { branchId } : {};
+    recentJournals = await db.teachingJournal.findMany({
+      where: journalWhere,
+      include: {
+        teacher: { select: { name: true } },
+        class: { select: { name: true } },
+      },
+      orderBy: { sessionDate: "desc" },
+      take: 5,
+    });
+  }
 
   const cards = isFinance
     ? [
@@ -205,6 +219,32 @@ export default async function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {isAcademic && recentJournals.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <NotebookPen className="h-5 w-5 text-indigo-600" />
+              <h3 className="font-semibold text-gray-900">Jurnal Mengajar Terbaru</h3>
+            </div>
+            <a href="/admin/jurnal" className="text-xs text-blue-600 hover:underline">Lihat semua →</a>
+          </div>
+          <div className="space-y-2">
+            {recentJournals.map((j) => (
+              <div key={j.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{j.activity}</p>
+                  <p className="text-xs text-gray-500">{j.teacher.name} • {j.class.name}</p>
+                </div>
+                <span className="text-xs text-gray-400">{new Date(j.sessionDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${j.status === "APPROVED" ? "bg-green-100 text-green-700" : j.status === "SUBMITTED" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>
+                  {j.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {isSuperAdmin && (
         <DashboardCharts />

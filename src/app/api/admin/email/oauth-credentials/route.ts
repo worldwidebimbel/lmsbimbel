@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { clearOAuth2Cache } from "@/lib/email";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -33,5 +34,6 @@ export async function POST(req: NextRequest) {
   });
 
   clearOAuth2Cache();
+  await logAudit({ entity: "AppSetting", entityId: "gmail-oauth-credentials", action: "UPDATE" });
   return NextResponse.json({ ok: true });
 }

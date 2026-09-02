@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -98,6 +99,7 @@ export async function POST(req: NextRequest) {
           method: code ? "CODE" : "MANUAL",
         },
       });
+      await logAudit({ entity: "TeacherAttendance", entityId: record.id, action: "CREATE", after: { action: "check_in", status } });
       return NextResponse.json(record, { status: 201 });
     } else {
       if (!existing?.checkIn) {
@@ -110,6 +112,7 @@ export async function POST(req: NextRequest) {
         where: { teacherId_date: { teacherId: session.user.id, date: today } },
         data: { checkOut: new Date() },
       });
+      await logAudit({ entity: "TeacherAttendance", entityId: record.id, action: "UPDATE", after: { action: "check_out" } });
       return NextResponse.json(record);
     }
   }

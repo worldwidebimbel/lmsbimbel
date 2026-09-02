@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { logAudit } from "@/lib/audit";
 
 const profileSelect = {
   id: true,
@@ -125,6 +126,7 @@ export async function PATCH(req: NextRequest) {
     create: { userId: session.user.id, ...profileFields },
     update: profileFields,
   });
+  await logAudit({ entity: "UserProfile", entityId: session.user.id, action: "UPSERT", after: { userId: session.user.id, profileComplete: profileFields.profileComplete } });
 
   const hasUserChanges = Object.keys(updateData).length > 0;
 
@@ -135,6 +137,7 @@ export async function PATCH(req: NextRequest) {
       data: updateData,
       select: profileSelect,
     });
+    await logAudit({ entity: "User", entityId: session.user.id, action: "UPDATE", after: { fields: Object.keys(updateData), passwordChanged: Boolean(updateData.password) } });
   } else {
     updated = await db.user.findUnique({
       where: { id: session.user.id },

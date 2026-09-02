@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -12,6 +13,8 @@ export async function POST(req: NextRequest) {
   const inquiry = await db.siteInquiry.create({
     data: { name, phone, email: email || null, program: program || null, message: message || null },
   });
+
+  await logAudit({ entity: "SiteInquiry", entityId: inquiry.id, action: "CREATE", after: { name, phone, program: program || null } });
 
   return NextResponse.json({ success: true, id: inquiry.id }, { status: 201 });
 }

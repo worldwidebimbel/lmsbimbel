@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const members = await db.siteTeamMember.findMany({
@@ -37,5 +38,6 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  await logAudit({ entity: "SiteTeamMember", entityId: member.id, action: "CREATE", after: { name, role } });
   return NextResponse.json(member, { status: 201 });
 }

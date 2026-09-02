@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
+import { RATE_LIMITS } from "@/lib/rate-limit";
+import { validatePassword } from "@/lib/password-policy";
+import { logAudit } from "@/lib/audit";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const limited = RATE_LIMITS.register(req);
+  if (limited) return limited;
+
   try {
     const { name, email, password } = await req.json();
 
@@ -15,8 +22,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Format email tidak valid" }, { status: 400 });
     }
 
-    if (password.length < 6) {
-      return NextResponse.json({ error: "Password minimal 6 karakter" }, { status: 400 });
+    const { valid: pwValid, errors: pwErrors } = validatePassword(password);
+    if (!pwValid) {
+      return NextResponse.json({ error: pwErrors.join(", ") }, { status: 400 });
     }
 
     const existing = await db.user.findUnique({ where: { email } });
@@ -35,6 +43,8 @@ export async function POST(req: Request) {
       },
       select: { id: true, name: true, email: true, role: true },
     });
+
+    await logAudit({ entity: "User", entityId: user.id, action: "CREATE", after: { name: user.name, email: user.email, role: user.role, source: "public-register" } });
 
     return NextResponse.json({ success: true, user }, { status: 201 });
   } catch (error) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -44,6 +45,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       price,
     },
   });
+
+  await logAudit({ entity: "EventRegistration", entityId: registration.id, action: "CREATE", after: { eventId: id, packageId: selectedPackage?.id || null, status: registration.status, paymentStatus: registration.paymentStatus, price } });
 
   return NextResponse.json({ success: true, registration }, { status: 201 });
 }

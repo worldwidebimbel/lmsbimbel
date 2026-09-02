@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -66,5 +67,6 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  await logAudit({ entity: "BranchCashTransfer", entityId: transfer.id, action: "CREATE", after: { fromBranchId, toBranchId, amount: Number(amount) } });
   return NextResponse.json(transfer, { status: 201 });
 }

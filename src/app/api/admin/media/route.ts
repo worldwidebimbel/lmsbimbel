@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import cloudinary from "@/lib/cloudinary";
+import { logAudit } from "@/lib/audit";
 
 async function requireAdmin() {
   const session = await auth();
@@ -57,5 +58,6 @@ export async function DELETE(req: NextRequest) {
   }
 
   await db.mediaFile.delete({ where: { id } });
+  await logAudit({ entity: "MediaFile", entityId: id, action: "DELETE" });
   return NextResponse.json({ success: true });
 }

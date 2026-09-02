@@ -4,6 +4,7 @@ import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 import { getBranchQrisKey } from "@/lib/qris-settings";
+import { logAudit } from "@/lib/audit";
 
 const DEFAULT_SETTINGS: Record<string, string> = {
   app_name: "EduBimbel LMS",
@@ -75,5 +76,6 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  await logAudit({ entity: "AppSetting", entityId: targetBranchId ?? "global", action: "UPDATE" });
   return NextResponse.json({ success: true });
 }

@@ -3,6 +3,7 @@ import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -61,5 +62,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     },
   });
 
+  await logAudit({ entity: "Invoice", entityId: id, action: "UPDATE", after: { status: body.status, amount: body.amount, dueDate: body.dueDate } });
   return NextResponse.json(updated);
 }

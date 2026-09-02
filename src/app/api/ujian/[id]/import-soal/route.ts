@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -69,6 +70,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     data: toClone.map((q, i) => ({ examId, questionId: q.id, order: i })),
     skipDuplicates: true,
   });
+
+  await logAudit({ entity: "Question", entityId: examId, action: "CREATE", after: { source: "import-soal", examId, clonedFromBank: toClone.map((q) => q.id), count: created.count } });
 
   return NextResponse.json({ imported: created.count }, { status: 201 });
 }

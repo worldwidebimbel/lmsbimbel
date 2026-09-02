@@ -3,6 +3,7 @@ import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(
   _req: NextRequest,
@@ -76,5 +77,6 @@ export async function PATCH(
     data: updateData,
   });
 
+  await logAudit({ entity: "Registration", entityId: id, action: "UPDATE", after: updateData });
   return NextResponse.json(updated);
 }

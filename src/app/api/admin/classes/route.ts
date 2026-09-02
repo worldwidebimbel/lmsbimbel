@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -39,6 +40,13 @@ export async function POST(req: NextRequest) {
       teacher: { select: { id: true, name: true } },
       branch: { select: { id: true, name: true, code: true } },
     },
+  });
+
+  await logAudit({
+    entity: "Class",
+    entityId: cls.id,
+    action: "CREATE",
+    after: { name, subjectId, teacherId, branchId: assignedBranchId },
   });
 
   return NextResponse.json(cls, { status: 201 });

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useFeatureFlags } from "@/context/FeatureFlagContext";
+import { useSidebarStore } from "@/lib/sidebar-store";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Users, CalendarDays, BookOpen, ClipboardList,
@@ -192,6 +193,11 @@ export function Sidebar({ role, userName, userEmail, siteName, logoUrl }: Sideba
   const { isFeatureActive, isLoading } = useFeatureFlags();
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const navItems = NAV_MAP[role] ?? [];
+  const { mobileOpen, setMobileOpen } = useSidebarStore();
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname, setMobileOpen]);
 
   const filterItem = (item: NavItem): boolean => {
     if (item.superAdminOnly && role !== "SUPER_ADMIN") return false;
@@ -220,7 +226,18 @@ export function Sidebar({ role, userName, userEmail, siteName, logoUrl }: Sideba
   };
 
   return (
-    <aside className="fixed inset-y-0 left-0 w-64 bg-sidebar flex flex-col z-40 border-r border-sidebar-border">
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+      <aside className={cn(
+        "fixed inset-y-0 left-0 w-64 bg-sidebar flex flex-col z-40 border-r border-sidebar-border transition-transform duration-200",
+        mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+      )}>
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 h-16 border-b border-sidebar-border shrink-0">
         {logoUrl ? (
@@ -327,5 +344,6 @@ export function Sidebar({ role, userName, userEmail, siteName, logoUrl }: Sideba
         </div>
       </div>
     </aside>
+    </>
   );
 }

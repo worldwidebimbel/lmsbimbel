@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const session = await auth();
@@ -27,5 +28,11 @@ export async function PATCH(req: NextRequest) {
       await db.siteConfig.create({ data: { key, value: String(value) } });
     }
   }
+  await logAudit({
+    entity: "SiteConfig",
+    entityId: "bulk",
+    action: "UPDATE",
+    after: { keys: Object.keys(body) },
+  });
   return NextResponse.json({ ok: true });
 }

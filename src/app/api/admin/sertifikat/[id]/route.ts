@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { generateCertificateNo, generateCertificateCode } from "@/lib/certificate";
 import { generateCertificatePdf } from "@/lib/export-pdf";
 import QRCode from "qrcode";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -40,6 +41,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     include: { template: true, user: { select: { name: true, email: true } } },
   });
 
+  await logAudit({ entity: "Certificate", entityId: certificate.id, action: "CREATE", after: { code, type, userId } });
   return NextResponse.json(certificate, { status: 201 });
 }
 

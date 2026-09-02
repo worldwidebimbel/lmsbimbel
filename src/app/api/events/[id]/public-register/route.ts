@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { createEventPayment } from "@/lib/event-payment";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -82,6 +83,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       price,
     },
   });
+  await logAudit({ entity: "User", entityId: user.id, action: "CREATE", after: { name, email, role: "SISWA", eventId: id } });
+  await logAudit({ entity: "EventRegistration", entityId: registration.id, action: "CREATE", after: { eventId: id, userId: user.id, packageId: selectedPackage?.id || null, status: registration.status, paymentStatus: registration.paymentStatus, price } });
 
   if (event.isPaid && price > 0) {
     const redirectUrl = await createEventPayment(registration.id, id, user.id);

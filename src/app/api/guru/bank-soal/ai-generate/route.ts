@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AIProviderId, DEFAULT_PROVIDER_ID, getProvider, resolveProviderConfig } from "@/lib/ai-providers";
+import { RATE_LIMITS } from "@/lib/rate-limit";
+import { logAudit } from "@/lib/audit";
 
 interface MatchingPair {
   left: string;
@@ -108,6 +110,9 @@ function buildInsertRows(
 }
 
 export async function POST(req: NextRequest) {
+  const limited = RATE_LIMITS.ai(req);
+  if (limited) return limited;
+
   const session = await auth();
   if (!session?.user || !["GURU", "SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_AKADEMIK"].includes(session.user.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -125,6 +130,7 @@ export async function POST(req: NextRequest) {
       body.topic
     );
     const created = await db.question.createMany({ data: rows });
+    await logAudit({ entity: "Question", entityId: "ai-save", action: "CREATE", after: { source: "ai-direct-save", inserted: created.count, examId: body.examId ?? null, subjectId: body.subjectId ?? null } });
     return NextResponse.json({ questions: body.questionsToSave, saved: created.count });
   }
 
@@ -385,6 +391,7 @@ IMAGE MODE (MANDATORY):
     if (body.saveToBank) {
       const toInsert = buildInsertRows(questions, examId ?? null, subjectId ?? null, topic);
       const created = await db.question.createMany({ data: toInsert });
+      await logAudit({ entity: "Question", entityId: "ai-generate", action: "CREATE", after: { source: "ai-generate", provider: provider.id, model: aiModel, topic, questionType, inserted: created.count, examId: examId ?? null, subjectId: subjectId ?? null } });
       return NextResponse.json({ questions, saved: created.count });
     }
 

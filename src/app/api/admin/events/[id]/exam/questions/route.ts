@@ -3,6 +3,7 @@ import { isAdminRole, hasPermission } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 async function canManageEvents(role: string | undefined): Promise<boolean> {
   if (!role) return false;
@@ -47,6 +48,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     },
   });
 
+  await logAudit({ entity: "Question", entityId: question.id, action: "CREATE", after: { examId: exam.id, type } });
   return NextResponse.json(question, { status: 201 });
 }
 
@@ -65,5 +67,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   if (!questionId) return NextResponse.json({ error: "questionId wajib" }, { status: 400 });
 
   await db.question.delete({ where: { id: questionId, examId: exam.id } });
+  await logAudit({ entity: "Question", entityId: questionId, action: "DELETE" });
   return NextResponse.json({ success: true });
 }

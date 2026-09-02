@@ -194,7 +194,7 @@ export default function AcademicYearsPage() {
           <p className="text-gray-500 text-sm">Belum ada tahun ajaran</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">

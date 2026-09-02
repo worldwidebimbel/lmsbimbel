@@ -3,6 +3,7 @@ import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 async function resolveExam(examId: string, branchId: string | null, isSuperAdmin: boolean) {
   const exam = await db.exam.findUnique({
@@ -72,5 +73,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ exa
     },
   });
 
+  await logAudit({ entity: "ExamSection", entityId: section.id, action: "CREATE", after: { examId, name } });
   return NextResponse.json(section, { status: 201 });
 }

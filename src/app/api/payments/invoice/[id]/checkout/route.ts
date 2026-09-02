@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { createInvoice, getCallbackUrl, getReturnUrl, isDuitkuConfigured } from "@/lib/payment-gateway";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -90,6 +91,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         externalId: merchantOrderId,
       },
     });
+
+    await logAudit({ entity: "Invoice", entityId: invoice.id, action: "UPDATE", after: { status: "PENDING", enableOnlinePayment: true, onlinePaymentMethod: "DUITKU", externalId: merchantOrderId, amount: invoice.amount } });
 
     return NextResponse.json({
       paymentUrl: result.paymentUrl,

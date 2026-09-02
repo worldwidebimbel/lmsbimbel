@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const session = await auth();
@@ -63,6 +64,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
     },
   });
 
+  await logAudit({ entity: "AttendanceRecord", entityId: record.id, action: "CREATE", after: { attendanceId: token, status: "HADIR", method: "QR_SCAN" } });
   return NextResponse.json({
     success: true,
     alreadyMarked: false,

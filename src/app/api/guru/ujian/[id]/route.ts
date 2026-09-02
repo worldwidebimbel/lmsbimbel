@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 async function getExamWithBranch(id: string) {
   const { isSuperAdmin, branchId } = await getBranchScope();
@@ -67,5 +68,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     },
   });
 
+  await logAudit({ entity: "Exam", entityId: id, action: "UPDATE", after: { title: body.title, isPublished: body.isPublished } });
   return NextResponse.json(exam);
 }

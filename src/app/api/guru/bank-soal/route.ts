@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -82,5 +83,6 @@ export async function POST(req: NextRequest) {
     include: { subject: { select: { name: true, color: true } } },
   });
 
+  await logAudit({ entity: "Question", entityId: question.id, action: "CREATE", after: { subjectId, type } });
   return NextResponse.json(question, { status: 201 });
 }

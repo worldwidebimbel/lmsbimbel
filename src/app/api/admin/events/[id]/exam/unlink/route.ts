@@ -3,6 +3,7 @@ import { isAdminRole, hasPermission } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 async function canManageEvents(role: string | undefined): Promise<boolean> {
   if (!role) return false;
@@ -36,5 +37,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     data: { eventId: null },
   });
 
+  await logAudit({ entity: "Exam", entityId: examId, action: "UPDATE", after: { unlinkedFromEventId: id } });
   return NextResponse.json({ success: true });
 }

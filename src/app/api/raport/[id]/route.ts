@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { sendInAppNotification } from "@/lib/notification-helper";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -88,6 +89,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
   }
 
+  await logAudit({ entity: "Raport", entityId: id, action: "UPDATE", before: { status: raport.status }, after: { status, finalGrade } });
   return NextResponse.json(updated);
 }
 
@@ -99,5 +101,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
   const { id } = await params;
   await db.raport.delete({ where: { id } });
+  await logAudit({ entity: "Raport", entityId: id, action: "DELETE" });
   return NextResponse.json({ success: true });
 }

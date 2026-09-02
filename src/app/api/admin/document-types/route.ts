@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const session = await auth();
@@ -42,6 +43,13 @@ export async function POST(req: NextRequest) {
       allowedTypes,
       order: order ?? 0,
     },
+  });
+
+  await logAudit({
+    entity: "DocumentType",
+    entityId: docType.id,
+    action: "CREATE",
+    after: { name, isRequired: isRequired ?? true },
   });
 
   return NextResponse.json(docType, { status: 201 });

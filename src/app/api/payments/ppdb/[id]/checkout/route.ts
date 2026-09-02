@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { createInvoice, getCallbackUrl, getCallbackBaseUrl, isDuitkuConfigured } from "@/lib/payment-gateway";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: registrationId } = await params;
@@ -65,6 +66,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         externalId: merchantOrderId,
       },
     });
+
+    await logAudit({ entity: "Registration", entityId: registration.id, action: "UPDATE", after: { paymentStatus: "PENDING", paymentMethod: "DUITKU", externalId: merchantOrderId, amount: registration.registrationFee } });
 
     return NextResponse.json({
       paymentUrl: result.paymentUrl,

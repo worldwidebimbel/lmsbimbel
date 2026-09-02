@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -78,6 +79,8 @@ export async function POST(req: NextRequest) {
       class: { select: { id: true, name: true } },
     },
   });
+
+  await logAudit({ entity: "Assignment", entityId: assignment.id, action: "CREATE", after: { title, classId, teacherId: session.user.id, dueDate: assignment.dueDate, isPublished: assignment.isPublished } });
 
   return NextResponse.json(assignment, { status: 201 });
 }

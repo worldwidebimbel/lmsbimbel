@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 async function getAssignmentWithBranch(id: string) {
   const { isSuperAdmin, branchId } = await getBranchScope();
@@ -70,6 +71,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     include: { class: { select: { id: true, name: true } } },
   });
 
+  await logAudit({ entity: "Assignment", entityId: id, action: "UPDATE", before: { title: assignment.title, dueDate: assignment.dueDate, isPublished: assignment.isPublished }, after: { title: updated.title, dueDate: updated.dueDate, isPublished: updated.isPublished } });
+
   return NextResponse.json(updated);
 }
 
@@ -88,6 +91,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
   await prisma.submission.deleteMany({ where: { assignmentId: id } });
   await prisma.assignment.delete({ where: { id } });
+  await logAudit({ entity: "Assignment", entityId: id, action: "DELETE", before: { title: assignment.title, classId: assignment.classId } });
 
   return NextResponse.json({ success: true });
 }

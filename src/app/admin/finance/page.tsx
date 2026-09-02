@@ -81,7 +81,7 @@ export default async function FinancePage({ searchParams }: { searchParams: Prom
         })}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
         <div className="p-4 border-b border-gray-200">
           <h2 className="font-semibold text-gray-900">Daftar Tagihan</h2>
         </div>

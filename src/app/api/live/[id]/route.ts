@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -34,6 +35,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     },
   });
 
+  await logAudit({ entity: "LiveSession", entityId: id, action: "UPDATE", after: { title: body.title, isActive: body.isActive } });
   return NextResponse.json(updated);
 }
 
@@ -50,5 +52,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   }
 
   await db.liveSession.delete({ where: { id } });
+  await logAudit({ entity: "LiveSession", entityId: id, action: "DELETE" });
   return NextResponse.json({ success: true });
 }

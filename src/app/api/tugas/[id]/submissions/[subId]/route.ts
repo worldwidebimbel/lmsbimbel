@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function PATCH(
   req: NextRequest,
@@ -38,6 +39,8 @@ export async function PATCH(
       student: { select: { id: true, name: true, avatar: true } },
     },
   });
+
+  await logAudit({ entity: "Submission", entityId: subId, action: "UPDATE", after: { assignmentId: id, score: updated.score, gradedAt: updated.gradedAt } });
 
   return NextResponse.json(updated);
 }

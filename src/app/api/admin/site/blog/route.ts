@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 function slugify(text: string) {
   return text
@@ -43,6 +44,7 @@ export async function POST(req: NextRequest) {
       publishedAt: body.isPublished ? new Date() : null,
     },
   });
+  await logAudit({ entity: "BlogPost", entityId: item.id, action: "CREATE", after: { title: body.title, slug } });
   return NextResponse.json(item, { status: 201 });
 }
 
@@ -57,6 +59,7 @@ export async function PATCH(req: NextRequest) {
     data.publishedAt = new Date();
   }
   const item = await db.blogPost.update({ where: { id }, data });
+  await logAudit({ entity: "BlogPost", entityId: id, action: "UPDATE" });
   return NextResponse.json(item);
 }
 
@@ -67,5 +70,6 @@ export async function DELETE(req: NextRequest) {
   }
   const { id } = await req.json();
   await db.blogPost.delete({ where: { id } });
+  await logAudit({ entity: "BlogPost", entityId: id, action: "DELETE" });
   return NextResponse.json({ success: true });
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
+import { logAudit } from "@/lib/audit";
 
 const VALID_TYPES = ["PILGAN", "PILGAN_KOMPLEK", "BENAR_SALAH", "MENJODOHKAN", "MENGURUTKAN", "SETUJU_TIDAK", "ESSAY", "ISIAN"] as const;
 type ImportType = (typeof VALID_TYPES)[number];
@@ -195,6 +196,10 @@ export async function POST(req: NextRequest) {
   if (toInsert.length > 0) {
     const created = await db.question.createMany({ data: toInsert });
     inserted = created.count;
+  }
+
+  if (inserted > 0) {
+    await logAudit({ entity: "Question", entityId: "bank-import", action: "CREATE", after: { source: "excel-import", inserted, totalRows: rows.length, errors: results.filter((r) => r.status === "error").length, subjectId: subjectId ?? null } });
   }
 
   return NextResponse.json({

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function PATCH(
   req: NextRequest,
@@ -29,5 +30,6 @@ export async function PATCH(
     data: { isVerified, note: note || null },
   });
 
+  await logAudit({ entity: "RegistrationDocument", entityId: docId, action: "UPDATE", after: { isVerified } });
   return NextResponse.json(updated);
 }

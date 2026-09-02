@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const session = await auth();
@@ -47,6 +48,13 @@ export async function POST(req: NextRequest) {
       isPublished: Boolean(isPublished),
       publishedAt: isPublished ? new Date() : null,
     },
+  });
+
+  await logAudit({
+    entity: "LandingPage",
+    entityId: page.id,
+    action: "CREATE",
+    after: { slug, title, isPublished: Boolean(isPublished) },
   });
 
   return NextResponse.json(page, { status: 201 });

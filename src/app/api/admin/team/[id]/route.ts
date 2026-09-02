@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -28,6 +29,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     },
   });
 
+  await logAudit({ entity: "SiteTeamMember", entityId: id, action: "UPDATE", after: { name } });
   return NextResponse.json(member);
 }
 
@@ -39,5 +41,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 
   const { id } = await params;
   await db.siteTeamMember.delete({ where: { id } });
+  await logAudit({ entity: "SiteTeamMember", entityId: id, action: "DELETE" });
   return NextResponse.json({ success: true });
 }

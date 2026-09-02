@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope, getAllowedClassIds } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -74,5 +75,6 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  await logAudit({ entity: "LiveSession", entityId: liveSession.id, action: "CREATE", after: { classId, title: title.trim(), startTime } });
   return NextResponse.json(liveSession, { status: 201 });
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const session = await auth();
@@ -28,5 +29,6 @@ export async function POST(req: NextRequest) {
     })
   );
   await db.$transaction(upserts);
+  await logAudit({ entity: "SiteConfig", entityId: Object.keys(body).join(","), action: "UPDATE" });
   return NextResponse.json({ success: true });
 }

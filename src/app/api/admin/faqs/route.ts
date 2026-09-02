@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const faqs = await db.siteFaq.findMany({
@@ -31,6 +32,13 @@ export async function POST(req: NextRequest) {
       category: category ?? "Umum",
       order: Number(order ?? 0),
     },
+  });
+
+  await logAudit({
+    entity: "SiteFaq",
+    entityId: faq.id,
+    action: "CREATE",
+    after: { question, category: category ?? "Umum" },
   });
 
   return NextResponse.json(faq, { status: 201 });

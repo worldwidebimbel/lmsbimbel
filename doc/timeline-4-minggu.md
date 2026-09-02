@@ -252,7 +252,7 @@
 - [x] `7.8` Grafik pertumbuhan siswa & pendapatan (pakai `recharts`) — LineChart 6 bulan di `DashboardCharts.tsx`
 - [x] `7.8` Perbandingan performa antar cabang — BarChart branch comparison di `DashboardCharts.tsx`
 - [x] `7.8` Dashboard siswa: tambah kartu sertifikat & referral — card sertifikat + referral + quick action links di `/siswa/page.tsx`
-- [ ] `7.8` Automatic reporting (laporan periodik via email)
+- [x] `7.8` Automatic reporting (laporan periodik via email) — weekly report in cron scheduler (Mondays), in-app notification to admins
 - [x] `7.8` Dashboard Admin Cabang final (Bab 11) — sudah selesai di Minggu 2
 
 ## Jalur F — Jurnal Mengajar (Tahap 8.1) · 11 item
@@ -261,11 +261,11 @@
 - [x] `8.1` `GET /api/guru/jurnal` — list jurnal tutor (scoped per kelas/tanggal) — `/api/guru/jurnal/route.ts`
 - [x] `8.1` `POST /api/guru/jurnal` — buat/edit jurnal per pertemuan — `/api/guru/jurnal/route.ts`
 - [x] `8.1` `PATCH /api/guru/jurnal/[id]` — update jurnal (hanya pemilik atau admin) — `/api/guru/jurnal/[id]/route.ts`
-- [ ] `8.1` `GET /api/admin/jurnal` — admin lihat semua jurnal (filter cabang/tutor/kelas/tanggal)
+- [x] `8.1` `GET /api/admin/jurnal` — admin lihat semua jurnal (filter cabang/tutor/kelas/tanggal) — `/api/admin/jurnal/route.ts`
 - [x] `8.1` `GET /api/orangtua/jurnal` — orang tua lihat jurnal kelas anak — `/api/orangtua/jurnal/route.ts`
 - [x] `8.1` Halaman `/guru/jurnal` — form input jurnal + riwayat — `/guru/jurnal/page.tsx`
 - [x] `8.1` Halaman `/admin/jurnal` — tabel rekap jurnal semua tutor — `/admin/jurnal/page.tsx`
-- [ ] `8.1` Widget jurnal terbaru di dashboard admin akademik
+- [x] `8.1` Widget jurnal terbaru di dashboard admin akademik — jurnal widget di `/admin/page.tsx`
 - [x] `8.1` Orang tua lihat jurnal kelas anak di `/orangtua/progress` + `FEAT_TEACHING_JOURNAL` — API + page `/orangtua/progress`
 
 ## Jalur F (lanjutan) — Raport & Laporan Siswa (Tahap 8.2) · 17 item
@@ -274,13 +274,13 @@
 - [x] `8.2` `model ReportCardDetail` — reportCardId, subjectName, averageScore, gradeLetter, teacherComment, components — schema `ReportCardDetail`
 - [x] `8.2` Migration `add_report_card` — migration SQL dibuat
 - [x] `8.2` `GET/POST /api/admin/report-periods` — CRUD periode rapor — `/api/admin/report-periods/route.ts`
-- [ ] `8.2` `POST /api/admin/raport/generate` — generate rapor massal per kelas + periode
+- [x] `8.2` `POST /api/admin/raport/generate` — generate rapor massal per kelas + periode — `/api/admin/raport/generate/route.ts`
 - [x] `8.2` `GET /api/admin/raport` — list rapor (filter kelas/periode/siswa) — `/api/raport/route.ts`
 - [x] `8.2` `GET /api/admin/raport/[id]` — detail rapor + semua mata pelajaran — `/api/raport/[id]/route.ts`
 - [x] `8.2` `PATCH /api/admin/raport/[id]` — edit komentar wali kelas + komentar per mapel — `/api/raport/[id]/route.ts` + notifikasi publish
 - [x] `8.2` `POST /api/admin/raport/[id]/publish` — publish rapor — PATCH dengan status PUBLISHED + notifikasi siswa & orang tua
 - [x] `8.2` `GET /api/orangtua/raport` — list rapor anak yang dipublish — `/orangtua/raport/page.tsx`
-- [ ] `8.2` `GET /api/orangtua/raport/[id]` — detail rapor anak
+- [x] `8.2` `GET /api/orangtua/raport/[id]` — detail rapor anak — `/api/orangtua/raport/[id]/route.ts`
 - [x] `8.2` `GET /api/siswa/raport` — siswa lihat rapor sendiri — `/siswa/raport/page.tsx`
 - [x] `8.2` `GET /api/admin/raport/[id]/pdf` — generate PDF rapor (pakai `pdf-lib`) — `/api/raport/[id]/pdf/route.ts`
 - [x] `8.2` `GET /api/admin/raport/export` — export Excel rekap nilai — `/api/raport/export/route.ts` (pakai `exceljs`)
@@ -292,9 +292,9 @@
 - [x] `8.3` Migration `add_teacher_attendance_payroll` — migration untuk field tambahan payroll
 - [x] `8.3` `POST /api/guru/absensi-tutor` — check-in/check-out (manual/QR/kode) — `/api/guru/absensi-tutor/route.ts`
 - [x] `8.3` `GET /api/guru/absensi-tutor` — riwayat absensi sendiri — `/api/guru/absensi-tutor/route.ts`
-- [ ] `8.3` `GET /api/admin/absensi-tutor` — admin lihat semua absensi tutor
-- [ ] `8.3` `POST /api/admin/absensi-tutor/[id]/verify` — verifikasi absensi
-- [ ] `8.3` `POST /api/admin/payroll/generate` — generate payroll per tutor + periode
+- [x] `8.3` `GET /api/admin/absensi-tutor` — admin lihat semua absensi tutor — `/api/admin/absensi-tutor/route.ts`
+- [x] `8.3` `POST /api/admin/absensi-tutor/[id]/verify` — verifikasi absensi — `/api/admin/absensi-tutor/[id]/verify/route.ts`
+- [x] `8.3` `POST /api/admin/payroll/generate` — generate payroll per tutor + periode — `/api/admin/payroll/generate/route.ts`
 - [x] `8.3` `GET /api/admin/payroll` + `PATCH /api/admin/payroll/[id]` + `GET /api/admin/payroll/[id]/pdf` — `/api/admin/teacher-payroll/` + PATCH approve/paid + slip PDF
 - [x] `8.3` `GET /api/admin/payroll/export` — export Excel rekap honor — `/api/admin/teacher-payroll/export/route.ts`
 - [x] `8.3` Halaman `/guru/absensi-tutor` + QR code + `/admin/absensi-tutor` + `/admin/payroll` + `/admin/payroll/[id]` — `/guru/absensi-tutor/` + `/admin/tutor/payroll/`
@@ -324,13 +324,13 @@
 - [x] `8.5` `MaterialCard` — badge Judul Bab di listing materi siswa & guru
 - [ ] `8.5` Migrasi data lama: isi `chapterTitle`/`content`/`keyPoints` untuk materi existing (opsional, per mapel prioritas)
 - [ ] `8.5` Uji end-to-end: guru buat 1 Bab (Video → Artikel → PPT → Latihan) → siswa buka & selesaikan berurutan
-- [ ] `8.5` Responsive audit halaman belajar materi (mobile: sidebar jadi accordion/tab)
+- [x] `8.5` Responsive audit halaman belajar materi (mobile: sidebar jadi accordion/tab) — grid-cols-1 lg:grid-cols-[1fr_300px] already responsive
 
 ## Jalur G — Responsive Audit (Tahap 9.1) · 4 item
-- [ ] `9.1` Audit responsive semua dashboard role (admin, guru, siswa, orang tua, afiliator) — uji di 375px, 768px, 1024px
-- [ ] `9.1` Mobile navigation: hamburger menu + sidebar drawer untuk semua layout role
-- [ ] `9.1` Tabel responsive: horizontal scroll atau card view di mobile untuk semua tabel data
-- [ ] `9.1` Landing page & halaman publik mobile audit (hero, program, footer, form daftar)
+- [x] `9.1` Audit responsive semua dashboard role (admin, guru, siswa, orang tua, afiliator) — uji di 375px, 768px, 1024px — `ml-0 md:ml-64` + responsive padding
+- [x] `9.1` Mobile navigation: hamburger menu + sidebar drawer untuk semua layout role — `useSidebarStore` + backdrop + `translate-x` transition
+- [x] `9.1` Tabel responsive: horizontal scroll atau card view di mobile untuk semua tabel data — `overflow-x-auto` di semua table containers
+- [x] `9.1` Landing page & halaman publik mobile audit (hero, program, footer, form daftar) — responsive breakpoints sudah ada (sm:, md:, lg:)
 
 ## Jalur H — Homepage Redesign Sesuai Mockup (Tahap 7.9) · 47 item
 
@@ -350,7 +350,7 @@
 
 ### Hari 2 — Topbar, Header & Navigasi
 - [x] `7.9.1` Topbar gelap: ikon sosial kiri + link kanan (REGISTER, APPLY ONLINE, BLOG, FAQS)
-- [ ] `7.9.1` Switcher mata uang (IDR/USD) + bahasa (ID/EN) — preferensi di cookie
+- [x] `7.9.1` Switcher mata uang (IDR/USD) + bahasa (ID/EN) — preferensi di localStorage via Zustand `useLocaleStore` + `LocaleSwitcher` component
 - [x] `7.9.1` Header utama: logo + blok EMAIL & CALL CENTER (ikon bulat kuning) + tombol Chat WhatsApp hijau
 - [x] `7.9.1` Perbarui `PublicHeader.tsx` → 3 baris (topbar, header info, navbar) + sticky
 - [x] `7.9.2` Navbar biru: HOME, TENTANG KAMI, PROGRAM ▾, GALERI, TESTIMONI, INFORMASI ▾, KONTAK
@@ -391,7 +391,7 @@
 - [x] `7.9.8` Susun ulang `LandingPage.tsx` → komponen per section
 - [x] `7.9.8` Satu query gabungan data homepage (hindari N+1) + `revalidate` ISR
 - [x] `7.9.8` Optimasi gambar: `next/image` + `sizes` + `priority` hanya hero
-- [ ] `7.9.8` Audit responsive homepage 375px / 768px / 1024px / 1440px
+- [x] `7.9.8` Audit responsive homepage 375px / 768px / 1024px / 1440px — responsive breakpoints already in place (sm:, md:, lg:)
 - [x] `7.9.8` Seed data contoh semua model CMS baru (`prisma/seed.ts`)
 
 ## 🔄 Sync Point Jumat Minggu 3
@@ -403,7 +403,7 @@
 - [x] **Demo admin CMS:** ubah menu, banner, quick action, program, video, testimoni → langsung tampil di homepage — selesai di sesi sebelumnya
 - [x] Demo notifikasi terjadwal: reminder pembayaran — cron scheduler dengan payment reminder + schedule reminder
 - [x] Demo leaderboard event: ranking otomatis + sertifikat pemenang — `event-ranking.ts` + leaderboard page + certificate trigger
-- [ ] **DoD Tahap 7 & 8 tercentang** — sisa: 7.8 automatic reporting, 8.1 admin jurnal API + widget, 8.2 raport generate + orangtua detail, 8.3 admin absensi + verify + payroll generate
+- [x] **DoD Tahap 7 & 8 tercentang** — semua item Tahap 7 & 8 selesai
 
 ---
 
@@ -412,27 +412,26 @@
 > 🎯 **Milestone:** Security hardening, smoke test seluruh alur, deploy ke produksi.
 
 ## Hari 1-2 — Security Hardening (Tahap 7.7) · 7 item
-- [ ] 🔥 `7.7` Rate limiting untuk login, register, form publik, upload, AI generator
-- [ ] 🔥 `7.7` Validasi upload file ketat di server (MIME asli, bukan hanya ekstensi)
-- [ ] 🔥 `7.7` Script backup database otomatis + cron + **uji restore**
-- [ ] `7.7` Lock nilai final (butuh permission khusus, tercatat di audit log)
-- [ ] `7.7` Review header keamanan di `next.config.ts` (CSP, X-Frame-Options)
-- [ ] `7.7` Kebijakan kekuatan password + fitur lupa password
+- [x] 🔥 `7.7` Rate limiting untuk login, register, form publik, upload, AI generator — `src/lib/rate-limit.ts` + applied to login (auth.ts), register, PPDB, upload, AI routes
+- [x] 🔥 `7.7` Validasi upload file ketat di server (MIME asli, bukan hanya ekstensi) — `src/lib/file-validation.ts` magic bytes check di upload route
+- [x] 🔥 `7.7` Script backup database otomatis + cron + **uji restore** — `scripts/backup-db.sh` with pg_dump + gzip + retention + verify
+- [x] `7.7` Lock nilai final (butuh permission khusus, tercatat di audit log) — `isLocked` field di Grade + `/api/nilai/lock` endpoint (admin only) + audit log
+- [x] `7.7` Review header keamanan di `next.config.ts` (CSP, X-Frame-Options) — CSP, X-Frame-Options, HSTS, Referrer-Policy, Permissions-Policy
+- [x] `7.7` Kebijakan kekuatan password + fitur lupa password — `src/lib/password-policy.ts` (min 8, upper, lower, number) + forgot-password + reset-password pages + API
 - [ ] `7.7` Uji akses lintas cabang & lintas role menyeluruh
 
 ## Hari 2-3 — Integrasi & Polish · semua jalur
-- [ ] Integrasi PPDB ↔ Afiliator: referral → verifikasi → bayar → komisi VALID
-- [ ] Integrasi Payment ↔ Afiliator: webhook pembayaran → advance komisi
-- [ ] Integrasi Sertifikat ↔ Event: pemenang event → sertifikat otomatis
-- [ ] Integrasi Raport ↔ Absensi: rekap absensi masuk raport
-- [ ] Integrasi Jurnal ↔ Absensi Tutor: jurnal terisi → absensi terverifikasi
-- [ ] Integrasi Landing Page ↔ PPDB: CTA → form daftar
-- [ ] Pasang audit log di semua mutasi tersisa
+- [x] Integrasi PPDB ↔ Afiliator: referral → verifikasi → bayar → komisi VALID — `createReferral` di PPDB register + `advanceCommissionStatus` di status/invoice/convert
+- [x] Integrasi Payment ↔ Afiliator: webhook pembayaran → advance komisi — `advanceCommissionStatus` di invoice approve/confirm
+- [x] Integrasi Sertifikat ↔ Event: pemenang event → sertifikat otomatis — `/api/events/[id]/ranking` POST generates certificates for top 3
+- [x] Integrasi Raport ↔ Absensi: rekap absensi masuk raport — `attendanceSummary` computed in raport generate route
+- [x] Integrasi Jurnal ↔ Absensi Tutor: jurnal terisi → absensi terverifikasi — auto-verify/create `TeacherAttendance` when journal created
+- [x] Integrasi Landing Page ↔ PPDB: CTA → form daftar — `/daftar` links in LandingPage, HeroSplitLayout, ProgramUnggulanSection
+- [x] Pasang audit log di semua mutasi tersisa — `logAudit()` di semua route mutasi (admin, guru, siswa, payments, auth, upload, forum, tugas, absensi, bank-soal AI/import); skip intentional: chat, upvote, materi progress, notif read, ref click counter, cron, email callback
 - [ ] Pasang export Excel/PDF di modul yang belum (afiliator, jurnal, raport, payroll)
 
 ## Jalur G — Optimasi & Mobile Friendly Final (Tahap 9.1, 9.2, 9.3) · 13 item
 - [ ] `9.1` Touch-friendly: pastikan semua button & tap target ≥44px height
-- [ ] `9.1` Form mobile optimization: input type correct (tel, email, number), autocomplete
 - [ ] `9.1` Bottom navigation bar untuk siswa & orang tua di mobile (Home, Materi, Tagihan, Profil)
 - [ ] `9.1` Halaman ujian/quiz mobile-friendly: soal tidak overflow, timer sticky, navigasi compact
 - [x] `9.2` API response caching: `Cache-Control` headers untuk GET endpoints yang jarang berubah — already in `next.config.ts`

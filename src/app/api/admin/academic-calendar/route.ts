@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { CalendarEventType } from "@prisma/client";
+import { logAudit } from "@/lib/audit";
 
 const validTypes = Object.values(CalendarEventType);
 
@@ -49,6 +50,12 @@ export async function POST(req: Request) {
       createdBy: session.user.id,
     },
   });
+  await logAudit({
+    entity: "AcademicCalendar",
+    entityId: event.id,
+    action: "CREATE",
+    after: { title, type: type ?? CalendarEventType.LAINNYA },
+  });
   return NextResponse.json({ event: JSON.parse(JSON.stringify(event)) });
 }
 
@@ -79,6 +86,12 @@ export async function PATCH(req: Request) {
       isActive,
     },
   });
+  await logAudit({
+    entity: "AcademicCalendar",
+    entityId: id,
+    action: "UPDATE",
+    after: { title, isActive },
+  });
   return NextResponse.json({ event: JSON.parse(JSON.stringify(event)) });
 }
 
@@ -92,5 +105,10 @@ export async function DELETE(req: Request) {
   if (!body.id) return NextResponse.json({ error: "ID wajib diisi" }, { status: 400 });
 
   await db.academicCalendar.delete({ where: { id: body.id } });
+  await logAudit({
+    entity: "AcademicCalendar",
+    entityId: body.id,
+    action: "DELETE",
+  });
   return NextResponse.json({ success: true });
 }

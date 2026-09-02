@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { clearPaymentGatewayCache } from "@/lib/payment-gateway";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const session = await auth();
@@ -63,5 +64,6 @@ export async function POST(req: NextRequest) {
   }
 
   clearPaymentGatewayCache();
+  await logAudit({ entity: "AppSetting", entityId: "payment-gateway", action: "UPDATE", after: { keys: Object.keys(updates) } });
   return NextResponse.json({ ok: true });
 }

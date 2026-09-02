@@ -4,6 +4,7 @@ import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 import { emailAnnouncementBroadcast } from "@/lib/email";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const session = await auth();
@@ -62,6 +63,13 @@ export async function POST(req: NextRequest) {
       type: type ?? "INFO",
       link: link ?? null,
     })),
+  });
+
+  await logAudit({
+    entity: "Notification",
+    entityId: "bulk",
+    action: "CREATE",
+    after: { title, targetRole, sentCount: users.length },
   });
 
   const sendEmail = body.sendEmail ?? false;

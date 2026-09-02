@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { getBranchScope, addBranchFilter } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -85,6 +86,7 @@ export async function POST(req: NextRequest) {
         photoUrl: photoUrl || null,
       },
     });
+    await logAudit({ entity: "Room", entityId: room.id, action: "CREATE", after: { name, buildingId } });
     return NextResponse.json(room, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Gagal membuat ruangan" }, { status: 400 });

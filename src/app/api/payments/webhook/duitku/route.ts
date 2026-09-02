@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { verifyCallback, isCallbackSuccess, type CallbackData } from "@/lib/payment-gateway";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   let body: Record<string, string>;
@@ -155,12 +156,15 @@ async function handleInvoicePayment(
         },
       });
     });
+
+    await logAudit({ entity: "Invoice", entityId: invoice.id, action: "UPDATE", before: { status: invoice.status }, after: { status: "PAID", amount, via: "duitku-callback", reference: callback.reference } });
   } else {
     // Payment failed — revert invoice to UNPAID
     await db.invoice.update({
       where: { id: invoice.id },
       data: { status: "UNPAID" },
     });
+    await logAudit({ entity: "Invoice", entityId: invoice.id, action: "UPDATE", before: { status: invoice.status }, after: { status: "UNPAID", via: "duitku-callback", resultCode: callback.resultCode } });
   }
 }
 
@@ -205,6 +209,8 @@ async function handleEventPayment(
         content: `Pembayaran event telah diterima via Duitku. Status registrasi: CONFIRMED.`,
       },
     });
+
+    await logAudit({ entity: "EventRegistration", entityId: registrationId, action: "UPDATE", after: { paymentStatus: "PAID", paymentMethod: "DUITKU", externalId: callback.reference || merchantOrderId, via: "duitku-callback" } });
   }
 }
 
@@ -254,10 +260,13 @@ async function handlePpdbPayment(
         },
       });
     }
+
+    await logAudit({ entity: "Registration", entityId: registrationId, action: "UPDATE", after: { paymentStatus: "PAID", paymentMethod: "DUITKU", externalId: callback.reference || merchantOrderId, via: "duitku-callback" } });
   } else {
     await db.registration.update({
       where: { id: registrationId },
       data: { paymentStatus: "FAILED" },
     });
+    await logAudit({ entity: "Registration", entityId: registrationId, action: "UPDATE", before: { paymentStatus: registration.paymentStatus }, after: { paymentStatus: "FAILED", via: "duitku-callback", resultCode: callback.resultCode } });
   }
 }

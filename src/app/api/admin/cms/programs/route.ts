@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const session = await auth();
@@ -39,5 +40,6 @@ export async function POST(req: NextRequest) {
       isActive: isActive ?? true,
     },
   });
+  await logAudit({ entity: "SiteProgram", entityId: item.id, action: "CREATE", after: { title } });
   return NextResponse.json(item, { status: 201 });
 }

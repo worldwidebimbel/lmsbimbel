@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(
   _req: NextRequest,
@@ -27,6 +28,7 @@ export async function PATCH(
   const { id } = await params;
   const body = await req.json();
   const item = await db.siteSocialLink.update({ where: { id }, data: body });
+  await logAudit({ entity: "SiteSocialLink", entityId: id, action: "UPDATE" });
   return NextResponse.json(item);
 }
 
@@ -40,5 +42,6 @@ export async function DELETE(
   }
   const { id } = await params;
   await db.siteSocialLink.delete({ where: { id } });
+  await logAudit({ entity: "SiteSocialLink", entityId: id, action: "DELETE" });
   return NextResponse.json({ ok: true });
 }

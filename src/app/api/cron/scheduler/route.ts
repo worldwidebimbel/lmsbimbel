@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const results = { paymentReminders: 0, tunggakanUpdates: 0, scheduleReminders: 0, tutorAlphaAlerts: 0, missingJournalAlerts: 0, errors: [] as string[] };
+  const results = { paymentReminders: 0, tunggakanUpdates: 0, scheduleReminders: 0, tutorAlphaAlerts: 0, missingJournalAlerts: 0, weeklyReports: 0, errors: [] as string[] };
 
   try {
     const now = new Date();
@@ -161,6 +161,42 @@ export async function POST(req: NextRequest) {
           } catch (e) {
             results.errors.push(`Journal alert: ${(e as Error).message}`);
           }
+        }
+      }
+    }
+
+    // Weekly report on Mondays
+    if (now.getDay() === 1) {
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const [
+        newStudents, newPpdb, paidInvoices, totalRevenue, newJournals, newEvents,
+      ] = await Promise.all([
+        db.user.count({ where: { role: "SISWA", createdAt: { gte: weekAgo } } }),
+        db.registration.count({ where: { createdAt: { gte: weekAgo } } }),
+        db.invoice.count({ where: { status: "PAID", updatedAt: { gte: weekAgo } } }),
+        db.invoice.aggregate({ where: { status: "PAID", updatedAt: { gte: weekAgo } }, _sum: { amount: true } }),
+        db.teachingJournal.count({ where: { createdAt: { gte: weekAgo } } }),
+        db.event.count({ where: { createdAt: { gte: weekAgo } } }),
+      ]);
+
+      const reportSummary = `Laporan Mingguan (${weekAgo.toLocaleDateString("id-ID")} - ${now.toLocaleDateString("id-ID")}):
+• Siswa baru: ${newStudents}
+• Pendaftaran PPDB: ${newPpdb}
+• Invoice dibayar: ${paidInvoices}
+• Pendapatan: Rp ${(totalRevenue._sum.amount ?? 0).toLocaleString("id-ID")}
+• Jurnal mengajar: ${newJournals}
+• Event baru: ${newEvents}`;
+
+      for (const admin of adminUsers) {
+        try {
+          await sendInAppNotification(
+            admin.id,
+            "Laporan Mingguan LMS",
+            reportSummary,
+          );
+          results.weeklyReports++;
+        } catch (e) {
+          results.errors.push(`Weekly report: ${(e as Error).message}`);
         }
       }
     }

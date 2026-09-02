@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const items = await db.siteGallery.findMany({ orderBy: [{ category: "asc" }, { order: "asc" }] });
@@ -24,6 +25,7 @@ export async function POST(req: NextRequest) {
       order: body.order ?? 0,
     },
   });
+  await logAudit({ entity: "SiteGallery", entityId: item.id, action: "CREATE", after: { title: body.title } });
   return NextResponse.json(item, { status: 201 });
 }
 
@@ -35,6 +37,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json();
   const { id, ...data } = body;
   const item = await db.siteGallery.update({ where: { id }, data });
+  await logAudit({ entity: "SiteGallery", entityId: id, action: "UPDATE" });
   return NextResponse.json(item);
 }
 
@@ -45,5 +48,6 @@ export async function DELETE(req: NextRequest) {
   }
   const { id } = await req.json();
   await db.siteGallery.delete({ where: { id } });
+  await logAudit({ entity: "SiteGallery", entityId: id, action: "DELETE" });
   return NextResponse.json({ success: true });
 }

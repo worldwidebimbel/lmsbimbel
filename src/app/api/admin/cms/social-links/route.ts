@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const session = await auth();
@@ -24,5 +25,6 @@ export async function POST(req: NextRequest) {
   const item = await db.siteSocialLink.create({
     data: { platform, url, icon, order: order ?? 0, isActive: isActive ?? true },
   });
+  await logAudit({ entity: "SiteSocialLink", entityId: item.id, action: "CREATE", after: { platform } });
   return NextResponse.json(item, { status: 201 });
 }

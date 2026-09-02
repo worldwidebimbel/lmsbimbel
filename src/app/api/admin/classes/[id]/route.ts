@@ -3,6 +3,7 @@ import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -72,6 +73,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     },
   });
 
+  await logAudit({
+    entity: "Class",
+    entityId: id,
+    action: "UPDATE",
+    after: { name: body.name, isActive: body.isActive },
+  });
+
   return NextResponse.json(updated);
 }
 
@@ -109,6 +117,12 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   await db.class.update({
     where: { id },
     data: { isActive: false },
+  });
+
+  await logAudit({
+    entity: "Class",
+    entityId: id,
+    action: "DELETE",
   });
 
   return NextResponse.json({ success: true });

@@ -24,14 +24,14 @@ export default async function AdminLayout({
         siteName={cfg.siteName}
         logoUrl={cfg.logoUrl}
       />
-      <div className="flex-1 flex flex-col ml-64">
+      <div className="flex-1 flex flex-col ml-0 md:ml-64">
         <Header
           title="Admin Panel"
           userName={session.user?.name ?? "Admin"}
           role={session.user?.role as string}
           userImage={session.user?.image}
         />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );

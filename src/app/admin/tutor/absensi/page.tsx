@@ -30,7 +30,7 @@ export default async function TeacherAttendancePage() {
       class: { select: { name: true } },
     },
     orderBy: { date: "desc" },
-    take: 50,
+    take: 100,
   });
 
   return <TeacherAttendanceClient teachers={JSON.parse(JSON.stringify(teachers))} records={JSON.parse(JSON.stringify(records))} />;

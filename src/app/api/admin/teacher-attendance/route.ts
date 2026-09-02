@@ -3,6 +3,7 @@ import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -76,5 +77,6 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  await logAudit({ entity: "TeacherAttendance", entityId: record.id, action: "UPSERT", after: { teacherId, date, status } });
   return NextResponse.json(record, { status: 201 });
 }

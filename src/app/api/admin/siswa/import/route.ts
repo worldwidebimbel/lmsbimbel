@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 import ExcelJS from "exceljs";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const session = await auth();
@@ -173,6 +174,13 @@ export async function POST(req: NextRequest) {
       }
     }
   }
+
+  await logAudit({
+    entity: "User",
+    entityId: `bulk-import-siswa-${Date.now()}`,
+    action: "CREATE",
+    after: { inserted, total: rows.length, branchId },
+  });
 
   return NextResponse.json({
     inserted,

@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -79,6 +80,7 @@ export async function POST(req: NextRequest) {
     data: { parentId, childId },
     include: { child: { select: { id: true, name: true, email: true, avatar: true } } },
   });
+  await logAudit({ entity: "ParentChild", entityId: `${parentId}_${childId}`, action: "CREATE", after: { parentId, childId } });
   return NextResponse.json(link, { status: 201 });
 }
 
@@ -95,5 +97,6 @@ export async function DELETE(req: NextRequest) {
   await db.parentChild.delete({
     where: { parentId_childId: { parentId, childId } },
   });
+  await logAudit({ entity: "ParentChild", entityId: `${parentId}_${childId}`, action: "DELETE" });
   return NextResponse.json({ success: true });
 }

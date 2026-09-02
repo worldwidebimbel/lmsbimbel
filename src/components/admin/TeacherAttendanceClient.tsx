@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Calendar, Plus, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Calendar, Plus, Clock, CheckCircle, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 
 interface Teacher { id: string; name: string; email: string }
@@ -14,6 +14,7 @@ interface AttendanceRecordItem {
   status: string;
   method: string | null;
   note: string | null;
+  verifiedAt: string | null;
   teacher: { name: string };
   class: { name: string } | null;
 }
@@ -39,6 +40,23 @@ export default function TeacherAttendanceClient({ teachers, records: initial }: 
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ teacherId: "", date: new Date().toISOString().split("T")[0], status: "HADIR", note: "" });
   const [isPending, startTransition] = useTransition();
+
+  function handleVerify(id: string) {
+    startTransition(async () => {
+      const res = await fetch(`/api/admin/absensi-tutor/${id}/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (res.ok) {
+        toast.success("Absensi diverifikasi");
+        setRecords((prev) => prev.map((r) => r.id === id ? { ...r, verifiedAt: new Date().toISOString() } : r));
+      } else {
+        const d = await res.json();
+        toast.error(d.error ?? "Gagal verifikasi");
+      }
+    });
+  }
 
   function handleSubmit() {
     if (!form.teacherId || !form.date) {
@@ -164,9 +182,26 @@ export default function TeacherAttendanceClient({ teachers, records: initial }: 
                     {r.class && <span className="text-xs text-gray-400">· {r.class.name}</span>}
                   </div>
                 </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[r.status] ?? "bg-gray-100"}`}>
-                  {STATUS_LABEL[r.status] ?? r.status}
-                </span>
+                <div className="flex items-center gap-2">
+                  {r.verifiedAt && (
+                    <span className="flex items-center gap-0.5 text-[10px] px-2 py-0.5 rounded-full font-medium bg-indigo-100 text-indigo-700">
+                      <BadgeCheck className="h-3 w-3" /> Terverifikasi
+                    </span>
+                  )}
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[r.status] ?? "bg-gray-100"}`}>
+                    {STATUS_LABEL[r.status] ?? r.status}
+                  </span>
+                  {!r.verifiedAt && (
+                    <button
+                      onClick={() => handleVerify(r.id)}
+                      disabled={isPending}
+                      className="rounded-lg p-1 text-gray-400 hover:bg-indigo-50 hover:text-indigo-600 disabled:opacity-50"
+                      title="Verifikasi absensi"
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>

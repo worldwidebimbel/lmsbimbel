@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
@@ -27,6 +28,8 @@ export async function POST(req: NextRequest) {
         externalId: order_id,
       },
     });
+
+    await logAudit({ entity: "EventRegistration", entityId: registrationId, action: "UPDATE", after: { paymentStatus: "PAID", externalId: order_id, via: "midtrans-callback" } });
 
     return NextResponse.json({ ok: true, handled: true });
   }
@@ -58,6 +61,8 @@ export async function POST(req: NextRequest) {
       data: { status: "PAID" },
     });
   });
+
+  await logAudit({ entity: "Invoice", entityId: invoiceId, action: "UPDATE", before: { status: invoice.status }, after: { status: "PAID", amount, via: "midtrans-callback" } });
 
   return NextResponse.json({ ok: true, handled: true });
 }

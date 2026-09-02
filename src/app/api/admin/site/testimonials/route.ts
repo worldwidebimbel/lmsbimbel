@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const items = await db.siteTestimonial.findMany({ orderBy: { order: "asc" } });
@@ -24,6 +25,7 @@ export async function POST(req: NextRequest) {
       isActive: body.isActive ?? true,
     },
   });
+  await logAudit({ entity: "SiteTestimonial", entityId: item.id, action: "CREATE", after: { name: body.name } });
   return NextResponse.json(item, { status: 201 });
 }
 
@@ -35,6 +37,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json();
   const { id, ...data } = body;
   const item = await db.siteTestimonial.update({ where: { id }, data });
+  await logAudit({ entity: "SiteTestimonial", entityId: id, action: "UPDATE" });
   return NextResponse.json(item);
 }
 
@@ -45,5 +48,6 @@ export async function DELETE(req: NextRequest) {
   }
   const { id } = await req.json();
   await db.siteTestimonial.delete({ where: { id } });
+  await logAudit({ entity: "SiteTestimonial", entityId: id, action: "DELETE" });
   return NextResponse.json({ success: true });
 }

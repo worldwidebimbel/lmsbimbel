@@ -3,6 +3,7 @@ import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { randomUUID } from "crypto";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(
   req: NextRequest,
@@ -57,6 +58,7 @@ export async function POST(
     issued++;
   }
 
+  await logAudit({ entity: "Certificate", entityId: `event-${eventId}`, action: "CREATE", after: { issued, skipped, total: registrations.length } });
   return NextResponse.json({ issued, skipped, total: registrations.length });
 }
 

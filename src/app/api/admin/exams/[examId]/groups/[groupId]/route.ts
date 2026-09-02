@@ -3,6 +3,7 @@ import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 async function resolveExam(examId: string, branchId: string | null, isSuperAdmin: boolean) {
   const exam = await db.exam.findUnique({
@@ -44,6 +45,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ ex
     },
   });
 
+  await logAudit({ entity: "QuestionGroup", entityId: groupId, action: "UPDATE" });
   return NextResponse.json(group);
 }
 
@@ -59,5 +61,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ e
   if (!exam) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await db.questionGroup.delete({ where: { id: groupId, examId } });
+  await logAudit({ entity: "QuestionGroup", entityId: groupId, action: "DELETE" });
   return NextResponse.json({ success: true });
 }

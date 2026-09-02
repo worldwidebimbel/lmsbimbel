@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -44,5 +45,6 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  await logAudit({ entity: "GradeComponent", entityId: component.id, action: "CREATE", after: { classId, name } });
   return NextResponse.json(component, { status: 201 });
 }

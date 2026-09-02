@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const session = await auth();
@@ -47,6 +48,12 @@ export async function POST(req: NextRequest) {
         endDate: new Date(endDate),
         isActive: isActive ?? false,
       },
+    });
+    await logAudit({
+      entity: "AcademicYear",
+      entityId: year.id,
+      action: "CREATE",
+      after: { name, isActive: isActive ?? false },
     });
     return NextResponse.json(year, { status: 201 });
   } catch {

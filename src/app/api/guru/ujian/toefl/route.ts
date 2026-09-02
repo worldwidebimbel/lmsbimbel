@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -55,6 +56,7 @@ export async function POST(req: NextRequest) {
     const section = await db.examSection.create({
       data: { examId, name, duration: Number(duration), order: order ?? 0 },
     });
+    await logAudit({ entity: "ExamSection", entityId: section.id, action: "CREATE", after: { examId, name } });
     return NextResponse.json(section, { status: 201 });
   }
 
@@ -72,6 +74,7 @@ export async function POST(req: NextRequest) {
         order: order ?? 0,
       },
     });
+    await logAudit({ entity: "QuestionGroup", entityId: group.id, action: "CREATE", after: { examId, type } });
     return NextResponse.json(group, { status: 201 });
   }
 

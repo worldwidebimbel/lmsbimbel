@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { optionText } from "@/lib/question-options";
 import { checkAndIssueClassCompletionCertificate } from "@/lib/certificate-trigger";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -153,6 +154,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       submittedAt: new Date(),
     },
   });
+
+  await logAudit({ entity: "ExamAttempt", entityId: attempt.id, action: "CREATE", after: { examId: id, attemptNumber: attempt.attemptNumber, score: percentScore, passed: percentScore >= exam.passingScore } });
 
   let certificateIssued = false;
   if (percentScore >= exam.passingScore && exam.classId) {

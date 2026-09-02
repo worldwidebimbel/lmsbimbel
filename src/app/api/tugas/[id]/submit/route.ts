@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -38,6 +39,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       gradedAt: null,
     },
   });
+
+  await logAudit({ entity: "Submission", entityId: `${id}:${session.user.id}`, action: "UPSERT", after: { assignmentId: id, studentId: session.user.id, hasFile: Boolean(fileUrl) } });
 
   return NextResponse.json(submission);
 }

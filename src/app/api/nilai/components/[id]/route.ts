@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -12,5 +13,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   await db.grade.deleteMany({ where: { componentId: id } });
   await db.gradeComponent.delete({ where: { id } });
 
+  await logAudit({ entity: "GradeComponent", entityId: id, action: "DELETE" });
   return NextResponse.json({ success: true });
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 const CERT_KEYS = [
   "cert_org_name",
@@ -41,5 +42,6 @@ export async function PATCH(req: NextRequest) {
     });
   }
 
+  await logAudit({ entity: "SiteConfig", entityId: "cert-template", action: "UPDATE" });
   return NextResponse.json({ success: true });
 }

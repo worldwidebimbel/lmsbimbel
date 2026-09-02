@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function PATCH(
   req: NextRequest,
@@ -30,6 +31,12 @@ export async function PATCH(
         ...(isActive !== undefined && { isActive }),
       },
     });
+    await logAudit({
+      entity: "Room",
+      entityId: id,
+      action: "UPDATE",
+      after: { name, isActive },
+    });
     return NextResponse.json(room);
   } catch {
     return NextResponse.json({ error: "Gagal memperbarui ruangan" }, { status: 400 });
@@ -51,6 +58,11 @@ export async function DELETE(
     await db.room.update({
       where: { id },
       data: { isActive: false },
+    });
+    await logAudit({
+      entity: "Room",
+      entityId: id,
+      action: "DELETE",
     });
     return NextResponse.json({ success: true });
   } catch {

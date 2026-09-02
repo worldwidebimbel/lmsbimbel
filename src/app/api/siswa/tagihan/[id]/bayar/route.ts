@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getAdminIdsForBranch } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -55,5 +56,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     });
   }
 
+  await logAudit({ entity: "Payment", entityId: id, action: "CREATE", after: { invoiceId: id, amount: invoice.amount, method: "QRIS", byRole: "SISWA" } });
   return NextResponse.json({ success: true }, { status: 201 });
 }

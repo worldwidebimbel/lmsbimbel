@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const session = await auth();
@@ -44,6 +45,12 @@ export async function POST(req: NextRequest) {
         email: email || null,
         managerName: managerName || null,
       },
+    });
+    await logAudit({
+      entity: "Branch",
+      entityId: branch.id,
+      action: "CREATE",
+      after: { code: branch.code, name: branch.name },
     });
     return NextResponse.json(branch, { status: 201 });
   } catch (e) {

@@ -62,8 +62,24 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const existingGrades = await db.grade.findMany({
+    where: {
+      studentId: { in: grades.map((g) => g.studentId) },
+      componentId: { in: grades.map((g) => g.componentId) },
+      isLocked: true,
+    },
+    select: { studentId: true, componentId: true },
+  });
+  const lockedSet = new Set(existingGrades.map((g) => `${g.studentId}_${g.componentId}`));
+  const unlockedGrades = grades.filter((g) => !lockedSet.has(`${g.studentId}_${g.componentId}`));
+  const lockedCount = grades.length - unlockedGrades.length;
+
+  if (unlockedGrades.length === 0) {
+    return NextResponse.json({ error: "Semua nilai terkunci. Hubungi admin untuk membuka kunci." }, { status: 403 });
+  }
+
   const results = await Promise.all(
-    grades.map((g) =>
+    unlockedGrades.map((g) =>
       db.grade.upsert({
         where: { studentId_componentId: { studentId: g.studentId, componentId: g.componentId } },
         create: { studentId: g.studentId, componentId: g.componentId, score: g.score, note: g.note },
@@ -72,7 +88,7 @@ export async function POST(req: NextRequest) {
     )
   );
 
-  for (const g of grades) {
+  for (const g of unlockedGrades) {
     await logAudit({
       entity: "Grade",
       entityId: `${g.studentId}_${g.componentId}`,
@@ -81,5 +97,5 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  return NextResponse.json({ count: results.length });
+  return NextResponse.json({ count: results.length, locked: lockedCount });
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const session = await auth();
@@ -46,5 +47,6 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  await logAudit({ entity: "CertificateTemplate", entityId: template.id, action: "CREATE", after: { name, type } });
   return NextResponse.json(template, { status: 201 });
 }

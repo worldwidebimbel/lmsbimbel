@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function PATCH(
   req: NextRequest,
@@ -13,6 +14,7 @@ export async function PATCH(
   const { id } = await params;
   const body = await req.json();
   const item = await db.siteQuickAction.update({ where: { id }, data: body });
+  await logAudit({ entity: "SiteQuickAction", entityId: id, action: "UPDATE" });
   return NextResponse.json(item);
 }
 
@@ -26,5 +28,6 @@ export async function DELETE(
   }
   const { id } = await params;
   await db.siteQuickAction.delete({ where: { id } });
+  await logAudit({ entity: "SiteQuickAction", entityId: id, action: "DELETE" });
   return NextResponse.json({ ok: true });
 }

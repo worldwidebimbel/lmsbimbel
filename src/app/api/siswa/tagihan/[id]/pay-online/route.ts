@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { createInvoice, getCallbackUrl, isDuitkuConfigured, getCallbackBaseUrl } from "@/lib/payment-gateway";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -57,6 +58,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         },
       });
 
+      await logAudit({ entity: "Invoice", entityId: invoice.id, action: "UPDATE", after: { status: "PENDING", enableOnlinePayment: true, onlinePaymentMethod: "DUITKU", externalId: merchantOrderId, amount: invoice.amount } });
+
       return NextResponse.json({ provider: "DUITKU", redirectUrl: result.paymentUrl, reference: result.reference });
     } catch (err: unknown) {
       console.error("[pay-online] Duitku error:", err instanceof Error ? err.message : String(err));
@@ -100,6 +103,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       where: { id: invoice.id },
       data: { status: "PENDING", enableOnlinePayment: true, onlinePaymentMethod: "MIDTRANS" },
     });
+    await logAudit({ entity: "Invoice", entityId: invoice.id, action: "UPDATE", after: { status: "PENDING", enableOnlinePayment: true, onlinePaymentMethod: "MIDTRANS", externalId: merchantOrderId, amount: invoice.amount } });
     return NextResponse.json({ provider, token, redirectUrl: isProduction ? "https://app.midtrans.com/snap/v2/vtweb/" + token : "https://app.sandbox.midtrans.com/snap/v2/vtweb/" + token });
   }
 
@@ -134,6 +138,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       where: { id: invoice.id },
       data: { status: "PENDING", enableOnlinePayment: true, onlinePaymentMethod: "XENDIT" },
     });
+    await logAudit({ entity: "Invoice", entityId: invoice.id, action: "UPDATE", after: { status: "PENDING", enableOnlinePayment: true, onlinePaymentMethod: "XENDIT", externalId: merchantOrderId, amount: invoice.amount } });
     return NextResponse.json({ provider, redirectUrl: data.invoice_url });
   }
 

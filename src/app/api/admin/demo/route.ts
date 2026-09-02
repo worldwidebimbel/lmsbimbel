@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { clearDemoData, getDemoStatus, importDemoData, DemoType } from "@/lib/demo-seeder";
+import { logAudit } from "@/lib/audit";
 
 function isAdmin(role: string) {
   return isAdminRole(role);
@@ -32,6 +33,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const result = await importDemoData(type);
+    await logAudit({ entity: "DemoData", entityId: type, action: "CREATE", after: { type } });
     return NextResponse.json({ success: true, ...result });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
@@ -46,6 +48,7 @@ export async function DELETE() {
   }
   try {
     const result = await clearDemoData();
+    await logAudit({ entity: "DemoData", entityId: "all", action: "DELETE" });
     return NextResponse.json({ success: true, ...result });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";

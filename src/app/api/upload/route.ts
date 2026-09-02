@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isCloudinaryConfigured, uploadToCloudinary } from "@/lib/cloudinary";
 import { db } from "@/lib/db";
+import { RATE_LIMITS } from "@/lib/rate-limit";
+import { validateFileMime } from "@/lib/file-validation";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
+  const limited = RATE_LIMITS.upload(req);
+  if (limited) return limited;
+
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -51,6 +57,13 @@ export async function POST(req: NextRequest) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
+  const { valid: mimeValid, detected } = validateFileMime(buffer, file.type || "");
+  if (!mimeValid) {
+    return NextResponse.json(
+      { error: `Tipe file tidak valid. Terdeteksi: ${detected ?? "tidak dikenal"}` },
+      { status: 400 }
+    );
+  }
   const ext = file.name.match(/\.([^.]+)$/)?.[1] ?? "";
   const slug = file.name.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9]/g, "_");
   const filename = ext ? `${slug}_${Date.now()}.${ext}` : `${slug}_${Date.now()}`;
@@ -58,7 +71,7 @@ export async function POST(req: NextRequest) {
   try {
     const result = await uploadToCloudinary(buffer, folder, filename, resourceType);
     try {
-      await db.mediaFile.create({
+      const mediaFile = await db.mediaFile.create({
         data: {
           name: file.name,
           url: result.url,
@@ -70,6 +83,7 @@ export async function POST(req: NextRequest) {
           uploadedById: session.user.id,
         },
       });
+      await logAudit({ entity: "MediaFile", entityId: mediaFile.id, action: "CREATE", after: { name: file.name, folder, resourceType, mimeType: file.type || null, size: file.size || null, publicId: result.publicId } });
     } catch { /* non-fatal: media tracking failed */ }
     return NextResponse.json({ url: result.url, publicId: result.publicId, name: file.name });
   } catch (err: unknown) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const session = await auth();
@@ -46,6 +47,7 @@ export async function POST(req: NextRequest) {
     data: { parentId: session.user.id, childId: child.id },
     include: { child: { select: { id: true, name: true, email: true, avatar: true } } },
   });
+  await logAudit({ entity: "ParentChild", entityId: `${session.user.id}-${child.id}`, action: "CREATE", after: { childEmail } });
   return NextResponse.json(link.child, { status: 201 });
 }
 
@@ -62,5 +64,6 @@ export async function DELETE(req: NextRequest) {
   await db.parentChild.delete({
     where: { parentId_childId: { parentId: session.user.id, childId } },
   });
+  await logAudit({ entity: "ParentChild", entityId: `${session.user.id}-${childId}`, action: "DELETE" });
   return NextResponse.json({ success: true });
 }

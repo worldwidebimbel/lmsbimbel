@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function PATCH(
   req: NextRequest,
@@ -33,6 +34,12 @@ export async function PATCH(
         isActive,
       },
     });
+    await logAudit({
+      entity: "AcademicYear",
+      entityId: id,
+      action: "UPDATE",
+      after: { name, isActive },
+    });
     return NextResponse.json(year);
   } catch {
     return NextResponse.json({ error: "Gagal memperbarui tahun ajaran" }, { status: 400 });
@@ -52,6 +59,11 @@ export async function DELETE(
 
   try {
     await db.academicYear.delete({ where: { id } });
+    await logAudit({
+      entity: "AcademicYear",
+      entityId: id,
+      action: "DELETE",
+    });
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Gagal menghapus tahun ajaran" }, { status: 400 });

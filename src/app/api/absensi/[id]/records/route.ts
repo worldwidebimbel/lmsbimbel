@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AttendanceStatus } from "@prisma/client";
+import { logAudit } from "@/lib/audit";
 
 interface RecordInput {
   studentId: string;
@@ -36,6 +37,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       note: r.note ?? null,
     })),
   });
+
+  await logAudit({ entity: "AttendanceRecord", entityId: id, action: "REPLACE", after: { attendanceId: id, count: created.count, statuses: records.map((r) => `${r.studentId}:${r.status}`) } });
 
   return NextResponse.json({ count: created.count });
 }

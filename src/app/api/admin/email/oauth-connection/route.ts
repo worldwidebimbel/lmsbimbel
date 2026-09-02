@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { clearOAuth2Cache } from "@/lib/email";
+import { logAudit } from "@/lib/audit";
 
 export async function DELETE() {
   const session = await auth();
@@ -21,5 +22,6 @@ export async function DELETE() {
   });
 
   clearOAuth2Cache();
+  await logAudit({ entity: "AppSetting", entityId: "gmail-oauth-connection", action: "DELETE" });
   return NextResponse.json({ ok: true });
 }

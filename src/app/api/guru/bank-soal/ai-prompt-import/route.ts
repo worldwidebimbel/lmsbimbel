@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { RATE_LIMITS } from "@/lib/rate-limit";
+import { logAudit } from "@/lib/audit";
 
 interface PromptQuestion {
   type: string;
@@ -53,6 +55,9 @@ function withImage(content: string, imageUrl?: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  const limited = RATE_LIMITS.ai(req);
+  if (limited) return limited;
+
   const session = await auth();
   if (!session?.user || !["GURU", "SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_AKADEMIK"].includes(session.user.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -175,6 +180,8 @@ export async function POST(req: NextRequest) {
   const created = await db.question.createMany({
     data: rows as never,
   });
+
+  await logAudit({ entity: "Question", entityId: "ai-prompt-import", action: "CREATE", after: { source: "ai-prompt-import", inserted: created.count, skipped: questions.length - rows.length, examId: examId ?? null, subjectId: subjectId ?? null } });
 
   return NextResponse.json({
     saved: created.count,

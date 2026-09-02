@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -55,10 +56,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     },
   });
 
+  await logAudit({ entity: "ExamAttempt", entityId: attempt.id, action: "CREATE", after: { examId: exam.id, attemptNumber: attempt.attemptNumber, score } });
+
   await db.eventRegistration.update({
     where: { id: registration.id },
     data: { score, status: "ATTENDED" },
   });
+  await logAudit({ entity: "EventRegistration", entityId: registration.id, action: "UPDATE", after: { score, status: "ATTENDED" } });
 
   await recalculateRankings(id);
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -35,5 +36,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return upd;
   });
 
+  await logAudit({ entity: "BranchCashTransfer", entityId: id, action: "UPDATE", after: { status } });
   return NextResponse.json(updated);
 }

@@ -1,10 +1,12 @@
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
-import { LogOut, User, ChevronDown } from "lucide-react";
+import { LogOut, User, ChevronDown, Menu } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useSidebarStore } from "@/lib/sidebar-store";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import LocaleSwitcher from "@/components/shared/LocaleSwitcher";
 import Link from "next/link";
 
 interface HeaderProps {
@@ -25,16 +27,27 @@ const ROLE_LABELS: Record<string, string> = {
 export function Header({ title, userName, role, userImage }: HeaderProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const { data: session } = useSession();
+  const { toggle } = useSidebarStore();
 
   const displayName = session?.user?.name ?? userName;
   const displayImage = session?.user?.image ?? userImage;
   const displayRole = session?.user?.role ?? role;
 
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-30">
-      <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
+    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={toggle}
+          className="rounded-lg p-2 hover:bg-gray-100 md:hidden"
+          aria-label="Toggle menu"
+        >
+          <Menu className="h-5 w-5 text-gray-600" />
+        </button>
+        <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
+      </div>
 
       <div className="flex items-center gap-3">
+        <LocaleSwitcher />
         <NotificationBell />
 
         {/* User Menu */}

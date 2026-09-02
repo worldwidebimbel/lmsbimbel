@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -156,5 +157,6 @@ export async function POST(req: NextRequest) {
     results.push({ studentId, raportId: raport.id, finalGrade });
   }
 
+  await logAudit({ entity: "Raport", entityId: `class-${classId}-${semester}`, action: "CREATE", after: { classId, semester, generated: results.length } });
   return NextResponse.json({ generated: results.length, results }, { status: 201 });
 }

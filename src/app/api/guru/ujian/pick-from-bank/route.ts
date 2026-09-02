@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -92,6 +93,8 @@ export async function POST(req: NextRequest) {
     skipDuplicates: true,
   });
 
+  await logAudit({ entity: "Question", entityId: examId, action: "CREATE", after: { examId, clonedFromBank: toClone.map((q) => q.id), count: result.count } });
+
   return NextResponse.json({ created: result.count });
 }
 
@@ -107,5 +110,6 @@ export async function DELETE(req: NextRequest) {
   if (!examId || !questionId) return NextResponse.json({ error: "examId dan questionId wajib" }, { status: 400 });
 
   await db.examQuestion.deleteMany({ where: { examId, questionId } });
+  await logAudit({ entity: "ExamQuestion", entityId: `${examId}:${questionId}`, action: "DELETE" });
   return NextResponse.json({ success: true });
 }

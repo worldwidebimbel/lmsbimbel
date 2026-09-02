@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { isAdminRole, hasPermission } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
+import { logAudit } from "@/lib/audit";
 
 async function canManageEvents(role: string | undefined): Promise<boolean> {
   if (!role) return false;
@@ -98,6 +99,13 @@ export async function POST(req: NextRequest) {
       packages: true,
       _count: { select: { registrations: true } },
     },
+  });
+
+  await logAudit({
+    entity: "Event",
+    entityId: event.id,
+    action: "CREATE",
+    after: { title, branchId: effectiveBranchId, type: type || "TRYOUT" },
   });
 
   return NextResponse.json(event, { status: 201 });

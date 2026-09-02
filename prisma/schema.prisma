@@ -266,9 +266,22 @@ model User {
   teachingJournals   TeachingJournal[]
   raports            Raport[]
   approvedPayrolls   TeacherPayroll[] @relation("ApprovedPayrolls")
+  verifiedAttendances TeacherAttendance[] @relation("AttendanceVerifier")
   notificationLogs   NotificationLog[]
 
   @@map("users")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@map("password_reset_tokens")
 }
 
 model UserProfile {
@@ -812,12 +825,15 @@ model TeacherAttendance {
   status      TeacherAttendanceStatus @default(HADIR)
   method      String?
   note        String?
+  verifiedAt  DateTime?
+  verifiedBy  String?
   createdAt   DateTime               @default(now())
 
   teacher     User                   @relation(fields: [teacherId], references: [id])
   class       Class?                 @relation(fields: [classId], references: [id])
   schedule    Schedule?              @relation(fields: [scheduleId], references: [id])
   branch      Branch?                @relation(fields: [branchId], references: [id])
+  verifier    User?                  @relation("AttendanceVerifier", fields: [verifiedBy], references: [id])
 
   @@unique([teacherId, date])
   @@index([teacherId])
@@ -880,6 +896,9 @@ model Grade {
   componentId String
   score       Float
   note        String?
+  isLocked    Boolean        @default(false)
+  lockedBy    String?
+  lockedAt    DateTime?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
