@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Clock, Users, CheckCircle, XCircle, Search } from "lucide-react";
+import { Calendar, Clock, Users, CheckCircle, XCircle, Search, FileDown } from "lucide-react";
 
 interface Journal {
   id: string;
@@ -130,6 +130,12 @@ export default function JurnalAdminClient({
           <option value="SUBMITTED">Submitted</option>
           <option value="APPROVED">Approved</option>
         </select>
+        <a
+          href={`/api/admin/jurnal/export${[filterClass && `classId=${filterClass}`, filterTeacher && `teacherId=${filterTeacher}`, filterStatus && `status=${filterStatus}`].filter(Boolean).length > 0 ? "?" + [filterClass && `classId=${filterClass}`, filterTeacher && `teacherId=${filterTeacher}`, filterStatus && `status=${filterStatus}`].filter(Boolean).join("&") : ""}`}
+          className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+        >
+          <FileDown className="h-4 w-4" /> Export Excel
+        </a>
       </div>
 
       {/* List */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Ban, Loader2 } from "lucide-react";
+import { Ban, Loader2, FileDown } from "lucide-react";
 
 interface Referral {
   id: string; status: string; fraudFlag: boolean; fraudReason: string | null;
@@ -54,6 +54,12 @@ export function AffiliateReferrals({ referrals }: { referrals: Referral[] }) {
             {STATUS_LABELS[s]}
           </button>
         ))}
+        <a
+          href={`/api/admin/affiliate/referrals/export${filter ? `?status=${filter}` : ""}`}
+          className="ml-auto flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50"
+        >
+          <FileDown className="h-4 w-4" /> Export Excel
+        </a>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

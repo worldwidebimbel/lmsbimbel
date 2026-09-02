@@ -428,7 +428,7 @@
 - [x] Integrasi Jurnal ↔ Absensi Tutor: jurnal terisi → absensi terverifikasi — auto-verify/create `TeacherAttendance` when journal created
 - [x] Integrasi Landing Page ↔ PPDB: CTA → form daftar — `/daftar` links in LandingPage, HeroSplitLayout, ProgramUnggulanSection
 - [x] Pasang audit log di semua mutasi tersisa — `logAudit()` di semua route mutasi (admin, guru, siswa, payments, auth, upload, forum, tugas, absensi, bank-soal AI/import); skip intentional: chat, upvote, materi progress, notif read, ref click counter, cron, email callback
-- [ ] Pasang export Excel/PDF di modul yang belum (afiliator, jurnal, raport, payroll)
+- [x] Pasang export Excel/PDF di modul yang belum (afiliator, jurnal, raport, payroll) — API export baru: `/api/admin/affiliate/referrals/export`, `/api/admin/jurnal/export` (helper `@/lib/export-excel`); tombol Export Excel dipasang di AffiliateReferrals, JurnalAdminClient, RaportAdminClient (raport & payroll API export sudah ada sebelumnya, payroll UI sudah ada)
 
 ## Jalur G — Optimasi & Mobile Friendly Final (Tahap 9.1, 9.2, 9.3) · 13 item
 - [ ] `9.1` Touch-friendly: pastikan semua button & tap target ≥44px height

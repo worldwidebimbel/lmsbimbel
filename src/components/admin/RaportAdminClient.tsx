@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  FileText, Download, Eye, CheckCircle, X, Sparkles, Search,
+  FileText, Download, Eye, CheckCircle, X, Sparkles, Search, FileDown,
   ChevronDown, ChevronRight, Edit3, Trash2,
 } from "lucide-react";
 
@@ -168,10 +168,16 @@ export default function RaportAdminClient({
         </select>
         <button
           onClick={() => setShowGenerate(true)}
-          className="ml-auto flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
         >
           <Sparkles className="h-4 w-4" /> Generate Raport
         </button>
+        <a
+          href={`/api/raport/export${filterClass ? `?classId=${filterClass}` : ""}`}
+          className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+        >
+          <FileDown className="h-4 w-4" /> Export Excel
+        </a>
       </div>
 
       {/* Raport List */}
