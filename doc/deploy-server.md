@@ -641,3 +641,45 @@ git pull origin feat/worldwide-upgrade && npm run build && pm2 restart lms-bimbe
 
 git pull origin feat/worldwide-upgrade && npm install && npx prisma generate && npx prisma migrate deploy && npm run build && pm2 restart lms-bimbel
 ```
+
+## Lighthouse Audit (item 9.2 — target ≥80 semua kategori)
+
+> Jalankan saat dev server aktif (`npm run dev` → http://localhost:3000), atau ganti URL dengan domain produksi.
+> Halaman ber-login (admin/guru/siswa/orangtua) tidak bisa diaudit via CLI — pakai Chrome DevTools → tab Lighthouse → **Analyze page load** dengan sesi login aktif.
+> Skor **Performance** final diukur di mode produksi lokal: `npm run build && npm start` (mode `dev` selalu lebih rendah).
+> Jika Chrome tidak ditemukan, tambahkan `--chrome-flags="--headless=new --path=<path-chrome.exe>"`.
+> Folder output `lighthouse-reports/` sudah di-`.gitignore`.
+
+### Satu halaman — mobile
+
+```bash
+npx --yes lighthouse http://localhost:3000 --chrome-flags="--headless=new" --only-categories=performance,accessibility,best-practices,seo --output=html --output-path=./lighthouse-reports/home-mobile.html --view
+```
+
+### Satu halaman — desktop
+
+```bash
+npx --yes lighthouse http://localhost:3000 --chrome-flags="--headless=new" --only-categories=performance,accessibility,best-practices,seo --preset=desktop --output=html --output-path=./lighthouse-reports/home-desktop.html --view
+```
+
+`--view` otomatis membuka laporan HTML di browser setelah selesai.
+
+### Semua halaman publik sekaligus
+
+Bash (Linux/macOS/VPS):
+
+```bash
+mkdir -p lighthouse-reports
+for p in "/" "/daftar" "/blog" "/faq" "/tentang" "/cabang" "/galeri" "/events"; do
+  n=$(echo "localhost:3000$p" | sed 's/[\/:]/_/g')
+  npx --yes lighthouse "http://localhost:3000$p" --chrome-flags="--headless=new" --only-categories=performance,accessibility,best-practices,seo --output=html --output-path="./lighthouse-reports/$n.html"
+done
+```
+
+PowerShell (Windows):
+
+```powershell
+New-Item -ItemType Directory -Force -Path .\lighthouse-reports | Out-Null
+$pages = @("http://localhost:3000/","http://localhost:3000/daftar","http://localhost:3000/blog","http://localhost:3000/faq","http://localhost:3000/tentang","http://localhost:3000/cabang","http://localhost:3000/galeri","http://localhost:3000/events")
+foreach ($p in $pages) { $n = ($p -replace "https?://","" -replace "[/:]","_"); npx --yes lighthouse $p --chrome-flags="--headless=new" --only-categories=performance,accessibility,best-practices,seo --output=html --output-path="./lighthouse-reports/$n.html" }
+```

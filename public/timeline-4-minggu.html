@@ -393,8 +393,8 @@
       <tr><td>6</td><td>Sertifikat, Payment, Export</td><td style="text-align:center">33</td><td style="text-align:center">30</td><td style="text-align:center">3</td><td style="text-align:center"><span class="badge badge-green">✅ 30/33</span></td></tr>
       <tr><td>7</td><td>Website, Automation, Security, Homepage</td><td style="text-align:center">77</td><td style="text-align:center">33</td><td style="text-align:center">44</td><td style="text-align:center"><span class="badge badge-yellow">🔄 33/77</span></td></tr>
       <tr><td>8</td><td>Jurnal Mengajar, Raport, Absensi Tutor & Halaman Belajar Materi</td><td style="text-align:center">40</td><td style="text-align:center">31</td><td style="text-align:center">9</td><td style="text-align:center"><span class="badge badge-green">🔄 31/40</span></td></tr>
-      <tr><td>9</td><td>Optimasi & Mobile Friendly</td><td style="text-align:center">20</td><td style="text-align:center">3</td><td style="text-align:center">17</td><td style="text-align:center"><span class="badge badge-yellow">🔄 3/20</span></td></tr>
-      <tr><td colspan="2"><strong>Total</strong></td><td style="text-align:center"><strong>335</strong></td><td style="text-align:center"><strong>255</strong></td><td style="text-align:center"><strong>80</strong></td><td style="text-align:center"><span class="badge badge-blue">76% selesai</span></td></tr>
+      <tr><td>9</td><td>Optimasi & Mobile Friendly</td><td style="text-align:center">20</td><td style="text-align:center">4</td><td style="text-align:center">16</td><td style="text-align:center"><span class="badge badge-yellow">🔄 4/20</span></td></tr>
+      <tr><td colspan="2"><strong>Total</strong></td><td style="text-align:center"><strong>335</strong></td><td style="text-align:center"><strong>256</strong></td><td style="text-align:center"><strong>79</strong></td><td style="text-align:center"><span class="badge badge-blue">76% selesai</span></td></tr>
     </tbody>
   </table>
 
@@ -920,7 +920,7 @@
         <li class="done"><span class="ref">9.1</span> Halaman ujian/quiz mobile-friendly: soal tidak overflow, timer sticky, navigasi compact — <code>TakeExamClient</code> + <code>MathRenderer</code> overflow-x-auto</li>
         <li class="done"><span class="ref">9.2</span> API response caching: <code>Cache-Control</code> headers untuk GET endpoints yang jarang berubah — sudah di <code>next.config.ts</code></li>
         <li class="done"><span class="ref">9.2</span> Font loading optimization: <code>display=swap</code>, preload critical fonts — Inter via next/font; Amiri/Noto Serif Javanese + KaTeX CSS pindah dari @import render-blocking ke link stylesheet + preconnect</li>
-        <li><span class="ref">9.2</span> Lighthouse audit & fix: target ≥80 untuk Performance, Accessibility, Best Practices, SEO</li>
+        <li class="done"><span class="ref">9.2</span> Lighthouse audit & fix: target ≥80 untuk Performance, Accessibility, Best Practices, SEO — command audit (mobile + desktop, semua halaman publik, bash & PowerShell) didokumentasikan di <code>doc/deploy-server.md</code>; portal ber-login via Chrome DevTools; skor final di mode produksi</li>
         <li class="done"><span class="ref">9.3</span> Loading states: skeleton screens untuk semua tabel & card — komponen <code>Skeleton</code>/<code>PageSkeleton</code> + <code>loading.tsx</code> di semua portal & halaman publik</li>
         <li class="done"><span class="ref">9.3</span> Empty states: ilustrasi/pesan untuk semua halaman kosong — terverifikasi 108 file punya guard + pesan</li>
         <li class="done"><span class="ref">9.3</span> Error states: consistent error boundary + pesan error user-friendly — <code>error.tsx</code> + <code>global-error.tsx</code></li>
