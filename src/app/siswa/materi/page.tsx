@@ -65,7 +65,7 @@ export default async function SiswaMateriPage() {
       {materials.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <p className="text-gray-500">Belum ada materi yang tersedia.</p>
-          <p className="text-sm text-gray-400 mt-1">Materi akan muncul setelah guru mempublikasikannya.</p>
+          <p className="text-sm text-gray-500 mt-1">Materi akan muncul setelah guru mempublikasikannya.</p>
         </div>
       ) : (
         <>
@@ -74,7 +74,7 @@ export default async function SiswaMateriPage() {
               <div className="flex items-center gap-2 mb-3">
                 <span className="w-3 h-3 rounded-full" style={{ backgroundColor: subject.color }} />
                 <h2 className="font-semibold text-gray-800">{subject.name}</h2>
-                <span className="text-xs text-gray-400">({items.length})</span>
+                <span className="text-xs text-gray-500">({items.length})</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {items.map((m) => (

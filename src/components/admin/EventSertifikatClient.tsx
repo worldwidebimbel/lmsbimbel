@@ -109,19 +109,19 @@ export default function EventSertifikatClient({ event, registrations, certMap }:
           <h2 className="font-semibold text-gray-900">Daftar Peserta</h2>
         </div>
         {registrations.length === 0 ? (
-          <div className="py-12 text-center text-sm text-gray-400">Belum ada peserta terdaftar</div>
+          <div className="py-12 text-center text-sm text-gray-500">Belum ada peserta terdaftar</div>
         ) : (
           <div className="divide-y divide-gray-100">
             {registrations.map((reg) => {
               const hasCert = !!certs[reg.user.id];
               return (
                 <div key={reg.id} className="flex items-center gap-4 px-5 py-3">
-                  <div className="w-8 text-center text-sm font-bold text-gray-400">
+                  <div className="w-8 text-center text-sm font-bold text-gray-500">
                     {reg.rank != null ? `#${reg.rank}` : "—"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900">{reg.user.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-400">
+                    <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500">
                       <span>{reg.user.email}</span>
                       {reg.score != null && <span>· Nilai: {reg.score}</span>}
                       <span className={`px-1.5 py-0.5 rounded-full font-medium ${
@@ -140,7 +140,7 @@ export default function EventSertifikatClient({ event, registrations, certMap }:
                         href={`/sertifikat/${certs[reg.user.id]}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        title="Buka link" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50"
+                        title="Buka link" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-500 hover:text-amber-600 hover:bg-amber-50"
                       >
                         <ExternalLink className="h-4 w-4" />
                       </a>

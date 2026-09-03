@@ -68,7 +68,7 @@ export default async function SiswaDashboard() {
             Nilai Terbaru
           </h3>
           {stats.recentGrades.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6">Belum ada nilai</p>
+            <p className="text-sm text-gray-500 text-center py-6">Belum ada nilai</p>
           ) : (
             <div className="space-y-3">
               {stats.recentGrades.map((grade) => (

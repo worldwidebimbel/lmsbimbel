@@ -47,7 +47,7 @@ export default function AbsensiQRDisplay({ attendanceId, className, date, baseUr
       <div className="flex flex-col items-center gap-4 rounded-2xl border border-gray-200 bg-white p-8">
         <div className="text-center">
           <p className="text-lg font-bold text-gray-900">{className}</p>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-500">
             {new Date(date).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
@@ -71,7 +71,7 @@ export default function AbsensiQRDisplay({ attendanceId, className, date, baseUr
       <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">
           <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-gray-400" />
+            <Users className="h-4 w-4 text-gray-500" />
             <h3 className="font-semibold text-gray-900">Siswa Sudah Hadir</h3>
             <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">{hadir}</span>
           </div>
@@ -84,7 +84,7 @@ export default function AbsensiQRDisplay({ attendanceId, className, date, baseUr
           </button>
         </div>
         {records.length === 0 ? (
-          <div className="py-10 text-center text-sm text-gray-400">Belum ada siswa yang scan</div>
+          <div className="py-10 text-center text-sm text-gray-500">Belum ada siswa yang scan</div>
         ) : (
           <div className="divide-y divide-gray-100 max-h-72 overflow-y-auto">
             {records.map((r, i) => (

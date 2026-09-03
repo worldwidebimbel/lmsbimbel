@@ -101,7 +101,7 @@ export default function AdminCmsQuickActionsPage() {
           </div>
         ))}
         {items.length === 0 && (
-          <div className="col-span-full rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-400">
+          <div className="col-span-full rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500">
             Belum ada quick action.
           </div>
         )}

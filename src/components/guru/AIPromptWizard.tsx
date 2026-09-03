@@ -449,7 +449,7 @@ OUTPUT HARUS HANYA JSON ARRAY (WAJIB ADA ${totalSoal} SOAL):
 
                   <div>
                     <label className="mb-1 block text-sm font-semibold text-gray-700">
-                      Simpan ke Mapel <span className="font-normal text-gray-400">(opsional)</span>
+                      Simpan ke Mapel <span className="font-normal text-gray-500">(opsional)</span>
                     </label>
                     <select
                       value={identity.subjectId}
@@ -609,7 +609,7 @@ OUTPUT HARUS HANYA JSON ARRAY (WAJIB ADA ${totalSoal} SOAL):
 
                   <div>
                     <label className="mb-1 block text-sm font-semibold text-gray-700">
-                      Detail Instruksi Soal <span className="font-normal text-gray-400">(opsional, sangat disarankan)</span>
+                      Detail Instruksi Soal <span className="font-normal text-gray-500">(opsional, sangat disarankan)</span>
                     </label>
                     <textarea
                       value={detailInstruction}
@@ -625,7 +625,7 @@ OUTPUT HARUS HANYA JSON ARRAY (WAJIB ADA ${totalSoal} SOAL):
 
                   <div>
                     <label className="mb-1 block text-sm font-semibold text-gray-700">
-                      Paste Materi / Artikel / Sumber Khusus <span className="font-normal text-gray-400">(opsional)</span>
+                      Paste Materi / Artikel / Sumber Khusus <span className="font-normal text-gray-500">(opsional)</span>
                     </label>
                     <textarea
                       value={materi}
@@ -646,7 +646,7 @@ OUTPUT HARUS HANYA JSON ARRAY (WAJIB ADA ${totalSoal} SOAL):
                     />
                     <span className="text-sm text-gray-700">
                       Buat soal <strong>HANYA</strong> berdasarkan teks di atas (Strict Mode).
-                      {!materi.trim() && <span className="text-gray-400"> — isi materi dulu</span>}
+                      {!materi.trim() && <span className="text-gray-500"> — isi materi dulu</span>}
                     </span>
                   </label>
 

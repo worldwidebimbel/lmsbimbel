@@ -323,7 +323,7 @@ function TestimonialCard({ name, role, text, avatarUrl }: { name: string; role: 
         )}
         <div>
           <p className="text-sm font-semibold text-gray-900">{name}</p>
-          <p className="text-xs text-gray-400">{role}</p>
+          <p className="text-xs text-gray-500">{role}</p>
         </div>
       </div>
     </div>

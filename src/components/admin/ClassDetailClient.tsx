@@ -179,10 +179,10 @@ export default function ClassDetailClient({ cls, allStudents, subjects, teachers
                   Edit
                 </button>
               )}
-              <button onClick={handleToggleActive} className="text-gray-400 hover:text-gray-600">
+              <button onClick={handleToggleActive} className="text-gray-500 hover:text-gray-600">
                 {isActive
                   ? <ToggleRight className="h-6 w-6 text-green-500" />
-                  : <ToggleLeft className="h-6 w-6 text-gray-400" />}
+                  : <ToggleLeft className="h-6 w-6 text-gray-500" />}
               </button>
             </div>
           </div>
@@ -397,19 +397,19 @@ export default function ClassDetailClient({ cls, allStudents, subjects, teachers
           {students.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <Users className="h-10 w-10 text-gray-200 mb-3" />
-              <p className="text-sm text-gray-400">Belum ada siswa terdaftar</p>
+              <p className="text-sm text-gray-500">Belum ada siswa terdaftar</p>
             </div>
           ) : (
             students.map((cs, idx) => (
               <div key={cs.student.id} className="flex items-center justify-between px-5 py-3 hover:bg-gray-50">
                 <div className="flex items-center gap-3">
-                  <span className="w-6 text-xs text-gray-400">{idx + 1}.</span>
+                  <span className="w-6 text-xs text-gray-500">{idx + 1}.</span>
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
                     {cs.student.name.slice(0, 2).toUpperCase()}
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">{cs.student.name}</p>
-                    <p className="text-xs text-gray-400">{cs.student.email}</p>
+                    <p className="text-xs text-gray-500">{cs.student.email}</p>
                   </div>
                 </div>
                 <button

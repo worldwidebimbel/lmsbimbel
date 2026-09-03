@@ -55,7 +55,7 @@ export default async function GuruDashboard() {
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h3 className="font-semibold text-gray-900 mb-4">Kelas yang Diajar</h3>
         {stats.myClasses.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">Belum ada kelas</p>
+          <p className="text-sm text-gray-500 text-center py-8">Belum ada kelas</p>
         ) : (
           <div className="space-y-3">
             {stats.myClasses.map((cls) => (
@@ -71,7 +71,7 @@ export default async function GuruDashboard() {
                     <p className="text-xs text-gray-500">{cls.subject.name} · {cls.type}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-gray-400">
+                <div className="flex items-center gap-2 text-gray-500">
                   <Users className="w-4 h-4" />
                   <span className="text-xs">{cls._count.students}</span>
                 </div>

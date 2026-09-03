@@ -149,7 +149,7 @@ export default function RaportAdminClient({
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[180px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -184,7 +184,7 @@ export default function RaportAdminClient({
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-16">
           <FileText className="mb-3 h-10 w-10 text-gray-300" />
-          <p className="text-sm text-gray-400">Belum ada raport. Klik "Generate Raport" untuk membuat.</p>
+          <p className="text-sm text-gray-500">Belum ada raport. Klik "Generate Raport" untuk membuat.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -196,15 +196,15 @@ export default function RaportAdminClient({
                   className="shrink-0 rounded-lg p-1 hover:bg-gray-100"
                 >
                   {expandedId === r.id
-                    ? <ChevronDown className="h-4 w-4 text-gray-400" />
-                    : <ChevronRight className="h-4 w-4 text-gray-400" />}
+                    ? <ChevronDown className="h-4 w-4 text-gray-500" />
+                    : <ChevronRight className="h-4 w-4 text-gray-500" />}
                 </button>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-medium text-gray-900 text-sm">{r.student.name}</span>
                     <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">{r.class.name}</span>
                     <span className="text-xs text-gray-500">{r.semester}</span>
-                    {r.period && <span className="text-xs text-gray-400">{r.period}</span>}
+                    {r.period && <span className="text-xs text-gray-500">{r.period}</span>}
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_LABELS[r.status]?.cls ?? STATUS_LABELS.DRAFT.cls}`}>
                       {STATUS_LABELS[r.status]?.label ?? r.status}
                     </span>
@@ -223,14 +223,14 @@ export default function RaportAdminClient({
                 <div className="flex shrink-0 items-center gap-1">
                   <a
                     href={`/api/raport/${r.id}/pdf`}
-                    className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-blue-50 hover:text-blue-500"
+                    className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-blue-50 hover:text-blue-500"
                     title="Download PDF"
                   >
                     <Download className="h-4 w-4" />
                   </a>
                   <button
                     onClick={() => startEdit(r)}
-                    className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-gray-100"
+                    className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-gray-100"
                     title="Edit Catatan"
                   >
                     <Edit3 className="h-4 w-4" />
@@ -238,7 +238,7 @@ export default function RaportAdminClient({
                   {r.status === "DRAFT" ? (
                     <button
                       onClick={() => handlePublish(r.id)}
-                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-green-50 hover:text-green-600"
+                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-green-50 hover:text-green-600"
                       title="Publikasi"
                     >
                       <CheckCircle className="h-4 w-4" />
@@ -246,7 +246,7 @@ export default function RaportAdminClient({
                   ) : (
                     <button
                       onClick={() => handleUnpublish(r.id)}
-                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-yellow-50 hover:text-yellow-600"
+                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-yellow-50 hover:text-yellow-600"
                       title="Kembalikan ke Draft"
                     >
                       <X className="h-4 w-4" />
@@ -255,7 +255,7 @@ export default function RaportAdminClient({
                   {!isGuru && (
                     <button
                       onClick={() => handleDelete(r.id)}
-                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-500"
                       title="Hapus"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -280,7 +280,7 @@ export default function RaportAdminClient({
                     </div>
                   )}
                   {r.publishedAt && (
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-gray-500">
                       Dipublikasi: {new Date(r.publishedAt).toLocaleDateString("id-ID")}
                     </div>
                   )}

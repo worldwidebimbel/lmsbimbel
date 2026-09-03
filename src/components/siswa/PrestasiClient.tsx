@@ -166,7 +166,7 @@ export default function PrestasiClient({
                     <span className="text-xl">{item.icon}</span>
                     <div>
                       <p className="text-sm font-medium text-gray-800">{item.label}</p>
-                      <p className="text-xs text-gray-400">{item.count} aktivitas × {item.points / (item.count || 1)} poin</p>
+                      <p className="text-xs text-gray-500">{item.count} aktivitas × {item.points / (item.count || 1)} poin</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -218,13 +218,13 @@ export default function PrestasiClient({
           )}
           {lockedBadges.length > 0 && (
             <div>
-              <h3 className="mb-3 text-sm font-semibold text-gray-400 uppercase tracking-wide">Belum Diraih ({lockedBadges.length})</h3>
+              <h3 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wide">Belum Diraih ({lockedBadges.length})</h3>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {lockedBadges.map((b) => (
                   <div key={b.id} className="flex flex-col items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 p-4 text-center opacity-60">
                     <span className="text-4xl grayscale">{b.icon}</span>
                     <p className="text-sm font-bold text-gray-500">{b.name}</p>
-                    <p className="text-xs text-gray-400">{b.description}</p>
+                    <p className="text-xs text-gray-500">{b.description}</p>
                     <span className="rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-500">🔒 Terkunci</span>
                   </div>
                 ))}
@@ -241,7 +241,7 @@ export default function PrestasiClient({
             <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center">
               <Award className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-500 font-medium">Belum ada sertifikat</p>
-              <p className="text-sm text-gray-400 mt-1">Raih Level 3 atau ikuti lomba/tryout untuk mendapat sertifikat</p>
+              <p className="text-sm text-gray-500 mt-1">Raih Level 3 atau ikuti lomba/tryout untuk mendapat sertifikat</p>
             </div>
           ) : (
             certificates.map((cert) => (
@@ -307,7 +307,7 @@ export default function PrestasiClient({
             )}
           </div>
           {activeLeaderboard.length === 0 ? (
-            <div className="py-12 text-center text-sm text-gray-400">Belum ada data leaderboard</div>
+            <div className="py-12 text-center text-sm text-gray-500">Belum ada data leaderboard</div>
           ) : (
             <div className="divide-y divide-gray-100">
               {activeLeaderboard.map((entry, idx) => {
@@ -322,7 +322,7 @@ export default function PrestasiClient({
                       {rank <= 3 ? (
                         <span className="text-xl">{MEDAL[rank]}</span>
                       ) : (
-                        <span className="text-sm font-bold text-gray-400">#{rank}</span>
+                        <span className="text-sm font-bold text-gray-500">#{rank}</span>
                       )}
                     </div>
                     <AvatarPlaceholder name={entry.name} avatar={entry.avatar} size="sm" />
@@ -333,7 +333,7 @@ export default function PrestasiClient({
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-blue-600">{entry.points.toLocaleString()}</p>
-                      <p className="text-xs text-gray-400">poin</p>
+                      <p className="text-xs text-gray-500">poin</p>
                     </div>
                   </div>
                 );

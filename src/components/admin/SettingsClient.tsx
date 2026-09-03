@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Database, Mail, Info, AlertTriangle, CheckCircle, Loader2, Trash2, Download, Globe, QrCode, Upload, ExternalLink, Key, RefreshCw } from "lucide-react";
+import { Save, Database, Mail, Info, AlertTriangle, CheckCircle, Loader2, Trash2, Download, Globe, QrCode, Upload, ExternalLink, Key, RefreshCw, Sun, Moon, Monitor } from "lucide-react";
 import { toast } from "sonner";
+import { useTheme } from "next-themes";
 
 type DemoType = "AKADEMIK" | "UTBK_SNBT" | "KEDINASAN" | "BAHASA";
 const DEMO_OPTIONS: { value: DemoType; label: string; desc: string; icon: string }[] = [
@@ -29,6 +30,38 @@ interface Props {
 }
 
 type Tab = "umum" | "pembayaran" | "demo" | "email" | "info";
+
+function ThemeToggleCard() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  const active = mounted ? theme ?? "system" : "system";
+  const options = [
+    { value: "light", label: "Terang", icon: Sun },
+    { value: "dark", label: "Gelap", icon: Moon },
+    { value: "system", label: "Sistem", icon: Monitor },
+  ];
+  return (
+    <div>
+      <h3 className="mb-4 font-semibold text-gray-800">Tema Tampilan</h3>
+      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tema tampilan">
+        {options.map((o) => (
+          <button key={o.value} type="button" role="radio" aria-checked={active === o.value}
+            onClick={() => setTheme(o.value)}
+            className={`flex flex-col items-center gap-1.5 rounded-lg border px-3 py-3 text-sm font-medium transition-colors ${
+              active === o.value
+                ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            }`}>
+            <o.icon className="h-5 w-5" aria-hidden="true" />
+            {o.label}
+          </button>
+        ))}
+      </div>
+      <p className="mt-2 text-xs text-gray-500">Terapkan seketika untuk seluruh aplikasi. "Sistem" mengikuti preferensi perangkat Anda.</p>
+    </div>
+  );
+}
 
 export default function SettingsClient({ initialSettings, demoStatus, smtpConfigured, resendConfigured, oauth2Configured, oauth2Vars, oauth2DbConfig, gmailCallbackUri, activeEmailMethod, appVersion, branches, isSuperAdmin, defaultBranchId }: Props) {
   const [tab, setTab] = useState<Tab>("umum");
@@ -353,6 +386,8 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
               </div>
             </div>
 
+            <ThemeToggleCard />
+
             <div>
               <h3 className="mb-4 font-semibold text-gray-800">Kontak & Informasi</h3>
               <div className="space-y-4">
@@ -433,13 +468,13 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
                         <p className="text-xs text-green-600 font-medium flex items-center gap-1">
                           <CheckCircle className="h-3.5 w-3.5" /> QRIS aktif
                         </p>
-                        <p className="text-xs text-gray-400 break-all max-w-[200px]">{settings.qris_image_url}</p>
+                        <p className="text-xs text-gray-500 break-all max-w-[200px]">{settings.qris_image_url}</p>
                         <button onClick={() => setSettings((s) => ({ ...s, qris_image_url: "" }))}
                           className="text-xs text-red-500 hover:underline">Hapus</button>
                       </div>
                     </div>
                   ) : (
-                    <div className="mb-3 rounded-xl border-2 border-dashed border-gray-200 p-6 text-center text-sm text-gray-400">
+                    <div className="mb-3 rounded-xl border-2 border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
                       Belum ada gambar QRIS
                     </div>
                   )}
@@ -448,7 +483,7 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
                     {uploadingQris ? "Mengupload..." : "Upload Gambar QRIS"}
                     <input type="file" accept="image/*" className="hidden" onChange={handleQrisUpload} disabled={uploadingQris} />
                   </label>
-                  <p className="mt-1 text-xs text-gray-400">Format JPG/PNG, maks 5MB. Gunakan Cloudinary untuk upload.</p>
+                  <p className="mt-1 text-xs text-gray-500">Format JPG/PNG, maks 5MB. Gunakan Cloudinary untuk upload.</p>
                 </div>
 
                 {[
@@ -563,7 +598,7 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
                     rows={4}
                     className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
-                  <p className="mt-1 text-xs text-gray-400">Ditampilkan kepada siswa/orang tua sebagai alternatif pembayaran manual.</p>
+                  <p className="mt-1 text-xs text-gray-500">Ditampilkan kepada siswa/orang tua sebagai alternatif pembayaran manual.</p>
                 </div>
 
                 <button onClick={saveDuitkuConfig} disabled={savingDuitku}
@@ -583,7 +618,7 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
             <div className={`flex items-start gap-3 rounded-xl p-4 ${currentDemoStatus.exists ? "bg-amber-50 border border-amber-200" : "bg-gray-50 border border-gray-200"}`}>
               {currentDemoStatus.exists
                 ? <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-                : <Database className="mt-0.5 h-5 w-5 shrink-0 text-gray-400" />}
+                : <Database className="mt-0.5 h-5 w-5 shrink-0 text-gray-500" />}
               <div>
                 <p className={`font-medium ${currentDemoStatus.exists ? "text-amber-800" : "text-gray-600"}`}>
                   {currentDemoStatus.exists ? "Data Demo Aktif" : "Belum Ada Data Demo"}
@@ -693,7 +728,7 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
                 </div>
                 {resendConfigured
                   ? <span className="text-xs font-medium text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">✓ Dikonfigurasi</span>
-                  : <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Belum diset</span>}
+                  : <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Belum diset</span>}
               </div>
               <div className="p-4 space-y-3">
                 <p className="text-xs text-gray-600">Mengirim email via <strong>Resend API</strong>. Cukup set API key dan alamat from — tanpa perlu SMTP, OAuth, atau App Password.</p>
@@ -705,7 +740,7 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
                     ].map(([k, v]) => (
                       <tr key={k} className="border-b border-gray-100 last:border-0">
                         <td className="py-1.5 pr-4 font-mono text-gray-500 w-2/5">{k}</td>
-                        <td className={`py-1.5 font-mono ${(v as string).startsWith("✓") ? "text-green-700" : "text-gray-400"}`}>{v}</td>
+                        <td className={`py-1.5 font-mono ${(v as string).startsWith("✓") ? "text-green-700" : "text-gray-500"}`}>{v}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -737,7 +772,7 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
                 </div>
                 {smtpConfigured
                   ? <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ Dikonfigurasi</span>
-                  : <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Belum diset</span>}
+                  : <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Belum diset</span>}
               </div>
               <div className="p-4 space-y-3">
                 <p className="text-xs text-gray-500">Set variabel berikut di <code className="bg-gray-100 px-1 rounded">.env.local</code>:</p>
@@ -751,12 +786,12 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
                     ].map(([k, v]) => (
                       <tr key={k} className="border-b border-gray-100 last:border-0">
                         <td className="py-1.5 pr-4 font-mono text-gray-500 w-2/5">{k}</td>
-                        <td className={`py-1.5 font-mono ${(v as string).startsWith("✓") ? "text-green-700" : "text-gray-400"}`}>{v}</td>
+                        <td className={`py-1.5 font-mono ${(v as string).startsWith("✓") ? "text-green-700" : "text-gray-500"}`}>{v}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                <p className="text-xs text-gray-400">Gmail: gunakan <strong>App Password</strong>, bukan password biasa. Aktifkan 2FA Gmail dulu.</p>
+                <p className="text-xs text-gray-500">Gmail: gunakan <strong>App Password</strong>, bukan password biasa. Aktifkan 2FA Gmail dulu.</p>
               </div>
             </div>
 
@@ -772,7 +807,7 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
                 </div>
                 {oauth2Configured
                   ? <span className="text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">✓ Terhubung</span>
-                  : <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Belum diset</span>}
+                  : <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Belum diset</span>}
               </div>
               <div className="p-4 space-y-4">
                 <p className="text-xs text-gray-600">Mengirim email via <strong>Gmail API</strong> menggunakan OAuth2. Tidak memerlukan password SMTP — lebih aman dan tidak terpengaruh kebijakan Google App Password. Kredensial dan token disimpan di database.</p>
@@ -897,7 +932,7 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
               <div className="flex gap-2">
                 <input type="email" value={testEmailTo} onChange={(e) => setTestEmailTo(e.target.value)}
                   placeholder="email@contoh.com" disabled={activeEmailMethod === "none"}
-                  className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm disabled:bg-gray-50 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm disabled:bg-gray-50 disabled:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 <button onClick={handleTestEmail} disabled={activeEmailMethod === "none" || testingEmail || !testEmailTo}
                   className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-40 flex items-center gap-2">
                   {testingEmail ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
@@ -906,7 +941,7 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
               </div>
               {activeEmailMethod === "none"
                 ? <p className="text-xs text-amber-600">Konfigurasi salah satu metode email terlebih dahulu.</p>
-                : <p className="text-xs text-gray-400">Mengirim via <strong>{activeEmailMethod === "resend" ? "Resend" : activeEmailMethod === "oauth2" ? "Gmail OAuth2" : "SMTP"}</strong>.</p>}
+                : <p className="text-xs text-gray-500">Mengirim via <strong>{activeEmailMethod === "resend" ? "Resend" : activeEmailMethod === "oauth2" ? "Gmail OAuth2" : "SMTP"}</strong>.</p>}
             </div>
 
             {/* Diagnose email */}

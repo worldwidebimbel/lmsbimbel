@@ -334,7 +334,7 @@ export default function ProfileClient({ user }: { user: UserData }) {
                     setEducationHistory(copy);
                   }} className="col-span-2 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
                   <button type="button" onClick={() => setEducationHistory(educationHistory.filter((_, i) => i !== idx))}
-                    className="col-span-1 flex justify-center pb-2 text-gray-400 hover:text-red-500">
+                    className="col-span-1 flex justify-center pb-2 text-gray-500 hover:text-red-500">
                     <X className="h-4 w-4" />
                   </button>
                 </div>
@@ -380,7 +380,7 @@ export default function ProfileClient({ user }: { user: UserData }) {
                     onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Kosongkan jika tidak ingin ubah"
                     className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-10 text-sm focus:border-indigo-500 focus:outline-none" />
                   <button type="button" onClick={() => setShowCurrent(!showCurrent)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600">
                     {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
@@ -392,7 +392,7 @@ export default function ProfileClient({ user }: { user: UserData }) {
                     onChange={(e) => setNewPassword(e.target.value)} placeholder="Min. 6 karakter"
                     className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-10 text-sm focus:border-indigo-500 focus:outline-none" />
                   <button type="button" onClick={() => setShowNew(!showNew)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600">
                     {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>

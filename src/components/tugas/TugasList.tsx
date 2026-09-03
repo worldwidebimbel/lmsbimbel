@@ -70,7 +70,7 @@ export default function TugasList({ initialAssignments, classes }: TugasListProp
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 gap-3">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -151,7 +151,7 @@ export default function TugasList({ initialAssignments, classes }: TugasListProp
                       href={assignment.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-blue-600"
+                      className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-blue-600"
                       title="Buka file soal"
                     >
                       <ExternalLink className="h-4 w-4" />
@@ -159,28 +159,28 @@ export default function TugasList({ initialAssignments, classes }: TugasListProp
                   )}
                   <Link
                     href={`/guru/tugas/${assignment.id}`}
-                    className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-green-600"
+                    className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-green-600"
                     title="Lihat submissions"
                   >
                     <Users className="h-4 w-4" />
                   </Link>
                   <button
                     onClick={() => handleTogglePublish(assignment)}
-                    className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-yellow-600"
+                    className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-yellow-600"
                     title={assignment.isPublished ? "Sembunyikan" : "Publikasikan"}
                   >
                     {assignment.isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                   <button
                     onClick={() => openEdit(assignment)}
-                    className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-blue-600"
+                    className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-blue-600"
                     title="Edit"
                   >
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(assignment.id)}
-                    className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-red-600"
+                    className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-red-600"
                     title="Hapus"
                   >
                     <Trash2 className="h-4 w-4" />

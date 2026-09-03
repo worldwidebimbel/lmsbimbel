@@ -165,7 +165,7 @@ export default function ForumClient({ initialThreads, classes, currentUserId, cu
               <h2 className="text-xl font-bold text-gray-900">{selectedThread.title}</h2>
             </div>
             {(selectedThread.author.id === currentUserId || ["ADMIN", "SUPER_ADMIN", "GURU"].includes(currentUserRole)) && (
-              <button onClick={() => handleDeleteThread(selectedThread.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
+              <button onClick={() => handleDeleteThread(selectedThread.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center shrink-0 rounded-lg p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-500">
                 <X className="h-4 w-4" />
               </button>
             )}
@@ -177,7 +177,7 @@ export default function ForumClient({ initialThreads, classes, currentUserId, cu
             <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${ROLE_BADGE[selectedThread.author.role]?.cls}`}>
               {ROLE_BADGE[selectedThread.author.role]?.label}
             </span>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-500">
               {formatDistanceToNow(new Date(selectedThread.createdAt), { addSuffix: true, locale: localeId })}
             </span>
           </div>
@@ -213,12 +213,12 @@ export default function ForumClient({ initialThreads, classes, currentUserId, cu
                   <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${ROLE_BADGE[r.author.role]?.cls}`}>
                     {ROLE_BADGE[r.author.role]?.label}
                   </span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-500">
                     {formatDistanceToNow(new Date(r.createdAt), { addSuffix: true, locale: localeId })}
                   </span>
                 </div>
                 <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{r.content}</p>
-                <button onClick={() => handleUpvote("reply", r.id)} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600">
+                <button onClick={() => handleUpvote("reply", r.id)} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600">
                   <ThumbsUp className="h-3.5 w-3.5" /> {r._count.upvotes}
                 </button>
               </div>
@@ -257,7 +257,7 @@ export default function ForumClient({ initialThreads, classes, currentUserId, cu
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
           <input value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari diskusi..." className="w-full rounded-lg border border-gray-200 pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
         </div>
@@ -278,7 +278,7 @@ export default function ForumClient({ initialThreads, classes, currentUserId, cu
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-16">
           <MessagesSquare className="mb-3 h-10 w-10 text-gray-300" />
-          <p className="text-sm text-gray-400">Belum ada diskusi. Mulai thread pertama!</p>
+          <p className="text-sm text-gray-500">Belum ada diskusi. Mulai thread pertama!</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -291,7 +291,7 @@ export default function ForumClient({ initialThreads, classes, currentUserId, cu
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
                     {thread.isPinned && <Pin className="h-3.5 w-3.5 text-yellow-500" />}
-                    {thread.isLocked && <Lock className="h-3.5 w-3.5 text-gray-400" />}
+                    {thread.isLocked && <Lock className="h-3.5 w-3.5 text-gray-500" />}
                     {thread.class && (
                       <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">{thread.class.name}</span>
                     )}
@@ -302,8 +302,8 @@ export default function ForumClient({ initialThreads, classes, currentUserId, cu
                     )}
                   </div>
                   <p className="font-semibold text-gray-900 line-clamp-1">{thread.title}</p>
-                  <p className="mt-0.5 text-xs text-gray-400 line-clamp-1">{thread.content}</p>
-                  <div className="mt-2 flex items-center gap-4 text-xs text-gray-400">
+                  <p className="mt-0.5 text-xs text-gray-500 line-clamp-1">{thread.content}</p>
+                  <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
                     <span className="font-medium text-gray-600">{thread.author.name}</span>
                     <span className="flex items-center gap-1"><ThumbsUp className="h-3 w-3" /> {thread._count.upvotes}</span>
                     <span className="flex items-center gap-1"><MessageSquare className="h-3 w-3" /> {thread._count.replies}</span>
@@ -313,7 +313,7 @@ export default function ForumClient({ initialThreads, classes, currentUserId, cu
                     </span>
                   </div>
                 </div>
-                <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" />
+                <ChevronRight className="h-4 w-4 shrink-0 text-gray-500" />
               </div>
             </div>
           ))}
@@ -326,7 +326,7 @@ export default function ForumClient({ initialThreads, classes, currentUserId, cu
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">Buat Thread Baru</h2>
-              <button onClick={() => setShowCreate(false)}><X className="h-5 w-5 text-gray-400 hover:text-gray-600" /></button>
+              <button onClick={() => setShowCreate(false)}><X className="h-5 w-5 text-gray-500 hover:text-gray-600" /></button>
             </div>
             {classes.length > 0 && (
               <div>

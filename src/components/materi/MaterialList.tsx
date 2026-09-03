@@ -112,7 +112,7 @@ export function MaterialList({ initialMaterials, classes, subjects, role }: Prop
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -152,7 +152,7 @@ export function MaterialList({ initialMaterials, classes, subjects, role }: Prop
           <p className="text-xs text-gray-500 mt-0.5">Dipublikasi</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-          <p className="text-2xl font-bold text-gray-400">
+          <p className="text-2xl font-bold text-gray-500">
             {materials.filter((m) => !m.isPublished).length}
           </p>
           <p className="text-xs text-gray-500 mt-0.5">Draft</p>
@@ -164,7 +164,7 @@ export function MaterialList({ initialMaterials, classes, subjects, role }: Prop
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <Upload className="w-10 h-10 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-500 font-medium">Belum ada materi</p>
-          <p className="text-sm text-gray-400 mt-1">Klik &quot;Upload Materi&quot; untuk mulai</p>
+          <p className="text-sm text-gray-500 mt-1">Klik &quot;Upload Materi&quot; untuk mulai</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -200,7 +200,7 @@ export function MaterialList({ initialMaterials, classes, subjects, role }: Prop
                     <span>{material._count.progress} dilihat</span>
                   </div>
                   {material.description && (
-                    <p className="text-xs text-gray-400 mt-1 truncate">{material.description}</p>
+                    <p className="text-xs text-gray-500 mt-1 truncate">{material.description}</p>
                   )}
                 </div>
 
@@ -208,28 +208,28 @@ export function MaterialList({ initialMaterials, classes, subjects, role }: Prop
                 <div className="flex items-center gap-1 shrink-0">
                   {material.fileUrl && (
                     <a href={material.fileUrl} target="_blank" rel="noopener noreferrer"
-                      className="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                      className="p-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                       <Link2 className="w-4 h-4" />
                     </a>
                   )}
                   <button
                     onClick={() => handleTogglePublish(material.id, material.isPublished)}
                     disabled={isPending}
-                    className="p-2 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors"
+                    className="p-2 rounded-lg text-gray-500 hover:text-green-600 hover:bg-green-50 transition-colors"
                     title={material.isPublished ? "Sembunyikan" : "Publikasikan"}
                   >
                     {material.isPublished ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                   <button
                     onClick={() => { setEditTarget(material); setShowModal(true); }}
-                    className="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                    className="p-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(material.id, material.title)}
                     disabled={isPending}
-                    className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                    className="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

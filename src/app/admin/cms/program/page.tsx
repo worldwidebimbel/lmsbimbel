@@ -76,7 +76,7 @@ export default function AdminCmsProgramPage() {
                 {p.levelLabel && <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-bold ${p.theme === "yellow" ? "bg-yellow-100 text-yellow-700" : "bg-blue-100 text-blue-700"}`}>{p.levelLabel}</span>}
                 <h3 className="mt-2 font-bold text-gray-900">{p.title}</h3>
                 {p.subtitle && <p className="text-sm text-gray-500">{p.subtitle}</p>}
-                {features.length > 0 && <p className="mt-1 text-xs text-gray-400">{features.length} fitur</p>}
+                {features.length > 0 && <p className="mt-1 text-xs text-gray-500">{features.length} fitur</p>}
                 <div className="mt-2 flex items-center justify-between">
                   <span className={`rounded px-2 py-0.5 text-xs ${p.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{p.isActive ? "Aktif" : "Nonaktif"}</span>
                   <div className="flex gap-1">
@@ -88,7 +88,7 @@ export default function AdminCmsProgramPage() {
             </div>
           );
         })}
-        {items.length === 0 && <div className="col-span-full rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-400">Belum ada program.</div>}
+        {items.length === 0 && <div className="col-span-full rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500">Belum ada program.</div>}
       </div>
     </div>
   );
@@ -140,7 +140,7 @@ function ProgramForm({ item, onSave, onCancel }: { item: Program | null; onSave:
             <div key={i} className="flex items-center gap-2">
               <GripVertical className="h-4 w-4 text-gray-300" />
               <input value={f} onChange={(e) => updateFeature(i, e.target.value)} className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm" placeholder="Fitur unggulan..." />
-              <button type="button" onClick={() => removeFeature(i)} className="rounded p-1 text-red-400 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
+              <button type="button" onClick={() => removeFeature(i)} className="rounded p-1 text-red-500 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
             </div>
           ))}
         </div>

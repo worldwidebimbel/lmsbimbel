@@ -219,10 +219,10 @@ export default function BankSoalImportClient({
               {loading ? (
                 <Loader2 className="h-10 w-10 text-amber-500 animate-spin" />
               ) : (
-                <FileSpreadsheet className="h-10 w-10 text-gray-400" />
+                <FileSpreadsheet className="h-10 w-10 text-gray-500" />
               )}
               <p className="text-sm text-gray-600">{loading ? "Membaca file..." : "Drag & drop file Excel atau Word ke sini, atau klik untuk pilih"}</p>
-              <p className="text-xs text-gray-400">Format: .xlsx, .xls, atau .docx</p>
+              <p className="text-xs text-gray-500">Format: .xlsx, .xls, atau .docx</p>
             </div>
             <input ref={fileRef} type="file" accept=".xlsx,.xls,.docx" className="hidden"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
@@ -296,7 +296,7 @@ export default function BankSoalImportClient({
               <tbody>
                 {rows.map((row) => (
                   <tr key={row.rowNum} className={`border-b border-gray-100 last:border-0 ${row.status === "error" ? "bg-red-50" : row.status === "warn" ? "bg-yellow-50" : "bg-white"}`}>
-                    <td className="px-3 py-2 text-gray-400">{row.rowNum}</td>
+                    <td className="px-3 py-2 text-gray-500">{row.rowNum}</td>
                     <td className="px-3 py-2">
                       {row.status === "ok" && <span className="inline-flex items-center gap-1 text-green-700 font-medium"><CheckCircle className="h-3.5 w-3.5" />OK</span>}
                       {row.status === "warn" && (

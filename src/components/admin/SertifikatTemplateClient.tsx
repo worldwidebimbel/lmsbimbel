@@ -115,7 +115,7 @@ export default function SertifikatTemplateClient({ template, recentCerts }: Prop
             <h2 className="font-semibold text-gray-900">Sertifikat Terbaru</h2>
           </div>
           {recentCerts.length === 0 ? (
-            <div className="py-12 text-center text-sm text-gray-400">Belum ada sertifikat dikeluarkan</div>
+            <div className="py-12 text-center text-sm text-gray-500">Belum ada sertifikat dikeluarkan</div>
           ) : (
             <div className="divide-y divide-gray-100">
               {recentCerts.map((cert) => (
@@ -126,7 +126,7 @@ export default function SertifikatTemplateClient({ template, recentCerts }: Prop
                       <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-medium">
                         {TYPE_LABEL[cert.type] ?? cert.type}
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-500">
                         {new Date(cert.issuedAt).toLocaleDateString("id-ID")}
                       </span>
                     </div>
@@ -135,7 +135,7 @@ export default function SertifikatTemplateClient({ template, recentCerts }: Prop
                     href={`/sertifikat/${cert.code}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    title="Buka link" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50"
+                    title="Buka link" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-500 hover:text-amber-600 hover:bg-amber-50"
                   >
                     <ExternalLink className="h-4 w-4" />
                   </a>

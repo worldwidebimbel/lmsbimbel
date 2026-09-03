@@ -50,7 +50,7 @@ export function ActivitySequence({ steps }: { steps: ActivityStep[] }) {
               <Link
                 href={step.href}
                 className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white transition-transform ${
-                  step.status === "TODO" ? "bg-gray-200 text-gray-400" : KIND_COLOR[step.kind]
+                  step.status === "TODO" ? "bg-gray-200 text-gray-500" : KIND_COLOR[step.kind]
                 } ${step.isCurrent ? "ring-2 ring-offset-2 ring-blue-300" : ""}`}
               >
                 <Icon className="h-4 w-4" />
@@ -61,7 +61,7 @@ export function ActivitySequence({ steps }: { steps: ActivityStep[] }) {
                 </p>
                 <div className="flex items-center gap-1 mt-0.5">
                   {step.status === "DONE" && <CheckCircle2 className="h-3 w-3 text-green-500" />}
-                  <span className={`text-xs ${step.status === "DONE" ? "text-green-600" : step.status === "CURRENT" ? "text-blue-600" : "text-gray-400"}`}>
+                  <span className={`text-xs ${step.status === "DONE" ? "text-green-600" : step.status === "CURRENT" ? "text-blue-600" : "text-gray-500"}`}>
                     {STATUS_LABEL[step.status]}
                   </span>
                 </div>

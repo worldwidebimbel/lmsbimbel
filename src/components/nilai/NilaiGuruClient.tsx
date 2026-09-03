@@ -236,7 +236,7 @@ export default function NilaiGuruClient({ initialClasses }: NilaiGuruClientProps
                           <th key={comp.id} className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase min-w-28">
                             <div className="flex items-center justify-center gap-1">
                               <span>{comp.name}</span>
-                              <span className="text-gray-400">({comp.weight}x)</span>
+                              <span className="text-gray-500">({comp.weight}x)</span>
                               <button
                                 onClick={() => handleDeleteComponent(comp.id)}
                                 className="ml-1 text-gray-300 hover:text-red-500"
@@ -244,7 +244,7 @@ export default function NilaiGuruClient({ initialClasses }: NilaiGuruClientProps
                                 <Trash2 className="h-3 w-3" />
                               </button>
                             </div>
-                            {comp.period && <span className="block text-gray-400 font-normal normal-case">{comp.period}</span>}
+                            {comp.period && <span className="block text-gray-500 font-normal normal-case">{comp.period}</span>}
                           </th>
                         ))}
                         <th className="px-4 py-3 text-center text-xs font-medium text-purple-600 uppercase min-w-24">Nilai Akhir</th>
@@ -271,7 +271,7 @@ export default function NilaiGuruClient({ initialClasses }: NilaiGuruClientProps
                               </td>
                             ))}
                             <td className="px-4 py-2.5 text-center">
-                              <span className={`font-bold text-sm ${isNaN(na) ? "text-gray-400" : na >= 75 ? "text-green-600" : "text-red-600"}`}>
+                              <span className={`font-bold text-sm ${isNaN(na) ? "text-gray-500" : na >= 75 ? "text-green-600" : "text-red-600"}`}>
                                 {nilaiAkhir}
                               </span>
                             </td>
@@ -292,7 +292,7 @@ export default function NilaiGuruClient({ initialClasses }: NilaiGuruClientProps
                   <div className="space-y-1.5">
                     {rankings.filter((r) => r.nilai > 0).slice(0, 10).map((r, i) => (
                       <div key={r.name} className="flex items-center gap-3">
-                        <span className={`w-6 text-xs font-bold ${i === 0 ? "text-yellow-500" : i === 1 ? "text-gray-400" : i === 2 ? "text-orange-400" : "text-gray-400"}`}>{i + 1}</span>
+                        <span className={`w-6 text-xs font-bold ${i === 0 ? "text-yellow-500" : i === 1 ? "text-gray-500" : i === 2 ? "text-orange-400" : "text-gray-500"}`}>{i + 1}</span>
                         <span className="flex-1 text-sm text-gray-700">{r.name}</span>
                         <span className={`text-sm font-semibold ${r.nilai >= 75 ? "text-green-600" : "text-red-600"}`}>{r.nilai.toFixed(1)}</span>
                       </div>

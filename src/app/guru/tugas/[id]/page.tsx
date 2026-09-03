@@ -71,11 +71,11 @@ export default async function GuruTugasDetailPage({ params }: { params: Promise<
       <div className="rounded-xl border border-gray-200 bg-white p-4">
         <div className="flex flex-wrap gap-4 text-sm text-gray-600">
           <span className="flex items-center gap-1.5">
-            <Clock className="h-4 w-4 text-gray-400" />
+            <Clock className="h-4 w-4 text-gray-500" />
             Deadline: {format(new Date(assignment.dueDate), "d MMMM yyyy, HH:mm", { locale: localeId })}
           </span>
           <span className="flex items-center gap-1.5">
-            <Users className="h-4 w-4 text-gray-400" />
+            <Users className="h-4 w-4 text-gray-500" />
             {assignment.class.name}
           </span>
           {assignment.fileUrl && (

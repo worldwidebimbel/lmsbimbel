@@ -159,7 +159,7 @@ export default function MediaUploadButton({
   return (
     <div className="relative shrink-0">
       <label
-        className={`flex cursor-pointer items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-gray-400 hover:border-indigo-300 hover:text-indigo-500 ${
+        className={`flex cursor-pointer items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-gray-500 hover:border-indigo-300 hover:text-indigo-500 ${
           size === "sm" ? "h-16 w-16" : "h-24 w-24"
         }`}
       >

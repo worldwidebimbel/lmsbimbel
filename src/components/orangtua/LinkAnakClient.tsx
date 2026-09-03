@@ -70,7 +70,7 @@ export default function LinkAnakClient({ initialChildren }: { initialChildren: S
             <Plus className="h-4 w-4" /> Hubungkan
           </button>
         </form>
-        <p className="mt-2 text-xs text-gray-400">Masukkan email akun siswa yang sudah terdaftar di sistem.</p>
+        <p className="mt-2 text-xs text-gray-500">Masukkan email akun siswa yang sudah terdaftar di sistem.</p>
       </div>
 
       {/* Linked Children */}
@@ -82,8 +82,8 @@ export default function LinkAnakClient({ initialChildren }: { initialChildren: S
         {children.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-14">
             <UserCheck className="h-10 w-10 text-gray-300 mb-2" />
-            <p className="text-sm text-gray-400">Belum ada anak yang terhubung</p>
-            <p className="text-xs text-gray-400 mt-1">Gunakan form di atas untuk menghubungkan akun anak</p>
+            <p className="text-sm text-gray-500">Belum ada anak yang terhubung</p>
+            <p className="text-xs text-gray-500 mt-1">Gunakan form di atas untuk menghubungkan akun anak</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -99,7 +99,7 @@ export default function LinkAnakClient({ initialChildren }: { initialChildren: S
                   )}
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{child.name}</p>
-                    <p className="text-xs text-gray-400">{child.email}</p>
+                    <p className="text-xs text-gray-500">{child.email}</p>
                   </div>
                 </div>
                 <button onClick={() => handleRemove(child.id, child.name)}

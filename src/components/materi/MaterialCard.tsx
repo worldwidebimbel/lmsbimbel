@@ -115,7 +115,7 @@ export function MaterialCard({ material, isCompleted: initialCompleted, studentI
               )}
             </div>
             {material.description && (
-              <p className="text-xs text-gray-400 mt-1.5 line-clamp-2">{material.description}</p>
+              <p className="text-xs text-gray-500 mt-1.5 line-clamp-2">{material.description}</p>
             )}
           </div>
         </div>

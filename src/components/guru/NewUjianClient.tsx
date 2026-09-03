@@ -83,7 +83,7 @@ export default function NewUjianClient({ classes, events }: { classes: Class[]; 
             <option value="">Pilih event</option>
             {events.map((ev) => <option key={ev.id} value={ev.id}>{ev.type} — {ev.title}</option>)}
           </select>
-          {events.length === 0 && <p className="mt-1 text-xs text-gray-400">Belum ada event di cabang Anda.</p>}
+          {events.length === 0 && <p className="mt-1 text-xs text-gray-500">Belum ada event di cabang Anda.</p>}
         </div>
       )}
 

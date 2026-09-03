@@ -45,7 +45,7 @@ export default function TeacherStatsClient({ data }: { data: TeacherStat[] }) {
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-20">
         <GraduationCap className="mb-3 h-12 w-12 text-gray-300" />
-        <p className="text-sm text-gray-400">Belum ada data guru</p>
+        <p className="text-sm text-gray-500">Belum ada data guru</p>
       </div>
     );
   }
@@ -135,7 +135,7 @@ export default function TeacherStatsClient({ data }: { data: TeacherStat[] }) {
                         <Avatar name={t.name} avatar={t.avatar} />
                         <div>
                           <p className="font-medium text-gray-900">{t.name}</p>
-                          <p className="text-xs text-gray-400">{t.email}</p>
+                          <p className="text-xs text-gray-500">{t.email}</p>
                         </div>
                       </div>
                     </td>
@@ -153,7 +153,7 @@ export default function TeacherStatsClient({ data }: { data: TeacherStat[] }) {
                         <span className={`text-xs font-semibold ${t.gradingRate >= 80 ? "text-green-600" : t.gradingRate >= 50 ? "text-yellow-600" : "text-red-600"}`}>
                           {t.gradingRate.toFixed(0)}%
                         </span>
-                        {expandedId === t.id ? <ChevronUp className="h-3 w-3 text-gray-400" /> : <ChevronDown className="h-3 w-3 text-gray-400" />}
+                        {expandedId === t.id ? <ChevronUp className="h-3 w-3 text-gray-500" /> : <ChevronDown className="h-3 w-3 text-gray-500" />}
                       </div>
                     </td>
                   </tr>
@@ -164,12 +164,12 @@ export default function TeacherStatsClient({ data }: { data: TeacherStat[] }) {
                           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Kelas yang Diajar</p>
                           <div className="flex flex-wrap gap-2">
                             {t.classes.length === 0 ? (
-                              <span className="text-xs text-gray-400">Tidak ada kelas aktif</span>
+                              <span className="text-xs text-gray-500">Tidak ada kelas aktif</span>
                             ) : (
                               t.classes.map((cls) => (
                                 <span key={cls.name} className="inline-flex items-center gap-1.5 rounded-full bg-white border border-gray-200 px-3 py-1 text-xs text-gray-700">
-                                  <Users className="h-3 w-3 text-gray-400" />
-                                  {cls.name} <span className="text-gray-400">({cls.studentCount} siswa)</span>
+                                  <Users className="h-3 w-3 text-gray-500" />
+                                  {cls.name} <span className="text-gray-500">({cls.studentCount} siswa)</span>
                                 </span>
                               ))
                             )}

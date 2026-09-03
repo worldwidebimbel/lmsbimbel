@@ -163,7 +163,7 @@ export function RoomsManager({ initialBuildings, initialRooms, branches, isSuper
                     )}
                   </div>
                   {b.description && (
-                    <p className="text-xs text-gray-400 line-clamp-2">{b.description}</p>
+                    <p className="text-xs text-gray-500 line-clamp-2">{b.description}</p>
                   )}
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">{b._count.rooms} ruang</span>
@@ -398,7 +398,7 @@ function BuildingForm({
           <h2 className="text-lg font-bold text-gray-900">
             {editing ? "Edit Gedung" : "Tambah Gedung"}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -508,7 +508,7 @@ function RoomForm({
           <h2 className="text-lg font-bold text-gray-900">
             {editing ? "Edit Ruangan" : "Tambah Ruangan"}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>
         </div>

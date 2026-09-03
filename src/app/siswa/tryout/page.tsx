@@ -81,8 +81,8 @@ export default async function SiswaTryoutPage() {
       {!hasEvents && !hasStandalone ? (
         <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-20">
           <Trophy className="h-12 w-12 text-gray-300 mb-3" />
-          <p className="text-sm text-gray-400">Belum ada tryout tersedia</p>
-          <p className="text-xs text-gray-400 mt-1">Tryout akan muncul di sini saat admin mempublikasikannya.</p>
+          <p className="text-sm text-gray-500">Belum ada tryout tersedia</p>
+          <p className="text-xs text-gray-500 mt-1">Tryout akan muncul di sini saat admin mempublikasikannya.</p>
         </div>
       ) : (
         <>
@@ -170,7 +170,7 @@ export default async function SiswaTryoutPage() {
 
                               <div className="shrink-0">
                                 {!canAccess && !isRegistered ? (
-                                  <span className="text-xs text-gray-400 px-3 py-2 rounded-lg bg-gray-50">
+                                  <span className="text-xs text-gray-500 px-3 py-2 rounded-lg bg-gray-50">
                                     Daftar dulu
                                   </span>
                                 ) : !canAccess && isRegistered && !isPaid ? (
@@ -183,9 +183,9 @@ export default async function SiswaTryoutPage() {
                                     Lihat Hasil
                                   </Link>
                                 ) : examExpired ? (
-                                  <span className="text-xs text-gray-400 px-3 py-2 rounded-lg bg-gray-50">Waktu habis</span>
+                                  <span className="text-xs text-gray-500 px-3 py-2 rounded-lg bg-gray-50">Waktu habis</span>
                                 ) : !examAvailable ? (
-                                  <span className="text-xs text-gray-400 px-3 py-2 rounded-lg bg-gray-50">
+                                  <span className="text-xs text-gray-500 px-3 py-2 rounded-lg bg-gray-50">
                                     Mulai {exam.startTime ? format(new Date(exam.startTime), "d MMM HH:mm", { locale: localeId }) : ""}
                                   </span>
                                 ) : (
@@ -200,7 +200,7 @@ export default async function SiswaTryoutPage() {
                         })}
                       </div>
                     ) : (
-                      <div className="px-5 py-4 text-sm text-gray-400">Belum ada sesi ujian dalam tryout ini.</div>
+                      <div className="px-5 py-4 text-sm text-gray-500">Belum ada sesi ujian dalam tryout ini.</div>
                     )}
                   </div>
                 );
@@ -252,9 +252,9 @@ export default async function SiswaTryoutPage() {
                             Lihat Hasil
                           </Link>
                         ) : examExpired ? (
-                          <span className="text-xs text-gray-400 px-3 py-2 rounded-lg bg-gray-50">Waktu habis</span>
+                          <span className="text-xs text-gray-500 px-3 py-2 rounded-lg bg-gray-50">Waktu habis</span>
                         ) : !examAvailable ? (
-                          <span className="text-xs text-gray-400 px-3 py-2 rounded-lg bg-gray-50">
+                          <span className="text-xs text-gray-500 px-3 py-2 rounded-lg bg-gray-50">
                             Mulai {exam.startTime ? format(new Date(exam.startTime), "d MMM HH:mm", { locale: localeId }) : ""}
                           </span>
                         ) : (

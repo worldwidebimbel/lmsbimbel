@@ -156,7 +156,7 @@ export default function AdminCmsSettingsPage() {
                 {/* Label */}
                 <div className="p-3">
                   <div className="flex items-center gap-2">
-                    <Icon className={`h-4 w-4 ${isSelected ? "text-blue-600" : "text-gray-400"}`} />
+                    <Icon className={`h-4 w-4 ${isSelected ? "text-blue-600" : "text-gray-500"}`} />
                     <span className={`text-sm font-bold ${isSelected ? "text-blue-600" : "text-gray-900"}`}>
                       {type.label}
                     </span>

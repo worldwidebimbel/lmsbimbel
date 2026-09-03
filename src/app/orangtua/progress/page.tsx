@@ -23,7 +23,7 @@ export default async function OrangtuaProgressPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <BarChart3 className="h-12 w-12 text-gray-300 mb-3" />
-        <p className="text-sm text-gray-400">Belum ada data anak yang terhubung.</p>
+        <p className="text-sm text-gray-500">Belum ada data anak yang terhubung.</p>
       </div>
     );
   }
@@ -100,7 +100,7 @@ export default async function OrangtuaProgressPage() {
               </div>
               <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
               <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
-              <p className="text-xs text-gray-400">{s.sub}</p>
+              <p className="text-xs text-gray-500">{s.sub}</p>
             </div>
           );
         })}
@@ -114,13 +114,13 @@ export default async function OrangtuaProgressPage() {
           </div>
           <div className="divide-y divide-gray-100">
             {enrolledClasses.length === 0 ? (
-              <p className="px-5 py-6 text-center text-sm text-gray-400">Belum terdaftar di kelas apapun</p>
+              <p className="px-5 py-6 text-center text-sm text-gray-500">Belum terdaftar di kelas apapun</p>
             ) : enrolledClasses.map((ec) => (
               <div key={ec.classId} className="flex items-center gap-3 px-5 py-3">
                 <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: ec.class.subject.color }} />
                 <div>
                   <p className="text-sm font-medium text-gray-900">{ec.class.name}</p>
-                  <p className="text-xs text-gray-400">{ec.class.subject.name}</p>
+                  <p className="text-xs text-gray-500">{ec.class.subject.name}</p>
                 </div>
               </div>
             ))}
@@ -140,7 +140,7 @@ export default async function OrangtuaProgressPage() {
                     <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: g.component.class.subject.color }} />
                     <div>
                       <p className="text-sm font-medium text-gray-900">{g.component.class.subject.name}</p>
-                      <p className="text-xs text-gray-400">{g.component.name}</p>
+                      <p className="text-xs text-gray-500">{g.component.name}</p>
                     </div>
                   </div>
                   <span className={`text-sm font-bold ${g.score >= 75 ? "text-green-600" : g.score >= 60 ? "text-yellow-600" : "text-red-600"}`}>
@@ -165,11 +165,11 @@ export default async function OrangtuaProgressPage() {
                   <div key={a.id} className="flex items-center justify-between px-5 py-3">
                     <div>
                       <p className="text-sm font-medium text-gray-900">{a.exam.title}</p>
-                      <p className="text-xs text-gray-400">KKM {a.exam.passingScore}%</p>
+                      <p className="text-xs text-gray-500">KKM {a.exam.passingScore}%</p>
                     </div>
                     <div className="text-right">
                       <p className={`text-sm font-bold ${passed ? "text-green-600" : "text-red-500"}`}>{a.score ?? 0}%</p>
-                      <p className={`text-xs ${passed ? "text-green-500" : "text-red-400"}`}>{passed ? "Lulus" : "Tidak Lulus"}</p>
+                      <p className={`text-xs ${passed ? "text-green-500" : "text-red-500"}`}>{passed ? "Lulus" : "Tidak Lulus"}</p>
                     </div>
                   </div>
                 );
@@ -189,7 +189,7 @@ export default async function OrangtuaProgressPage() {
                 <div key={s.id} className="flex items-center justify-between px-5 py-3">
                   <div>
                     <p className="text-sm font-medium text-gray-900 truncate max-w-[180px]">{s.assignment.title}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-500">
                       {s.assignment.maxScore ? `Maks. ${s.assignment.maxScore}` : ""}
                     </p>
                   </div>

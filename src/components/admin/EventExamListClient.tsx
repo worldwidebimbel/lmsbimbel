@@ -88,8 +88,8 @@ export default function EventExamListClient({ eventId, eventTitle, exams, backHr
       {examList.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-16">
           <Link2 className="h-10 w-10 text-gray-300 mb-3" />
-          <p className="text-sm text-gray-400">Belum ada ujian yang terhubung dengan event ini.</p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-sm text-gray-500">Belum ada ujian yang terhubung dengan event ini.</p>
+          <p className="text-xs text-gray-500 mt-1">
             Guru dapat mengaitkan ujian ke event ini dari halaman <Link href="/guru/ujian/new" className="text-indigo-500 hover:underline">Buat Ujian</Link>.
           </p>
         </div>

@@ -108,7 +108,7 @@ export function FeatureControlPanel({ flagsByCategory, categoryLabels }: Feature
       {/* Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -117,7 +117,7 @@ export function FeatureControlPanel({ flagsByCategory, categoryLabels }: Feature
           />
         </div>
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-400" />
+          <Filter className="w-4 h-4 text-gray-500" />
           <div className="flex gap-1">
             {TIER_OPTIONS.map((tier) => (
               <button
@@ -144,7 +144,7 @@ export function FeatureControlPanel({ flagsByCategory, categoryLabels }: Feature
             <h3 className="font-semibold text-gray-800 text-sm uppercase tracking-wide">
               {categoryLabels[category] ?? category}
             </h3>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-500">
               {flags.filter((f) => localFlags[f.code]).length}/{flags.length} aktif
             </span>
           </div>
@@ -167,7 +167,7 @@ export function FeatureControlPanel({ flagsByCategory, categoryLabels }: Feature
                     "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors",
                     isActive ? "bg-blue-50" : "bg-gray-100"
                   )}>
-                    <Icon className={cn("w-5 h-5", isActive ? "text-blue-600" : "text-gray-400")} />
+                    <Icon className={cn("w-5 h-5", isActive ? "text-blue-600" : "text-gray-500")} />
                   </div>
 
                   {/* Info */}

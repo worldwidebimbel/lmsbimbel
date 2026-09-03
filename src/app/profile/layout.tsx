@@ -30,9 +30,9 @@ export default async function ProfileLayout({ children }: { children: React.Reac
         siteName={cfg.siteName}
         logoUrl={cfg.logoUrl}
       />
-      <div className="flex-1 flex flex-col ml-64">
+      <div className="flex-1 flex flex-col ml-0 md:ml-64">
         <Header title={ROLE_TITLE[role] ?? "Profil Saya"} userName={session.user.name ?? "Pengguna"} role={role} userImage={session.user.image} />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );

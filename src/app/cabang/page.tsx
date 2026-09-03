@@ -29,7 +29,7 @@ export default async function CabangPage() {
         </div>
 
         {branches.length === 0 ? (
-          <p className="text-center text-gray-400">Belum ada data cabang.</p>
+          <p className="text-center text-gray-500">Belum ada data cabang.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {branches.map((b) => (
@@ -37,19 +37,19 @@ export default async function CabangPage() {
                 <h3 className="font-semibold text-gray-900">{b.name}</h3>
                 {b.address && (
                   <p className="mt-2 flex items-start gap-2 text-sm text-gray-600">
-                    <MapPin className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" />
+                    <MapPin className="h-4 w-4 text-gray-500 shrink-0 mt-0.5" />
                     {b.address}
                   </p>
                 )}
                 {b.phone && (
                   <p className="mt-1 flex items-center gap-2 text-sm text-gray-600">
-                    <Phone className="h-4 w-4 text-gray-400 shrink-0" />
+                    <Phone className="h-4 w-4 text-gray-500 shrink-0" />
                     {b.phone}
                   </p>
                 )}
                 {b.email && (
                   <p className="mt-1 flex items-center gap-2 text-sm text-gray-600">
-                    <Clock className="h-4 w-4 text-gray-400 shrink-0" />
+                    <Clock className="h-4 w-4 text-gray-500 shrink-0" />
                     {b.email}
                   </p>
                 )}

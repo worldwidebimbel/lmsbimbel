@@ -15,7 +15,7 @@ export function MaterialBabList({
       <ul className="space-y-2">
         {items.map((item, i) => (
           <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-            <FileText className="h-3.5 w-3.5 shrink-0 mt-0.5 text-gray-400" />
+            <FileText className="h-3.5 w-3.5 shrink-0 mt-0.5 text-gray-500" />
             <span>{item}</span>
           </li>
         ))}

@@ -80,7 +80,7 @@ export default function LandingPageListClient({ pages: initial }: { pages: PageI
                 <Link
                   href={`/lp/${page.slug}`}
                   target="_blank"
-                  className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                  className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                   title="Lihat publik"
                 >
                   <ExternalLink className="h-4 w-4" />
@@ -89,7 +89,7 @@ export default function LandingPageListClient({ pages: initial }: { pages: PageI
               <button
                 onClick={() => togglePublish(page.id, page.isPublished)}
                 disabled={isPending}
-                className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                 title={page.isPublished ? "Sembunyikan" : "Publikasikan"}
               >
                 {page.isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -97,7 +97,7 @@ export default function LandingPageListClient({ pages: initial }: { pages: PageI
               <button
                 onClick={() => handleDelete(page.id)}
                 disabled={isPending}
-                className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                className="rounded-lg p-2 text-gray-500 hover:bg-red-50 hover:text-red-500"
                 title="Hapus"
               >
                 {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}

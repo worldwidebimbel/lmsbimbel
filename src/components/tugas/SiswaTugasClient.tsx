@@ -136,7 +136,7 @@ export default function SiswaTugasClient({ initialAssignments }: SiswaTugasClien
                       </div>
                       {isGraded && (
                         <span className="flex-shrink-0 text-lg font-bold text-green-600">
-                          {sub!.score} <span className="text-sm font-normal text-gray-400">/ {assignment.maxScore}</span>
+                          {sub!.score} <span className="text-sm font-normal text-gray-500">/ {assignment.maxScore}</span>
                         </span>
                       )}
                     </div>
@@ -165,7 +165,7 @@ export default function SiswaTugasClient({ initialAssignments }: SiswaTugasClien
                         {sub.feedback && (
                           <p className="mt-2 italic text-blue-700">💬 {sub.feedback}</p>
                         )}
-                        <p className="mt-1 text-xs text-gray-400">
+                        <p className="mt-1 text-xs text-gray-500">
                           Dikumpulkan: {format(new Date(sub.submittedAt), "d MMM yyyy, HH:mm", { locale: localeId })}
                         </p>
                       </div>

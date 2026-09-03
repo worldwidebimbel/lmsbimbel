@@ -98,7 +98,7 @@ export default async function InvoicePrintPage({ params }: { params: Promise<{ i
         </div>
       )}
 
-      <div className="mt-8 flex justify-between items-end text-xs text-gray-400 border-t border-gray-100 pt-4">
+      <div className="mt-8 flex justify-between items-end text-xs text-gray-500 border-t border-gray-100 pt-4">
         <p>Dicetak pada {format(new Date(), "d MMMM yyyy HH:mm", { locale: localeId })}</p>
         <button
           onClick={() => window.print()}

@@ -58,16 +58,16 @@ export default async function PublicEventsPage() {
 
                     <div className="space-y-1.5 text-sm text-gray-600">
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <Calendar className="w-4 h-4 text-gray-500" />
                         {new Date(event.startDate).toLocaleString("id-ID")}
                       </div>
                       {event.location && (
                         <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-gray-400" /> {event.location}
+                          <MapPin className="w-4 h-4 text-gray-500" /> {event.location}
                         </div>
                       )}
                       <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-gray-400" />
+                        <Users className="w-4 h-4 text-gray-500" />
                         {event._count.registrations} pendaftar
                       </div>
                     </div>

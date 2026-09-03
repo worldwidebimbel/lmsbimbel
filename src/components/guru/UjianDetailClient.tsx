@@ -163,12 +163,12 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-xs font-semibold text-gray-400">#{i + 1}</span>
+                    <span className="text-xs font-semibold text-gray-500">#{i + 1}</span>
                     <span className="rounded bg-indigo-50 px-2 py-0.5 text-xs text-indigo-600">{q.type}</span>
                     <span className={`text-xs font-medium ${DIFF_COLOR[q.difficulty] ?? "text-gray-500"}`}>
                       {DIFF_LABEL[q.difficulty] ?? ""}
                     </span>
-                    <span className="ml-auto text-xs text-gray-400">{q.score} poin</span>
+                    <span className="ml-auto text-xs text-gray-500">{q.score} poin</span>
                   </div>
                   <div className="text-sm text-gray-800 whitespace-pre-wrap"><MathRenderer content={q.content} /></div>
                   {q.options && (
@@ -188,10 +188,10 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
                   {q.correctAnswer && q.type !== "PILGAN" && (
                     <p className="mt-2 text-xs text-green-600">Jawaban: {q.correctAnswer}</p>
                   )}
-                  {q.explanation && <p className="mt-1.5 text-xs italic text-gray-400">Penjelasan: {q.explanation}</p>}
+                  {q.explanation && <p className="mt-1.5 text-xs italic text-gray-500">Penjelasan: {q.explanation}</p>}
                 </div>
                 <button onClick={() => handleDeleteQuestion(q.id)}
-                  title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
+                  title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-500">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
@@ -279,7 +279,7 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
                   <label className="block text-xs font-medium text-gray-600">Pilihan Jawaban</label>
                   {newQ.options.map((opt, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <span className="w-5 text-xs font-bold text-gray-400">{String.fromCharCode(65 + i)}.</span>
+                      <span className="w-5 text-xs font-bold text-gray-500">{String.fromCharCode(65 + i)}.</span>
                       <input value={opt} onChange={(e) => updateOpt(i, e.target.value)}
                         placeholder={`Pilihan ${String.fromCharCode(65 + i)}`}
                         className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none" />
@@ -295,7 +295,7 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
                       )}
                     </div>
                   ))}
-                  <p className="text-xs text-gray-400">Klik radio di kanan untuk menandai jawaban benar</p>
+                  <p className="text-xs text-gray-500">Klik radio di kanan untuk menandai jawaban benar</p>
                 </div>
               )}
 
@@ -359,7 +359,7 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
 
           {attempts.length === 0 ? (
             <div className="flex flex-col items-center py-12 text-center">
-              <p className="text-sm text-gray-400">Belum ada siswa yang mengerjakan ujian ini.</p>
+              <p className="text-sm text-gray-500">Belum ada siswa yang mengerjakan ujian ini.</p>
             </div>
           ) : (
             <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">

@@ -39,7 +39,7 @@ export default async function OrangtuaDashboard() {
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <Users2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-500">Belum ada data anak yang terhubung.</p>
-          <p className="text-sm text-gray-400 mt-1">Hubungi admin untuk menghubungkan akun.</p>
+          <p className="text-sm text-gray-500 mt-1">Hubungi admin untuk menghubungkan akun.</p>
         </div>
       ) : (
         children.map(({ child }) => (
@@ -61,7 +61,7 @@ export default async function OrangtuaDashboard() {
                   <GraduationCap className="w-4 h-4 text-blue-600" /> Nilai Terbaru
                 </h4>
                 {child.grades.length === 0 ? (
-                  <p className="text-xs text-gray-400">Belum ada nilai</p>
+                  <p className="text-xs text-gray-500">Belum ada nilai</p>
                 ) : (
                   <div className="space-y-2">
                     {child.grades.map((g) => (
@@ -82,7 +82,7 @@ export default async function OrangtuaDashboard() {
                   <CheckSquare className="w-4 h-4 text-green-600" /> Absensi
                 </h4>
                 {child.attendanceRecords.length === 0 ? (
-                  <p className="text-xs text-gray-400">Belum ada data</p>
+                  <p className="text-xs text-gray-500">Belum ada data</p>
                 ) : (
                   <div className="space-y-2">
                     {child.attendanceRecords.map((rec) => (

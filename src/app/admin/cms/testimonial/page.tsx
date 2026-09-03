@@ -89,7 +89,7 @@ export default function AdminCmsTestimonialPage() {
             </div>
           </div>
         ))}
-        {items.length === 0 && <div className="col-span-full rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-400">Belum ada testimoni.</div>}
+        {items.length === 0 && <div className="col-span-full rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500">Belum ada testimoni.</div>}
       </div>
     </div>
   );

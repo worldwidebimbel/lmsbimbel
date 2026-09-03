@@ -239,11 +239,11 @@ export default function AbsensiGuruClient({ classes, initialAttendances }: Absen
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
-                    title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                    title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-600"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
-                  {expandedId === item.id ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
+                  {expandedId === item.id ? <ChevronUp className="h-4 w-4 text-gray-500" /> : <ChevronDown className="h-4 w-4 text-gray-500" />}
                 </div>
               </div>
             </div>
@@ -283,14 +283,14 @@ export default function AbsensiGuruClient({ classes, initialAttendances }: Absen
                 <div className="overflow-y-auto flex-1 px-6 py-4 space-y-2">
                   {students.map((s, idx) => (
                     <div key={s.id} className="flex items-center gap-3 rounded-lg border border-gray-100 p-3">
-                      <span className="w-6 text-xs text-gray-400 flex-shrink-0">{idx + 1}.</span>
+                      <span className="w-6 text-xs text-gray-500 flex-shrink-0">{idx + 1}.</span>
                       <p className="flex-1 text-sm font-medium text-gray-900 min-w-0 truncate">{s.name}</p>
                       <div className="flex gap-1">
                         {STATUS_OPTIONS.map((opt) => (
                           <button
                             key={opt.value}
                             onClick={() => updateStudent(s.id, "status", opt.value)}
-                            className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${s.status === opt.value ? opt.color + " shadow-sm" : "border-gray-200 text-gray-400 hover:border-gray-300"}`}
+                            className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${s.status === opt.value ? opt.color + " shadow-sm" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}
                           >
                             {opt.label}
                           </button>

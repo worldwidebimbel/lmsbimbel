@@ -30,7 +30,7 @@ export default function EssayGradingClient({
 
   if (essayQuestions.length === 0) {
     return (
-      <div className="py-12 text-center text-sm text-gray-400">
+      <div className="py-12 text-center text-sm text-gray-500">
         Tidak ada soal essay pada ujian ini.
       </div>
     );
@@ -38,7 +38,7 @@ export default function EssayGradingClient({
 
   if (attempts.length === 0) {
     return (
-      <div className="py-12 text-center text-sm text-gray-400">
+      <div className="py-12 text-center text-sm text-gray-500">
         Belum ada siswa yang mengerjakan ujian ini.
       </div>
     );
@@ -93,14 +93,14 @@ export default function EssayGradingClient({
             className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50"
           >
             <div className="flex items-center gap-3">
-              {expanded === a.id ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
+              {expanded === a.id ? <ChevronDown className="h-4 w-4 text-gray-500" /> : <ChevronRight className="h-4 w-4 text-gray-500" />}
               <span className="font-medium text-gray-900">{a.studentName}</span>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-sm text-gray-500">
                 Nilai: <strong className={a.score !== null && a.score >= exam.passingScore ? "text-green-600" : "text-gray-900"}>{a.score ?? "—"}%</strong>
               </span>
-              <span className="text-xs text-gray-400">{new Date(a.submittedAt).toLocaleDateString("id-ID")}</span>
+              <span className="text-xs text-gray-500">{new Date(a.submittedAt).toLocaleDateString("id-ID")}</span>
             </div>
           </button>
           {expanded === a.id && (
@@ -111,7 +111,7 @@ export default function EssayGradingClient({
                   <div key={q.id} className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-medium text-gray-700">Soal {i + 1}</p>
-                      <span className="text-xs text-gray-400">Max: {q.score} poin</span>
+                      <span className="text-xs text-gray-500">Max: {q.score} poin</span>
                     </div>
                     <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">{q.content}</p>
                     <div>
@@ -130,7 +130,7 @@ export default function EssayGradingClient({
                         placeholder={`0 - ${q.score}`}
                         className="w-24 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
                       />
-                      <span className="text-xs text-gray-400">/ {q.score}</span>
+                      <span className="text-xs text-gray-500">/ {q.score}</span>
                     </div>
                   </div>
                 );

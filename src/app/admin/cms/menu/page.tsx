@@ -85,7 +85,7 @@ export default function AdminCmsMenuPage() {
               <div className="flex items-center gap-2">
                 <GripVertical className="h-4 w-4 text-gray-300" />
                 <span className="font-semibold text-gray-900">{menu.label}</span>
-                {menu.href && <span className="text-xs text-gray-400">{menu.href}</span>}
+                {menu.href && <span className="text-xs text-gray-500">{menu.href}</span>}
                 {menu.children.length > 0 && <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700">{menu.children.length} submenu</span>}
                 {!menu.isActive && <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-500">Nonaktif</span>}
               </div>
@@ -104,13 +104,13 @@ export default function AdminCmsMenuPage() {
                   <div key={child.id} className="flex items-center justify-between py-1.5">
                     <div className="flex items-center gap-2 pl-6">
                       <span className="text-sm text-gray-700">↳ {child.label}</span>
-                      {child.href && <span className="text-xs text-gray-400">{child.href}</span>}
+                      {child.href && <span className="text-xs text-gray-500">{child.href}</span>}
                     </div>
                     <div className="flex items-center gap-1">
-                      <button onClick={() => { setEditing(child); setShowForm(true); }} className="rounded p-1 text-gray-400 hover:bg-gray-200">
+                      <button onClick={() => { setEditing(child); setShowForm(true); }} className="rounded p-1 text-gray-500 hover:bg-gray-200">
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
-                      <button onClick={() => handleDelete(child.id)} className="rounded p-1 text-red-400 hover:bg-red-50">
+                      <button onClick={() => handleDelete(child.id)} className="rounded p-1 text-red-500 hover:bg-red-50">
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
@@ -121,7 +121,7 @@ export default function AdminCmsMenuPage() {
           </div>
         ))}
         {menus.length === 0 && (
-          <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-400">
+          <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500">
             Belum ada menu. Klik "Tambah Menu" untuk membuat.
           </div>
         )}

@@ -74,7 +74,7 @@ export default function BranchTransactionClient({ transactions, transfers, branc
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredTx.length === 0 ? (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">Belum ada transaksi</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Belum ada transaksi</td></tr>
               ) : (
                 filteredTx.map((t) => (
                   <tr key={t.id} className="hover:bg-gray-50">
@@ -110,14 +110,14 @@ export default function BranchTransactionClient({ transactions, transfers, branc
             </thead>
             <tbody className="divide-y divide-gray-100">
               {transfers.length === 0 ? (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">Belum ada transfer</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Belum ada transfer</td></tr>
               ) : (
                 transfers.map((t) => (
                   <tr key={t.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-600">{format(new Date(t.createdAt), "d MMM yyyy", { locale: localeId })}</td>
                     <td className="px-4 py-3 text-gray-600">
                       <span className="inline-flex items-center gap-1">
-                        {t.fromBranch.name} <ArrowRightLeft className="h-3 w-3 text-gray-400" /> {t.toBranch.name}
+                        {t.fromBranch.name} <ArrowRightLeft className="h-3 w-3 text-gray-500" /> {t.toBranch.name}
                       </span>
                     </td>
                     <td className="px-4 py-3 font-semibold text-gray-900">{formatCurrency(t.amount)}</td>

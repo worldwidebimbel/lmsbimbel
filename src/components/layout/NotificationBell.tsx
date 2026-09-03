@@ -123,7 +123,7 @@ export function NotificationBell() {
                   Tandai semua dibaca
                 </button>
               )}
-              <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setOpen(false)} className="text-gray-500 hover:text-gray-600">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -137,7 +137,7 @@ export function NotificationBell() {
             ) : notifications.length === 0 ? (
               <div className="flex flex-col items-center py-10 text-center">
                 <Bell className="h-8 w-8 text-gray-200 mb-2" />
-                <p className="text-sm text-gray-400">Tidak ada notifikasi</p>
+                <p className="text-sm text-gray-500">Tidak ada notifikasi</p>
               </div>
             ) : (
               notifications.map((n) => {
@@ -155,7 +155,7 @@ export function NotificationBell() {
                     <div className="flex-1 min-w-0">
                       <p className={`text-sm font-medium truncate ${!n.isRead ? "text-gray-900" : "text-gray-600"}`}>{n.title}</p>
                       <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{n.content}</p>
-                      <p className="text-[10px] text-gray-400 mt-1">
+                      <p className="text-[10px] text-gray-500 mt-1">
                         {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: localeId })}
                       </p>
                     </div>

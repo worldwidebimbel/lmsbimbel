@@ -224,7 +224,7 @@ export default function BankSoalAdminClient({
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[180px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -349,7 +349,7 @@ export default function BankSoalAdminClient({
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-16">
           <BookMarked className="mb-3 h-10 w-10 text-gray-300" />
-          <p className="text-sm text-gray-400">Bank soal kosong. Tambah soal pertama!</p>
+          <p className="text-sm text-gray-500">Bank soal kosong. Tambah soal pertama!</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -386,7 +386,7 @@ export default function BankSoalAdminClient({
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${DIFF_LABELS[q.difficulty]?.cls}`}>
                       {DIFF_LABELS[q.difficulty]?.label}
                     </span>
-                    <span className="text-xs text-gray-400">Skor: {q.score}</span>
+                    <span className="text-xs text-gray-500">Skor: {q.score}</span>
                     {q.examQuestions && q.examQuestions.length > 0 && (
                       <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
                         Dipakai di {q.examQuestions.length} ujian
@@ -429,7 +429,7 @@ export default function BankSoalAdminClient({
                   {q.examQuestions && q.examQuestions.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
                       {q.examQuestions.map((eq) => (
-                        <span key={eq.examId} className="text-xs text-gray-400">
+                        <span key={eq.examId} className="text-xs text-gray-500">
                           📝 {eq.exam.title}
                           {eq.exam.class ? ` (${eq.exam.class.name})` : ""}
                         </span>
@@ -440,13 +440,13 @@ export default function BankSoalAdminClient({
                 <div className="flex shrink-0 gap-1">
                   <button
                     onClick={() => { setEditingQuestion(q); setShowAdd(true); }}
-                    title="Edit" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-amber-50 hover:text-amber-600"
+                    title="Edit" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-amber-50 hover:text-amber-600"
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(q.id)}
-                    title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                    title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-500"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -963,15 +963,15 @@ function AddQuestionModal({
             </div>
             {form.pairs.map((pair, i) => (
               <div key={i} className="flex items-center gap-2 bg-white rounded-lg p-1.5">
-                <span className="w-5 text-xs text-gray-400">{i + 1}.</span>
+                <span className="w-5 text-xs text-gray-500">{i + 1}.</span>
                 <input value={pair.left} onChange={(e) => { const p = [...form.pairs]; p[i] = { ...p[i], left: e.target.value }; setForm({ ...form, pairs: p }); }}
                   placeholder="Sisi kiri" className="flex-1 rounded border border-gray-200 px-3 py-1.5 text-sm" />
-                <span className="text-gray-400 text-lg">→</span>
+                <span className="text-gray-500 text-lg">→</span>
                 <input value={pair.right} onChange={(e) => { const p = [...form.pairs]; p[i] = { ...p[i], right: e.target.value }; setForm({ ...form, pairs: p }); }}
                   placeholder="Pasangan kanan" className="flex-1 rounded border border-gray-200 px-3 py-1.5 text-sm" />
                 {form.pairs.length > 2 && (
                   <button onClick={() => setForm({ ...form, pairs: form.pairs.filter((_, j) => j !== i) })}
-                    className="text-red-400 hover:text-red-600"><X className="h-3.5 w-3.5" /></button>
+                    className="text-red-500 hover:text-red-600"><X className="h-3.5 w-3.5" /></button>
                 )}
               </div>
             ))}
@@ -999,11 +999,11 @@ function AddQuestionModal({
                 />
                 {form.orderedItems.length > 2 && (
                   <button onClick={() => setForm({ ...form, orderedItems: form.orderedItems.filter((_, j) => j !== i), orderedItemImages: form.orderedItemImages.filter((_, j) => j !== i) })}
-                    className="text-red-400 hover:text-red-600"><X className="h-3.5 w-3.5" /></button>
+                    className="text-red-500 hover:text-red-600"><X className="h-3.5 w-3.5" /></button>
                 )}
               </div>
             ))}
-            <p className="text-xs text-gray-400">Siswa akan melihat item dalam urutan acak dan diminta mengurutkan kembali.</p>
+            <p className="text-xs text-gray-500">Siswa akan melihat item dalam urutan acak dan diminta mengurutkan kembali.</p>
           </div>
         )}
 
@@ -1017,7 +1017,7 @@ function AddQuestionModal({
             </div>
             {form.statements.map((stmt, i) => (
               <div key={i} className="flex items-center gap-2 bg-white rounded-lg p-1.5">
-                <span className="w-5 text-xs text-gray-400">{i + 1}.</span>
+                <span className="w-5 text-xs text-gray-500">{i + 1}.</span>
                 <input value={stmt.text} onChange={(e) => { const s = [...form.statements]; s[i] = { ...s[i], text: e.target.value }; setForm({ ...form, statements: s }); }}
                   placeholder={`Pernyataan ${i + 1}`} className="flex-1 rounded border border-gray-200 px-3 py-1.5 text-sm" />
                 <select value={stmt.answer}
@@ -1028,7 +1028,7 @@ function AddQuestionModal({
                 </select>
                 {form.statements.length > 1 && (
                   <button onClick={() => setForm({ ...form, statements: form.statements.filter((_, j) => j !== i) })}
-                    className="text-red-400 hover:text-red-600"><X className="h-3.5 w-3.5" /></button>
+                    className="text-red-500 hover:text-red-600"><X className="h-3.5 w-3.5" /></button>
                 )}
               </div>
             ))}
@@ -1050,7 +1050,7 @@ function AddQuestionModal({
 
         {/* ESSAY */}
         {form.type === "ESSAY" && (
-          <p className="text-xs text-gray-400 italic rounded-lg bg-gray-50 p-3 border border-gray-100">Essay dinilai manual oleh guru.</p>
+          <p className="text-xs text-gray-500 italic rounded-lg bg-gray-50 p-3 border border-gray-100">Essay dinilai manual oleh guru.</p>
         )}
 
         {/* Pembahasan */}

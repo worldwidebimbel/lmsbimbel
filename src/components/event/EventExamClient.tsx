@@ -169,7 +169,7 @@ export default function EventExamClient({ eventId, data }: { eventId: string; da
             <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
               Soal {current + 1}
             </span>
-            <span className="text-xs text-gray-400">{q.score} poin</span>
+            <span className="text-xs text-gray-500">{q.score} poin</span>
           </div>
           <p className="text-gray-900 font-medium leading-relaxed"><MathRenderer content={q.content} /></p>
 

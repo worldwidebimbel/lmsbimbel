@@ -245,10 +245,10 @@ export default function CertificateTemplateManager({ templates: initial }: { tem
           {/* Field Position Editor */}
           <div className="pt-4 border-t border-gray-100">
             <div className="flex items-center gap-2 mb-3">
-              <Move className="h-4 w-4 text-gray-400" />
+              <Move className="h-4 w-4 text-gray-500" />
               <h3 className="text-sm font-semibold text-gray-900">Editor Posisi Field</h3>
             </div>
-            <p className="text-xs text-gray-400 mb-3">Atur posisi (x, y dalam %) dan ukuran font untuk setiap field di sertifikat PDF.</p>
+            <p className="text-xs text-gray-500 mb-3">Atur posisi (x, y dalam %) dan ukuran font untuk setiap field di sertifikat PDF.</p>
             <div className="space-y-2">
               {Object.entries(FIELD_LABELS).map(([key, label]) => {
                 const pos = form.fieldPositions[key];
@@ -264,7 +264,7 @@ export default function CertificateTemplateManager({ templates: initial }: { tem
                       placeholder="X"
                       className="w-16 rounded border border-gray-200 px-2 py-1"
                     />
-                    <span className="text-gray-400">%</span>
+                    <span className="text-gray-500">%</span>
                     <input
                       type="number"
                       min={0}
@@ -274,7 +274,7 @@ export default function CertificateTemplateManager({ templates: initial }: { tem
                       placeholder="Y"
                       className="w-16 rounded border border-gray-200 px-2 py-1"
                     />
-                    <span className="text-gray-400">%</span>
+                    <span className="text-gray-500">%</span>
                     <input
                       type="number"
                       min={6}
@@ -284,7 +284,7 @@ export default function CertificateTemplateManager({ templates: initial }: { tem
                       placeholder="Font"
                       className="w-16 rounded border border-gray-200 px-2 py-1"
                     />
-                    <span className="text-gray-400">px</span>
+                    <span className="text-gray-500">px</span>
                   </div>
                 );
               })}
@@ -314,7 +314,7 @@ export default function CertificateTemplateManager({ templates: initial }: { tem
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {templates.length === 0 ? (
-          <div className="col-span-full rounded-xl border border-gray-200 bg-white py-12 text-center text-sm text-gray-400">
+          <div className="col-span-full rounded-xl border border-gray-200 bg-white py-12 text-center text-sm text-gray-500">
             Belum ada template. Klik &quot;Template Baru&quot; untuk membuat.
           </div>
         ) : (
@@ -328,10 +328,10 @@ export default function CertificateTemplateManager({ templates: initial }: { tem
                   </span>
                 </div>
                 <div className="flex gap-1">
-                  <button onClick={() => openEdit(t)} title="Edit" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50">
+                  <button onClick={() => openEdit(t)} title="Edit" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50">
                     <Edit3 className="h-4 w-4" />
                   </button>
-                  <button onClick={() => handleDelete(t.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50">
+                  <button onClick={() => handleDelete(t.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
@@ -345,7 +345,7 @@ export default function CertificateTemplateManager({ templates: initial }: { tem
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${t.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
                   {t.isActive ? "Aktif" : "Nonaktif"}
                 </span>
-                <span className="text-[10px] text-gray-400">{t._count.certificates} sertifikat</span>
+                <span className="text-[10px] text-gray-500">{t._count.certificates} sertifikat</span>
               </div>
             </div>
           ))

@@ -97,7 +97,7 @@ export default async function SiswaNilaiPage() {
                     <div key={comp.name} className="flex items-center justify-between px-5 py-3">
                       <div>
                         <p className="text-sm font-medium text-gray-800">{comp.name}</p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-gray-500">
                           Bobot: {comp.weight}x{comp.period ? ` · ${comp.period}` : ""}
                         </p>
                       </div>

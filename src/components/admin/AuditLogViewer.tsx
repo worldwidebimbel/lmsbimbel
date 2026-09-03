@@ -56,7 +56,7 @@ export function AuditLogViewer() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 p-3">
-        <Search className="w-4 h-4 text-gray-400" />
+        <Search className="w-4 h-4 text-gray-500" />
         <select
           value={entityFilter}
           onChange={(e) => { setEntityFilter(e.target.value); setPage(1); }}
@@ -92,7 +92,7 @@ export function AuditLogViewer() {
                     {log.action}
                   </span>
                   <span className="text-sm font-medium text-gray-900">{log.entity}</span>
-                  <span className="text-xs text-gray-400 font-mono">{log.entityId.slice(0, 8)}</span>
+                  <span className="text-xs text-gray-500 font-mono">{log.entityId.slice(0, 8)}</span>
                   <span className="text-xs text-gray-500 ml-auto">
                     {new Date(log.createdAt).toLocaleString("id-ID")}
                   </span>

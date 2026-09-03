@@ -128,7 +128,7 @@ export default async function AdminDashboard() {
                 <div className={`w-10 h-10 rounded-lg ${card.bg} flex items-center justify-center`}>
                   <Icon className={`w-5 h-5 ${card.color}`} />
                 </div>
-                <span className="text-xs text-gray-400">{card.trend}</span>
+                <span className="text-xs text-gray-500">{card.trend}</span>
               </div>
               <p className="text-2xl font-bold text-gray-900 mt-3">{card.value}</p>
               <p className="text-sm text-gray-500 mt-0.5">{card.label}</p>
@@ -236,7 +236,7 @@ export default async function AdminDashboard() {
                   <p className="text-sm font-medium text-gray-900 truncate">{j.activity}</p>
                   <p className="text-xs text-gray-500">{j.teacher.name} • {j.class.name}</p>
                 </div>
-                <span className="text-xs text-gray-400">{new Date(j.sessionDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</span>
+                <span className="text-xs text-gray-500">{new Date(j.sessionDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</span>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${j.status === "APPROVED" ? "bg-green-100 text-green-700" : j.status === "SUBMITTED" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>
                   {j.status}
                 </span>

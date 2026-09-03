@@ -23,7 +23,7 @@ export default async function OrangtuaNilaiPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Users2 className="h-12 w-12 text-gray-300 mb-3" />
-        <p className="text-sm text-gray-400">Belum ada anak yang terhubung.</p>
+        <p className="text-sm text-gray-500">Belum ada anak yang terhubung.</p>
       </div>
     );
   }
@@ -96,7 +96,7 @@ export default async function OrangtuaNilaiPage() {
             </div>
 
             {subjects.length === 0 ? (
-              <p className="px-5 py-4 text-sm text-gray-400">Belum ada data nilai</p>
+              <p className="px-5 py-4 text-sm text-gray-500">Belum ada data nilai</p>
             ) : (
               <div className="divide-y divide-gray-100">
                 {subjects.map((s) => {
@@ -112,7 +112,7 @@ export default async function OrangtuaNilaiPage() {
                       <div className="h-2 w-full rounded-full bg-gray-100">
                         <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${Math.min(s.avg, 100)}%` }} />
                       </div>
-                      <p className="text-xs text-gray-400">{s.scores.length} komponen nilai</p>
+                      <p className="text-xs text-gray-500">{s.scores.length} komponen nilai</p>
                     </div>
                   );
                 })}

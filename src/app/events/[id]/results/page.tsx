@@ -28,7 +28,7 @@ export default async function EventResultsPage({ params }: { params: Promise<{ i
     ? registrations.find((r) => r.user.id === session.user.id)
     : null;
 
-  const podiumColors = ["text-yellow-500", "text-gray-400", "text-amber-600"];
+  const podiumColors = ["text-yellow-500", "text-gray-500", "text-amber-600"];
   const podiumBgs = ["bg-yellow-50 border-yellow-200", "bg-gray-50 border-gray-200", "bg-amber-50 border-amber-200"];
 
   return (

@@ -152,7 +152,7 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
           <h2 className="text-2xl font-bold text-gray-900">{result.passed ? "Selamat, Kamu Lulus!" : "Belum Lulus"}</h2>
           <p className="mt-1 text-gray-500">{exam.title}</p>
           {maxAttempts > 1 && (
-            <p className="mt-1 text-xs text-gray-400">Percobaan ke-{(existingAttempt?.attemptNumber ?? completedAttempts)} dari {maxAttempts}</p>
+            <p className="mt-1 text-xs text-gray-500">Percobaan ke-{(existingAttempt?.attemptNumber ?? completedAttempts)} dari {maxAttempts}</p>
           )}
         </div>
         <div className="grid grid-cols-3 gap-4">
@@ -189,7 +189,7 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
       {/* Header */}
       <div className="sticky top-0 z-10 flex items-center justify-between rounded-xl border border-gray-200 bg-white px-3 sm:px-5 py-3 shadow-sm">
         <div>
-          <p className="text-xs text-gray-400">{exam.class.subject.name} · {exam.class.name}</p>
+          <p className="text-xs text-gray-500">{exam.class.subject.name} · {exam.class.name}</p>
           <p className="font-semibold text-gray-900 text-sm">{exam.title}</p>
           {hasSections && (
             <p className="text-xs text-indigo-600 font-medium mt-0.5">
@@ -273,7 +273,7 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
       <div className="rounded-xl border border-gray-200 bg-white p-6 space-y-4">
         <div className="flex items-center justify-between">
           <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-600">Soal {current + 1} dari {displayQuestions.length}</span>
-          <span className="text-xs text-gray-400">{q.score} poin</span>
+          <span className="text-xs text-gray-500">{q.score} poin</span>
         </div>
 
         <div className="text-base text-gray-900 whitespace-pre-wrap"><MathRenderer content={q.content} /></div>
@@ -365,7 +365,7 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
               {pairs.map((pair, i) => (
                 <div key={i} className="flex max-md:flex-col md:items-center gap-3">
                   <div className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800">{pair.left}</div>
-                  <span className="text-gray-400 shrink-0 hidden md:inline">→</span>
+                  <span className="text-gray-500 shrink-0 hidden md:inline">→</span>
                   <select
                     value={studentMap[String(i)] ?? ""}
                     onChange={(e) => {
@@ -394,7 +394,7 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
             setTimeout(() => {
               setOrderedQ((prev) => prev[q.id] ? prev : { ...prev, [q.id]: shuffled });
             }, 0);
-            return <div className="text-sm text-gray-400">Memuat...</div>;
+            return <div className="text-sm text-gray-500">Memuat...</div>;
           }
           const current_order = orderedQ[q.id].map((v) => normalizeOptions([v])[0]);
           function moveItem(from: number, to: number) {
@@ -416,11 +416,11 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <button disabled={i === 0} onClick={() => moveItem(i, i - 1)} aria-label="Naikkan"
-                      className="rounded p-0.5 max-md:min-h-[44px] max-md:min-w-[44px] max-md:mx-auto max-md:my-1 text-gray-400 hover:text-indigo-600 disabled:opacity-20">
+                      className="rounded p-0.5 max-md:min-h-[44px] max-md:min-w-[44px] max-md:mx-auto max-md:my-1 text-gray-500 hover:text-indigo-600 disabled:opacity-20">
                       <ArrowUp className="h-4 w-4" />
                     </button>
                     <button disabled={i === current_order.length - 1} onClick={() => moveItem(i, i + 1)} aria-label="Turunkan"
-                      className="rounded p-0.5 max-md:min-h-[44px] max-md:min-w-[44px] max-md:mx-auto max-md:my-1 text-gray-400 hover:text-indigo-600 disabled:opacity-20">
+                      className="rounded p-0.5 max-md:min-h-[44px] max-md:min-w-[44px] max-md:mx-auto max-md:my-1 text-gray-500 hover:text-indigo-600 disabled:opacity-20">
                       <ArrowDown className="h-4 w-4" />
                     </button>
                   </div>

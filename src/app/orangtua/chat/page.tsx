@@ -40,7 +40,7 @@ export default async function OrangtuaChatPage() {
         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 py-16">
           <MessageSquare className="mb-3 h-10 w-10 text-gray-300" />
           <p className="text-sm text-gray-500">Belum ada guru yang terhubung.</p>
-          <p className="text-xs text-gray-400 mt-1">Hubungkan akun anak terlebih dahulu.</p>
+          <p className="text-xs text-gray-500 mt-1">Hubungkan akun anak terlebih dahulu.</p>
         </div>
       ) : (
         <ChatInterface currentUserId={session.user.id} initialContacts={JSON.parse(JSON.stringify(contacts))} />

@@ -5,7 +5,7 @@
 > Tahap `7.9` Homepage Redesign (47 item) ditambahkan mengikuti mockup homepage Worldwide Global Education.
 > Referensi nomor bagian (mis. `2.7`) mengacu ke `build-roadmap-checklist.md`.
 
-**Dibuat:** 9 Agustus 2026 · **Revisi:** 25 Agustus 2026
+**Dibuat:** 9 Agustus 2026 · **Revisi:** 04 September 2026
 **Asumsi:** Tim fleksibel, banyak jalur paralel, 5 hari kerja/minggu
 
 ---
@@ -23,8 +23,8 @@
 | 6 | Sertifikat, Payment, Export | 33 | 30 | 3 |
 | 7 | Website, Automation, Security, Homepage | 77 | 33 | 44 |
 | 8 | Jurnal Mengajar, Raport, Absensi Tutor & Halaman Belajar Materi | 40 | 31 | 9 |
-| 9 | Optimasi & Mobile Friendly | 20 | 0 | 20 |
-| **Total** | | **335** | **252** | **83** |
+| 9 | Optimasi & Mobile Friendly | 20 | 3 | 17 |
+| **Total** | | **335** | **255** | **80** |
 
 ---
 
@@ -440,9 +440,9 @@
 - [x] `9.3` Loading states: skeleton screens untuk semua tabel & card yang fetch data — komponen `Skeleton`/`PageSkeleton` + `loading.tsx` di admin/guru/siswa/orangtua + root (halaman publik)
 - [x] `9.3` Empty states: ilustrasi/pesan untuk semua halaman kosong — terverifikasi 108 file sudah punya guard `.length === 0` + pesan (spot-check parents/blog/galeri OK)
 - [x] `9.3` Error states: consistent error boundary + pesan error yang user-friendly — `error.tsx` (card Coba Lagi + Beranda + digest) + `global-error.tsx` (fallback root layout inline-style)
-- [ ] `9.3` Konsistensi spacing & typography: audit semua halaman, sistem spacing Tailwind konsisten
-- [ ] `9.3` Accessibility: ARIA labels di semua interactive elements, keyboard navigation, contrast ≥4.5:1
-- [ ] `9.3` Dark mode (opsional): toggle theme di settings, `prefers-color-scheme` + manual toggle
+- [x] `9.3` Konsistensi spacing & typography: audit semua halaman, sistem spacing Tailwind konsisten — layout `notifikasi` & `profile` dinormalisasi ke pola portal standar (`ml-0 md:ml-64`, `p-4 sm:p-6`); pola header/kartu halaman admin-guru-siswa konsisten terverifikasi
+- [x] `9.3` Accessibility: ARIA labels di semua interactive elements, keyboard navigation, contrast ≥4.5:1 — accessible name (`title`/`aria-label`) semua tombol ikon-only (Edit, Hapus, Tutup, Nonaktifkan, dsb. di 10+ komponen); codemod kontras `text-gray-400`→`500`, `text-red-400`→`500` (137 file); jaring pengaman `:focus-visible` global di `globals.css`; toggle tema pakai `radiogroup` ARIA
+- [x] `9.3` Dark mode (opsional): toggle theme di settings, `prefers-color-scheme` + manual toggle — `next-themes` (class strategy) via `ThemeProviders` di root layout; kartu "Tema Tampilan" (Terang/Gelap/Sistem) di admin/settings; override token warna terpusat di `globals.css` (bg-white/gray→slate-navy, tint -50/-100→alpha, teks tint→versi terang)
 
 ## Hari 3-4 — Smoke Test Menyeluruh
 - [ ] Alur PPDB: daftar → upload dokumen → verifikasi → bayar → konversi siswa → kelas → jadwal

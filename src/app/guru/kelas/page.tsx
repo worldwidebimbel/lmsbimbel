@@ -40,7 +40,7 @@ export default async function GuruKelasPage() {
       {classes.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-20">
           <BookMarked className="h-12 w-12 text-gray-300 mb-3" />
-          <p className="text-sm text-gray-400">Belum ada kelas yang diampu</p>
+          <p className="text-sm text-gray-500">Belum ada kelas yang diampu</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -53,7 +53,7 @@ export default async function GuruKelasPage() {
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-bold text-gray-900 truncate">{cls.name}</h3>
-                  <p className="text-xs text-gray-400">{cls.subject.name} ({cls.subject.code})</p>
+                  <p className="text-xs text-gray-500">{cls.subject.name} ({cls.subject.code})</p>
                 </div>
               </div>
 

@@ -78,7 +78,7 @@ export default function VideoGalleryClient({ videos, categories }: { videos: Vid
       </div>
 
       {filtered.length === 0 && (
-        <div className="rounded-lg border border-dashed border-gray-300 p-12 text-center text-gray-400">
+        <div className="rounded-lg border border-dashed border-gray-300 p-12 text-center text-gray-500">
           Belum ada video.
         </div>
       )}

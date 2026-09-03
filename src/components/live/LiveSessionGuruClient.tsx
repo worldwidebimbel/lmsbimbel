@@ -102,7 +102,7 @@ export default function LiveSessionGuruClient({ classes, initialSessions }: Prop
       {sessions.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 py-16">
           <Video className="mb-3 h-10 w-10 text-gray-300" />
-          <p className="text-sm text-gray-400">Belum ada sesi kelas online. Jadwalkan sekarang!</p>
+          <p className="text-sm text-gray-500">Belum ada sesi kelas online. Jadwalkan sekarang!</p>
         </div>
       )}
 
@@ -126,7 +126,7 @@ export default function LiveSessionGuruClient({ classes, initialSessions }: Prop
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">{editingSession ? "Edit Sesi" : "Jadwalkan Sesi Baru"}</h2>
-              <button onClick={() => setShowForm(false)}><X className="h-5 w-5 text-gray-400 hover:text-gray-600" /></button>
+              <button onClick={() => setShowForm(false)}><X className="h-5 w-5 text-gray-500 hover:text-gray-600" /></button>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -206,16 +206,16 @@ function SessionCard({ session, onEdit, onDelete, deleting, isPast: past }: {
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${status.cls}`}>{status.label}</span>
             <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{session.class.name}</span>
-            <span className="text-xs text-gray-400">{session.platform}</span>
+            <span className="text-xs text-gray-500">{session.platform}</span>
           </div>
           <h3 className="font-semibold text-gray-900">{session.title}</h3>
           {session.description && <p className="mt-1 text-sm text-gray-500 line-clamp-2">{session.description}</p>}
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          <button onClick={() => onEdit(session)} title="Edit" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+          <button onClick={() => onEdit(session)} title="Edit" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-600">
             <Pencil className="h-4 w-4" />
           </button>
-          <button onClick={() => onDelete(session.id)} disabled={deleting === session.id} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
+          <button onClick={() => onDelete(session.id)} disabled={deleting === session.id} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-500">
             {deleting === session.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
           </button>
         </div>

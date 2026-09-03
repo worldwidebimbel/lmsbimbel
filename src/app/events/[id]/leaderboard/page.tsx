@@ -50,7 +50,7 @@ export default function EventLeaderboardPage() {
         <div className="grid grid-cols-3 gap-4">
           {top3.map((entry, idx) => {
             const icon = idx === 0 ? Trophy : idx === 1 ? Medal : Award;
-            const color = idx === 0 ? "text-yellow-500" : idx === 1 ? "text-gray-400" : "text-orange-600";
+            const color = idx === 0 ? "text-yellow-500" : idx === 1 ? "text-gray-500" : "text-orange-600";
             const Icon = icon;
             return (
               <div key={entry.userId} className={`bg-white rounded-xl border p-6 flex flex-col items-center ${idx === 0 ? "border-yellow-400 shadow-lg" : "border-gray-200"}`}>
@@ -71,13 +71,13 @@ export default function EventLeaderboardPage() {
               {rest.map((entry) => (
                 <div key={entry.userId} className="flex items-center justify-between py-2 border-b last:border-0">
                   <div className="flex items-center gap-3">
-                    <span className="text-lg font-bold text-gray-400 w-8">#{entry.rank}</span>
+                    <span className="text-lg font-bold text-gray-500 w-8">#{entry.rank}</span>
                     <span className="font-medium">{entry.userName}</span>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-sm font-medium">{entry.score} pts</span>
                     {entry.duration > 0 && (
-                      <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <span className="text-xs text-gray-500 flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {Math.round(entry.duration / 1000)}s
                       </span>

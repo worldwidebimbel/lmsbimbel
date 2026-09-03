@@ -67,7 +67,7 @@ export default async function TentangPage() {
                   <p className="text-sm text-indigo-600 mb-2">{m.role}</p>
                   {m.bio && <p className="text-xs text-gray-500">{m.bio}</p>}
                   <div className="flex items-center justify-center gap-3 mt-3">
-                    {m.email && <a href={`mailto:${m.email}`} className="text-xs text-gray-400 hover:text-indigo-600">{m.email}</a>}
+                    {m.email && <a href={`mailto:${m.email}`} className="text-xs text-gray-500 hover:text-indigo-600">{m.email}</a>}
                     {m.linkedin && <a href={m.linkedin} target="_blank" className="text-xs text-blue-600 hover:underline">LinkedIn</a>}
                   </div>
                 </div>

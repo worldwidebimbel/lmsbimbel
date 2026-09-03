@@ -163,7 +163,7 @@ export default function InvoiceDetailClient({ invoice, totalPaid }: { invoice: I
           <div>
             <p className="text-gray-500">Siswa</p>
             <p className="font-medium text-gray-900">{invoice.student.name}</p>
-            <p className="text-xs text-gray-400">{invoice.student.email}</p>
+            <p className="text-xs text-gray-500">{invoice.student.email}</p>
           </div>
           <div>
             <p className="text-gray-500">Paket</p>
@@ -357,11 +357,11 @@ export default function InvoiceDetailClient({ invoice, totalPaid }: { invoice: I
               <div key={p.id} className="flex items-center justify-between px-5 py-3">
                 <div>
                   <p className="text-sm font-medium text-gray-900">{formatCurrency(p.amount)}</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-500">
                     {METHOD_LABEL[p.method] ?? p.method} · {p.confirmedAt ? `Dikonfirmasi oleh ${p.user.name}` : "Menunggu konfirmasi"}
                   </p>
                 </div>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-500">
                   {p.confirmedAt ? format(new Date(p.confirmedAt), "d MMM yyyy", { locale: localeId }) : "—"}
                 </p>
               </div>

@@ -47,7 +47,7 @@ export default async function OrangTuaRaportPage() {
       {raports.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-16">
           <FileText className="mb-3 h-10 w-10 text-gray-300" />
-          <p className="text-sm text-gray-400">Belum ada raport yang dipublikasi.</p>
+          <p className="text-sm text-gray-500">Belum ada raport yang dipublikasi.</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
@@ -81,7 +81,7 @@ export default async function OrangTuaRaportPage() {
               )}
 
               <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
-                <span className="text-xs text-gray-400">Tutor: {r.class.teacher.name}</span>
+                <span className="text-xs text-gray-500">Tutor: {r.class.teacher.name}</span>
                 <a
                   href={`/api/raport/${r.id}/pdf`}
                   className="ml-auto flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100"

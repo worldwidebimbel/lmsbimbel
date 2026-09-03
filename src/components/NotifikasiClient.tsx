@@ -92,7 +92,7 @@ export default function NotifikasiClient({ initialNotifications }: { initialNoti
       {displayed.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-16">
           <Bell className="h-12 w-12 text-gray-300 mb-3" />
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-500">
             {filter === "unread" ? "Semua notifikasi sudah dibaca" : "Belum ada notifikasi"}
           </p>
         </div>
@@ -117,7 +117,7 @@ export default function NotifikasiClient({ initialNotifications }: { initialNoti
                     {!n.isRead && <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" />}
                   </div>
                   <p className="mt-0.5 text-sm text-gray-500 whitespace-pre-line">{n.content}</p>
-                  <p className="mt-1.5 text-xs text-gray-400">
+                  <p className="mt-1.5 text-xs text-gray-500">
                     {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: localeId })}
                   </p>
                   {n.link && (

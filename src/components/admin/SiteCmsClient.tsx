@@ -310,13 +310,13 @@ export default function SiteCmsClient({
                     placeholder="https://cdn.contoh.com/logo.png"
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                   />
-                  <p className="mt-1 text-xs text-gray-400">Format PNG/SVG transparan direkomendasikan. Tinggi otomatis 36px.</p>
+                  <p className="mt-1 text-xs text-gray-500">Format PNG/SVG transparan direkomendasikan. Tinggi otomatis 36px.</p>
                 </div>
                 <div className="flex items-center justify-center h-16 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50">
                   {cfg.logoUrl ? (
                     <img src={cfg.logoUrl} alt="Logo preview" className="h-10 w-auto max-w-[180px] object-contain" />
                   ) : (
-                    <span className="text-xs text-gray-400">Preview logo akan muncul di sini</span>
+                    <span className="text-xs text-gray-500">Preview logo akan muncul di sini</span>
                   )}
                 </div>
               </div>
@@ -331,7 +331,7 @@ export default function SiteCmsClient({
                     placeholder="https://cdn.contoh.com/favicon.ico"
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                   />
-                  <p className="mt-1 text-xs text-gray-400">Format ICO, PNG 32×32, atau SVG. Tampil di tab browser.</p>
+                  <p className="mt-1 text-xs text-gray-500">Format ICO, PNG 32×32, atau SVG. Tampil di tab browser.</p>
                 </div>
                 <div className="flex items-center gap-3 h-16 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 px-4">
                   {cfg.faviconUrl ? (
@@ -340,7 +340,7 @@ export default function SiteCmsClient({
                       <span className="text-xs text-gray-500">Akan tampil sebagai ikon tab browser setelah disimpan &amp; build ulang</span>
                     </>
                   ) : (
-                    <span className="text-xs text-gray-400">Preview favicon akan muncul di sini</span>
+                    <span className="text-xs text-gray-500">Preview favicon akan muncul di sini</span>
                   )}
                 </div>
               </div>
@@ -401,13 +401,13 @@ export default function SiteCmsClient({
           </div>
 
           <div className="space-y-3">
-            {banners.length === 0 && <p className="text-center py-8 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-xl">Belum ada banner.</p>}
+            {banners.length === 0 && <p className="text-center py-8 text-gray-500 text-sm border-2 border-dashed border-gray-200 rounded-xl">Belum ada banner.</p>}
             {banners.map((b) => (
               <div key={b.id} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
                 {b.imageUrl ? (
                   <img src={b.imageUrl} alt={b.title} className="w-20 h-12 object-cover rounded-lg shrink-0" />
                 ) : (
-                  <div className="w-20 h-12 bg-gray-100 rounded-lg shrink-0 flex items-center justify-center text-gray-400 text-xs">No img</div>
+                  <div className="w-20 h-12 bg-gray-100 rounded-lg shrink-0 flex items-center justify-center text-gray-500 text-xs">No img</div>
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 truncate">{b.title}</p>
@@ -415,8 +415,8 @@ export default function SiteCmsClient({
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${b.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{b.isActive ? "Aktif" : "Nonaktif"}</span>
-                  <button onClick={() => toggleBanner(b)} title={b.isActive ? "Sembunyikan" : "Tampilkan"} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{b.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
-                  <button onClick={() => deleteBanner(b.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                  <button onClick={() => toggleBanner(b)} title={b.isActive ? "Sembunyikan" : "Tampilkan"} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg">{b.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                  <button onClick={() => deleteBanner(b.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-500 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
             ))}
@@ -451,14 +451,14 @@ export default function SiteCmsClient({
                 </div>
                 <div className="p-2">
                   <p className="text-xs font-medium text-gray-900 truncate">{g.title}</p>
-                  <span className="text-xs text-gray-400">{g.category}</span>
+                  <span className="text-xs text-gray-500">{g.category}</span>
                 </div>
                 <button onClick={() => deleteGallery(g.id)} className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                   <Trash2 className="w-3 h-3" />
                 </button>
               </div>
             ))}
-            {gallery.length === 0 && <div className="col-span-4 text-center py-10 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-xl">Belum ada foto gallery.</div>}
+            {gallery.length === 0 && <div className="col-span-4 text-center py-10 text-gray-500 text-sm border-2 border-dashed border-gray-200 rounded-xl">Belum ada foto gallery.</div>}
           </div>
         </div>
       )}
@@ -498,7 +498,7 @@ export default function SiteCmsClient({
           </div>
 
           <div className="space-y-3">
-            {programs.length === 0 && <p className="text-center py-8 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-xl">Belum ada program.</p>}
+            {programs.length === 0 && <p className="text-center py-8 text-gray-500 text-sm border-2 border-dashed border-gray-200 rounded-xl">Belum ada program.</p>}
             {programs.map((p) => (
               <div key={p.id} className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -525,8 +525,8 @@ export default function SiteCmsClient({
                 <div className="flex items-center justify-between">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${p.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{p.isActive ? "Aktif" : "Nonaktif"}</span>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => toggleProgram(p)} title={p.isActive ? "Sembunyikan" : "Tampilkan"} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{p.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
-                    <button onClick={() => deleteProgram(p.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => toggleProgram(p)} title={p.isActive ? "Sembunyikan" : "Tampilkan"} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg">{p.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                    <button onClick={() => deleteProgram(p.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-500 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>
@@ -552,7 +552,7 @@ export default function SiteCmsClient({
           </div>
 
           <div className="space-y-3">
-            {testimonials.length === 0 && <p className="text-center py-8 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-xl">Belum ada testimoni.</p>}
+            {testimonials.length === 0 && <p className="text-center py-8 text-gray-500 text-sm border-2 border-dashed border-gray-200 rounded-xl">Belum ada testimoni.</p>}
             {testimonials.map((t) => (
               <div key={t.id} className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -565,8 +565,8 @@ export default function SiteCmsClient({
                 <div className="flex items-center justify-between">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${t.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{t.isActive ? "Aktif" : "Nonaktif"}</span>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => toggleTestimonial(t)} title={t.isActive ? "Sembunyikan" : "Tampilkan"} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{t.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
-                    <button onClick={() => deleteTestimonial(t.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => toggleTestimonial(t)} title={t.isActive ? "Sembunyikan" : "Tampilkan"} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg">{t.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                    <button onClick={() => deleteTestimonial(t.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-500 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>
@@ -599,7 +599,7 @@ export default function SiteCmsClient({
           </div>
 
           <div className="space-y-3">
-            {blogPosts.length === 0 && <p className="text-center py-8 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-xl">Belum ada artikel.</p>}
+            {blogPosts.length === 0 && <p className="text-center py-8 text-gray-500 text-sm border-2 border-dashed border-gray-200 rounded-xl">Belum ada artikel.</p>}
             {blogPosts.map((b) => (
               <div key={b.id} className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -614,8 +614,8 @@ export default function SiteCmsClient({
                 <div className="flex items-center justify-between">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${b.isPublished ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{b.isPublished ? "Publik" : "Draft"}</span>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => toggleBlogPost(b)} title={b.isPublished ? "Sembunyikan" : "Tampilkan"} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{b.isPublished ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
-                    <button onClick={() => deleteBlogPost(b.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => toggleBlogPost(b)} title={b.isPublished ? "Sembunyikan" : "Tampilkan"} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg">{b.isPublished ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                    <button onClick={() => deleteBlogPost(b.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-500 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>
@@ -652,7 +652,7 @@ export default function SiteCmsClient({
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="font-semibold text-gray-900">Pendaftaran Masuk ({inquiries.length})</h2>
-            <span className="text-xs text-gray-400">50 terbaru</span>
+            <span className="text-xs text-gray-500">50 terbaru</span>
           </div>
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -665,13 +665,13 @@ export default function SiteCmsClient({
               </tr>
             </thead>
             <tbody>
-              {inquiries.length === 0 && <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">Belum ada pendaftaran</td></tr>}
+              {inquiries.length === 0 && <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-500">Belum ada pendaftaran</td></tr>}
               {inquiries.map((i) => (
                 <tr key={i.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50">
                   <td className="px-4 py-3 font-medium text-gray-900">{i.name}</td>
                   <td className="px-4 py-3 text-gray-600">
                     <div>{i.phone}</div>
-                    {i.email && <div className="text-xs text-gray-400">{i.email}</div>}
+                    {i.email && <div className="text-xs text-gray-500">{i.email}</div>}
                   </td>
                   <td className="px-4 py-3 text-gray-600">{i.program || "—"}</td>
                   <td className="px-4 py-3">
@@ -683,7 +683,7 @@ export default function SiteCmsClient({
                       {Object.entries(INQ_STATUS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                     </select>
                   </td>
-                  <td className="px-4 py-3 text-gray-400 text-xs">{new Date(i.createdAt).toLocaleDateString("id-ID")}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{new Date(i.createdAt).toLocaleDateString("id-ID")}</td>
                 </tr>
               ))}
             </tbody>

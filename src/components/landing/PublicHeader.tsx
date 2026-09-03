@@ -128,7 +128,7 @@ export default function PublicHeader({ config: cfg, menus, socialLinks }: Props)
                 <Mail className="h-4 w-4 text-blue-950" />
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-medium uppercase text-gray-400">Email</span>
+                <span className="text-[10px] font-medium uppercase text-gray-500">Email</span>
                 <span className="text-xs font-semibold text-gray-700">{cfg.email}</span>
               </div>
             </div>
@@ -139,7 +139,7 @@ export default function PublicHeader({ config: cfg, menus, socialLinks }: Props)
                 <Phone className="h-4 w-4 text-blue-950" />
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-medium uppercase text-gray-400">Call Center</span>
+                <span className="text-[10px] font-medium uppercase text-gray-500">Call Center</span>
                 <span className="text-xs font-semibold text-gray-700">{cfg.phone}</span>
               </div>
             </div>

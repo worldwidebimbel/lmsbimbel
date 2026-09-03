@@ -66,7 +66,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
               {displayPrice > 0 ? `Rp ${displayPrice.toLocaleString("id-ID")}` : "Gratis"}
             </p>
             {hasPromo && (
-              <p className="text-xs text-gray-400 line-through">Rp {program.price.toLocaleString("id-ID")}</p>
+              <p className="text-xs text-gray-500 line-through">Rp {program.price.toLocaleString("id-ID")}</p>
             )}
           </div>
         </div>
@@ -109,7 +109,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {program.branches.map((b) => (
                 <div key={b.id} className="flex items-start gap-2 rounded-lg border border-gray-200 p-3">
-                  <MapPin className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" />
+                  <MapPin className="h-4 w-4 text-gray-500 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-gray-900">{b.name}</p>
                     {b.address && <p className="text-xs text-gray-500">{b.address}</p>}

@@ -69,7 +69,7 @@ export default function ToeflExamEditor({ examId }: { examId: string }) {
 
       {loading ? (
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+          <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
         </div>
       ) : (
         <div className="space-y-3">
@@ -80,7 +80,7 @@ export default function ToeflExamEditor({ examId }: { examId: string }) {
                 <Layers className="h-4 w-4 text-blue-600" />
                 <span className="font-medium text-sm text-gray-800">{s.name}</span>
                 <span className="text-xs text-gray-500">{s.duration} menit</span>
-                <span className="ml-auto text-xs text-gray-400">{s.questions.length} soal</span>
+                <span className="ml-auto text-xs text-gray-500">{s.questions.length} soal</span>
                 <button onClick={() => handleDelete(s.id, "SECTION")} className="rounded p-1 hover:bg-red-100">
                   <Trash2 className="h-3.5 w-3.5 text-red-500" />
                 </button>
@@ -96,7 +96,7 @@ export default function ToeflExamEditor({ examId }: { examId: string }) {
                 <span className="font-medium text-sm text-gray-800">{g.title ?? `Group ${g.type}`}</span>
                 <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-700">{g.type}</span>
                 {g.maxPlayCount && <span className="text-xs text-gray-500">max {g.maxPlayCount}x putar</span>}
-                <span className="ml-auto text-xs text-gray-400">{g.questions.length} soal</span>
+                <span className="ml-auto text-xs text-gray-500">{g.questions.length} soal</span>
                 <button onClick={() => handleDelete(g.id, "GROUP")} className="rounded p-1 hover:bg-red-100">
                   <Trash2 className="h-3.5 w-3.5 text-red-500" />
                 </button>
@@ -112,7 +112,7 @@ export default function ToeflExamEditor({ examId }: { examId: string }) {
 
           {sections.length === 0 && groups.length === 0 && (
             <div className="rounded-xl border-2 border-dashed border-gray-200 py-8 text-center">
-              <p className="text-sm text-gray-400">Belum ada section atau group. Tambahkan untuk ujian TOEFL.</p>
+              <p className="text-sm text-gray-500">Belum ada section atau group. Tambahkan untuk ujian TOEFL.</p>
             </div>
           )}
         </div>

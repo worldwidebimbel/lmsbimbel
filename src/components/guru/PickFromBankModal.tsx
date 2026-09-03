@@ -124,7 +124,7 @@ export default function PickFromBankModal({
         {/* Filters */}
         <div className="flex flex-wrap gap-2 border-b border-gray-100 p-4">
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -152,11 +152,11 @@ export default function PickFromBankModal({
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
             </div>
           ) : filtered.length === 0 ? (
             <div className="py-12 text-center">
-              <p className="text-sm text-gray-400">Tidak ada soal di bank soal.</p>
+              <p className="text-sm text-gray-500">Tidak ada soal di bank soal.</p>
             </div>
           ) : (
             filtered.map((q) => (
@@ -176,7 +176,7 @@ export default function PickFromBankModal({
                   <div className="flex items-center gap-2 mb-1">
                     <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">{TYPE_LABELS[q.type] ?? q.type}</span>
                     {q.subject && <span className="text-xs text-gray-500">{q.subject.name}</span>}
-                    <span className="text-xs text-gray-400">{DIFF_LABELS[q.difficulty] ?? ""}</span>
+                    <span className="text-xs text-gray-500">{DIFF_LABELS[q.difficulty] ?? ""}</span>
                   </div>
                   <p className="text-sm text-gray-800 line-clamp-2">{q.content}</p>
                 </div>

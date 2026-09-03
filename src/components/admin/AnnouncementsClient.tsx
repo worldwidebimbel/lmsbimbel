@@ -121,7 +121,7 @@ export default function AnnouncementsClient({ branches, isSuperAdmin, defaultBra
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">Kirim ke</label>
             <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5">
-              <Users className="h-4 w-4 text-gray-400 shrink-0" />
+              <Users className="h-4 w-4 text-gray-500 shrink-0" />
               <select
                 value={form.targetRole}
                 onChange={(e) => update("targetRole", e.target.value)}
@@ -134,7 +134,7 @@ export default function AnnouncementsClient({ branches, isSuperAdmin, defaultBra
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Link Terkait <span className="text-gray-400">(opsional)</span></label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">Link Terkait <span className="text-gray-500">(opsional)</span></label>
           <input
             type="url"
             value={form.link}
@@ -180,7 +180,7 @@ export default function AnnouncementsClient({ branches, isSuperAdmin, defaultBra
 
       <div className="rounded-xl border border-gray-200 bg-white p-5">
         <div className="flex items-center gap-2 mb-3">
-          <Megaphone className="h-4 w-4 text-gray-400" />
+          <Megaphone className="h-4 w-4 text-gray-500" />
           <h3 className="font-semibold text-gray-900 text-sm">Tips Penggunaan</h3>
         </div>
         <ul className="space-y-1.5 text-sm text-gray-500">

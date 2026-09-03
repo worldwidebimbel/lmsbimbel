@@ -368,7 +368,7 @@
     <br><br>
     Referensi nomor bagian (mis. <code>2.7</code>) mengacu ke <code>build-roadmap-checklist.md</code>.
     <br><br>
-    <strong>Dibuat:</strong> 9 Agustus 2026 · <strong>Revisi:</strong> 03 September 2026 · <strong>Asumsi:</strong> Tim fleksibel, banyak jalur paralel, 5 hari kerja/minggu
+    <strong>Dibuat:</strong> 9 Agustus 2026 · <strong>Revisi:</strong> 04 September 2026 · <strong>Asumsi:</strong> Tim fleksibel, banyak jalur paralel, 5 hari kerja/minggu
   </div>
 
   <!-- Progress Table -->
@@ -393,8 +393,8 @@
       <tr><td>6</td><td>Sertifikat, Payment, Export</td><td style="text-align:center">33</td><td style="text-align:center">30</td><td style="text-align:center">3</td><td style="text-align:center"><span class="badge badge-green">✅ 30/33</span></td></tr>
       <tr><td>7</td><td>Website, Automation, Security, Homepage</td><td style="text-align:center">77</td><td style="text-align:center">33</td><td style="text-align:center">44</td><td style="text-align:center"><span class="badge badge-yellow">🔄 33/77</span></td></tr>
       <tr><td>8</td><td>Jurnal Mengajar, Raport, Absensi Tutor & Halaman Belajar Materi</td><td style="text-align:center">40</td><td style="text-align:center">31</td><td style="text-align:center">9</td><td style="text-align:center"><span class="badge badge-green">🔄 31/40</span></td></tr>
-      <tr><td>9</td><td>Optimasi & Mobile Friendly</td><td style="text-align:center">20</td><td style="text-align:center">0</td><td style="text-align:center">20</td><td style="text-align:center"><span class="badge badge-red">⬜ 0/20</span></td></tr>
-      <tr><td colspan="2"><strong>Total</strong></td><td style="text-align:center"><strong>335</strong></td><td style="text-align:center"><strong>252</strong></td><td style="text-align:center"><strong>83</strong></td><td style="text-align:center"><span class="badge badge-blue">75% selesai</span></td></tr>
+      <tr><td>9</td><td>Optimasi & Mobile Friendly</td><td style="text-align:center">20</td><td style="text-align:center">3</td><td style="text-align:center">17</td><td style="text-align:center"><span class="badge badge-yellow">🔄 3/20</span></td></tr>
+      <tr><td colspan="2"><strong>Total</strong></td><td style="text-align:center"><strong>335</strong></td><td style="text-align:center"><strong>255</strong></td><td style="text-align:center"><strong>80</strong></td><td style="text-align:center"><span class="badge badge-blue">76% selesai</span></td></tr>
     </tbody>
   </table>
 
@@ -924,9 +924,9 @@
         <li class="done"><span class="ref">9.3</span> Loading states: skeleton screens untuk semua tabel & card — komponen <code>Skeleton</code>/<code>PageSkeleton</code> + <code>loading.tsx</code> di semua portal & halaman publik</li>
         <li class="done"><span class="ref">9.3</span> Empty states: ilustrasi/pesan untuk semua halaman kosong — terverifikasi 108 file punya guard + pesan</li>
         <li class="done"><span class="ref">9.3</span> Error states: consistent error boundary + pesan error user-friendly — <code>error.tsx</code> + <code>global-error.tsx</code></li>
-        <li><span class="ref">9.3</span> Konsistensi spacing & typography: audit semua halaman, sistem spacing Tailwind konsisten</li>
-        <li><span class="ref">9.3</span> Accessibility: ARIA labels di semua interactive elements, keyboard navigation, contrast ≥4.5:1</li>
-        <li><span class="ref">9.3</span> Dark mode (opsional): toggle theme di settings, <code>prefers-color-scheme</code> + manual toggle</li>
+        <li class="done"><span class="ref">9.3</span> Konsistensi spacing & typography: audit semua halaman, sistem spacing Tailwind konsisten — layout <code>notifikasi</code> & <code>profile</code> dinormalisasi ke pola portal standar (<code>ml-0 md:ml-64</code>, <code>p-4 sm:p-6</code>)</li>
+        <li class="done"><span class="ref">9.3</span> Accessibility: ARIA labels di semua interactive elements, keyboard navigation, contrast ≥4.5:1 — accessible name semua tombol ikon-only (10+ komponen); codemod kontras <code>text-gray-400→500</code>, <code>text-red-400→500</code> (137 file); jaring pengaman <code>:focus-visible</code> global</li>
+        <li class="done"><span class="ref">9.3</span> Dark mode (opsional): toggle theme di settings, <code>prefers-color-scheme</code> + manual toggle — <code>next-themes</code> (class strategy) via <code>ThemeProviders</code>; kartu "Tema Tampilan" (Terang/Gelap/Sistem) di admin/settings; override token warna terpusat di <code>globals.css</code></li>
       </ul>
     </div>
 

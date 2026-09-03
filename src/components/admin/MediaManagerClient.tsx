@@ -25,7 +25,7 @@ function fileIcon(mimeType: string | null, resourceType: string) {
     return <ImageIcon className="w-5 h-5 text-blue-500" />;
   if (mimeType === "application/pdf")
     return <FileText className="w-5 h-5 text-red-500" />;
-  return <File className="w-5 h-5 text-gray-400" />;
+  return <File className="w-5 h-5 text-gray-500" />;
 }
 
 function formatSize(bytes: number | null) {
@@ -183,7 +183,7 @@ export default function MediaManagerClient({
           <div className="flex flex-col items-center gap-2">
             <FolderOpen className="w-8 h-8 text-gray-300" />
             <p className="text-sm text-gray-500">Drag & drop file ke sini, atau <button className="text-indigo-600 underline" onClick={() => fileInputRef.current?.click()}>pilih file</button></p>
-            <p className="text-xs text-gray-400">Gambar (maks 20MB), PDF/DOC/PPT/XLS (maks 50MB)</p>
+            <p className="text-xs text-gray-500">Gambar (maks 20MB), PDF/DOC/PPT/XLS (maks 50MB)</p>
           </div>
         )}
       </div>
@@ -191,7 +191,7 @@ export default function MediaManagerClient({
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input
             type="text"
             placeholder="Cari nama file..."
@@ -219,7 +219,7 @@ export default function MediaManagerClient({
             <List className="w-4 h-4" />
           </button>
         </div>
-        {isPending && <Loader2 className="w-4 h-4 animate-spin text-gray-400" />}
+        {isPending && <Loader2 className="w-4 h-4 animate-spin text-gray-500" />}
       </div>
 
       {/* Grid View */}
@@ -237,7 +237,7 @@ export default function MediaManagerClient({
                 ) : (
                   <div className="flex flex-col items-center gap-1 p-3">
                     {fileIcon(f.mimeType, f.resourceType)}
-                    <span className="text-[10px] text-gray-400 text-center break-all leading-tight">
+                    <span className="text-[10px] text-gray-500 text-center break-all leading-tight">
                       {f.mimeType?.split("/")[1]?.toUpperCase() ?? "FILE"}
                     </span>
                   </div>
@@ -245,7 +245,7 @@ export default function MediaManagerClient({
               </div>
               <div className="p-2">
                 <p className="text-xs text-gray-700 truncate font-medium" title={f.name}>{f.name}</p>
-                <p className="text-[10px] text-gray-400">{formatSize(f.size)}</p>
+                <p className="text-[10px] text-gray-500">{formatSize(f.size)}</p>
               </div>
               {/* Hover actions */}
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2"
@@ -266,7 +266,7 @@ export default function MediaManagerClient({
             </div>
           ))}
           {files.length === 0 && (
-            <div className="col-span-6 text-center py-16 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-xl">
+            <div className="col-span-6 text-center py-16 text-gray-500 text-sm border-2 border-dashed border-gray-200 rounded-xl">
               Belum ada file media.
             </div>
           )}
@@ -301,7 +301,7 @@ export default function MediaManagerClient({
                       )}
                       <div className="min-w-0">
                         <p className="font-medium text-gray-800 truncate max-w-[200px]">{f.name}</p>
-                        <p className="text-xs text-gray-400 truncate max-w-[200px]">{f.url}</p>
+                        <p className="text-xs text-gray-500 truncate max-w-[200px]">{f.url}</p>
                       </div>
                     </div>
                   </td>
@@ -312,15 +312,15 @@ export default function MediaManagerClient({
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       <button onClick={() => copyUrl(f)} title="Salin URL"
-                        className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100">
+                        className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100">
                         {copiedId === f.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                       </button>
                       <a href={f.url} target="_blank" rel="noreferrer" title="Buka di tab baru"
-                        className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100">
+                        className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100">
                         <ExternalLink className="w-4 h-4" />
                       </a>
                       <button onClick={() => deleteFile(f.id)} disabled={deleting === f.id} title="Hapus"
-                        className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-50">
+                        className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-50 disabled:opacity-50">
                         {deleting === f.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                       </button>
                     </div>
@@ -328,7 +328,7 @@ export default function MediaManagerClient({
                 </tr>
               ))}
               {files.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">Belum ada file media.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-500">Belum ada file media.</td></tr>
               )}
             </tbody>
           </table>
@@ -369,23 +369,23 @@ export default function MediaManagerClient({
                   {fileIcon(preview.mimeType, preview.resourceType)}
                   <div>
                     <p className="font-medium text-gray-800">{preview.name}</p>
-                    <p className="text-sm text-gray-400">{preview.mimeType} · {formatSize(preview.size)}</p>
+                    <p className="text-sm text-gray-500">{preview.mimeType} · {formatSize(preview.size)}</p>
                   </div>
                 </div>
               )}
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
-                  <span className="text-gray-400 shrink-0">URL:</span>
+                  <span className="text-gray-500 shrink-0">URL:</span>
                   <span className="text-gray-700 text-xs truncate flex-1">{preview.url}</span>
                   <button onClick={() => copyUrl(preview)} className="shrink-0 p-1 rounded hover:bg-gray-200">
                     {copiedId === preview.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-gray-500" />}
                   </button>
                 </div>
                 <div className="grid grid-cols-3 gap-3 text-xs text-gray-500">
-                  <div><span className="text-gray-400">Ukuran:</span> {formatSize(preview.size)}</div>
-                  <div><span className="text-gray-400">Folder:</span> {preview.folder}</div>
-                  <div><span className="text-gray-400">Upload:</span> {formatDate(preview.createdAt)}</div>
-                  <div className="col-span-2"><span className="text-gray-400">Oleh:</span> {preview.uploadedBy.name} ({preview.uploadedBy.role})</div>
+                  <div><span className="text-gray-500">Ukuran:</span> {formatSize(preview.size)}</div>
+                  <div><span className="text-gray-500">Folder:</span> {preview.folder}</div>
+                  <div><span className="text-gray-500">Upload:</span> {formatDate(preview.createdAt)}</div>
+                  <div className="col-span-2"><span className="text-gray-500">Oleh:</span> {preview.uploadedBy.name} ({preview.uploadedBy.role})</div>
                 </div>
               </div>
               <div className="flex gap-2 pt-1">

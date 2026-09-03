@@ -192,7 +192,7 @@ export default function TeacherPayrollClient({ teachers, payrolls: initial }: { 
           <h2 className="font-semibold text-gray-900">Riwayat Payroll</h2>
         </div>
         {payrolls.length === 0 ? (
-          <div className="py-12 text-center text-sm text-gray-400">Belum ada data payroll</div>
+          <div className="py-12 text-center text-sm text-gray-500">Belum ada data payroll</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

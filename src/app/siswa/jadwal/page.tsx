@@ -87,7 +87,7 @@ export default async function SiswaJadwalPage() {
       {activeDays.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-20">
           <CalendarDays className="h-12 w-12 text-gray-300 mb-3" />
-          <p className="text-sm text-gray-400">Belum ada jadwal terdaftar</p>
+          <p className="text-sm text-gray-500">Belum ada jadwal terdaftar</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -97,7 +97,7 @@ export default async function SiswaJadwalPage() {
                 <span className={`rounded-full px-3 py-1 text-xs font-bold ${DAY_BADGE[day] ?? "bg-gray-100 text-gray-600"}`}>
                   {DAY_LABEL[day]}
                 </span>
-                <span className="text-xs text-gray-400">{byDay[day].length} sesi</span>
+                <span className="text-xs text-gray-500">{byDay[day].length} sesi</span>
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 {byDay[day].sort((a, b) => a.startTime.localeCompare(b.startTime)).map((s, i) => (
@@ -106,9 +106,9 @@ export default async function SiswaJadwalPage() {
                     <div className="min-w-0">
                       <p className="font-semibold text-gray-900 text-sm">{s.subjectName}</p>
                       <p className="text-xs text-gray-500">{s.className}</p>
-                      <p className="text-xs text-gray-400 mt-1">{s.startTime} – {s.endTime}</p>
-                      <p className="text-xs text-gray-400">{s.teacherName}</p>
-                      {s.room && <p className="text-xs text-gray-400">📍 {s.room}</p>}
+                      <p className="text-xs text-gray-500 mt-1">{s.startTime} – {s.endTime}</p>
+                      <p className="text-xs text-gray-500">{s.teacherName}</p>
+                      {s.room && <p className="text-xs text-gray-500">📍 {s.room}</p>}
                     </div>
                   </div>
                 ))}

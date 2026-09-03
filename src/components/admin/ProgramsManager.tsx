@@ -278,7 +278,7 @@ function ProgramForm({
           <h2 className="text-lg font-bold text-gray-900">
             {editing ? "Edit Program" : "Tambah Program"}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>
         </div>

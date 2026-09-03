@@ -96,7 +96,7 @@ export default function NewInvoiceClient({ students, plans, branches, defaultBra
       )}
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">Paket Pembayaran <span className="text-gray-400">(opsional)</span></label>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700">Paket Pembayaran <span className="text-gray-500">(opsional)</span></label>
         <select
           value={form.planId}
           onChange={(e) => onPlanChange(e.target.value)}

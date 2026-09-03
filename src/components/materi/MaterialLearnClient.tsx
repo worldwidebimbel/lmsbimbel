@@ -94,7 +94,7 @@ export default function MaterialLearnClient({
             ) : fileUrl ? (
               <video src={fileUrl} controls className="aspect-video w-full bg-black" />
             ) : (
-              <div className="flex aspect-video w-full items-center justify-center text-sm text-gray-400">
+              <div className="flex aspect-video w-full items-center justify-center text-sm text-gray-500">
                 Video belum tersedia
               </div>
             )}
@@ -115,7 +115,7 @@ export default function MaterialLearnClient({
       {isArticle && (
         <div className="rounded-xl border border-gray-200 bg-white p-6">
           {content ? <ArticleRenderer content={content} /> : (
-            <p className="text-sm text-gray-400">Konten artikel belum tersedia.</p>
+            <p className="text-sm text-gray-500">Konten artikel belum tersedia.</p>
           )}
         </div>
       )}
@@ -132,13 +132,13 @@ export default function MaterialLearnClient({
                 title={fileName ?? "Materi Presentasi"}
               />
             ) : (
-              <div className="flex h-[400px] w-full items-center justify-center text-sm text-gray-400">
+              <div className="flex h-[400px] w-full items-center justify-center text-sm text-gray-500">
                 Slide belum tersedia
               </div>
             )}
           </div>
           {fileUrl && (
-            <div className="flex items-center justify-between text-xs text-gray-400">
+            <div className="flex items-center justify-between text-xs text-gray-500">
               <span className="truncate">{fileName ?? "Materi Presentasi.pptx"}{slideCount ? ` · ${slideCount} slide` : ""}</span>
               <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-blue-600">
                 <ExternalLink className="h-3.5 w-3.5" /> Buka di tab baru

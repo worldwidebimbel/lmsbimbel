@@ -82,7 +82,7 @@ export default function ScheduleManagerClient({
       {schedules.length === 0 && !showForm ? (
         <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-14">
           <CalendarDays className="h-10 w-10 text-gray-300 mb-2" />
-          <p className="text-sm text-gray-400">Belum ada jadwal. Tambahkan jadwal pertama.</p>
+          <p className="text-sm text-gray-500">Belum ada jadwal. Tambahkan jadwal pertama.</p>
         </div>
       ) : (
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
@@ -95,7 +95,7 @@ export default function ScheduleManagerClient({
                       {DAY_LABEL[s.dayOfWeek]}
                     </span>
                     <span className="text-sm font-medium text-gray-900">{s.startTime} – {s.endTime}</span>
-                    {s.roomRel && <span className="text-xs text-gray-400">📍 {s.roomRel.name}</span>}
+                    {s.roomRel && <span className="text-xs text-gray-500">📍 {s.roomRel.name}</span>}
                   </div>
                   <button onClick={() => handleDelete(s.id)}
                     title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors">

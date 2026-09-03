@@ -173,7 +173,7 @@ export function PpdbDetail({ registration }: { registration: Registration }) {
               {registration.documents.map((doc) => (
                 <div key={doc.id} className="flex items-center justify-between border border-gray-100 rounded-lg p-3">
                   <div className="flex items-center gap-3">
-                    <FileText className="w-4 h-4 text-gray-400" />
+                    <FileText className="w-4 h-4 text-gray-500" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">{doc.documentType.name}</p>
                       {doc.note && <p className="text-xs text-gray-500">{doc.note}</p>}
@@ -224,13 +224,13 @@ export function PpdbDetail({ registration }: { registration: Registration }) {
                     <span className="font-medium text-gray-900">
                       {log.fromStatus ? STATUS_LABELS[log.fromStatus as keyof typeof STATUS_LABELS] : "Baru"}
                     </span>
-                    <ArrowRight className="w-3 h-3 text-gray-400" />
+                    <ArrowRight className="w-3 h-3 text-gray-500" />
                     <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[log.toStatus as keyof typeof STATUS_COLORS]}`}>
                       {STATUS_LABELS[log.toStatus as keyof typeof STATUS_LABELS]}
                     </span>
                   </div>
                   {log.note && <p className="text-xs text-gray-500 mt-0.5">{log.note}</p>}
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-gray-500 mt-0.5">
                     {new Date(log.createdAt).toLocaleString("id-ID")}
                   </p>
                 </div>
@@ -340,7 +340,7 @@ function InfoRow({
       <p className="text-xs text-gray-500">{label}</p>
       <p className="text-sm text-gray-900 flex items-center gap-1">
         {icon}
-        {value || <span className="text-gray-400">—</span>}
+        {value || <span className="text-gray-500">—</span>}
       </p>
     </div>
   );

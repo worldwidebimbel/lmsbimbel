@@ -76,7 +76,7 @@ export function AffiliateManager({ affiliates, programs }: { affiliates: Affilia
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -137,7 +137,7 @@ export function AffiliateManager({ affiliates, programs }: { affiliates: Affilia
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
                       <code className="text-xs font-mono bg-gray-100 px-1.5 py-0.5 rounded">{a.code}</code>
-                      <button onClick={() => { navigator.clipboard.writeText(a.code); }} className="text-gray-400 hover:text-gray-600">
+                      <button onClick={() => { navigator.clipboard.writeText(a.code); }} className="text-gray-500 hover:text-gray-600">
                         <Copy className="w-3 h-3" />
                       </button>
                     </div>

@@ -163,7 +163,7 @@ export default function TeacherAttendanceClient({ teachers, records: initial }: 
           <h2 className="font-semibold text-gray-900">Riwayat Absensi</h2>
         </div>
         {records.length === 0 ? (
-          <div className="py-12 text-center text-sm text-gray-400">Belum ada data absensi</div>
+          <div className="py-12 text-center text-sm text-gray-500">Belum ada data absensi</div>
         ) : (
           <div className="divide-y divide-gray-100">
             {records.map((r) => (
@@ -171,15 +171,15 @@ export default function TeacherAttendanceClient({ teachers, records: initial }: 
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900">{r.teacher.name}</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-gray-500">
                       {new Date(r.date).toLocaleDateString("id-ID")}
                     </span>
                     {r.checkIn && (
-                      <span className="text-xs text-gray-400 flex items-center gap-0.5">
+                      <span className="text-xs text-gray-500 flex items-center gap-0.5">
                         <Clock className="h-3 w-3" /> {new Date(r.checkIn).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     )}
-                    {r.class && <span className="text-xs text-gray-400">· {r.class.name}</span>}
+                    {r.class && <span className="text-xs text-gray-500">· {r.class.name}</span>}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -195,7 +195,7 @@ export default function TeacherAttendanceClient({ teachers, records: initial }: 
                     <button
                       onClick={() => handleVerify(r.id)}
                       disabled={isPending}
-                      className="rounded-lg p-1 text-gray-400 hover:bg-indigo-50 hover:text-indigo-600 disabled:opacity-50"
+                      className="rounded-lg p-1 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 disabled:opacity-50"
                       title="Verifikasi absensi"
                     >
                       <CheckCircle className="h-4 w-4" />

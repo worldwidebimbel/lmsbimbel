@@ -182,7 +182,7 @@ export function MaterialUploadModal({ classes, subjects, editData, onClose, onSa
                 {form.type === "YOUTUBE" ? (
                   <Youtube className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-red-500" />
                 ) : (
-                  <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 )}
                 <input
                   value={form.fileUrl}
@@ -201,7 +201,7 @@ export function MaterialUploadModal({ classes, subjects, editData, onClose, onSa
                 <>
                   <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                   <p className="text-sm text-gray-500">Upload file {form.type}</p>
-                  <p className="text-xs text-gray-400 mt-1">PDF, PPT, DOC, DOCX (maks 50MB)</p>
+                  <p className="text-xs text-gray-500 mt-1">PDF, PPT, DOC, DOCX (maks 50MB)</p>
                 </>
               )}
               {file && !form.fileUrl && (
@@ -273,7 +273,7 @@ export function MaterialUploadModal({ classes, subjects, editData, onClose, onSa
                 placeholder="Contoh: Bab 1: Structure Basics"
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <p className="text-xs text-gray-400 mt-1">Materi dengan judul Bab yang sama akan dikelompokkan sebagai rangkaian aktivitas berurutan.</p>
+              <p className="text-xs text-gray-500 mt-1">Materi dengan judul Bab yang sama akan dikelompokkan sebagai rangkaian aktivitas berurutan.</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700 block mb-1.5">

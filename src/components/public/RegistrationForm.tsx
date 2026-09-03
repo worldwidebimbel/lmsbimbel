@@ -209,12 +209,12 @@ export function RegistrationForm({
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
                   i <= step
                     ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-400"
+                    : "bg-gray-100 text-gray-500"
                 }`}
               >
                 {i < step ? <Check className="w-4 h-4" /> : i + 1}
               </div>
-              <span className={`text-xs hidden sm:block ${i <= step ? "text-blue-600 font-medium" : "text-gray-400"}`}>
+              <span className={`text-xs hidden sm:block ${i <= step ? "text-blue-600 font-medium" : "text-gray-500"}`}>
                 {label}
               </span>
             </div>

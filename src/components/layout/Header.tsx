@@ -67,7 +67,7 @@ export function Header({ title, userName, role, userImage }: HeaderProps) {
               <p className="text-sm font-medium text-gray-900 leading-none">{displayName}</p>
               <p className="text-xs text-gray-500 mt-0.5">{ROLE_LABELS[displayRole]}</p>
             </div>
-            <ChevronDown className={cn("w-4 h-4 text-gray-400 transition-transform", showDropdown && "rotate-180")} />
+            <ChevronDown className={cn("w-4 h-4 text-gray-500 transition-transform", showDropdown && "rotate-180")} />
           </button>
 
           {showDropdown && (

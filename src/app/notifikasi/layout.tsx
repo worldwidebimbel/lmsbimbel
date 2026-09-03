@@ -15,9 +15,9 @@ export default async function NotifikasiLayout({ children }: { children: React.R
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar role={role} userName={name} userEmail={email} siteName={cfg.siteName} logoUrl={cfg.logoUrl} />
-      <div className="flex-1 flex flex-col ml-64">
+      <div className="flex-1 flex flex-col ml-0 md:ml-64">
         <Header title="Notifikasi" userName={name} role={role} userImage={session.user?.image} />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );

@@ -44,7 +44,7 @@ export default function SertifikatSiswaClient({ certificates }: { certificates: 
       {certificates.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white py-16 text-center">
           <Award className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-400">Belum ada sertifikat. Selesaikan program atau ikuti event untuk mendapatkan sertifikat.</p>
+          <p className="text-sm text-gray-500">Belum ada sertifikat. Selesaikan program atau ikuti event untuk mendapatkan sertifikat.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

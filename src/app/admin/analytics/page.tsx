@@ -139,7 +139,7 @@ export default async function AnalyticsPage() {
         {/* Tugas & Submission */}
         <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
           <div className="flex items-center gap-2">
-            <CheckSquare className="h-4 w-4 text-gray-400" />
+            <CheckSquare className="h-4 w-4 text-gray-500" />
             <h3 className="font-semibold text-gray-900">Tugas</h3>
           </div>
           <div className="space-y-3">
@@ -153,7 +153,7 @@ export default async function AnalyticsPage() {
         {/* Absensi */}
         <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
           <div className="flex items-center gap-2">
-            <CheckSquare className="h-4 w-4 text-gray-400" />
+            <CheckSquare className="h-4 w-4 text-gray-500" />
             <h3 className="font-semibold text-gray-900">Absensi</h3>
           </div>
           <div className="space-y-3">
@@ -179,7 +179,7 @@ export default async function AnalyticsPage() {
         {/* Keuangan */}
         <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
           <div className="flex items-center gap-2">
-            <Wallet className="h-4 w-4 text-gray-400" />
+            <Wallet className="h-4 w-4 text-gray-500" />
             <h3 className="font-semibold text-gray-900">Keuangan</h3>
           </div>
           <div className="space-y-3">
@@ -200,7 +200,7 @@ export default async function AnalyticsPage() {
       {/* Class Table */}
       <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         <div className="flex items-center gap-2 border-b border-gray-100 px-5 py-4">
-          <TrendingUp className="h-4 w-4 text-gray-400" />
+          <TrendingUp className="h-4 w-4 text-gray-500" />
           <h3 className="font-semibold text-gray-900">Kelas Aktif (Top 8)</h3>
         </div>
         <div className="overflow-x-auto">
@@ -216,7 +216,7 @@ export default async function AnalyticsPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {d.classStats.length === 0 ? (
-                <tr><td colSpan={5} className="py-8 text-center text-gray-400">Belum ada kelas aktif</td></tr>
+                <tr><td colSpan={5} className="py-8 text-center text-gray-500">Belum ada kelas aktif</td></tr>
               ) : (
                 d.classStats.map((cls) => (
                   <tr key={cls.id} className="hover:bg-gray-50">
@@ -225,7 +225,7 @@ export default async function AnalyticsPage() {
                         <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: cls.subject.color }} />
                         <div>
                           <p className="font-medium text-gray-900">{cls.name}</p>
-                          <p className="text-xs text-gray-400">{cls.subject.name}</p>
+                          <p className="text-xs text-gray-500">{cls.subject.name}</p>
                         </div>
                       </div>
                     </td>
@@ -252,7 +252,7 @@ export default async function AnalyticsPage() {
               <div key={sub.id} className="flex items-center justify-between px-5 py-3">
                 <div>
                   <p className="text-sm font-medium text-gray-900">{sub.student.name}</p>
-                  <p className="text-xs text-gray-400">{sub.assignment.title}</p>
+                  <p className="text-xs text-gray-500">{sub.assignment.title}</p>
                 </div>
                 <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${sub.score !== null ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
                   {sub.score !== null ? `Nilai: ${sub.score}` : "Menunggu penilaian"}
@@ -278,7 +278,7 @@ function Stat({ label, value, valueClass = "text-gray-900" }: { label: string; v
 function ProgressBar({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div className="pt-1">
-      <div className="flex justify-between text-xs text-gray-400 mb-1">
+      <div className="flex justify-between text-xs text-gray-500 mb-1">
         <span>{label}</span>
         <span>{value}%</span>
       </div>

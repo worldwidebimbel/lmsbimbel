@@ -31,7 +31,7 @@ export default async function FaqPage() {
         </div>
 
         {faqs.length === 0 ? (
-          <p className="text-center text-gray-400">Belum ada FAQ.</p>
+          <p className="text-center text-gray-500">Belum ada FAQ.</p>
         ) : (
           <div className="space-y-8">
             {categories.map((cat) => (

@@ -42,7 +42,7 @@ function EmptyChart({ label }: { label: string }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-12">
       <BarChart3 className="mb-2 h-8 w-8 text-gray-300" />
-      <p className="text-sm text-gray-400">{label}</p>
+      <p className="text-sm text-gray-500">{label}</p>
     </div>
   );
 }
@@ -93,7 +93,7 @@ export default function NilaiProgressClient({ byClass, examByClass, taskByClass 
                     <div className="flex items-center gap-2">
                       <div className="h-3 w-3 rounded-full" style={{ backgroundColor: data.subjectColor }} />
                       <span className="font-semibold text-gray-900">{data.className}</span>
-                      <span className="text-xs text-gray-400">{data.subjectName}</span>
+                      <span className="text-xs text-gray-500">{data.subjectName}</span>
                     </div>
                     <span className={`text-sm font-bold ${avg >= PASS ? "text-green-600" : "text-red-600"}`}>
                       Rata-rata: {avg.toFixed(1)}
@@ -122,7 +122,7 @@ export default function NilaiProgressClient({ byClass, examByClass, taskByClass 
                     <div className="mt-4 flex flex-wrap gap-2">
                       {sorted.map((c) => (
                         <div key={c.name} className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-center">
-                          <p className="text-xs text-gray-400">{c.name}</p>
+                          <p className="text-xs text-gray-500">{c.name}</p>
                           {c.period && <p className="text-xs text-gray-300">{c.period}</p>}
                           <p className={`text-lg font-bold ${c.score >= PASS ? "text-green-600" : "text-red-600"}`}>{c.score}</p>
                         </div>

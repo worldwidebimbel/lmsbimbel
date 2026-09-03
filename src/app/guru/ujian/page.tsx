@@ -54,7 +54,7 @@ export default async function GuruUjianPage() {
       {exams.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-20">
           <FileCheck className="h-12 w-12 text-gray-300 mb-3" />
-          <p className="text-sm text-gray-400">Belum ada ujian. Mulai buat ujian pertama.</p>
+          <p className="text-sm text-gray-500">Belum ada ujian. Mulai buat ujian pertama.</p>
           <Link href="/guru/ujian/new" className="mt-3 text-sm text-indigo-600 hover:underline">Buat Ujian →</Link>
         </div>
       ) : (
@@ -68,7 +68,7 @@ export default async function GuruUjianPage() {
                     {exam.class ? (
                       <>
                         <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: exam.class?.subject.color }} />
-                        <span className="text-xs text-gray-400">{exam.class?.subject.name} · {exam.class?.name}</span>
+                        <span className="text-xs text-gray-500">{exam.class?.subject.name} · {exam.class?.name}</span>
                       </>
                     ) : exam.event ? (
                       <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">🏆 {exam.event.type} · {exam.event.title}</span>

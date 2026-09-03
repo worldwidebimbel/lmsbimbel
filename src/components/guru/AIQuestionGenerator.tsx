@@ -309,7 +309,7 @@ export default function AIQuestionGenerator({
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-gray-600">
-                    Nama Mapel Custom <span className="text-gray-400">(opsional)</span>
+                    Nama Mapel Custom <span className="text-gray-500">(opsional)</span>
                   </label>
                   <input
                     value={form.customSubject}
@@ -360,13 +360,13 @@ export default function AIQuestionGenerator({
                 <div>
                   <label className="mb-1 block text-xs font-medium text-gray-600">
                     {isMatching ? "Jumlah Pasangan" : "Jumlah Opsi"}{" "}
-                    {!isMultipleChoice && !isMatching && <span className="text-gray-400">(n/a)</span>}
+                    {!isMultipleChoice && !isMatching && <span className="text-gray-500">(n/a)</span>}
                   </label>
                   <select
                     value={form.optionCount}
                     disabled={!isMultipleChoice && !isMatching}
                     onChange={(e) => setForm({ ...form, optionCount: Number(e.target.value) })}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-400"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-500"
                   >
                     {isMatching ? (
                       <>
@@ -450,7 +450,7 @@ export default function AIQuestionGenerator({
 
               <div>
                 <label className="mb-1 block text-xs font-medium text-gray-600">
-                  Detail Instruksi <span className="text-gray-400">(opsional, bikin soal lebih spesifik)</span>
+                  Detail Instruksi <span className="text-gray-500">(opsional, bikin soal lebih spesifik)</span>
                 </label>
                 <textarea
                   value={form.detailInstruction}
@@ -463,7 +463,7 @@ export default function AIQuestionGenerator({
 
               <div>
                 <label className="mb-1 block text-xs font-medium text-gray-600">
-                  Sumber Materi Khusus <span className="text-gray-400">(opsional)</span>
+                  Sumber Materi Khusus <span className="text-gray-500">(opsional)</span>
                 </label>
                 <textarea
                   value={form.sourceMaterial}

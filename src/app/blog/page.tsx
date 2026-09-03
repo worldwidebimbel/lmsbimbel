@@ -45,7 +45,7 @@ export default async function BlogPage() {
                       </Link>
                     </h2>
                     <p className="mt-2 text-sm text-gray-500 line-clamp-3">{post.excerpt ?? post.content.slice(0, 120).replace(/<[^>]+>/g, "")}</p>
-                    <div className="mt-auto pt-4 flex items-center justify-between text-xs text-gray-400">
+                    <div className="mt-auto pt-4 flex items-center justify-between text-xs text-gray-500">
                       <span>{post.author || "EduBimbel"}</span>
                       <span>{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString("id-ID") : "-"}</span>
                     </div>

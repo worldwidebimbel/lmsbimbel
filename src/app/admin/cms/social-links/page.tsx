@@ -74,7 +74,7 @@ export default function AdminCmsSocialLinksPage() {
             </div>
           </div>
         ))}
-        {items.length === 0 && <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-400">Belum ada social link.</div>}
+        {items.length === 0 && <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500">Belum ada social link.</div>}
       </div>
     </div>
   );

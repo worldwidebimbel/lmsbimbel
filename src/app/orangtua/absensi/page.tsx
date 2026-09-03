@@ -30,7 +30,7 @@ export default async function OrangtuaAbsensiPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Users2 className="h-12 w-12 text-gray-300 mb-3" />
-        <p className="text-sm text-gray-400">Belum ada anak yang terhubung.</p>
+        <p className="text-sm text-gray-500">Belum ada anak yang terhubung.</p>
       </div>
     );
   }
@@ -99,20 +99,20 @@ export default async function OrangtuaAbsensiPage() {
               ].map((s) => (
                 <div key={s.label} className="py-3 text-center">
                   <p className={`text-xl font-bold ${s.color}`}>{s.count}</p>
-                  <p className="text-xs text-gray-400">{s.label}</p>
+                  <p className="text-xs text-gray-500">{s.label}</p>
                 </div>
               ))}
             </div>
 
             {childRecords.length === 0 ? (
-              <p className="px-5 py-4 text-sm text-gray-400">Belum ada data absensi</p>
+              <p className="px-5 py-4 text-sm text-gray-500">Belum ada data absensi</p>
             ) : (
               <div className="divide-y divide-gray-100 max-h-72 overflow-y-auto">
                 {childRecords.map((rec) => (
                   <div key={rec.id} className="flex items-center justify-between px-5 py-2.5">
                     <div>
                       <p className="text-sm font-medium text-gray-800">{rec.attendance.class.subject.name}</p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-gray-500">
                         {format(new Date(rec.createdAt), "EEEE, d MMM yyyy", { locale: localeId })}
                       </p>
                     </div>

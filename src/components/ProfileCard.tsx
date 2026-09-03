@@ -120,7 +120,7 @@ export default function ProfileCard({ userId, preview }: { userId: string; previ
                   <li key={idx} className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
                     <span className="font-medium">{edu.institution}</span>
                     {edu.degree && <span className="text-gray-500"> · {edu.degree}</span>}
-                    {edu.year && <span className="text-gray-400 ml-1">({edu.year})</span>}
+                    {edu.year && <span className="text-gray-500 ml-1">({edu.year})</span>}
                   </li>
                 ))}
               </ul>
@@ -151,7 +151,7 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string
   if (!value) return null;
   return (
     <div className="flex items-start gap-2 text-sm">
-      <div className="mt-0.5 text-gray-400">{icon}</div>
+      <div className="mt-0.5 text-gray-500">{icon}</div>
       <div>
         <p className="text-xs text-gray-500">{label}</p>
         <p className="font-medium text-gray-900">{value}</p>

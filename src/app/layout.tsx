@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import { FeatureFlagProvider } from "@/context/FeatureFlagContext";
 import { Providers } from "./providers";
 import { getSiteConfig } from "@/lib/site-config";
+import { ThemeProviders } from "@/components/ThemeProviders";
 
 const inter = localFont({
   src: "./fonts/inter.woff2",
@@ -51,12 +52,14 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <FeatureFlagProvider>
-          <Providers>
-            {children}
-            <Toaster position="top-right" richColors />
-          </Providers>
-        </FeatureFlagProvider>
+        <ThemeProviders>
+          <FeatureFlagProvider>
+            <Providers>
+              {children}
+              <Toaster position="top-right" richColors />
+            </Providers>
+          </FeatureFlagProvider>
+        </ThemeProviders>
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {

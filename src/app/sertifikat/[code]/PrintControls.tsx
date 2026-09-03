@@ -25,7 +25,7 @@ export function VerifyNote({ code }: { code: string }) {
   }, []);
 
   return (
-    <p className="no-print absolute bottom-4 left-0 right-0 mt-4 text-center text-xs text-gray-400">
+    <p className="no-print absolute bottom-4 left-0 right-0 mt-4 text-center text-xs text-gray-500">
       Verifikasi sertifikat: {url}
       &nbsp;· Kode: {code}
     </p>

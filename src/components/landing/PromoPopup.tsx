@@ -21,7 +21,7 @@ export default function PromoPopup({ config }: { config: Config }) {
       <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center space-y-4">
         <button
           onClick={() => setOpen(false)}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-600"
         >
           <X className="h-5 w-5" />
         </button>

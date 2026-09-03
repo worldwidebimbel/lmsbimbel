@@ -38,7 +38,7 @@ export default async function FeaturesPage() {
           <p className="text-sm text-gray-500 mt-1">Fitur Aktif</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-          <p className="text-3xl font-bold text-gray-400">{totalCount - activeCount}</p>
+          <p className="text-3xl font-bold text-gray-500">{totalCount - activeCount}</p>
           <p className="text-sm text-gray-500 mt-1">Fitur Nonaktif</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">

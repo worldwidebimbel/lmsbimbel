@@ -204,11 +204,11 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
                   <span className="text-sm font-medium text-gray-800">{m.label}</span>
                   <span className="text-sm font-bold text-green-600">{formatCurrency(m.collected)}</span>
                 </div>
-                <div className="flex items-center justify-between text-xs text-gray-400 mb-1.5">
+                <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
                   <span>Ditagihkan: {formatCurrency(m.invoiced)}</span>
                   <span>{m.paidCount}/{m.count} tagihan lunas</span>
                 </div>
-                <div className="flex items-center justify-between text-xs text-gray-400 mb-1.5">
+                <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
                   <span>Pemasukan cabang: {formatCurrency(m.income)}</span>
                   <span>Pengeluaran: {formatCurrency(m.expense)}</span>
                 </div>
@@ -229,7 +229,7 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
               <h2 className="font-semibold text-gray-900">Per Metode Pembayaran</h2>
             </div>
             {Object.keys(methodStats).length === 0 ? (
-              <p className="px-5 py-4 text-sm text-gray-400">Belum ada pembayaran terkonfirmasi</p>
+              <p className="px-5 py-4 text-sm text-gray-500">Belum ada pembayaran terkonfirmasi</p>
             ) : (
               <div className="divide-y divide-gray-100">
                 {Object.entries(methodStats).sort((a, b) => b[1] - a[1]).map(([method, amount]) => (
@@ -253,7 +253,7 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
                 { label: "Menunggu Konfirmasi",  count: pendingCount,                                                 color: "text-blue-600" },
                 { label: "Belum Bayar",          count: allInvoices.filter((i) => i.status === "UNPAID").length,     color: "text-orange-600" },
                 { label: "Jatuh Tempo",          count: overdueCount,                                                 color: "text-red-600" },
-                { label: "Dibatalkan",           count: allInvoices.filter((i) => i.status === "CANCELLED").length,  color: "text-gray-400" },
+                { label: "Dibatalkan",           count: allInvoices.filter((i) => i.status === "CANCELLED").length,  color: "text-gray-500" },
               ].map((s) => (
                 <div key={s.label} className="flex items-center justify-between px-5 py-2.5">
                   <span className="text-sm text-gray-600">{s.label}</span>
@@ -287,7 +287,7 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
             <h2 className="font-semibold text-gray-900">Pendapatan per Program</h2>
           </div>
           {Object.keys(revenuePerProgram).length === 0 ? (
-            <p className="px-5 py-4 text-sm text-gray-400">Belum ada data program</p>
+            <p className="px-5 py-4 text-sm text-gray-500">Belum ada data program</p>
           ) : (
             <div className="divide-y divide-gray-100">
               {Object.entries(revenuePerProgram).sort((a, b) => b[1].collected - a[1].collected).map(([prog, data]) => (
@@ -296,7 +296,7 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
                     <span className="text-sm font-medium text-gray-800">{prog}</span>
                     <span className="text-sm font-bold text-green-600">{formatCurrency(data.collected)}</span>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-gray-400">
+                  <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>Ditagihkan: {formatCurrency(data.invoiced)}</span>
                     <span>{data.count} tagihan</span>
                   </div>
@@ -324,7 +324,7 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
                     <span className="text-sm font-medium text-gray-800">{br}</span>
                     <span className="text-sm font-bold text-green-600">{formatCurrency(data.collected)}</span>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-gray-400">
+                  <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>Ditagihkan: {formatCurrency(data.invoiced)}</span>
                     <span>{data.invoiced > 0 ? `${Math.round((data.collected / data.invoiced) * 100)}%` : "0%"}</span>
                   </div>
@@ -340,7 +340,7 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
             <h2 className="font-semibold text-gray-900">Pengeluaran per Kategori</h2>
           </div>
           {Object.keys(expensePerCategory).length === 0 ? (
-            <p className="px-5 py-4 text-sm text-gray-400">Belum ada pengeluaran tercatat</p>
+            <p className="px-5 py-4 text-sm text-gray-500">Belum ada pengeluaran tercatat</p>
           ) : (
             <div className="divide-y divide-gray-100">
               {Object.entries(expensePerCategory).sort((a, b) => b[1] - a[1]).map(([cat, amount]) => (
@@ -359,7 +359,7 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
             <h2 className="font-semibold text-orange-900">Piutang (Belum Lunas) — {formatCurrency(totalUnpaid)}</h2>
           </div>
           {piutang.length === 0 ? (
-            <p className="px-5 py-4 text-sm text-gray-400">Tidak ada piutang</p>
+            <p className="px-5 py-4 text-sm text-gray-500">Tidak ada piutang</p>
           ) : (
             <div className="divide-y divide-gray-100">
               {Object.entries(piutangPerBranch).map(([br, amount]) => (
@@ -410,7 +410,7 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
                 <div key={p.id} className="flex items-center justify-between px-5 py-3">
                   <div>
                     <p className="text-sm font-medium text-gray-900">{p.affiliate.name} ({p.affiliate.code})</p>
-                    <p className="text-xs text-gray-400">Diajukan: {format(new Date(p.createdAt), "d MMM yyyy", { locale: localeId })}</p>
+                    <p className="text-xs text-gray-500">Diajukan: {format(new Date(p.createdAt), "d MMM yyyy", { locale: localeId })}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold text-gray-900">{formatCurrency(p.amount)}</p>
@@ -435,7 +435,7 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
               <div key={inv.id} className="flex items-center justify-between px-5 py-3">
                 <div>
                   <p className="text-sm font-medium text-gray-900">{inv.student.name}</p>
-                  <p className="text-xs text-gray-400">{inv.plan?.name ?? "Manual"} · Jatuh tempo: {format(new Date(inv.dueDate), "d MMM yyyy", { locale: localeId })}</p>
+                  <p className="text-xs text-gray-500">{inv.plan?.name ?? "Manual"} · Jatuh tempo: {format(new Date(inv.dueDate), "d MMM yyyy", { locale: localeId })}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold text-gray-900">{formatCurrency(inv.amount)}</p>

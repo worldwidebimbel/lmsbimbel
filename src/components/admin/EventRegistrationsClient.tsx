@@ -115,7 +115,7 @@ export default function EventRegistrationsClient({
           <tbody>
             {registrations.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-gray-400">Belum ada peserta</td>
+                <td colSpan={6} className="px-4 py-10 text-center text-gray-500">Belum ada peserta</td>
               </tr>
             )}
             {registrations.map((r) => {
@@ -125,7 +125,7 @@ export default function EventRegistrationsClient({
                 <tr key={r.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50">
                   <td className="px-4 py-3">
                     <p className="font-medium text-gray-900">{r.user.name}</p>
-                    <p className="text-xs text-gray-400">{r.user.email}</p>
+                    <p className="text-xs text-gray-500">{r.user.email}</p>
                   </td>
                   <td className="px-4 py-3 text-gray-600">{r.package?.name ?? "—"}</td>
                   <td className="px-4 py-3">
@@ -133,14 +133,14 @@ export default function EventRegistrationsClient({
                   </td>
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ps.cls}`}>{ps.label}</span>
-                    {r.paidAt && <p className="text-xs text-gray-400 mt-0.5">{new Date(r.paidAt).toLocaleDateString("id-ID")}</p>}
+                    {r.paidAt && <p className="text-xs text-gray-500 mt-0.5">{new Date(r.paidAt).toLocaleDateString("id-ID")}</p>}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {r.score !== null ? (
                       <div>
                         <span className="font-bold text-gray-900">{r.score}</span>
                         {r.rank && (
-                          <span className="ml-1 text-xs text-gray-400">
+                          <span className="ml-1 text-xs text-gray-500">
                             <Medal className="inline w-3 h-3" /> #{r.rank}
                           </span>
                         )}

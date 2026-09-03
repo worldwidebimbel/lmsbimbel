@@ -101,7 +101,7 @@ export default async function FinancePage({ searchParams }: { searchParams: Prom
             <tbody className="divide-y divide-gray-100">
               {invoices.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-gray-400">Belum ada tagihan</td>
+                  <td colSpan={7} className="px-4 py-8 text-center text-gray-500">Belum ada tagihan</td>
                 </tr>
               ) : (
                 invoices.map((inv) => (

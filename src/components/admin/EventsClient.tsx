@@ -201,10 +201,10 @@ export default function EventsClient({ isSuperAdmin, userBranchId, basePath = "/
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => openEdit(event)} title="Edit" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                  <button onClick={() => openEdit(event)} title="Edit" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
                     <Edit2 className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleDelete(event.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
+                  <button onClick={() => handleDelete(event.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -212,16 +212,16 @@ export default function EventsClient({ isSuperAdmin, userBranchId, basePath = "/
 
               <div className="space-y-1.5 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-gray-400" />
+                  <Calendar className="w-4 h-4 text-gray-500" />
                   {new Date(event.startDate).toLocaleString("id-ID")}
                 </div>
                 {event.location && (
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-gray-400" /> {event.location}
+                    <MapPin className="w-4 h-4 text-gray-500" /> {event.location}
                   </div>
                 )}
                 <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-gray-400" />
+                  <Users className="w-4 h-4 text-gray-500" />
                   {event._count.registrations} pendaftar
                 </div>
               </div>
@@ -264,7 +264,7 @@ export default function EventsClient({ isSuperAdmin, userBranchId, basePath = "/
           <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">{editing ? "Edit Event" : "Tambah Event"}</h2>
-              <button onClick={() => setFormOpen(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setFormOpen(false)} className="text-gray-500 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -346,12 +346,12 @@ export default function EventsClient({ isSuperAdmin, userBranchId, basePath = "/
                     />
                     {form.image && (
                       <div className="flex-1">
-                        <p className="text-xs text-gray-400 mb-1">Preview:</p>
+                        <p className="text-xs text-gray-500 mb-1">Preview:</p>
                         <img src={form.image} alt="Preview" className="h-24 w-full max-w-xs rounded-lg object-cover border border-gray-200" />
                       </div>
                     )}
                     {!form.image && (
-                      <p className="text-xs text-gray-400">Klik kotak di kiri untuk upload gambar. Kosongkan jika tidak perlu.</p>
+                      <p className="text-xs text-gray-500">Klik kotak di kiri untuk upload gambar. Kosongkan jika tidak perlu.</p>
                     )}
                   </div>
                 </div>
@@ -398,13 +398,13 @@ export default function EventsClient({ isSuperAdmin, userBranchId, basePath = "/
                       </div>
                       <div className="col-span-1 flex justify-end">
                         <button type="button" onClick={() => removePackage(index)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
+                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
                   ))}
-                  {form.packages.length === 0 && <p className="text-xs text-gray-400">Belum ada paket (tambahkan jika event berbayar).</p>}
+                  {form.packages.length === 0 && <p className="text-xs text-gray-500">Belum ada paket (tambahkan jika event berbayar).</p>}
                 </div>
               </div>
 

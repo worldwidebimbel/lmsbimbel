@@ -216,11 +216,11 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
                     </div>
                     <div className="shrink-0">
                       {notStarted ? (
-                        <span className="text-xs text-gray-400 px-3 py-2 rounded-lg bg-gray-50">
+                        <span className="text-xs text-gray-500 px-3 py-2 rounded-lg bg-gray-50">
                           Mulai {exam.startTime ? new Date(exam.startTime).toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : ""}
                         </span>
                       ) : ended ? (
-                        <span className="text-xs text-gray-400 px-3 py-2 rounded-lg bg-gray-50">Waktu habis</span>
+                        <span className="text-xs text-gray-500 px-3 py-2 rounded-lg bg-gray-50">Waktu habis</span>
                       ) : canAttempt ? (
                         <Link
                           href={`/siswa/ujian/${exam.id}`}
@@ -229,7 +229,7 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
                           {exam.completedAttempts > 0 ? "Coba Lagi" : "Kerjakan"}
                         </Link>
                       ) : (
-                        <span className="text-xs text-gray-400 px-3 py-2 rounded-lg bg-gray-50">
+                        <span className="text-xs text-gray-500 px-3 py-2 rounded-lg bg-gray-50">
                           Maks. percobaan tercapai
                         </span>
                       )}

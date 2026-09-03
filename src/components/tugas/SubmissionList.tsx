@@ -68,7 +68,7 @@ export default function SubmissionList({ assignmentId, maxScore, initialSubmissi
               {sub.student?.avatar ? (
                 <Image src={sub.student.avatar} alt={sub.student.name ?? ""} width={36} height={36} className="rounded-full" />
               ) : (
-                <User className="h-5 w-5 text-gray-400" />
+                <User className="h-5 w-5 text-gray-500" />
               )}
             </div>
 

@@ -50,10 +50,10 @@ export default async function BranchesPage() {
             </div>
 
             <div className="space-y-2 text-sm text-gray-600">
-              {b.address && <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-gray-400" /> {b.address}</div>}
-              {b.phone && <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-gray-400" /> {b.phone}</div>}
-              {b.email && <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-gray-400" /> {b.email}</div>}
-              {b.managerName && <div className="flex items-center gap-2"><User className="h-4 w-4 text-gray-400" /> {b.managerName}</div>}
+              {b.address && <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-gray-500" /> {b.address}</div>}
+              {b.phone && <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-gray-500" /> {b.phone}</div>}
+              {b.email && <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-gray-500" /> {b.email}</div>}
+              {b.managerName && <div className="flex items-center gap-2"><User className="h-4 w-4 text-gray-500" /> {b.managerName}</div>}
             </div>
 
             <div className="grid grid-cols-3 gap-2 pt-3 border-t border-gray-100">

@@ -75,7 +75,7 @@ export default async function SiswaLivePage() {
             </a>
           )}
           {!s.meetingUrl && (
-            <span className="text-sm text-gray-400 italic">Link meeting belum tersedia</span>
+            <span className="text-sm text-gray-500 italic">Link meeting belum tersedia</span>
           )}
         </div>
       </div>
@@ -97,7 +97,7 @@ export default async function SiswaLivePage() {
       {sessions.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 py-16">
           <Video className="mb-3 h-10 w-10 text-gray-300" />
-          <p className="text-sm text-gray-400">Belum ada sesi kelas online yang dijadwalkan</p>
+          <p className="text-sm text-gray-500">Belum ada sesi kelas online yang dijadwalkan</p>
         </div>
       )}
 

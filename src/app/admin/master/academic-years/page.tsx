@@ -123,7 +123,7 @@ export default function AcademicYearsPage() {
             <h2 className="text-lg font-semibold">
               {editingId ? "Edit Tahun Ajaran" : "Tambah Tahun Ajaran"}
             </h2>
-            <button onClick={resetForm} className="text-gray-400 hover:text-gray-600">
+            <button onClick={resetForm} className="text-gray-500 hover:text-gray-600">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -187,7 +187,7 @@ export default function AcademicYearsPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Memuat...</div>
+        <div className="text-center py-12 text-gray-500">Memuat...</div>
       ) : years.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
           <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -228,13 +228,13 @@ export default function AcademicYearsPage() {
                       <button
                         onClick={() => handleEdit(y)}
                         title="Edit"
-                        className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                        className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(y.id)}
-                        title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                        title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

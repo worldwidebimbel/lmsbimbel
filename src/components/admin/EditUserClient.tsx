@@ -100,7 +100,7 @@ export default function EditUserClient({ user, isSelf, branches, isSuperAdmin }:
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">Password Baru <span className="text-gray-400">(kosongkan jika tidak diubah)</span></label>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700">Password Baru <span className="text-gray-500">(kosongkan jika tidak diubah)</span></label>
         <div className="relative">
           <input
             type={showPass ? "text" : "password"}
@@ -110,7 +110,7 @@ export default function EditUserClient({ user, isSelf, branches, isSuperAdmin }:
             minLength={form.password ? 8 : 0}
             className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-10 text-sm focus:border-blue-500 focus:outline-none"
           />
-          <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+          <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
             {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>

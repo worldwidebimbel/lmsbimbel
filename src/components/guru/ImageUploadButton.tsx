@@ -46,7 +46,7 @@ export default function ImageUploadButton({
   }
 
   return (
-    <label className={`flex cursor-pointer items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-gray-400 hover:border-indigo-300 hover:text-indigo-500 ${size === "sm" ? "h-16 w-16" : "h-24 w-24"} shrink-0`}>
+    <label className={`flex cursor-pointer items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-gray-500 hover:border-indigo-300 hover:text-indigo-500 ${size === "sm" ? "h-16 w-16" : "h-24 w-24"} shrink-0`}>
       {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
       <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
       <span className="sr-only">{label}</span>

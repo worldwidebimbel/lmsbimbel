@@ -45,7 +45,7 @@ export default async function SiswaUjianPage() {
       {exams.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-20">
           <FileCheck className="h-12 w-12 text-gray-300 mb-3" />
-          <p className="text-sm text-gray-400">Belum ada ujian aktif</p>
+          <p className="text-sm text-gray-500">Belum ada ujian aktif</p>
         </div>
       ) : (
         <div className="grid gap-4">
@@ -62,7 +62,7 @@ export default async function SiswaUjianPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                       <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: exam.class?.subject.color }} />
-                      <span className="text-xs text-gray-400">{exam.class?.subject.name} · {exam.class?.name}</span>
+                      <span className="text-xs text-gray-500">{exam.class?.subject.name} · {exam.class?.name}</span>
                       {isCompleted && (
                         isPassed
                           ? <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700"><CheckCircle className="h-3 w-3" />Lulus</span>

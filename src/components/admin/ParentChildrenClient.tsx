@@ -72,7 +72,7 @@ export default function ParentChildrenClient({
             <Plus className="h-4 w-4" /> Hubungkan
           </button>
         </div>
-        {students.length === 0 && <p className="text-sm text-gray-400 mt-2">Semua siswa sudah terhubung</p>}
+        {students.length === 0 && <p className="text-sm text-gray-500 mt-2">Semua siswa sudah terhubung</p>}
       </div>
 
       {/* Children List */}
@@ -84,7 +84,7 @@ export default function ParentChildrenClient({
         {children.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-14">
             <UserCheck className="h-10 w-10 text-gray-300 mb-2" />
-            <p className="text-sm text-gray-400">Belum ada anak yang terhubung</p>
+            <p className="text-sm text-gray-500">Belum ada anak yang terhubung</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -100,7 +100,7 @@ export default function ParentChildrenClient({
                   )}
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{child.name}</p>
-                    <p className="text-xs text-gray-400">{child.email}</p>
+                    <p className="text-xs text-gray-500">{child.email}</p>
                   </div>
                 </div>
                 <button onClick={() => handleRemove(child.id)}

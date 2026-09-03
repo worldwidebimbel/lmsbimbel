@@ -176,7 +176,7 @@ export default function JurnalMengajarClient({
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-16">
           <NotebookPen className="mb-3 h-10 w-10 text-gray-300" />
-          <p className="text-sm text-gray-400">Belum ada jurnal mengajar.</p>
+          <p className="text-sm text-gray-500">Belum ada jurnal mengajar.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -220,7 +220,7 @@ export default function JurnalMengajarClient({
                   {j.status === "DRAFT" && (
                     <button
                       onClick={() => handleStatusChange(j.id, "SUBMITTED")}
-                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-blue-50 hover:text-blue-500"
+                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-blue-50 hover:text-blue-500"
                       title="Submit"
                     >
                       <CheckCircle className="h-4 w-4" />
@@ -228,14 +228,14 @@ export default function JurnalMengajarClient({
                   )}
                   <button
                     onClick={() => handleEdit(j)}
-                    className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-gray-100"
+                    className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-gray-100"
                     title="Edit"
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(j.id)}
-                    className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                    className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-500"
                     title="Hapus"
                   >
                     <Trash2 className="h-4 w-4" />

@@ -218,7 +218,7 @@ export default function GuruAbsensiTutorClient({
                 placeholder="Contoh: cls_abc123..."
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
               />
-              <p className="text-xs text-gray-400 mt-1">Kode kelas bisa didapat dari admin atau QR Code di ruangan</p>
+              <p className="text-xs text-gray-500 mt-1">Kode kelas bisa didapat dari admin atau QR Code di ruangan</p>
             </div>
           )}
 
@@ -238,7 +238,7 @@ export default function GuruAbsensiTutorClient({
           <h2 className="font-semibold text-gray-900">Riwayat Absensi (30 hari terakhir)</h2>
         </div>
         {recentRecords.length === 0 ? (
-          <div className="py-12 text-center text-sm text-gray-400">Belum ada riwayat absensi</div>
+          <div className="py-12 text-center text-sm text-gray-500">Belum ada riwayat absensi</div>
         ) : (
           <div className="divide-y divide-gray-100">
             {recentRecords.map((r) => (
@@ -249,17 +249,17 @@ export default function GuruAbsensiTutorClient({
                   </p>
                   <div className="flex items-center gap-2 mt-0.5">
                     {r.checkIn && (
-                      <span className="text-xs text-gray-400 flex items-center gap-0.5">
+                      <span className="text-xs text-gray-500 flex items-center gap-0.5">
                         <LogIn className="h-3 w-3" /> {new Date(r.checkIn).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     )}
                     {r.checkOut && (
-                      <span className="text-xs text-gray-400 flex items-center gap-0.5">
+                      <span className="text-xs text-gray-500 flex items-center gap-0.5">
                         <LogOut className="h-3 w-3" /> {new Date(r.checkOut).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     )}
-                    {r.class && <span className="text-xs text-gray-400">· {r.class.name}</span>}
-                    {r.method && <span className="text-xs text-gray-400">· {r.method}</span>}
+                    {r.class && <span className="text-xs text-gray-500">· {r.class.name}</span>}
+                    {r.method && <span className="text-xs text-gray-500">· {r.method}</span>}
                   </div>
                 </div>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[r.status] ?? "bg-gray-100"}`}>

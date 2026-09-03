@@ -69,7 +69,7 @@ export default async function GaleriPage() {
                   <div className="p-3">
                     <p className="font-medium text-sm text-gray-900">{g.title}</p>
                     {g.description && <p className="text-xs text-gray-500 mt-0.5">{g.description}</p>}
-                    <span className="inline-block mt-1 text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded">{g.category}</span>
+                    <span className="inline-block mt-1 text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">{g.category}</span>
                   </div>
                 </div>
               ))}
@@ -78,7 +78,7 @@ export default async function GaleriPage() {
         )}
 
         {galleries.length === 0 && prestasi.length === 0 && (
-          <p className="text-center text-gray-400">Belum ada galeri.</p>
+          <p className="text-center text-gray-500">Belum ada galeri.</p>
           )}
         </div>
       </div>

@@ -107,10 +107,10 @@ export default function TeamManager({ members: initial }: { members: Member[] })
                 {m.bio && <p className="text-xs text-gray-500 mt-1">{m.bio}</p>}
               </div>
               <div className="flex flex-col gap-1">
-                <button onClick={() => handleToggle(m.id, m.isActive)} className="text-xs text-gray-400 hover:text-gray-700">
+                <button onClick={() => handleToggle(m.id, m.isActive)} className="text-xs text-gray-500 hover:text-gray-700">
                   {m.isActive ? "Sembunyikan" : "Tampilkan"}
                 </button>
-                <button onClick={() => handleDelete(m.id)} className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500">
+                <button onClick={() => handleDelete(m.id)} className="rounded p-1 text-gray-500 hover:bg-red-50 hover:text-red-500">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>

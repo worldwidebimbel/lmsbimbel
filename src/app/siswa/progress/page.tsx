@@ -130,7 +130,7 @@ function ScoreCard({ label, score }: { label: string; score: number | null }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
       <p className="text-sm text-gray-500 mb-1">{label}</p>
-      <p className={`text-3xl font-bold ${score !== null && score >= 75 ? "text-green-600" : score !== null ? "text-red-600" : "text-gray-400"}`}>
+      <p className={`text-3xl font-bold ${score !== null && score >= 75 ? "text-green-600" : score !== null ? "text-red-600" : "text-gray-500"}`}>
         {score !== null ? score.toFixed(1) : "-"}
       </p>
     </div>

@@ -27,7 +27,7 @@ export default async function OrangtuaTagihanPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Users2 className="h-12 w-12 text-gray-300 mb-3" />
-        <p className="text-sm text-gray-400">Belum ada anak yang terhubung.</p>
+        <p className="text-sm text-gray-500">Belum ada anak yang terhubung.</p>
       </div>
     );
   }

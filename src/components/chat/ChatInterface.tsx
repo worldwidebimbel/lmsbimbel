@@ -139,7 +139,7 @@ export default function ChatInterface({ currentUserId, initialContacts, defaultC
       <div className="flex w-72 shrink-0 flex-col border-r border-gray-100">
         <div className="border-b border-gray-100 p-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
             <input value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari kontak..." className="w-full rounded-lg bg-gray-50 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
@@ -149,7 +149,7 @@ export default function ChatInterface({ currentUserId, initialContacts, defaultC
           {filtered.length === 0 && filteredNew.length === 0 && (
             <div className="flex flex-col items-center justify-center py-10 text-center px-4">
               <MessageSquare className="mb-2 h-8 w-8 text-gray-300" />
-              <p className="text-sm text-gray-400">Belum ada percakapan</p>
+              <p className="text-sm text-gray-500">Belum ada percakapan</p>
             </div>
           )}
 
@@ -166,25 +166,25 @@ export default function ChatInterface({ currentUserId, initialContacts, defaultC
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-gray-900 truncate">{conv.user.name}</span>
-                  <span className="shrink-0 text-[10px] text-gray-400 ml-1">
+                  <span className="shrink-0 text-[10px] text-gray-500 ml-1">
                     {formatDistanceToNow(new Date(conv.lastAt), { locale: localeId, addSuffix: false })}
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 truncate">{conv.lastMessage}</p>
+                <p className="text-xs text-gray-500 truncate">{conv.lastMessage}</p>
               </div>
             </button>
           ))}
 
           {filteredNew.length > 0 && (
             <>
-              <div className="px-3 py-1.5 text-[10px] font-semibold uppercase text-gray-400 tracking-wide">Kontak Tersedia</div>
+              <div className="px-3 py-1.5 text-[10px] font-semibold uppercase text-gray-500 tracking-wide">Kontak Tersedia</div>
               {filteredNew.map((c) => (
                 <button key={c.id} onClick={() => setSelectedContact(c)}
                   className={`flex w-full items-center gap-3 p-3 text-left transition-colors ${selectedContact?.id === c.id ? "bg-indigo-50" : "hover:bg-gray-50"}`}>
                   <Avatar name={c.name} avatar={c.avatar} />
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{c.name}</p>
-                    <p className="text-xs text-gray-400">{ROLE_LABEL[c.role] ?? c.role}</p>
+                    <p className="text-xs text-gray-500">{ROLE_LABEL[c.role] ?? c.role}</p>
                   </div>
                 </button>
               ))}
@@ -200,7 +200,7 @@ export default function ChatInterface({ currentUserId, initialContacts, defaultC
             <MessageSquare className="h-8 w-8 text-indigo-600" />
           </div>
           <h3 className="text-lg font-semibold text-gray-800">Pilih kontak untuk mulai chat</h3>
-          <p className="mt-1 text-sm text-gray-400">Pilih dari daftar kiri atau cari nama</p>
+          <p className="mt-1 text-sm text-gray-500">Pilih dari daftar kiri atau cari nama</p>
         </div>
       ) : (
         <div className="flex flex-1 flex-col">
@@ -209,7 +209,7 @@ export default function ChatInterface({ currentUserId, initialContacts, defaultC
             <Avatar name={selectedContact.name} avatar={selectedContact.avatar} size="md" />
             <div>
               <p className="font-semibold text-gray-900">{selectedContact.name}</p>
-              <p className="text-xs text-gray-400">{ROLE_LABEL[selectedContact.role] ?? selectedContact.role}</p>
+              <p className="text-xs text-gray-500">{ROLE_LABEL[selectedContact.role] ?? selectedContact.role}</p>
             </div>
           </div>
 
@@ -218,7 +218,7 @@ export default function ChatInterface({ currentUserId, initialContacts, defaultC
             {loadingMessages && messages.length === 0 ? (
               <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-indigo-600" /></div>
             ) : messages.length === 0 ? (
-              <div className="flex justify-center py-8"><p className="text-sm text-gray-400">Belum ada pesan. Mulai percakapan!</p></div>
+              <div className="flex justify-center py-8"><p className="text-sm text-gray-500">Belum ada pesan. Mulai percakapan!</p></div>
             ) : (
               messages.map((msg) => {
                 const isMine = msg.senderId === currentUserId;
@@ -226,7 +226,7 @@ export default function ChatInterface({ currentUserId, initialContacts, defaultC
                   <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
                     <div className={`max-w-[70%] rounded-2xl px-4 py-2.5 text-sm ${isMine ? "bg-indigo-600 text-white rounded-tr-sm" : "bg-gray-100 text-gray-800 rounded-tl-sm"}`}>
                       <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                      <p className={`mt-1 text-right text-[10px] ${isMine ? "text-indigo-200" : "text-gray-400"}`}>
+                      <p className={`mt-1 text-right text-[10px] ${isMine ? "text-indigo-200" : "text-gray-500"}`}>
                         {formatDistanceToNow(new Date(msg.createdAt), { locale: localeId, addSuffix: true })}
                       </p>
                     </div>

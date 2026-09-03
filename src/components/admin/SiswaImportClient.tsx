@@ -192,7 +192,7 @@ export default function SiswaImportClient() {
                   <Download className="h-4 w-4" /> Download Template Excel
                 </a>
 
-                <div className="text-center text-xs text-gray-400">— atau upload file Excel —</div>
+                <div className="text-center text-xs text-gray-500">— atau upload file Excel —</div>
 
                 <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 py-8 text-sm text-gray-500 hover:bg-gray-50">
                   {loading ? (

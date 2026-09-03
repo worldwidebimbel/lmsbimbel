@@ -126,7 +126,7 @@ export default function TagihanSiswaClient({ invoices: initial, summary, qris, c
           { label: "Total Tagihan",  value: formatCurrency(summary.total),  color: "text-gray-900" },
           { label: "Sudah Dibayar", value: formatCurrency(summary.paid),   color: "text-green-600" },
           { label: "Belum Dibayar", value: formatCurrency(summary.unpaid), color: "text-orange-600" },
-          { label: "Jatuh Tempo",   value: `${summary.overdue} tagihan`,   color: summary.overdue > 0 ? "text-red-600" : "text-gray-400" },
+          { label: "Jatuh Tempo",   value: `${summary.overdue} tagihan`,   color: summary.overdue > 0 ? "text-red-600" : "text-gray-500" },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-gray-200 bg-white p-4">
             <p className="text-xs text-gray-500">{s.label}</p>
@@ -161,10 +161,10 @@ export default function TagihanSiswaClient({ invoices: initial, summary, qris, c
                       </span>
                     </div>
                     <p className="text-sm text-gray-500">{inv.plan?.name ?? "Tagihan Manual"}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-500">
                       Jatuh tempo: {format(new Date(inv.dueDate), "d MMMM yyyy", { locale: localeId })}
                     </p>
-                    {inv.note && <p className="mt-1 text-xs italic text-gray-400">{inv.note}</p>}
+                    {inv.note && <p className="mt-1 text-xs italic text-gray-500">{inv.note}</p>}
                   </div>
                   {inv.status !== "PAID" && inv.status !== "CANCELLED" && (
                     <div className="text-right shrink-0">
@@ -217,7 +217,7 @@ export default function TagihanSiswaClient({ invoices: initial, summary, qris, c
           <div className="w-full max-w-sm rounded-2xl bg-white overflow-y-auto max-h-[90vh]">
             <div className="sticky top-0 flex items-center justify-between border-b border-gray-100 bg-white px-5 py-4">
               <h2 className="font-bold text-gray-900">Bayar dengan QRIS</h2>
-              <button onClick={() => setActiveInvoice(null)}><X className="h-5 w-5 text-gray-400" /></button>
+              <button onClick={() => setActiveInvoice(null)}><X className="h-5 w-5 text-gray-500" /></button>
             </div>
 
             <div className="p-5 space-y-5">
@@ -234,14 +234,14 @@ export default function TagihanSiswaClient({ invoices: initial, summary, qris, c
                   {qris.accountName && (
                     <div className="text-center text-sm text-gray-700">
                       <p className="font-semibold">{qris.accountName}</p>
-                      {qris.bankName && <p className="text-xs text-gray-400">{qris.bankName}{qris.accountNumber ? ` · ${qris.accountNumber}` : ""}</p>}
+                      {qris.bankName && <p className="text-xs text-gray-500">{qris.bankName}{qris.accountNumber ? ` · ${qris.accountNumber}` : ""}</p>}
                     </div>
                   )}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-8">
                   <QrCode className="mb-2 h-10 w-10 text-gray-300" />
-                  <p className="text-sm text-gray-400">QRIS belum dikonfigurasi admin</p>
+                  <p className="text-sm text-gray-500">QRIS belum dikonfigurasi admin</p>
                 </div>
               )}
 
@@ -262,9 +262,9 @@ export default function TagihanSiswaClient({ invoices: initial, summary, qris, c
                       <img src={previewUrl} alt="preview" className="max-h-36 rounded-lg object-contain" />
                     ) : (
                       <>
-                        <Upload className="mb-2 h-7 w-7 text-gray-400" />
+                        <Upload className="mb-2 h-7 w-7 text-gray-500" />
                         <p className="text-sm text-gray-500">Klik untuk pilih gambar bukti bayar</p>
-                        <p className="text-xs text-gray-400">JPG, PNG, maks 5MB</p>
+                        <p className="text-xs text-gray-500">JPG, PNG, maks 5MB</p>
                       </>
                     )}
                     <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />

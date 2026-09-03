@@ -89,7 +89,7 @@ export default async function SertifikatPage({ params }: { params: Promise<{ cod
 
             {/* Recipient */}
             <div className="w-full">
-              <p className="text-gray-400 text-sm mb-3">{tmpl.subtitle}</p>
+              <p className="text-gray-500 text-sm mb-3">{tmpl.subtitle}</p>
               <p
                 className="font-bold text-gray-900 leading-tight"
                 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(22px, 4vw, 38px)" }}
@@ -108,9 +108,9 @@ export default async function SertifikatPage({ params }: { params: Promise<{ cod
             {/* Footer */}
             <div className="w-full flex items-end justify-between">
               <div className="text-left">
-                <p className="text-xs text-gray-400">Kode Verifikasi</p>
+                <p className="text-xs text-gray-500">Kode Verifikasi</p>
                 <p className="text-xs font-mono font-bold text-gray-600 tracking-widest mt-0.5">{cert.code}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">
+                <p className="text-[10px] text-gray-500 mt-0.5">
                   {tmpl.orgName} · {date}
                 </p>
               </div>

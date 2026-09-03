@@ -131,13 +131,13 @@ export default function AcademicCalendarManager({ branches }: { branches: Branch
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-gray-800">Daftar Acara</h2>
-          {loading && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+          {loading && <Loader2 className="h-4 w-4 animate-spin text-gray-500" />}
         </div>
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden max-h-[600px] overflow-y-auto">
           {events.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <CalendarDays className="h-10 w-10 text-gray-300 mb-2" />
-              <p className="text-sm text-gray-400">Belum ada acara akademik</p>
+              <p className="text-sm text-gray-500">Belum ada acara akademik</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
@@ -153,14 +153,14 @@ export default function AcademicCalendarManager({ branches }: { branches: Branch
                           {new Date(e.startDate).toLocaleDateString("id-ID")}
                           {e.endDate && ` — ${new Date(e.endDate).toLocaleDateString("id-ID")}`}
                         </p>
-                        <p className="text-xs text-gray-400">{TYPES.find((t) => t.value === e.type)?.label}</p>
+                        <p className="text-xs text-gray-500">{TYPES.find((t) => t.value === e.type)?.label}</p>
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <button onClick={() => startEdit(e)} title="Edit" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-indigo-600">
+                      <button onClick={() => startEdit(e)} title="Edit" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-indigo-600">
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
-                      <button onClick={() => handleDelete(e.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-600">
+                      <button onClick={() => handleDelete(e.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-red-600">
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
@@ -181,7 +181,7 @@ export default function AcademicCalendarManager({ branches }: { branches: Branch
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">{editing ? "Edit Acara" : "Tambah Acara"}</h3>
               <button type="button" onClick={() => { setShowForm(false); resetForm(); }}
-                className="rounded p-1 text-gray-400 hover:bg-gray-100"><X className="h-5 w-5" /></button>
+                className="rounded p-1 text-gray-500 hover:bg-gray-100"><X className="h-5 w-5" /></button>
             </div>
 
             <div>

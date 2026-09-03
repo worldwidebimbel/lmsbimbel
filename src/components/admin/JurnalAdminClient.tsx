@@ -108,7 +108,7 @@ export default function JurnalAdminClient({
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[180px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -142,7 +142,7 @@ export default function JurnalAdminClient({
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-16">
           <Calendar className="mb-3 h-10 w-10 text-gray-300" />
-          <p className="text-sm text-gray-400">Tidak ada jurnal ditemukan.</p>
+          <p className="text-sm text-gray-500">Tidak ada jurnal ditemukan.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -175,14 +175,14 @@ export default function JurnalAdminClient({
                   <div className="flex shrink-0 gap-1">
                     <button
                       onClick={() => handleApprove(j.id)}
-                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-green-50 hover:text-green-600"
+                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-green-50 hover:text-green-600"
                       title="Approve"
                     >
                       <CheckCircle className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleReject(j.id)}
-                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                      className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-500"
                       title="Kembalikan ke Draft"
                     >
                       <XCircle className="h-4 w-4" />

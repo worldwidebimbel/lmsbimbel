@@ -55,18 +55,18 @@ export default function PublicFooter({ config: cfg }: Props) {
             <h4 className="font-semibold text-gray-900">Kontak</h4>
             <ul className="mt-4 space-y-3 text-sm text-gray-500">
               <li className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-gray-400" /> {cfg.address}
+                <MapPin className="h-4 w-4 text-gray-500" /> {cfg.address}
               </li>
               <li className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-gray-400" /> {cfg.phone}
+                <Phone className="h-4 w-4 text-gray-500" /> {cfg.phone}
               </li>
               <li className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-gray-400" /> {cfg.email}
+                <Mail className="h-4 w-4 text-gray-500" /> {cfg.email}
               </li>
             </ul>
           </div>
         </div>
-        <div className="mt-12 border-t border-gray-200 pt-8 text-center text-sm text-gray-400">
+        <div className="mt-12 border-t border-gray-200 pt-8 text-center text-sm text-gray-500">
           &copy; {new Date().getFullYear()} {cfg.siteName} LMS. All rights reserved.
         </div>
       </div>

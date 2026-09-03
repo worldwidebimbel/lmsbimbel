@@ -100,7 +100,7 @@ export function PpdbManager({ programs, branches }: Props) {
       <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-wrap gap-3">
         <div className="flex-1 min-w-[200px]">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <input
               value={filters.search}
               onChange={(e) => { setFilters({ ...filters, search: e.target.value }); setPage(1); }}

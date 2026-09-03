@@ -155,7 +155,7 @@ export default function AcademicCalendar({
             return (
               <button key={key} onClick={() => setSelectedDate(key)}
                 className={`min-h-[96px] border-b border-r border-gray-100 p-2 text-left transition-colors hover:bg-gray-50 ${
-                  isCurrentMonth(date) ? "bg-white" : "bg-gray-50/50 text-gray-400"
+                  isCurrentMonth(date) ? "bg-white" : "bg-gray-50/50 text-gray-500"
                 } ${isActive ? "ring-2 ring-inset ring-indigo-500" : ""}`}>
                 <div className={`flex h-6 w-6 items-center justify-center rounded-full text-sm font-medium ${
                   isToday(date) ? "bg-indigo-600 text-white" : "text-gray-700"
