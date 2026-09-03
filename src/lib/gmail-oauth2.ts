@@ -173,24 +173,29 @@ export class GmailOAuth2 {
           },
         },
         (res) => {
+          const status = res.statusCode ?? 0;
           let raw = "";
           res.on("data", (chunk: Buffer) => { raw += chunk.toString(); });
           res.on("end", () => {
             try {
               const json = JSON.parse(raw) as GmailTokens & { error?: string; error_description?: string };
               if (json.error) {
-                console.error("[GmailOAuth2] refreshAccessToken error:", json.error, json.error_description);
-                reject(new Error(`OAuth error: ${json.error_description ?? json.error}`));
+                console.error(`[GmailOAuth2] token request error (HTTP ${status}):`, json.error, json.error_description, "| raw:", raw.slice(0, 300));
+                const detail = json.error_description || json.error;
+                reject(new Error(`OAuth error (HTTP ${status}, ${json.error}): ${detail}`));
               } else {
                 resolve(json);
               }
             } catch {
-              console.error("[GmailOAuth2] refreshAccessToken invalid JSON:", raw.slice(0, 300));
-              reject(new Error(`Invalid JSON from Google: ${raw.slice(0, 300)}`));
+              console.error(`[GmailOAuth2] token request invalid JSON (HTTP ${status}):`, raw.slice(0, 300));
+              reject(new Error(`Invalid JSON from Google (HTTP ${status}): ${raw.slice(0, 300)}`));
             }
           });
         }
       );
+      req.setTimeout(15_000, () => {
+        req.destroy(new Error(`Timeout 15 detik: server tidak dapat menjangkau ${hostname}:443. Cek firewall/outbound HTTPS server.`));
+      });
       req.on("error", (err) => reject(err));
       req.write(body);
       req.end();

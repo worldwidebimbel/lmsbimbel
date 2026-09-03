@@ -50,6 +50,35 @@ export function clearOAuth2Cache() {
   dbOAuth2Cache = null;
 }
 
+export type GmailCredSource = "database" | "env" | "mixed";
+
+export async function getGmailOAuthCredentials(): Promise<{
+  clientId: string;
+  clientSecret: string;
+  source: GmailCredSource;
+} | null> {
+  let map: Record<string, string> = {};
+  try {
+    const rows = await db.appSetting.findMany({
+      where: { key: { in: ["gmail_client_id", "gmail_client_secret"] } },
+    });
+    map = {};
+    for (const r of rows) map[r.key] = r.value;
+  } catch {
+    map = {};
+  }
+  const dbId = (map.gmail_client_id ?? "").trim();
+  const dbSecret = (map.gmail_client_secret ?? "").trim();
+  const envId = env("GOOGLE_CLIENT_ID");
+  const envSecret = env("GOOGLE_CLIENT_SECRET");
+  if (dbId && dbSecret) return { clientId: dbId, clientSecret: dbSecret, source: "database" };
+  if (envId && envSecret) return { clientId: envId, clientSecret: envSecret, source: "env" };
+  const clientId = dbId || envId;
+  const clientSecret = dbSecret || envSecret;
+  if (!clientId || !clientSecret) return null;
+  return { clientId, clientSecret, source: "mixed" };
+}
+
 export async function getActiveEmailMethodAsync(): Promise<EmailMethod> {
   if (env("RESEND_API_KEY")) return "resend";
   const dbCfg = await getDbOAuth2Settings();

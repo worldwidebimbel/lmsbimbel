@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { GmailOAuth2 } from "@/lib/gmail-oauth2";
-import { db } from "@/lib/db";
+import { getGmailOAuthCredentials } from "@/lib/email";
 
 function strip(v?: string) {
   return (v ?? "").replace(/^["']|["']$/g, "").trim();
@@ -15,15 +15,8 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const rows = await db.appSetting.findMany({
-    where: { key: { in: ["gmail_client_id", "gmail_client_secret"] } },
-  });
-  const map: Record<string, string> = {};
-  for (const r of rows) map[r.key] = r.value;
-
-  const clientId = map.gmail_client_id || strip(process.env.GOOGLE_CLIENT_ID);
-  const clientSecret = map.gmail_client_secret || strip(process.env.GOOGLE_CLIENT_SECRET);
-  if (!clientId || !clientSecret) {
+  const creds = await getGmailOAuthCredentials();
+  if (!creds) {
     return NextResponse.json(
       { error: "Client ID dan Client Secret belum diset. Masukkan kredensial di form Gmail OAuth2 di bawah." },
       { status: 503 }
@@ -32,8 +25,13 @@ export async function GET() {
 
   const callbackUri = `${strip(process.env.NEXTAUTH_URL).replace(/\/$/, "") || "http://localhost:3000"}/api/admin/email/callback`;
   const state = randomUUID();
-  const mailer = new GmailOAuth2(clientId, clientSecret, callbackUri);
-  const res = NextResponse.json({ url: mailer.getAuthUrl(state), callbackUri });
+  const mailer = new GmailOAuth2(creds.clientId, creds.clientSecret, callbackUri);
+  const res = NextResponse.json({
+    url: mailer.getAuthUrl(state),
+    callbackUri,
+    credSource: creds.source,
+    clientIdPreview: creds.clientId.slice(0, 24),
+  });
   res.cookies.set("gmail_oauth_state", state, {
     httpOnly: true,
     sameSite: "lax",

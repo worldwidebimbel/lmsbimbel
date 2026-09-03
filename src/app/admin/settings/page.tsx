@@ -65,6 +65,7 @@ export default async function AdminSettingsPage() {
   };
   const activeEmailMethod = await getActiveEmailMethodAsync();
   const appVersion = process.env.npm_package_version ?? "0.1.0";
+  const gmailCallbackUri = `${(process.env.NEXTAUTH_URL ?? "").replace(/^["']|["']$/g, "").replace(/\/$/, "") || "http://localhost:3000"}/api/admin/email/callback`;
 
   return (
     <div className="space-y-6">
@@ -86,6 +87,7 @@ export default async function AdminSettingsPage() {
         oauth2Configured={oauth2Configured}
         oauth2Vars={oauth2Vars}
         oauth2DbConfig={oauth2DbConfig}
+        gmailCallbackUri={gmailCallbackUri}
         activeEmailMethod={activeEmailMethod}
         appVersion={appVersion}
         branches={allBranches}

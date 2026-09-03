@@ -1,22 +1,35 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { GmailOAuth2 } from "@/lib/gmail-oauth2";
 import { db } from "@/lib/db";
-import { clearOAuth2Cache } from "@/lib/email";
+import { clearOAuth2Cache, getGmailOAuthCredentials } from "@/lib/email";
 
 function strip(v?: string) {
   return (v ?? "").replace(/^["']|["']$/g, "").trim();
 }
 
-async function getOAuth2Creds(): Promise<{ clientId: string; clientSecret: string } | null> {
-  const rows = await db.appSetting.findMany({
-    where: { key: { in: ["gmail_client_id", "gmail_client_secret"] } },
-  });
-  const map: Record<string, string> = {};
-  for (const r of rows) map[r.key] = r.value;
-  const clientId = map.gmail_client_id || strip(process.env.GOOGLE_CLIENT_ID);
-  const clientSecret = map.gmail_client_secret || strip(process.env.GOOGLE_CLIENT_SECRET);
-  if (!clientId || !clientSecret) return null;
-  return { clientId, clientSecret };
+function escapeHtml(v: string): string {
+  return v
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function dumpError(err: unknown): string {
+  try {
+    if (err instanceof Error) {
+      const e = err as Error & { cause?: unknown };
+      return JSON.stringify({
+        name: err.name,
+        message: err.message,
+        stack: err.stack?.split("\n").slice(0, 4).join(" | "),
+        cause: e.cause instanceof Error ? { name: e.cause.name, message: e.cause.message } : e.cause ? String(e.cause) : undefined,
+      }, null, 2);
+    }
+    return JSON.stringify(err) ?? String(err);
+  } catch {
+    return String(err);
+  }
 }
 
 export async function GET(req: NextRequest) {
@@ -50,10 +63,10 @@ export async function GET(req: NextRequest) {
     `), { headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
 
-  const creds = await getOAuth2Creds();
+  const creds = await getGmailOAuthCredentials();
   if (!creds) {
     return new NextResponse(htmlPage("⚠️ Kredensial Tidak Lengkap", `
-      <p>Client ID atau Client Secret belum diset. Masukkan kredensial di Settings → Email → Gmail OAuth2 terlebih dahulu.</p>
+      <p>Client ID atau Client Secret belum diset (baik di database maupun env <code>GOOGLE_CLIENT_ID</code>/<code>GOOGLE_CLIENT_SECRET</code>). Masukkan kredensial di Settings → Email → Gmail OAuth2 terlebih dahulu, lalu klik <strong>Simpan Kredensial</strong>.</p>
       <a href="/admin/settings?tab=email" class="btn">← Kembali ke Settings</a>
     `), { headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
@@ -115,13 +128,19 @@ export async function GET(req: NextRequest) {
     const msg   = err instanceof Error ? err.message : String(err);
     const cause = err instanceof Error ? (err as Error & { cause?: unknown }).cause : undefined;
     const causeMsg = cause instanceof Error ? cause.message : (cause ? String(cause) : "");
+    const msgText = msg.trim()
+      ? msg
+      : `Pesan error kosong — dump error lengkap:\n${dumpError(err)}`;
     return new NextResponse(htmlPage("❌ Gagal Tukar Token", `
       <p>Error saat menukar code dengan token:</p>
-      <code class="error">${msg}</code>
-      ${causeMsg ? `<code class="error" style="margin-top:8px">Cause: ${causeMsg}</code>` : ""}
+      <code class="error">${escapeHtml(msgText)}</code>
+      ${causeMsg.trim() ? `<code class="error" style="margin-top:8px">Cause: ${escapeHtml(causeMsg)}</code>` : ""}
       <br>
       <p style="font-size:0.8rem;color:#6b7280;margin-top:12px">
-        Redirect URI yang dipakai: <code>${callbackUri}</code><br>
+        Redirect URI yang dipakai: <code>${escapeHtml(callbackUri)}</code><br>
+        Kredensial dipakai dari: <strong>${escapeHtml(creds.source)}</strong>${creds.source === "env" ? " (env GOOGLE_CLIENT_ID/SECRET — jika Anda baru mengisi form, klik Simpan Kredensial dulu)" : ""}<br>
+        Client ID (awalan): <code>${escapeHtml(creds.clientId.slice(0, 24))}…</code><br>
+        Jika awalan Client ID di atas tidak sesuai OAuth client yang redirect URI-nya Anda daftarkan, kredensial yang dipakai server masih yang lama — klik <em>Simpan Kredensial</em> di Settings lalu ulangi otorisasi.<br>
         Pastikan URI ini sudah terdaftar persis di Google Cloud Console &rarr; OAuth 2.0 Client &rarr; Authorized redirect URIs.
       </p>
       <a href="/admin/settings?tab=email" class="btn">← Kembali ke Settings</a>

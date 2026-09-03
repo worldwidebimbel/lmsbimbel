@@ -20,6 +20,7 @@ interface Props {
   oauth2Configured: boolean;
   oauth2Vars: { clientId: boolean; clientSecret: boolean; refreshToken: boolean; gmailFrom: boolean };
   oauth2DbConfig: { clientId: string; clientSecret: string; connectedEmail: string; hasRefreshToken: boolean };
+  gmailCallbackUri: string;
   activeEmailMethod: "resend" | "oauth2" | "smtp" | "none";
   appVersion: string;
   branches: { id: string; name: string; code: string }[];
@@ -29,7 +30,7 @@ interface Props {
 
 type Tab = "umum" | "pembayaran" | "demo" | "email" | "info";
 
-export default function SettingsClient({ initialSettings, demoStatus, smtpConfigured, resendConfigured, oauth2Configured, oauth2Vars, oauth2DbConfig, activeEmailMethod, appVersion, branches, isSuperAdmin, defaultBranchId }: Props) {
+export default function SettingsClient({ initialSettings, demoStatus, smtpConfigured, resendConfigured, oauth2Configured, oauth2Vars, oauth2DbConfig, gmailCallbackUri, activeEmailMethod, appVersion, branches, isSuperAdmin, defaultBranchId }: Props) {
   const [tab, setTab] = useState<Tab>("umum");
   const [settings, setSettings] = useState(initialSettings);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(defaultBranchId);
@@ -253,6 +254,11 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
       const res = await fetch("/api/admin/email/auth-url");
       const data = await res.json();
       if (!res.ok) return toast.error(data.error ?? "Gagal mendapatkan auth URL");
+      if (data.credSource === "env") {
+        toast.warning("Server memakai kredensial dari ENV (GOOGLE_CLIENT_ID/SECRET), BUKAN dari form. Klik 'Simpan Kredensial' dulu agar form dipakai.");
+      } else if (data.credSource === "mixed") {
+        toast.warning("Server memakai kredensial CAMPURAN database + env — klik 'Simpan Kredensial' agar kredensial form terpakai penuh.");
+      }
       window.open(data.url, "_blank", "width=600,height=700");
     } finally {
       setLoadingAuthUrl(false);
@@ -846,10 +852,14 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
                 </div>
 
                 <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs space-y-1">
-                  <p className="text-gray-500 font-medium">Authorized Redirect URI (daftarkan di Google Cloud Console):</p>
-                  <code className="text-gray-800 break-all select-all">
-                    {typeof window !== "undefined" ? `${window.location.origin}/api/admin/email/callback` : "[NEXTAUTH_URL]/api/admin/email/callback"}
-                  </code>
+                  <p className="text-gray-500 font-medium">Authorized Redirect URI (dipakai server — daftarkan persis ini di Google Cloud Console):</p>
+                  <code className="text-gray-800 break-all select-all">{gmailCallbackUri}</code>
+                  {typeof window !== "undefined" && `${window.location.origin}/api/admin/email/callback` !== gmailCallbackUri ? (
+                    <p className="text-amber-600">
+                      ⚠️ Browser Anda dibuka di <code>{window.location.origin}</code> — beda dari <code>NEXTAUTH_URL</code> server.
+                      Google hanya menerima redirect URI dari server (<code>{gmailCallbackUri}</code>), bukan origin browser Anda.
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="flex flex-wrap gap-2">
