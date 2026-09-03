@@ -165,7 +165,7 @@ export default function ForumClient({ initialThreads, classes, currentUserId, cu
               <h2 className="text-xl font-bold text-gray-900">{selectedThread.title}</h2>
             </div>
             {(selectedThread.author.id === currentUserId || ["ADMIN", "SUPER_ADMIN", "GURU"].includes(currentUserRole)) && (
-              <button onClick={() => handleDeleteThread(selectedThread.id)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
+              <button onClick={() => handleDeleteThread(selectedThread.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
                 <X className="h-4 w-4" />
               </button>
             )}

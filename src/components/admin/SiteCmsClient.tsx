@@ -415,8 +415,8 @@ export default function SiteCmsClient({
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${b.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{b.isActive ? "Aktif" : "Nonaktif"}</span>
-                  <button onClick={() => toggleBanner(b)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{b.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
-                  <button onClick={() => deleteBanner(b.id)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                  <button onClick={() => toggleBanner(b)} title={b.isActive ? "Sembunyikan" : "Tampilkan"} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{b.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                  <button onClick={() => deleteBanner(b.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
             ))}
@@ -525,8 +525,8 @@ export default function SiteCmsClient({
                 <div className="flex items-center justify-between">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${p.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{p.isActive ? "Aktif" : "Nonaktif"}</span>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => toggleProgram(p)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{p.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
-                    <button onClick={() => deleteProgram(p.id)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => toggleProgram(p)} title={p.isActive ? "Sembunyikan" : "Tampilkan"} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{p.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                    <button onClick={() => deleteProgram(p.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>
@@ -565,8 +565,8 @@ export default function SiteCmsClient({
                 <div className="flex items-center justify-between">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${t.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{t.isActive ? "Aktif" : "Nonaktif"}</span>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => toggleTestimonial(t)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{t.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
-                    <button onClick={() => deleteTestimonial(t.id)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => toggleTestimonial(t)} title={t.isActive ? "Sembunyikan" : "Tampilkan"} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{t.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                    <button onClick={() => deleteTestimonial(t.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>
@@ -614,8 +614,8 @@ export default function SiteCmsClient({
                 <div className="flex items-center justify-between">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${b.isPublished ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{b.isPublished ? "Publik" : "Draft"}</span>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => toggleBlogPost(b)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{b.isPublished ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
-                    <button onClick={() => deleteBlogPost(b.id)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => toggleBlogPost(b)} title={b.isPublished ? "Sembunyikan" : "Tampilkan"} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg">{b.isPublished ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                    <button onClick={() => deleteBlogPost(b.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-400 hover:text-red-600 border border-red-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>

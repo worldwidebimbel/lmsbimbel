@@ -437,9 +437,9 @@
 - [x] `9.2` API response caching: `Cache-Control` headers untuk GET endpoints yang jarang berubah — already in `next.config.ts`
 - [x] `9.2` Font loading optimization: `display=swap`, preload critical fonts — Inter via next/font/local (swap + auto preload); Amiri/Noto Serif Javanese + KaTeX CSS dari @import render-blocking → link stylesheet + preconnect di head (terverifikasi render 200)
 - [ ] `9.2` Lighthouse audit & fix: target ≥80 untuk Performance, Accessibility, Best Practices, SEO
-- [ ] `9.3` Loading states: skeleton screens untuk semua tabel & card yang fetch data
-- [ ] `9.3` Empty states: ilustrasi/pesan untuk semua halaman kosong
-- [ ] `9.3` Error states: consistent error boundary + pesan error yang user-friendly
+- [x] `9.3` Loading states: skeleton screens untuk semua tabel & card yang fetch data — komponen `Skeleton`/`PageSkeleton` + `loading.tsx` di admin/guru/siswa/orangtua + root (halaman publik)
+- [x] `9.3` Empty states: ilustrasi/pesan untuk semua halaman kosong — terverifikasi 108 file sudah punya guard `.length === 0` + pesan (spot-check parents/blog/galeri OK)
+- [x] `9.3` Error states: consistent error boundary + pesan error yang user-friendly — `error.tsx` (card Coba Lagi + Beranda + digest) + `global-error.tsx` (fallback root layout inline-style)
 - [ ] `9.3` Konsistensi spacing & typography: audit semua halaman, sistem spacing Tailwind konsisten
 - [ ] `9.3` Accessibility: ARIA labels di semua interactive elements, keyboard navigation, contrast ≥4.5:1
 - [ ] `9.3` Dark mode (opsional): toggle theme di settings, `prefers-color-scheme` + manual toggle

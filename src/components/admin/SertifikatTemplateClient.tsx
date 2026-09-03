@@ -135,7 +135,7 @@ export default function SertifikatTemplateClient({ template, recentCerts }: Prop
                     href={`/sertifikat/${cert.code}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50"
+                    title="Buka link" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50"
                   >
                     <ExternalLink className="h-4 w-4" />
                   </a>

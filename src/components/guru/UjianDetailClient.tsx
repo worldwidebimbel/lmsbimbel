@@ -191,7 +191,7 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
                   {q.explanation && <p className="mt-1.5 text-xs italic text-gray-400">Penjelasan: {q.explanation}</p>}
                 </div>
                 <button onClick={() => handleDeleteQuestion(q.id)}
-                  className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
+                  title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>

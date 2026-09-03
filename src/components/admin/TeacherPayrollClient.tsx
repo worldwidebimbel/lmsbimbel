@@ -120,7 +120,7 @@ export default function TeacherPayrollClient({ teachers, payrolls: initial }: { 
         <div className="rounded-xl border border-gray-200 bg-white p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-gray-900">Generate Payroll Baru</h2>
-            <button onClick={() => setShowForm(false)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg hover:bg-gray-100">
+            <button onClick={() => setShowForm(false)} title="Tutup" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 rounded-lg hover:bg-gray-100">
               <X className="h-4 w-4" />
             </button>
           </div>

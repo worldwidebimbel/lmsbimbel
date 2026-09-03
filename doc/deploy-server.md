@@ -611,7 +611,7 @@ pm2 logs lms-bimbel --lines 10 --err
   ### Fix VPS
 
  ```bash
- cd /var/www/lms-bimbel
+cd /var/www/lms-bimbel
 nano .env.local
 
 # 1. Buat folder migration baseline

@@ -212,10 +212,10 @@ function SessionCard({ session, onEdit, onDelete, deleting, isPast: past }: {
           {session.description && <p className="mt-1 text-sm text-gray-500 line-clamp-2">{session.description}</p>}
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          <button onClick={() => onEdit(session)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+          <button onClick={() => onEdit(session)} title="Edit" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
             <Pencil className="h-4 w-4" />
           </button>
-          <button onClick={() => onDelete(session.id)} disabled={deleting === session.id} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
+          <button onClick={() => onDelete(session.id)} disabled={deleting === session.id} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
             {deleting === session.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
           </button>
         </div>

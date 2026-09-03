@@ -98,7 +98,7 @@ export default function FaqManager({ faqs: initial }: { faqs: Faq[] }) {
                 <button onClick={() => handleToggle(f.id, f.isActive)} className="rounded p-1.5 text-xs text-gray-400 hover:bg-gray-100">
                   {f.isActive ? "Sembunyikan" : "Tampilkan"}
                 </button>
-                <button onClick={() => handleDelete(f.id)} className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
+                <button onClick={() => handleDelete(f.id)} title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
