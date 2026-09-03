@@ -5,6 +5,15 @@ import { isAdminRole } from "@/lib/permission";
 import { getEmailConfigAsync } from "@/lib/email";
 import { GmailOAuth2 } from "@/lib/gmail-oauth2";
 
+function errDetail(err: unknown): string {
+  if (err instanceof Error) {
+    const sub = Array.isArray((err as unknown as { errors?: unknown[] }).errors) ? (err as unknown as { errors: unknown[] }).errors : [];
+    const subs = sub.length ? ` (sub-errors: ${sub.map((s) => (s instanceof Error ? s.message : String(s))).join("; ")})` : "";
+    return `${err.message || err.name || "Error"}${subs}`;
+  }
+  return String(err);
+}
+
 export async function GET() {
   const session = await auth();
   if (!session?.user || !isAdminRole(session.user.role)) {
@@ -54,7 +63,7 @@ export async function GET() {
           });
         },
       );
-      req.on("error", (err) => resolve({ ok: false, detail: err.message }));
+      req.on("error", (err) => resolve({ ok: false, detail: errDetail(err) }));
       req.on("timeout", () => { req.destroy(); resolve({ ok: false, detail: "Timeout: VPS tidak dapat menjangkau api.resend.com. Cek firewall/outbound HTTPS." }); });
       req.end();
     });
@@ -71,8 +80,7 @@ export async function GET() {
           : `Token refresh tidak mengembalikan access_token: ${JSON.stringify(tokens)}`,
       };
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      refreshTest = { ok: false, detail: msg };
+      refreshTest = { ok: false, detail: errDetail(err) };
     }
   }
 

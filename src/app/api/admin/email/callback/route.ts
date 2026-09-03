@@ -18,10 +18,14 @@ function escapeHtml(v: string): string {
 function dumpError(err: unknown): string {
   try {
     if (err instanceof Error) {
-      const e = err as Error & { cause?: unknown };
+      const e = err as Error & { cause?: unknown; errors?: unknown[] };
+      const subErrors = Array.isArray(e.errors) && e.errors.length
+        ? e.errors.map((sub) => (sub instanceof Error ? sub.message : String(sub)))
+        : undefined;
       return JSON.stringify({
         name: err.name,
         message: err.message,
+        ...(subErrors ? { subErrors } : {}),
         stack: err.stack?.split("\n").slice(0, 4).join(" | "),
         cause: e.cause instanceof Error ? { name: e.cause.name, message: e.cause.message } : e.cause ? String(e.cause) : undefined,
       }, null, 2);
