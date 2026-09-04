@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { CheckCircle, ArrowRight, Star, HelpCircle, Phone, MessageCircle } from "lucide-react";
+import { readableTextColor } from "@/lib/readable-text";
 
 interface Section {
   type: string;
@@ -16,17 +17,6 @@ interface LandingPageData {
   sections: Section[];
   ctaType: string;
   ctaUrl: string | null;
-}
-
-function readableTextColor(hex: string): string {
-  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
-  if (!m) return "#ffffff";
-  const n = parseInt(m[1], 16);
-  const r = (n >> 16) & 255;
-  const g = (n >> 8) & 255;
-  const b = n & 255;
-  const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-  return lum > 160 ? "#111827" : "#ffffff";
 }
 
 function HeaderSection({ data, pageTitle }: { data: Record<string, unknown>; pageTitle: string }) {

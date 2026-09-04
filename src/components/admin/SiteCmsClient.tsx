@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Save, Plus, Trash2, Loader2, Eye, EyeOff, Globe, Image, MessageSquare, Palette, Bell, Layers, Quote, Newspaper } from "lucide-react";
+import { Save, Plus, Trash2, Loader2, Eye, EyeOff, Globe, Image, MessageSquare, Palette, Bell, Layers, Quote, Newspaper, X } from "lucide-react";
+import { readableTextColor } from "@/lib/readable-text";
 
 type Tab = "branding" | "banners" | "gallery" | "programs" | "testimonials" | "blog" | "popup" | "inquiries";
 
@@ -13,6 +14,13 @@ interface BlogPost { id: string; slug: string; title: string; excerpt: string | 
 interface Inquiry { id: string; name: string; phone: string; email: string | null; program: string | null; message: string | null; status: string; createdAt: string; }
 
 const INQ_STATUS: Record<string, string> = { NEW: "Baru", CONTACTED: "Dihubungi", ENROLLED: "Terdaftar", CLOSED: "Ditutup" };
+
+const POPUP_MODES = [
+  { value: "light", label: "Light", desc: "Teks hitam, background putih" },
+  { value: "dark", label: "Dark", desc: "Teks putih, background hitam" },
+  { value: "image", label: "With Background Image", desc: "Gambar sebagai background popup" },
+  { value: "image_only", label: "Image Only", desc: "Hanya gambar — teks & tombol disembunyikan" },
+];
 
 export default function SiteCmsClient({
   initialConfig,
@@ -53,6 +61,18 @@ export default function SiteCmsClient({
     const res = await fetch("/api/admin/site/config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cfg) });
     setMsg(res.ok ? "Pengaturan disimpan!" : "Gagal menyimpan");
     setSaving(false);
+  }
+
+  const popupMode = cfg.popupMode || "light";
+  const popupIsSolid = popupMode === "light" || popupMode === "dark";
+  const popupIsImage = popupMode === "image" || popupMode === "image_only";
+
+  function applyPopupMode(m: string) {
+    setCfg((p) => ({
+      ...p,
+      popupMode: m,
+      popupBgColor: m === "dark" ? "#000000" : m === "light" ? "#FFFFFF" : p.popupBgColor ?? "",
+    }));
   }
 
   async function addBanner() {
@@ -632,6 +652,57 @@ export default function SiteCmsClient({
               <input type="checkbox" checked={cfg.popupEnabled === "true"} onChange={(e) => setCfg((p) => ({ ...p, popupEnabled: e.target.checked ? "true" : "false" }))} className="rounded" />
               <span className="text-sm text-gray-700">Tampilkan popup saat homepage dibuka</span>
             </label>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Mode Tampilan</label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="radiogroup" aria-label="Mode tampilan popup">
+                {POPUP_MODES.map((m) => (
+                  <button
+                    key={m.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={popupMode === m.value}
+                    onClick={() => applyPopupMode(m.value)}
+                    className={`rounded-lg border px-3 py-2.5 text-left transition-colors ${popupMode === m.value ? "border-indigo-600 bg-indigo-50" : "border-gray-200 hover:border-gray-300"}`}
+                  >
+                    <span className="block text-sm font-medium text-gray-800">{m.label}</span>
+                    <span className="block text-xs text-gray-500 mt-0.5">{m.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {popupIsSolid && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={cfg.popupBgColor || (popupMode === "dark" ? "#000000" : "#FFFFFF")}
+                    onChange={(e) => setCfg((p) => ({ ...p, popupBgColor: e.target.value }))}
+                    className="h-9 w-12 rounded cursor-pointer border border-gray-300"
+                    aria-label="Warna background popup"
+                  />
+                  <input
+                    type="text"
+                    value={cfg.popupBgColor ?? ""}
+                    onChange={(e) => setCfg((p) => ({ ...p, popupBgColor: e.target.value }))}
+                    placeholder={popupMode === "dark" ? "#000000" : "#FFFFFF"}
+                    className="w-32 rounded-lg border border-gray-300 px-2 py-2 text-xs focus:border-indigo-500 focus:outline-none"
+                  />
+                  <p className="text-xs text-gray-500">Default: {popupMode === "dark" ? "hitam (#000000), teks putih" : "putih (#FFFFFF), teks hitam"} — teks menyesuaikan kontras otomatis.</p>
+                </div>
+              </div>
+            )}
+
+            {popupIsImage && field("popupBgImage", "URL Background Image", "text", "https://... (disarankan rasio 1:1 s/d 4:3)")}
+            {popupMode === "image" && (
+              <p className="text-xs text-gray-500">Mode With Background Image: teks &amp; tombol tetap tampil di atas gambar dengan overlay gelap agar terbaca.</p>
+            )}
+            {popupMode === "image_only" && (
+              <p className="text-xs text-gray-500">Mode Image Only: semua teks &amp; tombol disembunyikan — hanya gambar + tombol tutup ×. Jika URL Tombol diisi, gambar dapat diklik menuju link tersebut.</p>
+            )}
+
             <div className="grid sm:grid-cols-2 gap-4">
               {field("popupTitle", "Judul Popup", "text", "Promo Spesial!")}
               {field("popupLinkLabel", "Label Tombol", "text", "Daftar Sekarang")}
@@ -642,6 +713,14 @@ export default function SiteCmsClient({
               <textarea rows={3} value={cfg.popupMessage ?? ""} onChange={(e) => setCfg((p) => ({ ...p, popupMessage: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" placeholder="Daftar sekarang dan dapatkan sesi trial gratis..." />
             </div>
           </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+            <h2 className="font-semibold text-gray-900">Preview</h2>
+            <div className="rounded-xl bg-black/60 p-6 flex items-center justify-center">
+              <PopupPreview cfg={cfg} />
+            </div>
+          </div>
+
           <button onClick={saveCfg} disabled={saving} className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg disabled:opacity-50">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Simpan
           </button>
@@ -690,6 +769,64 @@ export default function SiteCmsClient({
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+function PopupPreview({ cfg }: { cfg: Record<string, string> }) {
+  const rawMode = cfg.popupMode || "light";
+  const bgImage = (cfg.popupBgImage ?? "").trim();
+  const mode = (rawMode === "image" || rawMode === "image_only") && !bgImage ? "dark" : rawMode;
+  const isImageOnly = mode === "image_only";
+  const isImage = mode === "image" || mode === "image_only";
+  const bgColor = (cfg.popupBgColor ?? "").trim() || (mode === "dark" ? "#000000" : "#FFFFFF");
+  const darkSurface = isImage || readableTextColor(bgColor) === "#ffffff";
+  const textColor = darkSurface ? "#ffffff" : "#111827";
+  const subTextColor = darkSurface ? "rgba(255,255,255,0.75)" : "rgba(17,24,39,0.7)";
+  const closeColor = darkSurface ? "rgba(255,255,255,0.7)" : "#6b7280";
+
+  if (isImageOnly) {
+    return (
+      <div className="relative w-full max-w-xs rounded-xl overflow-hidden bg-black shadow-lg">
+        <img src={bgImage} alt="Preview popup" className="block w-full h-auto max-h-64 object-cover" />
+        <div className="absolute top-2 right-2 rounded-full bg-black/40 p-1 backdrop-blur-sm" style={{ color: closeColor }}>
+          <X className="h-3.5 w-3.5" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="relative w-full max-w-sm rounded-xl overflow-hidden shadow-lg p-6 space-y-3"
+      style={isImage ? undefined : { backgroundColor: bgColor }}
+    >
+      {isImage && (
+        <>
+          <img src={bgImage} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-black/55" />
+        </>
+      )}
+      <div className="absolute top-2 right-2 z-10" style={{ color: closeColor }}>
+        <X className="h-3.5 w-3.5" />
+      </div>
+      <div className="relative space-y-3 text-center">
+        <div className="h-9 w-9 rounded-full mx-auto flex items-center justify-center" style={{ backgroundColor: `${cfg.colorPrimary}20` }}>
+          <span className="text-lg">🎉</span>
+        </div>
+        {cfg.popupTitle && <p className="text-base font-bold" style={{ color: textColor }}>{cfg.popupTitle}</p>}
+        {cfg.popupMessage && <p className="text-xs" style={{ color: subTextColor }}>{cfg.popupMessage}</p>}
+        <div className="flex gap-2 justify-center">
+          {cfg.popupLinkUrl && (
+            <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white" style={{ backgroundColor: cfg.colorPrimary }}>
+              {cfg.popupLinkLabel || "Selengkapnya"}
+            </span>
+          )}
+          <span className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${darkSurface ? "border-white/40 text-white" : "border-gray-300 text-gray-700"}`}>
+            Tutup
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
