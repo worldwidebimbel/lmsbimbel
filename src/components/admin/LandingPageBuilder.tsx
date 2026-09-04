@@ -25,6 +25,7 @@ interface PageData {
 }
 
 const SECTION_TYPES = [
+  { type: "HEADER", label: "Header", desc: "Logo + tombol CTA/quick contact (WA) statis" },
   { type: "HERO", label: "Hero", desc: "Judul besar + CTA" },
   { type: "FEATURES", label: "Fitur", desc: "Daftar fitur unggulan" },
   { type: "TESTIMONIAL", label: "Testimoni", desc: "Ulasan siswa/orang tua" },
@@ -35,6 +36,8 @@ const SECTION_TYPES = [
 
 function createSection(type: string): Section {
   switch (type) {
+    case "HEADER":
+      return { type, logoUrl: "", ctaLabel: "Hubungi Kami", ctaUrl: "https://wa.me/6281234567890", model: "RIGHT_LEFT", bgColor: "#ffffff", ctaColor: "#16a34a" };
     case "HERO":
       return { type, title: "", subtitle: "", badge: "", ctaLabel: "Daftar Sekarang", ctaUrl: "/ppdb", bgImage: "" };
     case "FEATURES":
@@ -241,6 +244,54 @@ function SectionEditor({ section, onChange }: { section: Section; onChange: (dat
   }
 
   const s = section as Record<string, unknown>;
+
+  if (section.type === "HEADER") {
+    return (
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-600">Model Header</label>
+            <select value={(s.model as string) ?? "RIGHT_LEFT"} onChange={(e) => update("model", e.target.value)}
+              className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm">
+              <option value="RIGHT_LEFT">Right-Left (logo kiri, CTA kanan)</option>
+              <option value="TOP_BOTTOM">Top-Bottom (logo atas, CTA bawah — centered)</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-600">Logo URL</label>
+            <input value={(s.logoUrl as string) ?? ""} onChange={(e) => update("logoUrl", e.target.value)}
+              placeholder="https://... (kosong = teks judul halaman)" className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-600">Label CTA / Quick Contact</label>
+            <input value={(s.ctaLabel as string) ?? ""} onChange={(e) => update("ctaLabel", e.target.value)}
+              placeholder="Hubungi Kami" className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-600">URL CTA (WhatsApp)</label>
+            <input value={(s.ctaUrl as string) ?? ""} onChange={(e) => update("ctaUrl", e.target.value)}
+              placeholder="https://wa.me/6281234567890" className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-medium text-gray-600">Warna Background</label>
+            <input type="color" value={(s.bgColor as string) ?? "#ffffff"} onChange={(e) => update("bgColor", e.target.value)}
+              className="h-8 w-12 cursor-pointer rounded border border-gray-300 p-0.5" aria-label="Warna background header" />
+            <span className="font-mono text-xs text-gray-500">{(s.bgColor as string) ?? "#ffffff"}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-medium text-gray-600">Warna Tombol CTA</label>
+            <input type="color" value={(s.ctaColor as string) ?? "#16a34a"} onChange={(e) => update("ctaColor", e.target.value)}
+              className="h-8 w-12 cursor-pointer rounded border border-gray-300 p-0.5" aria-label="Warna tombol CTA" />
+            <span className="font-mono text-xs text-gray-500">{(s.ctaColor as string) ?? "#16a34a"}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (section.type === "HERO") {
     return (

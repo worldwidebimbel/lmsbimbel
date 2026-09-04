@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle, ArrowRight, Star, HelpCircle, Phone } from "lucide-react";
+import { CheckCircle, ArrowRight, Star, HelpCircle, Phone, MessageCircle } from "lucide-react";
 
 interface Section {
   type: string;
@@ -16,6 +16,57 @@ interface LandingPageData {
   sections: Section[];
   ctaType: string;
   ctaUrl: string | null;
+}
+
+function readableTextColor(hex: string): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return "#ffffff";
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+  return lum > 160 ? "#111827" : "#ffffff";
+}
+
+function HeaderSection({ data, pageTitle }: { data: Record<string, unknown>; pageTitle: string }) {
+  const logoUrl = String(data.logoUrl ?? "").trim();
+  const ctaLabel = String(data.ctaLabel ?? "Hubungi Kami");
+  const ctaUrl = String(data.ctaUrl ?? "#").trim();
+  const model = String(data.model ?? "RIGHT_LEFT");
+  const bgColor = String(data.bgColor ?? "#ffffff");
+  const ctaColor = String(data.ctaColor ?? "#16a34a");
+  const ctaTextColor = readableTextColor(ctaColor);
+  const logoTextColor = readableTextColor(bgColor);
+  const isTopBottom = model === "TOP_BOTTOM";
+  const external = /^https?:\/\//i.test(ctaUrl);
+
+  return (
+    <header className="px-4 py-4 sm:px-6" style={{ backgroundColor: bgColor }}>
+      <div
+        className={`mx-auto max-w-5xl gap-4 ${
+          isTopBottom ? "flex flex-col items-center text-center" : "flex items-center justify-between"
+        }`}
+      >
+        {logoUrl ? (
+          <img src={logoUrl} alt={pageTitle} className="h-10 w-auto max-w-[200px] object-contain sm:h-12" />
+        ) : (
+          <span className="text-lg font-extrabold sm:text-xl" style={{ color: logoTextColor }}>
+            {pageTitle}
+          </span>
+        )}
+        <a
+          href={ctaUrl || "#"}
+          {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+          className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
+          style={{ backgroundColor: ctaColor, color: ctaTextColor }}
+        >
+          <MessageCircle className="h-4 w-4" aria-hidden="true" />
+          {ctaLabel}
+        </a>
+      </div>
+    </header>
+  );
 }
 
 function HeroSection({ data }: { data: Record<string, unknown> }) {
@@ -193,6 +244,9 @@ export default function LandingPageView({ page }: { page: LandingPageData }) {
   return (
     <div className="min-h-screen">
       {(page.sections || []).map((section, i) => {
+        if (section.type === "HEADER") {
+          return <HeaderSection key={i} data={section as Record<string, unknown>} pageTitle={page.title} />;
+        }
         const Renderer = SECTION_RENDERERS[section.type];
         if (!Renderer) return null;
         return <Renderer key={i} data={section as Record<string, unknown>} />;
