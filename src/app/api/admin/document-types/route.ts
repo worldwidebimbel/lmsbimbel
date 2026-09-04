@@ -11,8 +11,7 @@ export async function GET() {
   }
 
   const types = await db.documentType.findMany({
-    where: { isActive: true },
-    orderBy: { order: "asc" },
+    orderBy: [{ order: "asc" }, { name: "asc" }],
   });
 
   return NextResponse.json(types);

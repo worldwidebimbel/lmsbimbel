@@ -53,6 +53,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
+
+  let materialId: string | null | undefined = undefined;
+  if (body.materialId !== undefined) {
+    if (body.materialId === null || body.materialId === "") {
+      materialId = null;
+    } else {
+      const mat = await db.material.findUnique({
+        where: { id: body.materialId },
+        select: { id: true },
+      });
+      if (!mat) return NextResponse.json({ error: "Materi tidak ditemukan" }, { status: 404 });
+      materialId = body.materialId;
+    }
+  }
+
   const exam = await db.exam.update({
     where: { id },
     data: {
@@ -65,9 +80,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(body.shuffleOptions !== undefined && { shuffleOptions: Boolean(body.shuffleOptions) }),
       ...(body.passingScore !== undefined && { passingScore: Number(body.passingScore) }),
       ...(body.isPublished !== undefined && { isPublished: Boolean(body.isPublished) }),
+      ...(materialId !== undefined && { materialId }),
     },
   });
 
-  await logAudit({ entity: "Exam", entityId: id, action: "UPDATE", after: { title: body.title, isPublished: body.isPublished } });
+  await logAudit({ entity: "Exam", entityId: id, action: "UPDATE", after: { title: body.title, isPublished: body.isPublished, materialId } });
   return NextResponse.json(exam);
 }

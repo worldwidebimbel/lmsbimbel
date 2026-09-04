@@ -96,49 +96,17 @@ Login sebagai guru → menu **Materi Pembelajaran** (`/guru/materi`) → klik to
 
 ### A4 — Langkah 4: Latihan (Ujian terlampir)
 
-> ⚠️ **Gap UI yang diketahui**: form "Buat Ujian" (`/guru/ujian/new`) belum punya field "Lampirkan ke Materi", padahal API-nya mendukung (`POST /api/guru/ujian` menerima `materialId`). Sampai UI-nya dibuat, lampiran dilakukan lewat console browser (langkah A4b). Setelah UI tersedia, ganti langkah A4b dengan memilih materi di form.
-
-**A4a — Buat ujian via UI (tanpa lampiran dulu):**
+Form "Buat Ujian" sudah mendukung field **Lampirkan ke Materi** (opsional) — gunakan agar ujian tampil sebagai langkah evaluasi di halaman Bab:
 
 1. Menu **Ujian** (`/guru/ujian`) → **Buat Ujian**.
-2. Judul: `Latihan Bab 1: Structure Basics` · Terkait dengan: **Kelas** (pilih kelas yang sama) · Durasi: `10` · Nilai Lulus: `60` · Maks. Percobaan: `2`.
-3. Klik **Buat & Tambah Soal** → tambah **min. 3 soal** (manual atau Ambil dari Bank Soal).
-4. **Publikasikan ujian** dari halaman detail ujian (ujian harus published agar tampil bagi siswa).
+2. Judul: `Latihan Bab 1: Structure Basics` · Terkait dengan: **Kelas** (pilih kelas yang sama).
+3. Field **Lampirkan ke Materi (opsional)** yang muncul setelah kelas dipilih → pilih **`Bab: Bab 1: Structure Basics — Bab 1 — Structure: Slide Presentasi`** (materi PPT, langkah terakhir Bab).
+   - Daftar pilihan otomatis tersaring mengikuti kelas yang dipilih. Jika belum ada materi di kelas tsb, buat dulu 3 materi di Bagian A lalu kembali ke form ini.
+4. Durasi: `10` · Nilai Lulus: `60` · Maks. Percobaan: `2`.
+5. Klik **Buat & Tambah Soal** → tambah **min. 3 soal** (manual atau Ambil dari Bank Soal).
+6. **Publikasikan ujian** dari halaman detail ujian (ujian harus published agar tampil bagi siswa).
 
-**A4b — Lampirkan ujian ke materi PPT (console browser):**
-
-Masih login sebagai guru di tab browser yang sama → buka DevTools (F12) → tab **Console** → jalankan:
-
-```js
-// 1) Ambil daftar materi, cari ID materi PPT milik Bab kita
-const res = await fetch("/api/materi");
-const data = await res.json();
-const materials = Array.isArray(data) ? data : data.materials ?? [];
-const ppt = materials.find(m => m.type === "PRESENTATION" && m.chapterTitle === "Bab 1: Structure Basics");
-console.log("Materi PPT:", ppt?.id, ppt?.title);
-```
-
-```js
-// 2) Lampirkan: buat ulang ujian dengan materialId, atau update ujian A4a
-//    (PATCH /api/guru/ujian/[id] belum mendukung materialId, jadi set saat POST)
-const exam = await fetch("/api/guru/ujian", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    title: "Latihan Bab 1: Structure Basics",
-    description: "Kerjakan setelah menonton video, membaca artikel, dan mempelajari slide.",
-    classId: ppt?.classId ?? null,     // kelas yang sama dengan materi
-    duration: 10,
-    passingScore: 60,
-    maxAttempts: 2,
-    materialId: ppt?.id,               // ← lampiran ke materi (langkah PPT)
-  }),
-}).then(r => r.json());
-console.log("Ujian dibuat:", exam.id);
-// → salin ID, buka /guru/ujian/{exam.id} untuk tambah soal & publish
-```
-
-> Alternatif A4b tanpa console: update langsung kolom `materialId` di tabel `exams` via Prisma Studio / SQL, lalu tambah soal & publish via UI.
+> 💡 Ujian yang sudah dibuat tetap bisa dilampirkan/dilepas kapan saja: di halaman detail ujian (`/guru/ujian/{id}`) terdapat bar **"Lampiran ke Materi"** — pilih materi → **Simpan** (`PATCH /api/guru/ujian/[id]` mendukung `materialId`).
 
 ---
 
@@ -200,16 +168,16 @@ Login sebagai siswa (tab/incognito terpisah).
 | Materi tidak terkelompokkan / Rangkaian Aktivitas hanya 1 langkah | `Judul Bab` tidak sama persis (typo/spasi) ATAU pilihan Kelas berbeda antar materi | Edit materi, samakan `Judul Bab` + Kelas |
 | Urutan langkah salah | field `Urutan` (order) salah | Set 1/2/3 sesuai urutan yang diinginkan |
 | Materi tidak muncul bagi siswa | belum dipublikasikan, atau siswa tidak ter-enroll di kelas materi (materi "Semua Kelas" tampil untuk semua — tapi pengelompokan Bab tetap butuh kelas sama) | Publish materi / cek enroll siswa |
-| "Lanjut ke Latihan" tidak muncul | ujian belum dilampirkan ke materi (`materialId` kosong) atau ujian belum published | Ulangi langkah A4b; pastikan ujian published |
-| Quiz & Ujian kosong di halaman materi | ujian tidak published / lampiran ke materi lain | Publish ujian; pastikan `materialId` = materi PPT |
+| "Lanjut ke Latihan" tidak muncul | ujian belum dilampirkan ke materi (`materialId` kosong) atau ujian belum published | Buka `/guru/ujian/{id}` → bar **Lampiran ke Materi** → pilih materi PPT → **Simpan**; pastikan ujian published |
+| Quiz & Ujian kosong di halaman materi | ujian tidak published / lampiran ke materi lain | Publish ujian; pastikan lampiran = materi PPT (bar Lampiran ke Materi) |
 | Ujian tak bisa dikerjakan | belum ada soal / window waktu belum mulai / percobaan habis | Tambah soal; cek Mulai/Selesai; naikkan Maks. Percobaan |
 | PPT tidak tampil | file gagal upload (belum muncul "File berhasil diupload") | Upload ulang file (maks 50MB) sebelum simpan |
 
 ---
 
-## 7. Catatan Gap UI (tindak lanjut disarankan)
+## 7. Catatan Gap UI
 
-1. **Field "Lampirkan ke Materi" belum ada di form Buat Ujian** — `POST /api/guru/ujian` sudah menerima `materialId` (`src/app/api/guru/ujian/route.ts`), tapi `NewUjianClient` tidak mengirimkannya. Disarankan: tambahkan dropdown materi (opsional) di form, dan dukung `materialId` di `PATCH /api/guru/ujian/[id]` agar ujian existing bisa dilampirkan/dilepas tanpa buat ulang.
+1. ~~Field "Lampirkan ke Materi" belum ada di form Buat Ujian~~ — **✅ FIXED**: form `/guru/ujian/new` kini punya dropdown **Lampirkan ke Materi** (tersaring per kelas terpilih), dan `PATCH /api/guru/ujian/[id]` mendukung `materialId` — ujian existing bisa dilampirkan/dilepas dari bar **Lampiran ke Materi** di halaman detail ujian.
 2. **Status EVALUATION di Rangkaian Aktivitas selalu TODO** — tidak merefleksikan hasil pengerjaan ujian. Opsional: tandai DONE bila siswa sudah punya attempt lulus.
 3. **Materi tanpa kelas ("Semua Kelas") + Bab** — pengelompokan sibling memakai `classId`; jika Bab di-set tanpa kelas, hanya materi tanpa kelas yang bergabung. Untuk Bab, selalu gunakan kelas spesifik.
 

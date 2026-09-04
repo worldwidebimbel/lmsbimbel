@@ -18,8 +18,13 @@ interface Attempt { id: string; student: { name: string }; score: number | null;
 interface Exam {
   id: string; title: string; duration: number; passingScore: number;
   isPublished: boolean; isRandomized: boolean; description: string | null;
+  materialId?: string | null;
+  classId?: string | null;
+  material?: { id: string; title: string; chapterTitle: string | null } | null;
   questions: Question[]; _count: { attempts: number };
 }
+
+interface MaterialOption { id: string; title: string; chapterTitle: string | null }
 
 const DIFF_LABEL = ["", "Mudah", "Sedang", "Sulit", "Sangat Sulit"];
 const DIFF_COLOR = ["", "text-green-600", "text-yellow-600", "text-orange-600", "text-red-600"];
@@ -36,11 +41,13 @@ interface EssayAttempt {
   submittedAt: string;
 }
 
-export default function UjianDetailClient({ exam: initial, attempts, subjects = [], essayQuestions = [], essayAttempts = [] }: { exam: Exam; attempts: Attempt[]; subjects?: Subject[]; essayQuestions?: EssayQuestion[]; essayAttempts?: EssayAttempt[] }) {
+export default function UjianDetailClient({ exam: initial, attempts, subjects = [], materials = [], essayQuestions = [], essayAttempts = [] }: { exam: Exam; attempts: Attempt[]; subjects?: Subject[]; materials?: MaterialOption[]; essayQuestions?: EssayQuestion[]; essayAttempts?: EssayAttempt[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [exam, setExam] = useState(initial);
   useEffect(() => { setExam(initial); }, [initial]);
+  const [materialInput, setMaterialInput] = useState(initial.materialId ?? "");
+  useEffect(() => { setMaterialInput(initial.materialId ?? ""); }, [initial.materialId]);
   const [showForm, setShowForm] = useState(false);
   const [tab, setTab] = useState<"soal" | "hasil" | "toefl" | "essay">("soal");
   const [showPickBank, setShowPickBank] = useState(false);
@@ -66,6 +73,29 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
       body: JSON.stringify({ isPublished: !exam.isPublished }),
     });
     if (res.ok) { setExam((p) => ({ ...p, isPublished: !p.isPublished })); router.refresh(); }
+  }
+
+  async function handleSaveMaterial() {
+    setError("");
+    startTransition(async () => {
+      const res = await fetch(`/api/guru/ujian/${exam.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ materialId: materialInput || null }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setError(d.error ?? "Gagal menyimpan lampiran materi");
+        return;
+      }
+      const updated = await res.json();
+      setExam((p) => ({
+        ...p,
+        materialId: updated.materialId ?? null,
+        material: materials.find((m) => m.id === updated.materialId) ?? null,
+      }));
+      router.refresh();
+    });
   }
 
   function handleAddQuestion(e: React.FormEvent) {
@@ -136,6 +166,48 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
           {exam.isPublished ? <><EyeOff className="h-4 w-4" />Sembunyikan</> : <><Eye className="h-4 w-4" />Publikasikan</>}
         </button>
       </div>
+
+      {error && (
+        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>
+      )}
+
+      {exam.classId != null && materials.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white p-4">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <BookMarked className="h-4 w-4 text-indigo-500" />
+            <span className="font-medium">Lampiran ke Materi:</span>
+            {exam.material ? (
+              <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                {exam.material.chapterTitle ? `Bab: ${exam.material.chapterTitle} — ` : ""}{exam.material.title}
+              </span>
+            ) : (
+              <span className="text-xs text-gray-400">belum dilampirkan</span>
+            )}
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <select
+              value={materialInput}
+              onChange={(e) => setMaterialInput(e.target.value)}
+              aria-label="Lampirkan ujian ke materi"
+              className="max-w-[240px] rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+            >
+              <option value="">— Tidak terlampir —</option>
+              {materials.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.chapterTitle ? `Bab: ${m.chapterTitle} — ` : ""}{m.title}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleSaveMaterial}
+              disabled={isPending || materialInput === (exam.materialId ?? "")}
+              className="rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            >
+              Simpan
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="flex border-b border-gray-200">
         {(["soal", "toefl", "hasil", "essay"] as const).map((t) => (

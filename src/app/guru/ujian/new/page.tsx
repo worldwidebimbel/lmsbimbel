@@ -14,7 +14,7 @@ export default async function NewUjianPage() {
 
   const { branchId, isSuperAdmin } = await getBranchScope();
 
-  const [classes, events] = await Promise.all([
+  const [classes, events, materials] = await Promise.all([
     db.class.findMany({
       where: { teacherId: session.user.id, isActive: true },
       select: { id: true, name: true, subject: { select: { name: true } } },
@@ -27,6 +27,11 @@ export default async function NewUjianPage() {
       },
       select: { id: true, title: true, type: true },
       orderBy: { startDate: "desc" },
+    }),
+    db.material.findMany({
+      where: { class: { teacherId: session.user.id } },
+      select: { id: true, title: true, chapterTitle: true, classId: true },
+      orderBy: [{ chapterOrder: "asc" }, { order: "asc" }],
     }),
   ]);
 
@@ -44,7 +49,7 @@ export default async function NewUjianPage() {
           <p className="text-sm text-gray-500">Konfigurasi ujian baru</p>
         </div>
       </div>
-      <NewUjianClient classes={classes} events={events} />
+      <NewUjianClient classes={classes} events={events} materials={materials} />
     </div>
   );
 }

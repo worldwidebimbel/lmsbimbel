@@ -53,7 +53,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         email: email || "no-reply@bimbel.id",
         phoneNumber: phone || undefined,
       },
-      returnUrl: `${baseUrl}/ppdb/status?id=${registration.id}&payment=done`,
+      returnUrl: `${baseUrl}/daftar/status?no=${registration.registrationNo}&payment=done`,
       callbackUrl: getCallbackUrl(),
       expiryPeriod: 1440,
     });

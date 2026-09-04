@@ -44,6 +44,29 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Attach uploaded documents to the registration
+    const docs = (data.documents ?? []).filter(
+      (d) => d.documentTypeId && d.fileUrl
+    );
+    if (docs.length > 0) {
+      const validTypes = await db.documentType.findMany({
+        where: { id: { in: docs.map((d) => d.documentTypeId) }, isActive: true },
+        select: { id: true },
+      });
+      const validTypeIds = new Set(validTypes.map((t) => t.id));
+      const docData = docs
+        .filter((d) => validTypeIds.has(d.documentTypeId))
+        .map((d) => ({
+          registrationId: registration.id,
+          documentTypeId: d.documentTypeId,
+          fileUrl: d.fileUrl,
+          note: d.name ?? null,
+        }));
+      if (docData.length > 0) {
+        await db.registrationDocument.createMany({ data: docData });
+      }
+    }
+
     await db.registrationStatusLog.create({
       data: {
         registrationId: registration.id,

@@ -22,6 +22,15 @@ export const registrationSchema = z.object({
   infoSource: z.string().optional(),
   referralCode: z.string().optional(),
   documentTypeIds: z.array(z.string()).optional(),
+  documents: z
+    .array(
+      z.object({
+        documentTypeId: z.string().min(1),
+        fileUrl: z.string().min(1, "URL dokumen tidak valid"),
+        name: z.string().optional(),
+      })
+    )
+    .optional(),
 });
 
 export type RegistrationData = z.infer<typeof registrationSchema>;

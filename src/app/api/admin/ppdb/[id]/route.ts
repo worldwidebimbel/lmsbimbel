@@ -67,6 +67,20 @@ export async function PATCH(
   if (typeof body.adminNote === "string") {
     updateData.adminNote = body.adminNote;
   }
+  if (body.preferredClassId !== undefined) {
+    if (body.preferredClassId === null || body.preferredClassId === "") {
+      updateData.preferredClassId = null;
+    } else if (typeof body.preferredClassId === "string") {
+      const cls = await db.class.findUnique({
+        where: { id: body.preferredClassId },
+        select: { id: true },
+      });
+      if (!cls) {
+        return NextResponse.json({ error: "Kelas tidak ditemukan" }, { status: 400 });
+      }
+      updateData.preferredClassId = body.preferredClassId;
+    }
+  }
 
   if (Object.keys(updateData).length === 0) {
     return NextResponse.json({ error: "Tidak ada field untuk diupdate" }, { status: 400 });

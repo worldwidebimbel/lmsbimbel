@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Loader2, CheckCircle, XCircle, Clock } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Search, Loader2, CheckCircle, XCircle, Clock, CreditCard,
+} from "lucide-react";
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: "Draft",
@@ -40,12 +42,28 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED: "bg-gray-100 text-gray-500",
 };
 
-export function StatusChecker() {
-  const [registrationNo, setRegistrationNo] = useState("");
+const PAYMENT_LABELS: Record<string, string> = {
+  UNPAID: "Belum Bayar",
+  PENDING: "Menunggu Konfirmasi",
+  PAID: "Lunas",
+};
+
+const PAYMENT_COLORS: Record<string, string> = {
+  UNPAID: "bg-gray-100 text-gray-600",
+  PENDING: "bg-amber-100 text-amber-700",
+  PAID: "bg-green-100 text-green-700",
+};
+
+export function StatusChecker({ initialNo = "" }: { initialNo?: string }) {
+  const [registrationNo, setRegistrationNo] = useState(initialNo);
   const [loading, setLoading] = useState(false);
+  const [payLoading, setPayLoading] = useState(false);
   const [result, setResult] = useState<{
+    id: string;
     fullName: string;
     status: string;
+    registrationFee?: number | null;
+    paymentStatus?: string | null;
     program?: { name: string };
     branch?: { name: string };
     rejectionReason?: string | null;
@@ -54,16 +72,23 @@ export function StatusChecker() {
   } | null>(null);
   const [error, setError] = useState("");
 
-  async function check() {
-    if (!registrationNo.trim()) return;
+  useEffect(() => {
+    if (initialNo.trim()) check(initialNo.trim());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function check(no?: string) {
+    const target = (no ?? registrationNo).trim();
+    if (!target) return;
     setLoading(true);
     setError("");
     setResult(null);
     try {
-      const res = await fetch(`/api/ppdb/status/${registrationNo.trim().toUpperCase()}`);
+      const res = await fetch(`/api/ppdb/status/${target.toUpperCase()}`);
       const data = await res.json();
       if (res.ok) {
         setResult(data);
+        setRegistrationNo(target.toUpperCase());
       } else {
         setError(data.error || "Tidak ditemukan");
       }
@@ -71,6 +96,33 @@ export function StatusChecker() {
       setError("Terjadi kesalahan");
     }
     setLoading(false);
+  }
+
+  const canPay =
+    !!result &&
+    !!result.registrationFee &&
+    result.registrationFee > 0 &&
+    result.paymentStatus !== "PAID" &&
+    !["REJECTED", "CANCELLED", "ACTIVE_STUDENT"].includes(result.status);
+
+  async function payNow() {
+    if (!result) return;
+    setPayLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/payments/ppdb/${result.id}/checkout`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (res.ok && data.paymentUrl) {
+        window.location.href = data.paymentUrl;
+        return;
+      }
+      setError(data.error || "Gagal membuat tagihan. Silakan hubungi admin.");
+    } catch {
+      setError("Terjadi kesalahan. Silakan coba lagi.");
+    }
+    setPayLoading(false);
   }
 
   if (result) {
@@ -103,6 +155,40 @@ export function StatusChecker() {
               <span className="text-gray-500">Cabang</span>
               <span className="font-medium text-gray-900">{result.branch.name}</span>
             </div>
+          )}
+          {result.registrationFee != null && result.registrationFee > 0 && (
+            <div className="flex justify-between">
+              <span className="text-gray-500">Biaya Pendaftaran</span>
+              <span className="font-medium text-gray-900">
+                Rp {result.registrationFee.toLocaleString("id-ID")}
+              </span>
+            </div>
+          )}
+          {result.registrationFee != null && result.registrationFee > 0 && (
+            <div className="flex justify-between">
+              <span className="text-gray-500">Pembayaran</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                  PAYMENT_COLORS[result.paymentStatus ?? "UNPAID"] ?? "bg-gray-100 text-gray-600"
+                }`}
+              >
+                {PAYMENT_LABELS[result.paymentStatus ?? "UNPAID"] ?? "Belum Bayar"}
+              </span>
+            </div>
+          )}
+          {canPay && (
+            <button
+              onClick={payNow}
+              disabled={payLoading}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-50 transition-colors"
+            >
+              {payLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CreditCard className="w-4 h-4" />
+              )}
+              Bayar Sekarang — Rp {result.registrationFee?.toLocaleString("id-ID")}
+            </button>
           )}
           {result.rejectionReason && (
             <div className="bg-red-50 rounded-lg p-3 text-red-700 text-xs">
@@ -144,7 +230,7 @@ export function StatusChecker() {
         <p className="text-sm text-red-600 bg-red-50 rounded-lg p-2">{error}</p>
       )}
       <button
-        onClick={check}
+        onClick={() => check()}
         disabled={loading || !registrationNo.trim()}
         className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50 transition-colors"
       >

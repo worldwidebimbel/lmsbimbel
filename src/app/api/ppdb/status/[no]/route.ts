@@ -10,10 +10,13 @@ export async function GET(
   const registration = await db.registration.findUnique({
     where: { registrationNo: no.toUpperCase() },
     select: {
+      id: true,
       registrationNo: true,
       fullName: true,
       birthDate: true,
       status: true,
+      registrationFee: true,
+      paymentStatus: true,
       program: { select: { name: true } },
       branch: { select: { name: true } },
       createdAt: true,

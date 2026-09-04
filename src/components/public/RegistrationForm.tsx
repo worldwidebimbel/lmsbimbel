@@ -73,7 +73,7 @@ export function RegistrationForm({
     referralCode: referralCode || "",
   });
 
-  const [uploadedDocs, setUploadedDocs] = useState<Record<string, string>>({});
+  const [uploadedDocs, setUploadedDocs] = useState<Record<string, { url: string; name: string }>>({});
   const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -135,6 +135,13 @@ export function RegistrationForm({
       setLoading(false);
       return;
     }
+    const missingDocs = documentTypes.filter((dt) => dt.isRequired && !uploadedDocs[dt.id]);
+    if (missingDocs.length > 0) {
+      setStep(3);
+      setError(`Dokumen wajib belum diunggah: ${missingDocs.map((d) => d.name).join(", ")}`);
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch("/api/ppdb/register", {
         method: "POST",
@@ -142,6 +149,11 @@ export function RegistrationForm({
         body: JSON.stringify({
           ...data,
           documentTypeIds: Object.keys(uploadedDocs),
+          documents: Object.entries(uploadedDocs).map(([documentTypeId, d]) => ({
+            documentTypeId,
+            fileUrl: d.url,
+            name: d.name,
+          })),
         }),
       });
       const result = await res.json();
@@ -182,7 +194,7 @@ export function RegistrationForm({
         </p>
         <div className="flex gap-3 justify-center pt-4">
           <a
-            href="/daftar/status"
+            href={`/daftar/status?no=${encodeURIComponent(success.registrationNo)}`}
             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
           >
             Cek Status
@@ -485,7 +497,7 @@ export function RegistrationForm({
                         });
                         const result = await res.json();
                         if (res.ok) {
-                          setUploadedDocs({ ...uploadedDocs, [dt.id]: result.url });
+                          setUploadedDocs({ ...uploadedDocs, [dt.id]: { url: result.url, name: result.name ?? file.name } });
                         } else {
                           setError(result.error || "Upload gagal");
                         }

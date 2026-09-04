@@ -25,7 +25,9 @@ export default async function PpdbDetailPage({
       branch: { select: { id: true, name: true, code: true } },
       educationLevel: { select: { id: true, name: true, code: true } },
       documents: {
-        include: { documentType: true },
+        include: {
+          documentType: { select: { id: true, name: true, isRequired: true } },
+        },
       },
       statusLogs: {
         orderBy: { createdAt: "desc" },
@@ -36,6 +38,23 @@ export default async function PpdbDetailPage({
   if (!registration) {
     redirect("/admin/ppdb");
   }
+
+  const classes = await db.class.findMany({
+    where: {
+      isActive: true,
+      ...(registration.branchId
+        ? { OR: [{ branchId: registration.branchId }, { branchId: null }] }
+        : {}),
+    },
+    select: {
+      id: true,
+      name: true,
+      subject: { select: { name: true } },
+      teacher: { select: { name: true } },
+    },
+    orderBy: { name: "asc" },
+    take: 100,
+  });
 
   return (
     <div className="space-y-6">
@@ -50,6 +69,12 @@ export default async function PpdbDetailPage({
       </div>
 
       <PpdbDetail
+        classes={classes.map((c) => ({
+          id: c.id,
+          name: c.name,
+          subjectName: c.subject.name,
+          teacherName: c.teacher.name,
+        }))}
         registration={{
           ...registration,
           birthDate: registration.birthDate.toISOString(),

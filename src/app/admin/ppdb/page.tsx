@@ -3,6 +3,7 @@ import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { PpdbManager } from "@/components/admin/PpdbManager";
+import { DocumentTypeManager } from "@/components/admin/DocumentTypeManager";
 import { STATUS_LABELS } from "@/lib/ppdb-status";
 
 export const metadata = { title: "PPDB — Penerimaan Siswa" };
@@ -13,7 +14,7 @@ export default async function PpdbPage() {
     redirect("/admin");
   }
 
-  const [programs, branches] = await Promise.all([
+  const [programs, branches, documentTypes] = await Promise.all([
     db.program.findMany({
       where: { isActive: true },
       select: { id: true, name: true },
@@ -22,6 +23,9 @@ export default async function PpdbPage() {
     db.branch.findMany({
       select: { id: true, name: true, code: true },
       orderBy: { name: "asc" },
+    }),
+    db.documentType.findMany({
+      orderBy: [{ order: "asc" }, { name: "asc" }],
     }),
   ]);
 
@@ -63,6 +67,8 @@ export default async function PpdbPage() {
       </div>
 
       <PpdbManager programs={programs} branches={branches} />
+
+      <DocumentTypeManager initialTypes={documentTypes} />
     </div>
   );
 }

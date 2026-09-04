@@ -3,9 +3,17 @@
 import { useState } from "react";
 import {
   User, Phone, Mail, Calendar, MapPin, FileText, Check, X,
-  Clock, ArrowRight, UserCheck, Loader2, AlertCircle,
+  Clock, ArrowRight, UserCheck, Loader2, AlertCircle, Wallet,
+  Copy, ExternalLink, CreditCard, GraduationCap,
 } from "lucide-react";
 import { STATUS_LABELS, STATUS_COLORS, getAllowedTransitions } from "@/lib/ppdb-status";
+
+export type ClassOption = {
+  id: string;
+  name: string;
+  subjectName: string;
+  teacherName: string;
+};
 
 type Registration = {
   id: string;
@@ -30,6 +38,10 @@ type Registration = {
   status: string;
   rejectionReason: string | null;
   adminNote: string | null;
+  registrationFee: number | null;
+  paymentStatus: string | null;
+  paymentMethod: string | null;
+  preferredClassId: string | null;
   convertedUserId: string | null;
   convertedAt: string | null;
   createdAt: string;
@@ -53,7 +65,13 @@ type Registration = {
   }[];
 };
 
-export function PpdbDetail({ registration }: { registration: Registration }) {
+const PAYMENT_BADGE: Record<string, { label: string; cls: string }> = {
+  UNPAID: { label: "Belum Bayar", cls: "bg-gray-100 text-gray-600" },
+  PENDING: { label: "Menunggu Konfirmasi", cls: "bg-amber-100 text-amber-700" },
+  PAID: { label: "Lunas", cls: "bg-green-100 text-green-700" },
+};
+
+export function PpdbDetail({ registration, classes = [] }: { registration: Registration; classes?: ClassOption[] }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [convertResult, setConvertResult] = useState<{
@@ -61,6 +79,13 @@ export function PpdbDetail({ registration }: { registration: Registration }) {
     tempPassword: string;
   } | null>(null);
   const [currentStatus, setCurrentStatus] = useState(registration.status);
+  const [feeInput, setFeeInput] = useState(
+    registration.registrationFee != null ? String(registration.registrationFee) : ""
+  );
+  const [paymentStatus, setPaymentStatus] = useState(registration.paymentStatus);
+  const [paymentLink, setPaymentLink] = useState<string | null>(null);
+  const [classInput, setClassInput] = useState(registration.preferredClassId ?? "");
+  const [copied, setCopied] = useState(false);
 
   const allowedTransitions = getAllowedTransitions(currentStatus as never);
 
@@ -121,6 +146,77 @@ export function PpdbDetail({ registration }: { registration: Registration }) {
       }
     );
     if (res.ok) window.location.reload();
+  }
+
+  async function patchRegistration(payload: Record<string, unknown>) {
+    const res = await fetch(`/api/admin/ppdb/${registration.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, data };
+  }
+
+  async function saveFee() {
+    setLoading(true);
+    setError("");
+    const fee = feeInput.trim() === "" ? 0 : Number(feeInput);
+    if (Number.isNaN(fee) || fee < 0) {
+      setError("Biaya pendaftaran tidak valid");
+      setLoading(false);
+      return;
+    }
+    const { ok, data } = await patchRegistration({ registrationFee: fee });
+    if (!ok) {
+      setError(data.error || "Gagal menyimpan biaya");
+    } else {
+      window.location.reload();
+    }
+    setLoading(false);
+  }
+
+  async function saveClass() {
+    setLoading(true);
+    setError("");
+    const { ok, data } = await patchRegistration({
+      preferredClassId: classInput === "" ? null : classInput,
+    });
+    if (!ok) {
+      setError(data.error || "Gagal menyimpan kelas tujuan");
+    } else {
+      window.location.reload();
+    }
+    setLoading(false);
+  }
+
+  async function createPaymentLink() {
+    setLoading(true);
+    setError("");
+    setPaymentLink(null);
+    try {
+      const res = await fetch(`/api/payments/ppdb/${registration.id}/checkout`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPaymentLink(data.paymentUrl);
+        setPaymentStatus("PENDING");
+      } else {
+        setError(data.error || "Gagal membuat link pembayaran");
+      }
+    } catch {
+      setError("Terjadi kesalahan saat menghubungi payment gateway");
+    }
+    setLoading(false);
+  }
+
+  function copyPaymentLink() {
+    if (!paymentLink) return;
+    navigator.clipboard.writeText(paymentLink).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   }
 
   return (
@@ -306,6 +402,131 @@ export function PpdbDetail({ registration }: { registration: Registration }) {
               <Check className="w-5 h-5 mx-auto mb-1" />
               Sudah dikonversi menjadi siswa aktif
             </div>
+          )}
+        </div>
+
+        {/* Payment Card */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+            <Wallet className="w-4 h-4" /> Biaya & Pembayaran
+          </h2>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-500">Status Pembayaran</span>
+            {(() => {
+              const badge = PAYMENT_BADGE[paymentStatus ?? "UNPAID"] ?? {
+                label: paymentStatus ?? "Belum Bayar",
+                cls: "bg-gray-100 text-gray-600",
+              };
+              return (
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badge.cls}`}>
+                  {badge.label}
+                </span>
+              );
+            })()}
+          </div>
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <label className="text-xs text-gray-500 block mb-1">Biaya Pendaftaran (Rp)</label>
+              <input
+                type="number"
+                min={0}
+                value={feeInput}
+                onChange={(e) => setFeeInput(e.target.value)}
+                placeholder="0"
+                disabled={paymentStatus === "PAID"}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+              />
+            </div>
+            <button
+              onClick={saveFee}
+              disabled={loading || paymentStatus === "PAID"}
+              className="mt-5 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50"
+            >
+              Simpan
+            </button>
+          </div>
+          {paymentStatus !== "PAID" && (
+            <div className="space-y-2">
+              <button
+                onClick={createPaymentLink}
+                disabled={loading || !registration.registrationFee}
+                className="w-full flex items-center justify-center gap-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <CreditCard className="w-4 h-4" />
+                )}
+                Buat Link Pembayaran (Duitku)
+              </button>
+              {!registration.registrationFee && (
+                <p className="text-xs text-gray-500">
+                  Simpan biaya pendaftaran (≥ 1) dulu sebelum membuat link pembayaran.
+                </p>
+              )}
+              {paymentLink && (
+                <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 space-y-2">
+                  <p className="text-xs font-medium text-indigo-700 break-all">{paymentLink}</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={copyPaymentLink}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-1.5 bg-white border border-indigo-200 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors"
+                    >
+                      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copied ? "Tersalin" : "Salin Link"}
+                    </button>
+                    <a
+                      href={paymentLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-1.5 bg-white border border-indigo-200 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" /> Buka
+                    </a>
+                  </div>
+                  <p className="text-xs text-indigo-500">
+                    Kirim link ini ke pendaftar via WhatsApp. Status berubah otomatis saat pembayaran berhasil (webhook Duitku).
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Preferred Class Card */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+            <GraduationCap className="w-4 h-4" /> Kelas Tujuan
+          </h2>
+          {classes.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              Tidak ada kelas aktif yang cocok. Buat kelas dulu di menu Kelas.
+            </p>
+          ) : (
+            <>
+              <select
+                value={classInput}
+                onChange={(e) => setClassInput(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">— Belum dipilih —</option>
+                {classes.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} · {c.subjectName} ({c.teacherName})
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={saveClass}
+                disabled={loading || classInput === (registration.preferredClassId ?? "")}
+                className="w-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Simpan Kelas Tujuan
+              </button>
+              <p className="text-xs text-gray-500">
+                Siswa akan otomatis terdaftar di kelas ini saat dikonversi menjadi siswa aktif.
+              </p>
+            </>
           )}
         </div>
 

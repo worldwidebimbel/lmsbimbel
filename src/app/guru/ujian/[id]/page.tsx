@@ -15,8 +15,9 @@ export default async function UjianDetailPage({ params }: { params: Promise<{ id
   const exam = await db.exam.findUnique({
     where: { id },
     include: {
-      class: { select: { name: true, subject: { select: { name: true, color: true } } } },
+      class: { select: { id: true, name: true, subject: { select: { name: true, color: true } } } },
       event: { select: { id: true, title: true, type: true } },
+      material: { select: { id: true, title: true, chapterTitle: true } },
       questions: {
         orderBy: { createdAt: "asc" },
         select: { id: true, type: true, content: true, imageUrl: true, audioUrl: true, videoUrl: true, options: true, correctAnswer: true, explanation: true, score: true, difficulty: true },
@@ -26,6 +27,14 @@ export default async function UjianDetailPage({ params }: { params: Promise<{ id
   });
 
   if (!exam) notFound();
+
+  const materials = exam.class
+    ? await db.material.findMany({
+        where: { classId: exam.class.id },
+        select: { id: true, title: true, chapterTitle: true },
+        orderBy: [{ chapterOrder: "asc" }, { order: "asc" }],
+      })
+    : [];
 
   const attempts = await db.examAttempt.findMany({
     where: { examId: id, isCompleted: true },
@@ -67,6 +76,7 @@ export default async function UjianDetailPage({ params }: { params: Promise<{ id
         exam={JSON.parse(JSON.stringify(exam))}
         attempts={JSON.parse(JSON.stringify(attempts))}
         subjects={JSON.parse(JSON.stringify(subjects))}
+        materials={JSON.parse(JSON.stringify(materials))}
         essayQuestions={JSON.parse(JSON.stringify(essayQuestions))}
         essayAttempts={JSON.parse(JSON.stringify(essayAttempts))}
       />

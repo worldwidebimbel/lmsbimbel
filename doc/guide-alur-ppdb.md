@@ -43,25 +43,24 @@ Setiap perubahan status: tercatat di **Riwayat Status**, audit log, notifikasi e
 
 - [ ] Akun admin (mis. `admin@lmsbimbel.id` / `admin123`) dengan akses menu **PPDB**
 - [ ] **Program aktif** yang terhubung min. 1 cabang (form `/daftar` memuat program aktif; pilihan cabang mengikuti program) — cek `/admin/cms/programs` atau modul program
-- [ ] **Jenis Dokumen (DocumentType) aktif** — ⚠️ belum ada UI kelolanya; insert manual (lihat 2.1)
+- [ ] **Jenis Dokumen (DocumentType) aktif** — dikelola via UI di menu PPDB (lihat 2.1)
 - [ ] **Cloudinary terkonfigurasi** (env `CLOUDINARY_*`) — tanpa ini upload dokumen gagal 503 "Layanan upload belum dikonfigurasi"
-- [ ] **Kelas tersedia** untuk penempatan siswa (Admin → **Kelas & Jadwal**) dengan mapel & guru pengampu
+- [ ] **Kelas tersedia** untuk penempatan siswa (Admin → **Kelas & Jadwal**) dengan mapel & guru pengampu — kelas aktif di cabang pendaftar otomatis muncul di dropdown **Kelas Tujuan** detail PPDB
 - [ ] (Opsional, hanya jika ingin test pembayaran online) **Duitku terkonfigurasi** (sandbox OK)
 - [ ] Browser 2 jendela: satu sebagai admin, satu sebagai pendaftar publik (incognito)
 
-### 2.1 Insert Jenis Dokumen (sekali saja, jika belum ada)
+### 2.1 Kelola Jenis Dokumen (via UI, sekali saja jika belum ada)
 
-Via SQL (tabel `document_types`):
+Admin → menu **PPDB** (`/admin/ppdb`) → section **Jenis Dokumen Pendaftaran** (di bawah daftar pendaftar) → tombol **+ Tambah**. Contoh data uji:
 
-```sql
-INSERT INTO "document_types" (id, name, "isRequired", "maxSizeMb", "allowedTypes", "isActive", "order")
-VALUES
-  (gen_random_uuid(), 'Pas Foto 3x4', true, 2, ARRAY['jpg','jpeg','png'], true, 1),
-  (gen_random_uuid(), 'Kartu Keluarga', true, 5, ARRAY['pdf','jpg','jpeg','png'], true, 2),
-  (gen_random_uuid(), 'Rapor Semester Terakhir', false, 5, ARRAY['pdf'], true, 3);
-```
+| Nama | Format (pisah koma) | Maks MB | Wajib | Urutan |
+|---|---|---|---|---|
+| `Pas Foto 3x4` | `jpg,jpeg,png` | 2 | ✔ | 1 |
+| `Kartu Keluarga` | `pdf,jpg,jpeg,png` | 5 | ✔ | 2 |
+| `Rapor Semester Terakhir` | `pdf` | 5 | ✘ | 3 |
 
-Atau via Prisma Studio (`npx prisma studio` → model DocumentType). Kolom penting: `allowedTypes` (ekstensi tanpa titik), `maxSizeMb`, `isRequired`, `isActive`.
+- Tombol **Edit** (ikon pensil) mengubah field yang sama; **Nonaktifkan/Aktifkan** mengatur muncul-tidaknya di form `/daftar` (data lama tetap tersimpan); **Hapus** ditolak (409) jika sudah dipakai pendaftaran — nonaktifkan saja.
+- Jenis dokumen nonaktif tidak muncul di langkah Dokumen form `/daftar`.
 
 ---
 
@@ -76,15 +75,16 @@ Jendela incognito (tanpa login).
 3. **Langkah 2 — Data Diri**: nama lengkap, tempat & tanggal lahir, jenis kelamin, (opsional: NIK, asal sekolah, kelas, alamat, WhatsApp, email). → **Lanjut**
    - Isi **email + WhatsApp** (dipakai untuk notifikasi & kredensial akun nanti).
 4. **Langkah 3 — Orang Tua**: nama orang tua, no. HP, email (opsional tapi disarankan — dipakai membuat akun ORANG_TUA saat konversi). → **Lanjut**
-5. **Langkah 4 — Dokumen**: untuk tiap jenis dokumen (wajib ditandai), **Pilih File** sesuai format/ukuran yang diizinkan → **Upload** → tunggu centang hijau.
+5. **Langkah 4 — Dokumen**: untuk tiap jenis dokumen (wajib ditandai), **Pilih File** sesuai format/ukuran yang diizinkan → tunggu centang hijau "Terunggah".
    - Uji negatif: coba file format salah (mis. `.exe`) → error "Format tidak didukung"; file > maxSizeMb → error ukuran.
-   - ⚠️ **Gap**: file berhasil ter-upload ke Cloudinary, tetapi **tidak ter-attach ke data pendaftaran** (lihat section 8, gap #1). Lanjutkan test apa adanya.
+   - Uji negatif: lanjut tanpa upload dokumen wajib → submit ditolak dengan pesan "Dokumen wajib belum diunggah: ..." dan form melompat kembali ke langkah Dokumen.
+   - File yang ter-upload otomatis ter-attach ke pendaftaran saat submit (record `RegistrationDocument` dibuat per dokumen).
 6. **Langkah 5 — Review**: periksa ringkasan → **Kirim Pendaftaran**.
 
 ### A2 — Verifikasi hasil
 
 - [ ] Halaman sukses menampilkan **Nomor Pendaftaran** (format `WW-2026-000001`) — catat nomor ini
-- [ ] Buka `/daftar/status` → masukkan nomor → status **Submitted**, program & cabang sesuai
+- [ ] Tombol **Cek Status** di halaman sukses langsung membuka `/daftar/status?no=WW-...` dengan nomor terisi otomatis → status **Submitted**, program & cabang sesuai
 - [ ] (Jika ada kode afiliator diisi) catat untuk smoke test Alur Afiliator — komisi PENDING tercatat
 
 ---
@@ -98,51 +98,43 @@ Login admin → menu **PPDB** (`/admin/ppdb`).
 
 ### B1 — Verifikasi
 
-- [ ] Detail: Data Diri, Data Orang Tua, Dokumen, Riwayat Status, tombol aksi sesuai state machine
-- [ ] ⚠️ Section **Dokumen (0) — "Tidak ada dokumen diunggah"** → konsekuensi gap #1 (normal saat ini)
+- [ ] Detail: Data Diri, Data Orang Tua, **Dokumen (N)** dengan file hasil upload pendaftar, Riwayat Status, tombol aksi sesuai state machine
+- [ ] Section **Dokumen**: tiap dokumen punya link **Lihat** (file Cloudinary) dan tombol **Verifikasi** — klik Verifikasi pada dokumen yang sesuai → badge "Terverifikasi"
 - [ ] Klik **→ Menunggu Verifikasi** → status berubah, Riwayat Status bertambah, (notif email/WA terkirim bila terkonfigurasi)
 - [ ] Klik **→ Terverifikasi**
 
 ### B2 — Bayar
 
-**Jalur standar (offline/manual):**
+**Set biaya & buat link pembayaran — semua via UI di detail PPDB:**
 
-- [ ] Klik **→ Menunggu Pembayaran**
-- [ ] Anggap pendaftar membayar di luar sistem (transfer/cash) → klik **→ Pembayaran Terverifikasi**
+1. Di halaman detail pendaftar, cari kartu **Biaya & Pembayaran** (sidebar kanan):
+   - Input **Biaya Pendaftaran (Rp)** → isi (mis. `150000`) → **Simpan**.
+   - Klik **Buat Link Pembayaran (Duitku)** → link pembayaran muncul dengan tombol **Salin Link** / **Buka**. Kirim link ke pendaftar via WhatsApp/email.
+   - Status pembayaran pendaftar berubah **Belum Bayar → Menunggu Konfirmasi** (PENDING).
+2. Di jendela pendaftar: buka `/daftar/status?no=WW-...` → baris **Biaya Pendaftaran** + **Pembayaran** tampil → klik **Bayar Sekarang** → diarahkan ke halaman checkout Duitku → bayar (sandbox).
+3. Setelah bayar: **webhook Duitku** men-set `paymentStatus: PAID` (cek `pm2 logs` untuk callback); pendaftar yang kembali dari checkout diarahkan ke `/daftar/status?no=...&payment=done` (banner hijau).
 
-**Jalur opsional (payment gateway Duitku, via console browser admin — F12 → Console):**
+**Jalur alternatif (offline/manual — tanpa gateway):**
 
-```js
-// 1) Set biaya pendaftaran (belum ada field di UI)
-const regId = "<ID_PENDAFTARAN>"; // dari URL /admin/ppdb/[id]
-await fetch(`/api/admin/ppdb/${regId}`, {
-  method: "PATCH",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ registrationFee: 150000 }),
-}).then(r => r.json());
+- [ ] Klik **→ Menunggu Pembayaran** → anggap pendaftar membayar di luar sistem (transfer/cash) → klik **→ Pembayaran Terverifikasi**
+- Bila gateway belum dikonfigurasi, tombol Bayar Sekarang menampilkan pesan error "Payment gateway belum dikonfigurasi" — gunakan jalur manual.
 
-// 2) Buat link pembayaran Duitku
-const co = await fetch(`/api/payments/ppdb/${regId}/checkout`, { method: "POST" }).then(r => r.json());
-console.log(co.paymentUrl); // buka di tab pendaftar, bayar (sandbox)
-```
-
-- [ ] `paymentStatus` pendaftar jadi PENDING → setelah bayar, **webhook Duitku** set `paymentStatus: PAID` (cek `pm2 logs` / log server untuk callback)
 - [ ] Webhook juga otomatis menaikkan status DRAFT/SUBMITTED → WAITING_VERIFICATION (idempotent; status lain tidak diubah — admin tetap memajukan ke PAYMENT_VERIFIED secara manual setelah memastikan pembayaran)
 
-### B3 — Konversi menjadi siswa
+### B3 — Pilih kelas tujuan & konversi menjadi siswa
 
-1. Klik **→ Diterima** (ACCEPTED).
-2. Klik tombol hijau **Konversi ke Siswa Aktif** → konfirmasi.
-3. Expected — kartu hijau "Siswa Berhasil Dibuat!" menampilkan **Email + Password sementara**:
+1. (Sebelum konversi) Di kartu **Kelas Tujuan** (sidebar kanan detail PPDB): pilih kelas dari dropdown (kelas aktif cabang pendaftar; label `Nama · Mapel (Guru)`) → **Simpan Kelas Tujuan**. Langkah ini opsional tapi memicu **auto-enroll saat konversi**.
+2. Klik **→ Diterima** (ACCEPTED).
+3. Klik tombol hijau **Konversi ke Siswa Aktif** → konfirmasi.
+4. Expected — kartu hijau "Siswa Berhasil Dibuat!" menampilkan **Email + Password sementara**:
    - [ ] Akun **SISWA** dibuat (email pendaftar; bila kosong → email generik `@ww-edu.com`)
    - [ ] Akun **ORANG_TUA** + relasi parent-child dibuat (jika nama & no. HP orang tua terisi)
    - [ ] **Invoice** program dibuat otomatis (jika harga program > 0) — cek Admin → Keuangan
+   - [ ] Bila **Kelas Tujuan** dipilih: siswa **otomatis ter-enroll** di kelas tsb (cek detail kelas → Siswa)
    - [ ] Status → **ACTIVE_STUDENT** (Siswa Aktif) — terminal
    - [ ] (Dengan referral) komisi afiliator naik ke **VALID** — cek modul afiliator
    - [ ] Kredensial & notifikasi terkirim via email/WA (bila terkonfigurasi)
    - [ ] Uji negatif: klik Konversi lagi → ditolak "Pendaftaran ini sudah dikonversi"
-
-> Catatan: auto-enroll kelas saat konversi hanya terjadi jika `preferredClassId` terisi — field ini **belum bisa diisi via UI** (gap #5), jadi penempatan kelas dilakukan manual di Bagian C.
 
 ---
 
@@ -151,9 +143,11 @@ console.log(co.paymentUrl); // buka di tab pendaftar, bayar (sandbox)
 ### C1 — Login siswa hasil konversi
 
 - [ ] Login `/login` dengan email + password sementara dari B3
-- [ ] Dashboard siswa terbuka; `/siswa/materi` masih kosong (belum ter-enroll kelas); `/siswa/jadwal` kosong
+- [ ] Dashboard siswa terbuka
+- [ ] Bila **Kelas Tujuan** dipilih di B3: `/siswa/materi` sudah menampilkan materi kelas tsb (bila guru sudah publish) — lanjut langsung ke C3 untuk verifikasi jadwal
+- [ ] Bila tidak: `/siswa/materi` masih kosong → lanjut ke C2 (enroll manual)
 
-### C2 — Admin: masukkan siswa ke kelas
+### C2 — Admin: masukkan siswa ke kelas (bila tidak memakai Kelas Tujuan)
 
 1. Admin → **Kelas & Jadwal** (`/admin/classes`) → buka kelas target (buat dulu bila belum ada: pilih mapel, guru, tipe kelas).
 2. Di detail kelas → bagian **Siswa** → tambahkan siswa hasil konversi (cari nama/email).
@@ -174,16 +168,17 @@ console.log(co.paymentUrl); // buka di tab pendaftar, bayar (sandbox)
 ## 6. Checklist Ringkas (untuk dicentang saat smoke test)
 
 - [ ] Form `/daftar` 5 langkah lengkap + draft tersimpan (refresh di tengah form → data tetap ada)
-- [ ] Upload dokumen: sukses + validasi format/ukuran + rate limit (10 upload/menit)
-- [ ] Nomor pendaftaran ter-generate & cek status berfungsi
-- [ ] Admin list PPDB: filter, statistik, detail
-- [ ] Verifikasi: transisi status sesuai state machine; transisi liar ditolak (coba lompat SUBMITTED → PAYMENT_VERIFIED via tombol — tidak tersedia/tolak)
-- [ ] Bayar: transisi manual; (opsional) Duitku checkout + webhook PAID
+- [ ] Upload dokumen: sukses + validasi format/ukuran + rate limit (10 upload/menit) + dokumen wajib di-enforce saat submit
+- [ ] Nomor pendaftaran ter-generate & cek status berfungsi (tombol Cek Status auto-terisi)
+- [ ] Admin list PPDB: filter, statistik, detail + kelola Jenis Dokumen (tambah/edit/nonaktif)
+- [ ] Verifikasi: dokumen tampil & bisa diverifikasi per item; transisi status sesuai state machine; transisi liar ditolak
+- [ ] Bayar: set biaya via UI + Buat Link Pembayaran + Bayar Sekarang di `/daftar/status` + webhook PAID (opsional gateway); jalur manual tetap berfungsi
+- [ ] Kelas Tujuan: dropdown kelas aktif cabang + simpan → auto-enroll saat konversi
 - [ ] Konversi: akun siswa + ortu + invoice + status ACTIVE_STUDENT + kredensial tampil
-- [ ] Kelas: enroll manual via detail kelas
+- [ ] Kelas: auto-enroll (via Kelas Tujuan) atau manual via detail kelas
 - [ ] Jadwal: buat via admin → tampil di `/siswa/jadwal`
 - [ ] Notifikasi status terkirim (cek log/email bila terkonfigurasi)
-- [ ] Audit log PPDB tercatat (Admin → Audit Log: CREATE Registration, STATUS_CHANGE, CONVERT_STUDENT)
+- [ ] Audit log PPDB tercatat (Admin → Audit Log: CREATE Registration, STATUS_CHANGE, CONVERT_STUDENT, UPDATE Registration)
 
 ---
 
@@ -192,28 +187,30 @@ console.log(co.paymentUrl); // buka di tab pendaftar, bayar (sandbox)
 | Gejala | Penyebab umum | Solusi |
 |---|---|---|
 | Form `/daftar` kosong / tidak ada program | belum ada program aktif atau program tidak terhubung cabang | aktifkan program + hubungkan cabang |
-| Step Dokumen kosong | belum ada `DocumentType` aktif | insert via SQL/Prisma Studio (section 2.1) |
+| Step Dokumen kosong | belum ada `DocumentType` aktif | tambah/nonaktifkan lewat UI PPDB → Jenis Dokumen (section 2.1) |
 | Upload dokumen gagal 503 | Cloudinary belum dikonfigurasi | set env `CLOUDINARY_*` lalu restart |
 | Upload gagal 429 | rate limit 10 upload/menit per IP | tunggu 1 menit |
-| Admin detail: "Tidak ada dokumen diunggah" | **gap #1** — dokumen tidak ter-attach saat submit | lihat section 8; verifikasi dokumen offline sampai gap ditutup |
+| Admin detail: "Tidak ada dokumen diunggah" | pendaftar tidak upload apa pun saat daftar (mis. lewat draft lama) | minta pendaftar kirim dokumen via WhatsApp, atau uji ulang dengan pendaftaran baru |
 | Tombol transisi status tidak ada | status terminal (ACTIVE_STUDENT/REJECTED/CANCELLED) atau sudah dikonversi | wajar per state machine |
 | Transisi ditolak API | melanggar state machine (`canTransition`) | ikuti urutan status |
 | Konversi gagal "sudah dikonversi" | `convertedUserId` sudah terisi | gunakan akun siswa yang sudah dibuat |
-| Siswa tidak lihat jadwal | belum di-enroll kelas / kelas belum punya jadwal | selesaikan C2 & C3 |
+| Dropdown Kelas Tujuan kosong | belum ada kelas aktif di cabang pendaftar (atau pendaftar tanpa cabang — menampilkan semua kelas aktif) | buat kelas aktif di cabang tsb |
+| Siswa tidak lihat jadwal | belum di-enroll kelas / kelas belum punya jadwal | set Kelas Tujuan sebelum konversi, atau selesaikan C2 & C3 |
 | Webhook tidak mengubah apa pun | signature Duitku salah / `paymentStatus` sudah PAID (idempotent) | cek `pm2 logs`, pastikan `DUITKU_*` env & callback URL publik |
-| Checkout PPDB error "Tidak ada biaya pendaftaran" | `registrationFee` belum di-set | set via PATCH (snippet B2) |
+| Tombol Buat Link Pembayaran / Bayar Sekarang error "Tidak ada biaya pendaftaran" | `registrationFee` belum di-set/0 | isi Biaya Pendaftaran di kartu Biaya & Pembayaran → Simpan |
+| Tombol Bayar Sekarang error "Payment gateway belum dikonfigurasi" | env `DUITKU_*` belum diset | set env Duitku atau gunakan jalur bayar manual |
 
 ---
 
-## 8. Catatan Gap UI (tindak lanjut disarankan)
+## 8. Catatan Gap UI — Semua Sudah Ditutup ✅
 
-1. **Dokumen tidak tersimpan ke pendaftaran** (kritis) — `/api/ppdb/upload` hanya upload ke Cloudinary; `POST /api/ppdb/register` menerima `documentTypeIds` tapi tidak membuat record `RegistrationDocument` (fileUrl hilang). Perbaikan: kirim `documents: [{documentTypeId, fileUrl, name}]` dari form → register API membuat `RegistrationDocument` per item; verifikasi per dokumen di admin (tombol Verifikasi sudah ada).
-2. **UI kelola Jenis Dokumen belum ada** — API `/api/admin/document-types` sudah ada; tambahkan tab/section di `/admin/ppdb` (nama, wajib/opsional, ekstensi, maks MB, urutan).
-3. **Field Biaya Pendaftaran belum ada di UI** — `PATCH /api/admin/ppdb/[id]` sudah mendukung `registrationFee`; tambahkan input di detail PPDB (muncul saat WAITING_PAYMENT atau kapan saja).
-4. **Pembayaran online PPDB belum terhubung UI** — `/api/payments/ppdb/[id]/checkout` berfungsi tapi tidak dipanggil UI mana pun; `returnUrl`-nya menunjuk `/ppdb/status` yang **tidak ada** (harusnya `/daftar/status`). Perbaikan: tombol "Kirim Link Pembayaran" di admin (kirim via WA/email) atau tombol "Bayar" di halaman cek status; perbaiki returnUrl.
-5. **`preferredClassId` tidak bisa diisi via UI** — auto-enroll kelas saat konversi tidak pernah terjadi. Perbaikan: dropdown kelas di detail PPDB (opsional, muncul saat ACCEPTED/CLASS_PLACEMENT), atau form pilih kelas pada langkah konversi.
-6. **Halaman `/daftar/status` hanya baca** — hanya menampilkan status; sebaiknya saat WAITING_PAYMENT menampilkan status pembayaran + tombol bayar bila gateway aktif (terkait #4).
+1. ~~Dokumen tidak tersimpan ke pendaftaran~~ — **✅ FIXED**: form `/daftar` mengirim `documents: [{documentTypeId, fileUrl, name}]` saat submit → `POST /api/ppdb/register` membuat record `RegistrationDocument` per dokumen; dokumen wajib di-enforce di form sebelum submit; dokumen tampil & dapat diverifikasi per item di detail admin PPDB.
+2. ~~UI kelola Jenis Dokumen belum ada~~ — **✅ FIXED**: section **Jenis Dokumen Pendaftaran** di `/admin/ppdb` (tambah/edit/nonaktifkan/hapus dengan proteksi 409 bila dipakai pendaftaran) via `GET/POST /api/admin/document-types` + `PATCH/DELETE /api/admin/document-types/[id]`.
+3. ~~Field Biaya Pendaftaran belum ada di UI~~ — **✅ FIXED**: kartu **Biaya & Pembayaran** di detail PPDB (input biaya + Simpan + badge status pembayaran).
+4. ~~Pembayaran online PPDB belum terhubung UI~~ — **✅ FIXED**: tombol **Buat Link Pembayaran (Duitku)** + Salin/Buka di kartu Biaya & Pembayaran; `returnUrl` diperbaiki ke `/daftar/status?no=...&payment=done`.
+5. ~~`preferredClassId` tidak bisa diisi via UI~~ — **✅ FIXED**: kartu **Kelas Tujuan** di detail PPDB (dropdown kelas aktif cabang pendaftar, `PATCH /api/admin/ppdb/[id]` menerima `preferredClassId`) → auto-enroll saat konversi.
+6. ~~Halaman `/daftar/status` hanya baca~~ — **✅ FIXED**: menampilkan Biaya Pendaftaran + status pembayaran (Belum Bayar/Menunggu Konfirmasi/Lunas) + tombol **Bayar Sekarang** (checkout Duitku) bila fee ter-set dan belum lunas; mendukung prefill nomor via `?no=` dan banner sukses `?payment=done`.
 
 ---
 
-*Dokumen dibuat untuk task smoke test Alur PPDB (timeline-4-minggu.md, Hari 3-4). Setelah semua checklist hijau (dengan penyesuaian gap), tandai task sebagai done di timeline.*
+*Dokumen dibuat untuk task smoke test Alur PPDB (timeline-4-minggu.md, Hari 3-4). Semua gap UI pada section 8 telah ditutup — jalankan smoke test dengan checklist penuh, lalu tandai task sebagai done di timeline.*
