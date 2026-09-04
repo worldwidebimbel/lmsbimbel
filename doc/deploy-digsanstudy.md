@@ -457,6 +457,18 @@ Atau satu baris:
 ```bash
 cd /var/www/lms-bimbel && git pull origin feat/worldwide-upgrade && npm install && npx prisma generate && npx prisma migrate deploy && npm run build && pm2 restart lms-bimbel --update-env
 ```
+Bila lama tidak diupdate (package-lock.json di server berubah — error "local changes would be overwritten"):
+```bash
+cd /var/www/lms-bimbel && git checkout -- package-lock.json && git pull origin feat/worldwide-upgrade && npm install && npx prisma generate && npx prisma migrate deploy && npm run build && pm2 restart lms-bimbel --update-env
+```
+
+> **Jika pull ditolak**: `error: Your local changes to the following files would be overwritten by merge: package-lock.json` — lockfile di server ditulis ulang oleh `npm install` (versi npm berbeda). Buang perubahan lokal lalu pull:
+> ```bash
+> git checkout -- package-lock.json
+> git pull origin feat/worldwide-upgrade
+> ```
+> Jika masih ada file lain yang termodifikasi, cek `git status`, lalu `git stash && git pull ... && git stash drop`.
+> **Pencegahan permanen**: pakai `npm ci` (bukan `npm install`) di server produksi — tidak pernah menulis ulang `package-lock.json`.
 
 > **Jika build gagal** dengan error `Cannot find module '.../jest-worker/processChild.js'` atau sejenisnya, lakukan clean install:
 > ```bash
