@@ -389,6 +389,20 @@ export default function SettingsClient({ initialSettings, demoStatus, smtpConfig
             <ThemeToggleCard />
 
             <div>
+              <h3 className="mb-4 font-semibold text-gray-800">Halaman Login</h3>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.disable_login_info === "true"}
+                  onChange={(e) => setSettings({ ...settings, disable_login_info: e.target.checked ? "true" : "false" })}
+                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-sm font-medium text-gray-700">Disable Login Info (sembunyikan Akun Demo)</span>
+              </label>
+              <p className="mt-2 text-xs text-gray-500">Saat aktif, daftar akun demo beserta akses loginnya disembunyikan dari halaman publik /login.</p>
+            </div>
+
+            <div>
               <h3 className="mb-4 font-semibold text-gray-800">Kontak & Informasi</h3>
               <div className="space-y-4">
                 {[

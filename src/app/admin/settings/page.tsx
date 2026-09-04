@@ -18,6 +18,7 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   contact_phone: "",
   address: "",
   whatsapp_admin: "",
+  disable_login_info: "false",
 };
 
 export default async function AdminSettingsPage() {

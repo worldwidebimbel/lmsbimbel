@@ -13,6 +13,7 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   contact_phone: "",
   address: "",
   whatsapp_admin: "",
+  disable_login_info: "false",
   qris_image_url: "",
   qris_bank_name: "",
   qris_account_name: "",
