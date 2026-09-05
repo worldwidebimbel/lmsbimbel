@@ -51,11 +51,18 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await req.json();
-  const { name, whatsapp, email, category, bankName, bankAccount, bankHolder, isActive } = body;
+  const { name, whatsapp, email, category, bankName, bankAccount, bankHolder, isActive, userId } = body;
 
   const before = await db.affiliate.findUnique({ where: { id } });
   if (!before) {
     return NextResponse.json({ error: "Afiliator tidak ditemukan" }, { status: 404 });
+  }
+
+  if (userId) {
+    const taken = await db.affiliate.findUnique({ where: { userId }, select: { id: true } });
+    if (taken && taken.id !== id) {
+      return NextResponse.json({ error: "Akun user sudah terhubung ke afiliator lain" }, { status: 409 });
+    }
   }
 
   const affiliate = await db.affiliate.update({
@@ -69,6 +76,7 @@ export async function PATCH(
       ...(bankAccount !== undefined && { bankAccount: bankAccount || null }),
       ...(bankHolder !== undefined && { bankHolder: bankHolder || null }),
       ...(isActive !== undefined && { isActive }),
+      ...(userId !== undefined && { userId: userId || null }),
     },
   });
 

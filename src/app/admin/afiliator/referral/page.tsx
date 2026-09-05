@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { AffiliateReferrals } from "@/components/admin/AffiliateReferrals";
+import { AfiliatorNav } from "@/components/admin/AfiliatorNav";
 
 export const metadata = { title: "Referral Afiliator" };
 
@@ -17,6 +18,7 @@ export default async function AdminReferralPage() {
   return (
     <div className="p-4 sm:p-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Referral Afiliator</h1>
+      <AfiliatorNav active="referral" />
       <AffiliateReferrals
         referrals={referrals.map((r) => ({
           id: r.id,

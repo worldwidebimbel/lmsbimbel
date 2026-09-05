@@ -67,6 +67,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Nama dan WhatsApp wajib diisi" }, { status: 400 });
   }
 
+  if (userId) {
+    const user = await db.user.findUnique({ where: { id: userId }, select: { id: true } });
+    if (!user) {
+      return NextResponse.json({ error: "Akun user tidak ditemukan" }, { status: 400 });
+    }
+    const taken = await db.affiliate.findUnique({ where: { userId }, select: { id: true } });
+    if (taken) {
+      return NextResponse.json({ error: "Akun user sudah terhubung ke afiliator lain" }, { status: 409 });
+    }
+  }
+
   const code = await generateAffiliateCode(name);
 
   const affiliate = await db.affiliate.create({

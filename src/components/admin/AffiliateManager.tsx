@@ -1,19 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Search, Trash2, Edit, Loader2, Copy } from "lucide-react";
+import { Plus, Search, Trash2, Edit, Loader2, Copy, UserCheck } from "lucide-react";
 
 interface Affiliate {
   id: string; code: string; name: string; whatsapp: string;
   email: string | null; category: string; isActive: boolean;
   clickCount: number; referralCount: number; createdAt: string;
+  userId: string | null; userName: string | null; userEmail: string | null;
 }
 
 interface Program { id: string; name: string; }
+interface AffiliateUser { id: string; name: string; email: string; }
 
 const CATEGORIES = ["SISWA", "ALUMNI", "TUTOR", "ORANG_TUA", "PARTNER", "UMUM"];
 
-export function AffiliateManager({ affiliates, programs }: { affiliates: Affiliate[]; programs: Program[] }) {
+export function AffiliateManager({ affiliates, programs, affiliateUsers }: { affiliates: Affiliate[]; programs: Program[]; affiliateUsers: AffiliateUser[] }) {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Affiliate | null>(null);
@@ -21,7 +23,7 @@ export function AffiliateManager({ affiliates, programs }: { affiliates: Affilia
   const [error, setError] = useState("");
   const [form, setForm] = useState({
     name: "", whatsapp: "", email: "", category: "UMUM",
-    bankName: "", bankAccount: "", bankHolder: "",
+    bankName: "", bankAccount: "", bankHolder: "", userId: "",
   });
 
   const filtered = affiliates.filter((a) => {
@@ -30,7 +32,7 @@ export function AffiliateManager({ affiliates, programs }: { affiliates: Affilia
   });
 
   function resetForm() {
-    setForm({ name: "", whatsapp: "", email: "", category: "UMUM", bankName: "", bankAccount: "", bankHolder: "" });
+    setForm({ name: "", whatsapp: "", email: "", category: "UMUM", bankName: "", bankAccount: "", bankHolder: "", userId: "" });
     setEditing(null);
     setShowForm(false);
     setError("");
@@ -38,7 +40,10 @@ export function AffiliateManager({ affiliates, programs }: { affiliates: Affilia
 
   function startEdit(a: Affiliate) {
     setEditing(a);
-    setForm({ name: a.name, whatsapp: a.whatsapp, email: a.email || "", category: a.category, bankName: "", bankAccount: "", bankHolder: "" });
+    setForm({
+      name: a.name, whatsapp: a.whatsapp, email: a.email || "", category: a.category,
+      bankName: "", bankAccount: "", bankHolder: "", userId: a.userId || "",
+    });
     setShowForm(true);
   }
 
@@ -51,7 +56,7 @@ export function AffiliateManager({ affiliates, programs }: { affiliates: Affilia
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, userId: form.userId || null }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -106,6 +111,20 @@ export function AffiliateManager({ affiliates, programs }: { affiliates: Affilia
             <input value={form.bankName} onChange={(e) => setForm({ ...form, bankName: e.target.value })} placeholder="Nama Bank" className="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
             <input value={form.bankAccount} onChange={(e) => setForm({ ...form, bankAccount: e.target.value })} placeholder="No. Rekening" className="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
             <input value={form.bankHolder} onChange={(e) => setForm({ ...form, bankHolder: e.target.value })} placeholder="Atas Nama" className="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            <select
+              value={form.userId}
+              onChange={(e) => setForm({ ...form, userId: e.target.value })}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              aria-label="Hubungkan ke akun user"
+            >
+              <option value="">Akun user: tidak terhubung</option>
+              {affiliateUsers.map((u) => (
+                <option key={u.id} value={u.id}>Akun user: {u.name} ({u.email})</option>
+              ))}
+            </select>
+            {form.userId === "" && editing?.userId && (
+              <p className="col-span-2 text-xs text-gray-500">Simpan untuk melepas koneksi akun user saat ini.</p>
+            )}
           </div>
           <div className="flex gap-2">
             <button onClick={submit} disabled={loading || !form.name || !form.whatsapp} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg disabled:opacity-50 flex items-center gap-2">
@@ -127,6 +146,7 @@ export function AffiliateManager({ affiliates, programs }: { affiliates: Affilia
                 <th className="text-left px-4 py-2 font-medium">WhatsApp</th>
                 <th className="text-center px-4 py-2 font-medium">Klik</th>
                 <th className="text-center px-4 py-2 font-medium">Referral</th>
+                <th className="text-center px-4 py-2 font-medium">Akun</th>
                 <th className="text-center px-4 py-2 font-medium">Status</th>
                 <th className="text-right px-4 py-2 font-medium">Aksi</th>
               </tr>
@@ -147,6 +167,15 @@ export function AffiliateManager({ affiliates, programs }: { affiliates: Affilia
                   <td className="px-4 py-3 text-gray-600">{a.whatsapp}</td>
                   <td className="px-4 py-3 text-center">{a.clickCount}</td>
                   <td className="px-4 py-3 text-center">{a.referralCount}</td>
+                  <td className="px-4 py-3 text-center">
+                    {a.userId ? (
+                      <span title={a.userEmail || ""} className="inline-flex items-center gap-1 text-emerald-600" aria-label={`Terhubung ke akun ${a.userName}`}>
+                        <UserCheck className="w-4 h-4" />
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-center">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${a.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                       {a.isActive ? "Aktif" : "Nonaktif"}

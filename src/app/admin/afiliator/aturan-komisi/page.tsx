@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { CommissionRulesManager } from "@/components/admin/CommissionRulesManager";
+import { AfiliatorNav } from "@/components/admin/AfiliatorNav";
 
 export const metadata = { title: "Aturan Komisi" };
 
@@ -19,6 +20,7 @@ export default async function AdminCommissionRulesPage() {
   return (
     <div className="p-4 sm:p-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Aturan Komisi</h1>
+      <AfiliatorNav active="aturan" />
       <CommissionRulesManager
         rules={rules.map((r) => ({
           id: r.id,

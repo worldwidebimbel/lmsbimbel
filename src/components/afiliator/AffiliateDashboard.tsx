@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Copy, TrendingUp, Users, DollarSign, Clock, CheckCircle, Loader2 } from "lucide-react";
 
 interface Props {
@@ -58,13 +58,18 @@ const PAYOUT_LABELS: Record<string, string> = {
 
 export function AffiliateDashboard({ affiliate, stats, referrals, payouts }: Props) {
   const [copied, setCopied] = useState(false);
+  const [origin, setOrigin] = useState("");
   const [showPayoutForm, setShowPayoutForm] = useState(false);
   const [payoutAmount, setPayoutAmount] = useState("");
   const [payoutLoading, setPayoutLoading] = useState(false);
   const [payoutError, setPayoutError] = useState("");
   const [payoutSuccess, setPayoutSuccess] = useState(false);
 
-  const referralLink = `${typeof window !== "undefined" ? window.location.origin : ""}/api/ref/${affiliate.code}`;
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const referralLink = `${origin}/api/ref/${affiliate.code}`;
 
   function copyLink() {
     navigator.clipboard.writeText(referralLink);

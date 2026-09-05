@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Ban, Loader2, FileDown } from "lucide-react";
+import { Ban, Loader2, FileDown, BadgeCheck } from "lucide-react";
 
 interface Referral {
   id: string; status: string; fraudFlag: boolean; fraudReason: string | null;
@@ -27,26 +27,46 @@ const STATUS_COLORS: Record<string, string> = {
 export function AffiliateReferrals({ referrals }: { referrals: Referral[] }) {
   const [filter, setFilter] = useState("");
   const [cancelling, setCancelling] = useState<string | null>(null);
+  const [readying, setReadying] = useState<string | null>(null);
+  const [actionError, setActionError] = useState("");
 
   const filtered = filter ? referrals.filter((r) => r.status === filter) : referrals;
+
+  async function patchReferral(payload: Record<string, string>) {
+    const res = await fetch("/api/admin/affiliate/referrals", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setActionError(d.error || "Gagal memproses referral");
+      return false;
+    }
+    window.location.reload();
+    return true;
+  }
 
   async function cancelReferral(id: string) {
     const reason = prompt("Alasan pembatalan?");
     if (!reason) return;
     setCancelling(id);
-    try {
-      await fetch("/api/admin/affiliate/referrals", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ referralId: id, reason }),
-      });
-      window.location.reload();
-    } catch {}
+    await patchReferral({ referralId: id, reason });
     setCancelling(null);
+  }
+
+  async function markReadyPayout(id: string) {
+    if (!confirm("Tandai komisi referral ini siap cair? Afiliator akan dapat mengajukan pencairan.")) return;
+    setReadying(id);
+    await patchReferral({ referralId: id, action: "readyPayout" });
+    setReadying(null);
   }
 
   return (
     <div className="space-y-4">
+      {actionError && (
+        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{actionError}</p>
+      )}
       <div className="flex gap-2 flex-wrap">
         <button onClick={() => setFilter("")} className={`px-3 py-1.5 text-sm rounded-lg ${filter === "" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700"}`}>Semua</button>
         {Object.keys(STATUS_LABELS).map((s) => (
@@ -99,16 +119,28 @@ export function AffiliateReferrals({ referrals }: { referrals: Referral[] }) {
                     {r.fraudFlag && <span className="ml-1 text-xs text-red-600" title={r.fraudReason || ""}>⚠</span>}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {r.status !== "CANCELLED" && r.status !== "PAID" && (
-                      <button
-                        onClick={() => cancelReferral(r.id)}
-                        disabled={cancelling === r.id}
-                        className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-500 hover:bg-red-50 rounded disabled:opacity-50"
-                        title="Batalkan referral"
-                      >
-                        {cancelling === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />}
-                      </button>
-                    )}
+                    <div className="flex items-center justify-end gap-1">
+                      {r.status === "VALID" && (
+                        <button
+                          onClick={() => markReadyPayout(r.id)}
+                          disabled={readying === r.id}
+                          className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-emerald-600 hover:bg-emerald-50 rounded disabled:opacity-50"
+                          title="Tandai siap cair"
+                        >
+                          {readying === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <BadgeCheck className="w-4 h-4" />}
+                        </button>
+                      )}
+                      {r.status !== "CANCELLED" && r.status !== "PAID" && (
+                        <button
+                          onClick={() => cancelReferral(r.id)}
+                          disabled={cancelling === r.id}
+                          className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center p-1.5 text-red-500 hover:bg-red-50 rounded disabled:opacity-50"
+                          title="Batalkan referral"
+                        >
+                          {cancelling === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

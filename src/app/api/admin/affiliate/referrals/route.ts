@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
 import { logAudit } from "@/lib/audit";
+import { notifyAfiliatorCommission } from "@/lib/afiliator-notifications";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -52,17 +53,62 @@ export async function PATCH(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { referralId, reason } = body;
+  const { referralId, reason, action } = body;
 
   if (!referralId) {
     return NextResponse.json({ error: "referralId wajib diisi" }, { status: 400 });
   }
 
-  const referral = await db.referral.findUnique({ where: { id: referralId } });
+  const referral = await db.referral.findUnique({
+    where: { id: referralId },
+    include: { commissions: true, registration: { select: { fullName: true } } },
+  });
   if (!referral) {
     return NextResponse.json({ error: "Referral tidak ditemukan" }, { status: 404 });
   }
 
+  if (action === "readyPayout") {
+    if (referral.status !== "VALID") {
+      return NextResponse.json(
+        { error: "Hanya referral berstatus Valid yang bisa ditandai siap cair" },
+        { status: 400 }
+      );
+    }
+
+    await db.$transaction([
+      db.referral.update({
+        where: { id: referralId },
+        data: { status: "READY_PAYOUT" },
+      }),
+      db.commission.updateMany({
+        where: { referralId, status: "VALID" },
+        data: { status: "READY_PAYOUT" },
+      }),
+    ]);
+
+    await logAudit({
+      action: "READY_PAYOUT_REFERRAL",
+      entity: "Referral",
+      entityId: referralId,
+      before: { status: referral.status },
+      after: { status: "READY_PAYOUT" },
+    });
+
+    const studentName = referral.registration?.fullName ?? "Pendaftar";
+    for (const c of referral.commissions) {
+      if (c.status !== "VALID") continue;
+      await notifyAfiliatorCommission({
+        affiliateId: referral.affiliateId,
+        amount: c.amount,
+        studentName,
+        status: "READY_PAYOUT",
+      });
+    }
+
+    return NextResponse.json({ success: true });
+  }
+
+  // Default action: cancel referral
   await db.$transaction([
     db.referral.update({
       where: { id: referralId },

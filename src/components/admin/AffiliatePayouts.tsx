@@ -101,7 +101,10 @@ export function AffiliatePayouts({ payouts }: { payouts: Payout[] }) {
                     )}
                     {p.status === "APPROVED" && (
                       <button
-                        onClick={() => doAction(p.id, "pay", p.proofUrl || undefined)}
+                        onClick={() => {
+                          const proofUrl = prompt("URL bukti transfer (opsional):") || undefined;
+                          doAction(p.id, "pay", proofUrl);
+                        }}
                         disabled={actionLoading === p.id}
                         className="flex items-center gap-1 px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded disabled:opacity-50"
                         title="Tandai dibayar"
