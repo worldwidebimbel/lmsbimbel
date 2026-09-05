@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Award, Send, ExternalLink, ArrowLeft, CheckCircle } from "lucide-react";
+import { Award, Send, ExternalLink, ArrowLeft, CheckCircle, Trophy } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -33,10 +33,26 @@ export default function EventSertifikatClient({ event, registrations, certMap }:
       });
       if (res.ok) {
         const data = await res.json();
-        toast.success(`${data.issued} sertifikat diterbitkan, ${data.skipped} sudah ada`);
+        toast.success(`${data.issued} sertifikat diterbitkan, ${data.updated} diperbarui, ${data.skipped} sudah sesuai`);
         window.location.reload();
       } else {
         toast.error("Gagal menerbitkan sertifikat");
+      }
+    });
+  }
+
+  function calculateRanking() {
+    if (!confirm("Hitung ranking berdasarkan ujian event? Peringkat & nilai peserta akan disimpan, sertifikat 3 juara otomatis diterbitkan/disinkronkan.")) return;
+    startTransition(async () => {
+      const res = await fetch(`/api/events/${event.id}/ranking`, {
+        method: "POST",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        toast.success(`Ranking tersimpan: ${data.certificatesCreated} sertifikat juara baru, ${data.certificatesUpdated} disinkronkan`);
+        window.location.reload();
+      } else {
+        toast.error("Gagal menghitung ranking");
       }
     });
   }
@@ -78,6 +94,15 @@ export default function EventSertifikatClient({ event, registrations, certMap }:
           <p className="text-sm text-gray-500">{event.title}</p>
         </div>
         <button
+          onClick={calculateRanking}
+          disabled={isPending}
+          title="Simpan peringkat peserta berdasarkan ujian & terbitkan sertifikat 3 juara"
+          className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+        >
+          <Trophy className="h-4 w-4" />
+          Hitung Ranking & Juara
+        </button>
+        <button
           onClick={issueAll}
           disabled={isPending}
           className="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
@@ -86,6 +111,10 @@ export default function EventSertifikatClient({ event, registrations, certMap }:
           Terbitkan Semua
         </button>
       </div>
+
+      <p className="text-xs text-gray-500 -mt-3">
+        Urutan disarankan: <strong>Hitung Ranking &amp; Juara</strong> (per peserta terdata), lalu <strong>Terbitkan Semua</strong> untuk peserta lainnya. Sertifikat juara otomatis di-upgrade/di-downgrade bila ranking dihitung ulang.
+      </p>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">

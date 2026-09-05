@@ -3,8 +3,8 @@ import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { calcLevel, calcPoints, computeBadges } from "@/lib/gamification";
 import { getBranchScope } from "@/lib/branch-context";
+import { generateCertificateNo, generateCertificateCode } from "@/lib/certificate";
 import PrestasiClient from "@/components/siswa/PrestasiClient";
-import { randomUUID } from "crypto";
 
 export const metadata = { title: "Prestasi & Gamifikasi" };
 
@@ -88,12 +88,13 @@ export default async function PrestasiPage() {
   }
 
   if (levelInfo.level >= 3) {
-    const hasCert = await db.certificate.findFirst({ where: { userId: studentId, type: "LMS_COMPLETION" } });
+    const hasCert = await db.certificate.findFirst({ where: { userId: studentId, type: "LMS_COMPLETION", title: { contains: "LMS" } } });
     if (!hasCert) {
       const studentUser = await db.user.findUnique({ where: { id: studentId }, select: { name: true } });
       await db.certificate.create({
         data: {
-          code: randomUUID().replace(/-/g, "").slice(0, 16).toUpperCase(),
+          code: await generateCertificateCode(),
+          certificateNo: await generateCertificateNo(),
           userId: studentId,
           type: "LMS_COMPLETION",
           title: "Sertifikat Kelulusan LMS",

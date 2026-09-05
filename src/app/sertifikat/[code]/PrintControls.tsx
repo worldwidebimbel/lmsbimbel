@@ -28,6 +28,7 @@ export function VerifyNote({ code }: { code: string }) {
     <p className="no-print absolute bottom-4 left-0 right-0 mt-4 text-center text-xs text-gray-500">
       Verifikasi sertifikat: {url}
       &nbsp;· Kode: {code}
+      &nbsp;· <a href="/sertifikat" className="underline hover:text-gray-700">Verifikasi kode lain</a>
     </p>
   );
 }

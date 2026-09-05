@@ -27,7 +27,7 @@ export async function GET(
   const { download } = Object.fromEntries(req.nextUrl.searchParams);
 
   if (download === "pdf") {
-    const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://lmsbimbel.digsan.id"}/sertifikat/${certificate.code}`;
+    const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin}/sertifikat/${certificate.code}`;
     const qrDataUrl = await QRCode.toDataURL(verifyUrl, { width: 150, margin: 1 });
 
     const template = certificate.template;

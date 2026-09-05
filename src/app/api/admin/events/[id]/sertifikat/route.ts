@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { isAdminRole } from "@/lib/permission";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { randomUUID } from "crypto";
+import { upsertEventCertificate } from "@/lib/certificate";
 import { logAudit } from "@/lib/audit";
 import { getBranchScope, assertBranchAccess } from "@/lib/branch-context";
 
@@ -26,8 +27,8 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const where = issueAll
-    ? { eventId, status: { in: ["ATTENDED", "PAID", "CONFIRMED"] as never[] } }
+  const where: Prisma.EventRegistrationWhereInput = issueAll
+    ? { eventId, status: { in: ["ATTENDED", "CONFIRMED"] } }
     : { id: { in: registrationIds ?? [] }, eventId };
 
   const registrations = await db.eventRegistration.findMany({
@@ -37,34 +38,24 @@ export async function POST(
 
   let issued = 0;
   let skipped = 0;
+  let updated = 0;
 
   for (const reg of registrations) {
-    const type = reg.rank != null && reg.rank <= 3 ? "EVENT_WINNER" : "EVENT_PARTICIPATION";
-    const existing = await db.certificate.findFirst({
-      where: { userId: reg.user.id, eventId },
+    const res = await upsertEventCertificate({
+      eventId,
+      eventName: event.title,
+      userId: reg.user.id,
+      userName: reg.user.name,
+      rank: reg.rank,
+      score: reg.score,
     });
-    if (existing) { skipped++; continue; }
-
-    await db.certificate.create({
-      data: {
-        code: randomUUID().replace(/-/g, "").slice(0, 16).toUpperCase(),
-        userId: reg.user.id,
-        type,
-        title: type === "EVENT_WINNER"
-          ? `Sertifikat Juara — ${event.title}`
-          : `Sertifikat Peserta — ${event.title}`,
-        recipientName: reg.user.name,
-        eventId,
-        eventName: event.title,
-        score: reg.score,
-        rank: reg.rank,
-      },
-    });
-    issued++;
+    if (res.action === "created") issued++;
+    else if (res.action === "updated") updated++;
+    else skipped++;
   }
 
-  await logAudit({ entity: "Certificate", entityId: `event-${eventId}`, action: "CREATE", after: { issued, skipped, total: registrations.length } });
-  return NextResponse.json({ issued, skipped, total: registrations.length });
+  await logAudit({ entity: "Certificate", entityId: `event-${eventId}`, action: "CREATE", after: { issued, updated, skipped, total: registrations.length } });
+  return NextResponse.json({ issued, updated, skipped, total: registrations.length });
 }
 
 export async function GET(

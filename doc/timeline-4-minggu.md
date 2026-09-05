@@ -448,7 +448,7 @@
 - [x] Alur PPDB: daftar → upload dokumen → verifikasi → bayar → konversi siswa → kelas → jadwal
 - [x] Alur Afiliator: klik link → daftar → verifikasi → bayar → komisi VALID → pencairan
 - [x] Alur CBT: buat soal media → susun ujian → TOEFL (audio + section timer) → multi-attempt → nilai — audit kode menyeluruh: fix retry multi-attempt (reset state, bukan reload), assign soal ke section/group TOEFL (API PATCH + dropdown UI), forward-only section + auto-advance reset nomor soal, enforce maxPlayCount audio, nilai attempt terbaru di list siswa, grading essay konsisten partial-credit, validasi akses (enrollment/registrasi) & jadwal server-side; panduan `doc/guide-alur-cbt.md` (tipe soal + format kunci + smoke test 5 menit)
-- [ ] Alur Sertifikat: syarat terpenuhi → generate PDF + QR → siswa download → verifikasi publik
+- [x] Alur Sertifikat: syarat terpenuhi → generate PDF + QR → siswa download → verifikasi publik — audit kode menyeluruh: fix ranking event tak pernah persist (POST ranking jadi endpoint mati — kini ada tombol "Hitung Ranking & Juara" di halaman sertifikat event), dedupe WINNER tanpa eventId (pemenang multi-event tak dapat sertifikat), dobel cert PARTICIPATION+WINNER utk user sama, nilai enum `PAID` invalid di filter status issueAll, certificateNo kosong di jalur event/prestasi, QR fallback hardcoded → origin request; helper `upsertEventCertificate` idempoten (upgrade/downgrade sinkron ranking); form verifikasi manual publik `/sertifikat`; panduan `doc/guide-alur-sertifikat.md`
 - [ ] Alur Akademik: jurnal mengajar → raport generate → publish → orang tua lihat → cetak PDF
 - [ ] Alur Payroll: absensi tutor → generate payroll → approve → slip PDF
 - [ ] Alur Keuangan: invoice → bayar online → webhook → laporan pendapatan per program
