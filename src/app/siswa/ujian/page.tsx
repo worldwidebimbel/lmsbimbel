@@ -23,7 +23,7 @@ export default async function SiswaUjianPage() {
     include: {
       class: { select: { name: true, subject: { select: { name: true, color: true } } } },
       _count: { select: { questions: true } },
-      attempts: { where: { studentId: session.user.id } },
+      attempts: { where: { studentId: session.user.id }, orderBy: { attemptNumber: "desc" } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -50,11 +50,15 @@ export default async function SiswaUjianPage() {
       ) : (
         <div className="grid gap-4">
           {exams.map((exam) => {
-            const attempt = exam.attempts[0];
-            const isCompleted = attempt?.isCompleted;
-            const isPassed = isCompleted && (attempt?.score ?? 0) >= exam.passingScore;
+            const latestAttempt = exam.attempts[0];
+            const completedCount = exam.attempts.filter((a) => a.isCompleted).length;
+            const hasCompleted = completedCount > 0;
+            const attemptsLeft = exam.maxAttempts - completedCount;
+            const canRetake = hasCompleted && attemptsLeft > 0;
+            const isPassed = hasCompleted && (latestAttempt?.score ?? 0) >= exam.passingScore;
             const isAvailable = !exam.startTime || new Date(exam.startTime) <= now;
             const isExpired = exam.endTime && new Date(exam.endTime) < now;
+            const showTake = !isExpired && isAvailable && attemptsLeft > 0;
 
             return (
               <div key={exam.id} className="rounded-xl border border-gray-200 bg-white p-5">
@@ -63,12 +67,15 @@ export default async function SiswaUjianPage() {
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                       <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: exam.class?.subject.color }} />
                       <span className="text-xs text-gray-500">{exam.class?.subject.name} · {exam.class?.name}</span>
-                      {isCompleted && (
+                      {hasCompleted && (
                         isPassed
                           ? <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700"><CheckCircle className="h-3 w-3" />Lulus</span>
                           : <span className="flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700"><XCircle className="h-3 w-3" />Tidak Lulus</span>
                       )}
-                      {isExpired && !isCompleted && (
+                      {canRetake && (
+                        <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">Percobaan {completedCount}/{exam.maxAttempts}</span>
+                      )}
+                      {isExpired && !hasCompleted && (
                         <span className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500"><AlertCircle className="h-3 w-3" />Kadaluarsa</span>
                       )}
                     </div>
@@ -79,6 +86,9 @@ export default async function SiswaUjianPage() {
                       <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{exam.duration} menit</span>
                       <span className="flex items-center gap-1"><FileCheck className="h-3.5 w-3.5" />{exam._count.questions} soal</span>
                       <span>Lulus min. {exam.passingScore}%</span>
+                      {exam.maxAttempts > 1 && (
+                        <span>Maks. {exam.maxAttempts}x percobaan</span>
+                      )}
                       {exam.startTime && !isAvailable && (
                         <span>Mulai: {format(new Date(exam.startTime), "d MMM HH:mm", { locale: localeId })}</span>
                       )}
@@ -87,20 +97,23 @@ export default async function SiswaUjianPage() {
                       )}
                     </div>
 
-                    {isCompleted && (
+                    {hasCompleted && (
                       <p className="mt-2 text-sm font-semibold">
-                        Nilai: <span className={isPassed ? "text-green-600" : "text-red-600"}>{attempt?.score ?? 0}%</span>
+                        Nilai terakhir: <span className={isPassed ? "text-green-600" : "text-red-600"}>{latestAttempt?.score ?? 0}%</span>
+                        {exam.maxAttempts > 1 && completedCount > 1 && (
+                          <span className="ml-2 text-xs font-normal text-gray-500">({completedCount} percobaan)</span>
+                        )}
                       </p>
                     )}
                   </div>
 
-                  {!isCompleted && !isExpired && isAvailable && (
+                  {showTake && (
                     <Link href={`/siswa/ujian/${exam.id}`}
                       className="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
-                      Kerjakan
+                      {hasCompleted ? `Coba Lagi (${attemptsLeft} tersisa)` : "Kerjakan"}
                     </Link>
                   )}
-                  {isCompleted && (
+                  {hasCompleted && (
                     <Link href={`/siswa/ujian/${exam.id}`}
                       className="shrink-0 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">
                       Lihat Hasil

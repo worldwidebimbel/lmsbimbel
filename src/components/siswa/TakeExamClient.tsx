@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight, Loader2, ArrowUp, ArrowDown } from "lucide-react";
+import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight, Loader2, ArrowUp, ArrowDown, Lock } from "lucide-react";
 import Link from "next/link";
 import { normalizeOptions } from "@/lib/question-options";
 import MathRenderer from "@/components/ui/MathRenderer";
@@ -87,6 +87,19 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
     ? exam.questionGroups?.find((g) => g.id === currentQuestion.groupId)
     : null;
 
+  const startNewAttempt = () => {
+    setAnswers({});
+    setOrderedQ({});
+    shuffledRightsRef.current = {};
+    setCurrent(0);
+    setTimeLeft(exam.duration * 60);
+    setActiveSection(0);
+    setSectionTimeLeft(hasSections && exam.sections?.[0] ? exam.sections[0].duration * 60 : 0);
+    setAudioPlayCount({});
+    setResult(null);
+    setSubmitted(false);
+  };
+
   const handleSubmit = useCallback(() => {
     startTransition(async () => {
       const res = await fetch(`/api/siswa/ujian/${exam.id}`, {
@@ -112,6 +125,7 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
             clearInterval(timer);
             if (activeSection < (exam.sections?.length ?? 0) - 1) {
               setActiveSection((s) => s + 1);
+              setCurrent(0);
               const next = exam.sections?.[activeSection + 1];
               return next ? next.duration * 60 : 0;
             }
@@ -173,7 +187,7 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
           </Link>
           {canRetry && !result.passed && (
             <button
-              onClick={() => window.location.reload()}
+              onClick={startNewAttempt}
               className="inline-block rounded-lg border border-indigo-200 px-6 py-2.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
             >
               Coba Lagi ({maxAttempts - completedAttempts} tersisa)
@@ -209,18 +223,33 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
       {/* Section tabs */}
       {hasSections && (
         <div className="flex gap-2 overflow-x-auto rounded-xl border border-gray-200 bg-white p-3">
-          {exam.sections!.map((sec, i) => (
-            <button
-              key={sec.id}
-              onClick={() => { setActiveSection(i); setCurrent(0); setSectionTimeLeft(sec.duration * 60); }}
-              className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 max-md:min-h-[44px] text-sm font-medium transition-colors ${
-                i === activeSection ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              <span className="text-xs opacity-70">{i + 1}.</span>
-              {sec.name}
-            </button>
-          ))}
+          {exam.sections!.map((sec, i) => {
+            const locked = i < activeSection;
+            return (
+              <button
+                key={sec.id}
+                disabled={locked}
+                aria-label={locked ? `Section ${sec.name} terkunci` : `Buka section ${sec.name}`}
+                onClick={() => {
+                  if (i === activeSection || locked) return;
+                  setActiveSection(i);
+                  setCurrent(0);
+                  setSectionTimeLeft(sec.duration * 60);
+                }}
+                className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 max-md:min-h-[44px] text-sm font-medium transition-colors ${
+                  i === activeSection
+                    ? "bg-indigo-600 text-white"
+                    : locked
+                      ? "bg-gray-50 text-gray-400 cursor-not-allowed"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                <span className="text-xs opacity-70">{i + 1}.</span>
+                {sec.name}
+                {locked && <Lock className="h-3.5 w-3.5" aria-hidden />}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -233,25 +262,34 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
               <MathRenderer content={currentGroup.passageText} />
             </div>
           )}
-          {currentGroup.type === "AUDIO" && currentGroup.audioUrl && (
-            <div className="space-y-2">
-              <audio
-                controls
-                onPlay={() => {
-                  const count = audioPlayCount[currentGroup.id] ?? 0;
-                  setAudioPlayCount((p) => ({ ...p, [currentGroup.id]: count + 1 }));
-                }}
-                className="w-full"
-              >
-                <source src={currentGroup.audioUrl} />
-              </audio>
-              {currentGroup.maxPlayCount && (
-                <p className="text-xs text-gray-500">
-                  Putar maksimal {currentGroup.maxPlayCount}x · Sudah diputar: {audioPlayCount[currentGroup.id] ?? 0}x
+          {currentGroup.type === "AUDIO" && currentGroup.audioUrl && (() => {
+            const played = audioPlayCount[currentGroup.id] ?? 0;
+            const limitReached = !!currentGroup.maxPlayCount && played >= currentGroup.maxPlayCount;
+            return (
+              <div className="space-y-2">
+                <audio
+                  controls
+                  onPlay={(e) => {
+                    if (currentGroup.maxPlayCount && played >= currentGroup.maxPlayCount) {
+                      e.currentTarget.pause();
+                      return;
+                    }
+                    setAudioPlayCount((p) => ({ ...p, [currentGroup.id]: played + 1 }));
+                  }}
+                  className="w-full"
+                >
+                  <source src={currentGroup.audioUrl} />
+                </audio>
+                <p className={`text-xs ${limitReached ? "text-red-600 font-medium" : "text-gray-500"}`}>
+                  {currentGroup.maxPlayCount
+                    ? limitReached
+                      ? "Batas putar tercapai — audio tidak dapat diputar lagi"
+                      : `Putar maksimal ${currentGroup.maxPlayCount}x · Sudah diputar: ${played}x`
+                    : null}
                 </p>
-              )}
-            </div>
-          )}
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -388,11 +426,11 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
         {/* Mengurutkan */}
         {q.type === "MENGURUTKAN" && Array.isArray(q.options) && (() => {
           const items = normalizeOptions(q.options);
-          const itemTexts = items.map((o) => o.text);
           if (!orderedQ[q.id]) {
             const shuffled = shuffleArr(items, q.id);
             setTimeout(() => {
               setOrderedQ((prev) => prev[q.id] ? prev : { ...prev, [q.id]: shuffled });
+              setAnswers((prev) => prev[q.id] ? prev : { ...prev, [q.id]: shuffled.map((o) => o.text).join(",") });
             }, 0);
             return <div className="text-sm text-gray-500">Memuat...</div>;
           }

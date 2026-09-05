@@ -91,15 +91,57 @@ export async function PATCH(
   for (const q of attempt.exam.questions) {
     maxScore += q.score;
     const studentAnswer = (attempt.answers as Record<string, string>)?.[q.id];
+    if (!studentAnswer) continue;
 
     if (q.type === "ESSAY") {
       const essayScore = essayScores[q.id];
       if (essayScore !== undefined) {
         totalScore += Math.min(Math.max(0, essayScore), q.score);
       }
-    } else {
-      if (studentAnswer && studentAnswer === q.correctAnswer) {
-        totalScore += q.score;
+      continue;
+    }
+
+    switch (q.type) {
+      case "PILGAN":
+      case "BENAR_SALAH":
+      case "ISIAN":
+        if (studentAnswer === q.correctAnswer) totalScore += q.score;
+        break;
+
+      case "MENGURUTKAN": {
+        if (!q.correctAnswer) break;
+        if (q.correctAnswer.split(",").join(",") === studentAnswer.split(",").join(",")) totalScore += q.score;
+        break;
+      }
+
+      case "PILGAN_KOMPLEK": {
+        if (!q.correctAnswer) break;
+        if (studentAnswer.split("|").sort().join("|") === q.correctAnswer.split("|").sort().join("|")) totalScore += q.score;
+        break;
+      }
+
+      case "MENJODOHKAN": {
+        const opts = q.options as { left: string; right: string }[] | null;
+        if (!opts?.length) break;
+        const studentMap = Object.fromEntries(studentAnswer.split(",").map((p) => p.split(":")));
+        let correct = 0;
+        opts.forEach((pair, i) => {
+          if (studentMap[String(i)] === pair.right) correct++;
+        });
+        totalScore += Math.round((correct / opts.length) * q.score);
+        break;
+      }
+
+      case "SETUJU_TIDAK": {
+        if (!q.correctAnswer) break;
+        const studentParts = studentAnswer.split(",");
+        const correctParts = q.correctAnswer.split(",");
+        let correct = 0;
+        correctParts.forEach((ans, i) => {
+          if (studentParts[i] === ans) correct++;
+        });
+        totalScore += Math.round((correct / correctParts.length) * q.score);
+        break;
       }
     }
   }

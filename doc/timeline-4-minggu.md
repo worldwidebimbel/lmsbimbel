@@ -445,9 +445,9 @@
 - [x] `9.3` Dark mode (opsional): toggle theme di settings, `prefers-color-scheme` + manual toggle — `next-themes` (class strategy) via `ThemeProviders` di root layout; kartu "Tema Tampilan" (Terang/Gelap/Sistem) di admin/settings; override token warna terpusat di `globals.css` (bg-white/gray→slate-navy, tint -50/-100→alpha, teks tint→versi terang)
 
 ## Hari 3-4 — Smoke Test Menyeluruh
-- [ ] Alur PPDB: daftar → upload dokumen → verifikasi → bayar → konversi siswa → kelas → jadwal
-- [ ] Alur Afiliator: klik link → daftar → verifikasi → bayar → komisi VALID → pencairan
-- [ ] Alur CBT: buat soal media → susun ujian → TOEFL (audio + section timer) → multi-attempt → nilai
+- [x] Alur PPDB: daftar → upload dokumen → verifikasi → bayar → konversi siswa → kelas → jadwal
+- [x] Alur Afiliator: klik link → daftar → verifikasi → bayar → komisi VALID → pencairan
+- [x] Alur CBT: buat soal media → susun ujian → TOEFL (audio + section timer) → multi-attempt → nilai — audit kode menyeluruh: fix retry multi-attempt (reset state, bukan reload), assign soal ke section/group TOEFL (API PATCH + dropdown UI), forward-only section + auto-advance reset nomor soal, enforce maxPlayCount audio, nilai attempt terbaru di list siswa, grading essay konsisten partial-credit, validasi akses (enrollment/registrasi) & jadwal server-side; panduan `doc/guide-alur-cbt.md` (tipe soal + format kunci + smoke test 5 menit)
 - [ ] Alur Sertifikat: syarat terpenuhi → generate PDF + QR → siswa download → verifikasi publik
 - [ ] Alur Akademik: jurnal mengajar → raport generate → publish → orang tua lihat → cetak PDF
 - [ ] Alur Payroll: absensi tutor → generate payroll → approve → slip PDF

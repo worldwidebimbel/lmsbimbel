@@ -20,7 +20,7 @@ export default async function UjianDetailPage({ params }: { params: Promise<{ id
       material: { select: { id: true, title: true, chapterTitle: true } },
       questions: {
         orderBy: { createdAt: "asc" },
-        select: { id: true, type: true, content: true, imageUrl: true, audioUrl: true, videoUrl: true, options: true, correctAnswer: true, explanation: true, score: true, difficulty: true },
+        select: { id: true, type: true, content: true, imageUrl: true, audioUrl: true, videoUrl: true, options: true, correctAnswer: true, explanation: true, score: true, difficulty: true, sectionId: true, groupId: true },
       },
       _count: { select: { attempts: true } },
     },

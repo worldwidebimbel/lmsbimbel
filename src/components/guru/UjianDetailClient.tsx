@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Loader2, Eye, EyeOff, CheckCircle, XCircle, BookMarked } from "lucide-react";
 import ImageUploadButton from "./ImageUploadButton";
@@ -12,9 +12,9 @@ import MathRenderer from "@/components/ui/MathRenderer";
 
 interface Question {
   id: string; type: string; content: string; imageUrl?: string | null; audioUrl?: string | null; videoUrl?: string | null; options: string[] | null;
-  correctAnswer: string | null; explanation: string | null; score: number; difficulty: number;
+  correctAnswer: string | null; explanation: string | null; score: number; difficulty: number; sectionId?: string | null; groupId?: string | null;
 }
-interface Attempt { id: string; student: { name: string }; score: number | null; submittedAt: string | null }
+interface Attempt { id: string; student: { name: string }; score: number | null; submittedAt: string | null; attemptNumber?: number }
 interface Exam {
   id: string; title: string; duration: number; passingScore: number;
   isPublished: boolean; isRandomized: boolean; description: string | null;
@@ -25,6 +25,9 @@ interface Exam {
 }
 
 interface MaterialOption { id: string; title: string; chapterTitle: string | null }
+
+interface ToeflSectionOption { id: string; name: string }
+interface ToeflGroupOption { id: string; title: string | null; type: string }
 
 const DIFF_LABEL = ["", "Mudah", "Sedang", "Sulit", "Sangat Sulit"];
 const DIFF_COLOR = ["", "text-green-600", "text-yellow-600", "text-orange-600", "text-red-600"];
@@ -52,11 +55,25 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
   const [tab, setTab] = useState<"soal" | "hasil" | "toefl" | "essay">("soal");
   const [showPickBank, setShowPickBank] = useState(false);
   const [error, setError] = useState("");
+  const [toeflSections, setToeflSections] = useState<ToeflSectionOption[]>([]);
+  const [toeflGroups, setToeflGroups] = useState<ToeflGroupOption[]>([]);
+
+  const loadToefl = useCallback(async () => {
+    const res = await fetch(`/api/guru/ujian/toefl?examId=${initial.id}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    setToeflSections(data.sections ?? []);
+    setToeflGroups(data.groups ?? []);
+  }, [initial.id]);
+
+  useEffect(() => { loadToefl(); }, [loadToefl]);
+
   const [newQ, setNewQ] = useState({
     type: "PILGAN", content: "", contentImageUrl: "",
     audioUrl: "", videoUrl: "",
     options: ["", "", "", ""], optionImages: ["", "", "", ""],
     correctAnswer: "", explanation: "", score: "1", difficulty: "2",
+    sectionId: "", groupId: "",
   });
 
   function updateOpt(i: number, v: string) {
@@ -112,6 +129,8 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
         score: Number(newQ.score), difficulty: Number(newQ.difficulty),
         explanation: newQ.explanation || null,
         correctAnswer: newQ.correctAnswer || null,
+        sectionId: newQ.sectionId || null,
+        groupId: newQ.groupId || null,
       };
       if (newQ.type === "PILGAN" || newQ.type === "PILGAN_KOMPLEK") {
         payload.options = newQ.options
@@ -128,7 +147,7 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
       if (!res.ok) { const d = await res.json(); setError(d.error ?? "Gagal"); return; }
       const q = await res.json();
       setExam((p) => ({ ...p, questions: [...p.questions, q] }));
-      setNewQ({ type: "PILGAN", content: "", contentImageUrl: "", audioUrl: "", videoUrl: "", options: ["", "", "", ""], optionImages: ["", "", "", ""], correctAnswer: "", explanation: "", score: "1", difficulty: "2" });
+      setNewQ({ type: "PILGAN", content: "", contentImageUrl: "", audioUrl: "", videoUrl: "", options: ["", "", "", ""], optionImages: ["", "", "", ""], correctAnswer: "", explanation: "", score: "1", difficulty: "2", sectionId: "", groupId: "" });
       setShowForm(false);
     });
   }
@@ -142,10 +161,30 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
     setExam((p) => ({ ...p, questions: p.questions.filter((q) => q.id !== qId) }));
   }
 
+  async function handleAssignQuestion(qId: string, field: "sectionId" | "groupId", value: string) {
+    const res = await fetch(`/api/guru/ujian/${exam.id}/questions`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ questionId: qId, [field]: value || null }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setError(d.error ?? "Gagal memperbarui asosiasi soal");
+      return;
+    }
+    const updated = await res.json();
+    setExam((p) => ({ ...p, questions: p.questions.map((q) => q.id === qId ? { ...q, sectionId: updated.sectionId ?? null, groupId: updated.groupId ?? null } : q) }));
+  }
+
+  const uniqueStudents = new Set(attempts.map((a) => a.student.name)).size;
   const avgScore = attempts.length > 0
     ? Math.round(attempts.reduce((s, a) => s + (a.score ?? 0), 0) / attempts.length)
     : null;
-  const passCount = attempts.filter((a) => (a.score ?? 0) >= exam.passingScore).length;
+  const bestByStudent = new Map<string, number>();
+  for (const a of attempts) {
+    const prev = bestByStudent.get(a.student.name);
+    if (prev === undefined || (a.score ?? 0) > prev) bestByStudent.set(a.student.name, a.score ?? 0);
+  }
+  const passCountUnique = [...bestByStudent.values()].filter((s) => s >= exam.passingScore).length;
 
   return (
     <div className="space-y-4">
@@ -211,7 +250,7 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
 
       <div className="flex border-b border-gray-200">
         {(["soal", "toefl", "hasil", "essay"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)}
+          <button key={t} onClick={() => { setTab(t); if (t === "soal") loadToefl(); }}
             className={`px-4 py-2.5 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${
               tab === t ? "border-indigo-600 text-indigo-600" : "border-transparent text-gray-500 hover:text-gray-700"
             }`}>
@@ -230,6 +269,11 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
               <BookMarked className="h-4 w-4" /> Pilih dari Bank Soal
             </button>
           </div>
+          {toeflSections.length > 0 && exam.questions.some((q) => !q.sectionId) && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Ada {exam.questions.filter((q) => !q.sectionId).length} soal tanpa section. Soal tanpa section tidak akan tampil ke siswa pada ujian TOEFL — assign ke section di bawah ini.
+            </div>
+          )}
           {exam.questions.map((q, i) => (
             <div key={q.id} className="rounded-xl border border-gray-200 bg-white p-4">
               <div className="flex items-start justify-between gap-3">
@@ -240,6 +284,12 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
                     <span className={`text-xs font-medium ${DIFF_COLOR[q.difficulty] ?? "text-gray-500"}`}>
                       {DIFF_LABEL[q.difficulty] ?? ""}
                     </span>
+                    {q.sectionId && (
+                      <span className="rounded bg-blue-50 px-2 py-0.5 text-xs text-blue-700">§ {toeflSections.find((s) => s.id === q.sectionId)?.name ?? "Section"}</span>
+                    )}
+                    {q.groupId && (
+                      <span className="rounded bg-purple-50 px-2 py-0.5 text-xs text-purple-700">◈ {toeflGroups.find((g) => g.id === q.groupId)?.title ?? "Group"}</span>
+                    )}
                     <span className="ml-auto text-xs text-gray-500">{q.score} poin</span>
                   </div>
                   <div className="text-sm text-gray-800 whitespace-pre-wrap"><MathRenderer content={q.content} /></div>
@@ -261,6 +311,36 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
                     <p className="mt-2 text-xs text-green-600">Jawaban: {q.correctAnswer}</p>
                   )}
                   {q.explanation && <p className="mt-1.5 text-xs italic text-gray-500">Penjelasan: {q.explanation}</p>}
+                  {(toeflSections.length > 0 || toeflGroups.length > 0) && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {toeflSections.length > 0 && (
+                        <label className="flex items-center gap-1.5 text-xs text-gray-500">
+                          Section:
+                          <select
+                            value={q.sectionId ?? ""}
+                            onChange={(e) => handleAssignQuestion(q.id, "sectionId", e.target.value)}
+                            className="rounded-lg border border-gray-200 px-2 py-1 text-xs"
+                          >
+                            <option value="">— tanpa section —</option>
+                            {toeflSections.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                          </select>
+                        </label>
+                      )}
+                      {toeflGroups.length > 0 && (
+                        <label className="flex items-center gap-1.5 text-xs text-gray-500">
+                          Group:
+                          <select
+                            value={q.groupId ?? ""}
+                            onChange={(e) => handleAssignQuestion(q.id, "groupId", e.target.value)}
+                            className="rounded-lg border border-gray-200 px-2 py-1 text-xs"
+                          >
+                            <option value="">— tanpa group —</option>
+                            {toeflGroups.map((g) => <option key={g.id} value={g.id}>{g.title ?? g.type}</option>)}
+                          </select>
+                        </label>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <button onClick={() => handleDeleteQuestion(q.id)}
                   title="Hapus" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-500">
@@ -389,6 +469,33 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none" />
               </div>
 
+              {(toeflSections.length > 0 || toeflGroups.length > 0) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {toeflSections.length > 0 && (
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-gray-600">Section TOEFL (opsional)</label>
+                      <select value={newQ.sectionId}
+                        onChange={(e) => setNewQ((p) => ({ ...p, sectionId: e.target.value }))}
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none">
+                        <option value="">— tanpa section —</option>
+                        {toeflSections.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  {toeflGroups.length > 0 && (
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-gray-600">Group Stimulus (opsional)</label>
+                      <select value={newQ.groupId}
+                        onChange={(e) => setNewQ((p) => ({ ...p, groupId: e.target.value }))}
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none">
+                        <option value="">— tanpa group —</option>
+                        {toeflGroups.map((g) => <option key={g.id} value={g.id}>{g.title ?? g.type}</option>)}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex justify-end gap-3">
                 <button type="button" onClick={() => setShowForm(false)}
                   className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Batal</button>
@@ -417,9 +524,9 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
           {attempts.length > 0 && (
             <div className="grid grid-cols-3 gap-4">
               {[
-                { label: "Peserta", value: attempts.length },
+                { label: "Peserta", value: uniqueStudents },
                 { label: "Rata-rata", value: avgScore !== null ? `${avgScore}%` : "—" },
-                { label: "Lulus", value: `${passCount} / ${attempts.length}` },
+                { label: "Lulus (terbaik)", value: `${passCountUnique} / ${uniqueStudents}` },
               ].map((s) => (
                 <div key={s.label} className="rounded-xl border border-gray-200 bg-white p-4 text-center">
                   <p className="text-2xl font-bold text-gray-900">{s.value}</p>
@@ -446,7 +553,12 @@ export default function UjianDetailClient({ exam: initial, attempts, subjects = 
                 <tbody className="divide-y divide-gray-100">
                   {attempts.map((a) => (
                     <tr key={a.id}>
-                      <td className="px-4 py-3 font-medium text-gray-900">{a.student.name}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900">
+                        {a.student.name}
+                        {(a.attemptNumber ?? 1) > 1 && (
+                          <span className="ml-2 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-600">Percobaan #{a.attemptNumber}</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-center font-bold text-gray-900">{a.score ?? "—"}%</td>
                       <td className="px-4 py-3 text-center">
                         {a.score !== null && (

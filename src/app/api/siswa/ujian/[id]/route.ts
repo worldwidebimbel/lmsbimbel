@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { optionText } from "@/lib/question-options";
 import { checkAndIssueClassCompletionCertificate } from "@/lib/certificate-trigger";
+import { canStudentAccessExam } from "@/lib/exam-access";
 import { logAudit } from "@/lib/audit";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -31,6 +32,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   });
 
   if (!exam) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const canAccess = await canStudentAccessExam(exam, session.user.id);
+  if (!canAccess) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   // Check max attempts
   const completedCount = exam.attempts.filter((a) => a.isCompleted).length;
@@ -70,6 +74,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   });
 
   if (!exam) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const canAccess = await canStudentAccessExam(exam, session.user.id);
+  if (!canAccess) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const now = new Date();
+  if (exam.startTime && new Date(exam.startTime) > now) {
+    return NextResponse.json({ error: "Ujian belum dimulai" }, { status: 403 });
+  }
+  if (exam.endTime && new Date(exam.endTime) < now) {
+    return NextResponse.json({ error: "Waktu ujian sudah berakhir" }, { status: 403 });
+  }
 
   // Check max attempts
   const completedAttempts = await db.examAttempt.count({
