@@ -72,21 +72,35 @@ export async function POST(req: NextRequest) {
   const hourRate = Number(ratePerHour ?? 0);
   const totalAmount = Math.round(totalMeetings * meetingRate + totalHours * hourRate);
 
-  const payroll = await db.teacherPayroll.create({
-    data: {
-      teacherId,
-      branchId: isSuperAdmin ? (body.branchId ?? null) : branchId,
-      periodStart: start,
-      periodEnd: end,
-      ratePerMeeting: meetingRate,
-      ratePerHour: hourRate,
-      totalMeetings,
-      totalHours: Math.round(totalHours * 100) / 100,
-      totalAmount,
-      status: "DRAFT",
-    },
-    include: { teacher: { select: { name: true, email: true } } },
+  const existing = await db.teacherPayroll.findFirst({
+    where: { teacherId, periodStart: start, periodEnd: end },
   });
+
+  if (existing && existing.status !== "DRAFT") {
+    return NextResponse.json({ error: `Payroll periode ini sudah ${existing.status === "PAID" ? "dibayar" : "disetujui"}. Hapus/batalkan dulu bila perlu koreksi.` }, { status: 409 });
+  }
+
+  const payrollData = {
+    branchId: isSuperAdmin ? (body.branchId ?? null) : branchId,
+    ratePerMeeting: meetingRate,
+    ratePerHour: hourRate,
+    totalMeetings,
+    totalHours: Math.round(totalHours * 100) / 100,
+    totalAmount,
+  };
+
+  const payroll = existing
+    ? await db.teacherPayroll.update({ where: { id: existing.id }, data: payrollData, include: { teacher: { select: { name: true, email: true } } } })
+    : await db.teacherPayroll.create({
+        data: {
+          teacherId,
+          periodStart: start,
+          periodEnd: end,
+          ...payrollData,
+          status: "DRAFT",
+        },
+        include: { teacher: { select: { name: true, email: true } } },
+      });
 
   await logAudit({ entity: "TeacherPayroll", entityId: payroll.id, action: "CREATE", after: { teacherId, periodStart, periodEnd, totalAmount } });
   return NextResponse.json(payroll, { status: 201 });

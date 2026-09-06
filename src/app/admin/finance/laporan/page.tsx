@@ -51,7 +51,7 @@ export default async function LaporanKeuanganPage({ searchParams }: { searchPara
       orderBy: { createdAt: "desc" },
     }),
     db.payment.findMany({
-      where: { confirmedAt: { not: null }, ...branchFilter },
+      where: { confirmedAt: { not: null }, invoice: branchFilter },
       include: { invoice: { select: { studentId: true } }, user: { select: { name: true } } },
       orderBy: { confirmedAt: "desc" },
     }),

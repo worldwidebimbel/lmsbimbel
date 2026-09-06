@@ -75,7 +75,7 @@ export default async function SiswaRaportPage() {
               )}
 
               <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
-                <span className="text-xs text-gray-500">Tutor: {r.class.teacher.name}</span>
+                <span className="text-xs text-gray-500">Tutor: {r.class.teacher?.name ?? "—"}</span>
                 <a
                   href={`/api/raport/${r.id}/pdf`}
                   className="ml-auto flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100"

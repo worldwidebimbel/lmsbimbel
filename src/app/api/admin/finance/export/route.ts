@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
     }),
     db.payment.findMany({
-      where: { confirmedAt: { not: null }, ...branchFilter },
+      where: { confirmedAt: { not: null }, invoice: branchFilter },
       include: { invoice: { select: { student: { select: { name: true } } } }, user: { select: { name: true } } },
       orderBy: { confirmedAt: "desc" },
     }),

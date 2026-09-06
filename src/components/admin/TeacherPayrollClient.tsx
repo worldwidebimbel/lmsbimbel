@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Wallet, Plus, CheckCircle, Clock, X, FileDown } from "lucide-react";
+import { Wallet, Plus, CheckCircle, Clock, X, FileDown, Download } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
 
@@ -223,22 +223,31 @@ export default function TeacherPayrollClient({ teachers, payrolls: initial }: { 
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      {p.status === "DRAFT" && (
-                        <button
-                          onClick={() => handleStatusChange(p.id, "APPROVED")}
-                          className="text-xs text-blue-600 hover:underline"
+                      <div className="flex items-center justify-center gap-3">
+                        {p.status === "DRAFT" && (
+                          <button
+                            onClick={() => handleStatusChange(p.id, "APPROVED")}
+                            className="text-xs text-blue-600 hover:underline"
+                          >
+                            Setujui
+                          </button>
+                        )}
+                        {p.status === "APPROVED" && (
+                          <button
+                            onClick={() => handleStatusChange(p.id, "PAID")}
+                            className="text-xs text-green-600 hover:underline"
+                          >
+                            Tandai Dibayar
+                          </button>
+                        )}
+                        <a
+                          href={`/api/admin/teacher-payroll/${p.id}/pdf`}
+                          title="Slip PDF"
+                          className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-blue-50 hover:text-blue-600"
                         >
-                          Setujui
-                        </button>
-                      )}
-                      {p.status === "APPROVED" && (
-                        <button
-                          onClick={() => handleStatusChange(p.id, "PAID")}
-                          className="text-xs text-green-600 hover:underline"
-                        >
-                          Tandai Dibayar
-                        </button>
-                      )}
+                          <Download className="h-4 w-4" />
+                        </a>
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -23,14 +23,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!assertBranchAccess(invoice.branchId, scope)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+  if (invoice.status === "PAID") return NextResponse.json({ error: "Invoice sudah lunas" }, { status: 400 });
+
+  const paymentAmount = Number(amount ?? invoice.amount);
+  const paymentMethod = method ?? "CASH";
 
   const [payment] = await db.$transaction([
     db.payment.create({
       data: {
         invoiceId: id,
         userId: session.user.id,
-        amount: Number(amount ?? invoice.amount),
-        method: method ?? "CASH",
+        amount: paymentAmount,
+        method: paymentMethod,
         proofUrl: proofUrl ?? null,
         confirmedAt: new Date(),
         confirmedBy: session.user.id,
@@ -40,13 +44,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       where: { id },
       data: { status: "PAID" },
     }),
+    ...(invoice.branchId ? [db.branchTransaction.create({
+      data: {
+        branchId: invoice.branchId,
+        type: "INCOME",
+        category: "Pembayaran SPP",
+        amount: paymentAmount,
+        note: `Konfirmasi langsung admin — ${invoice.id.slice(-6)} (${paymentMethod})`,
+        createdBy: session.user.id,
+      },
+    })] : []),
   ]);
 
   await logAudit({
     entity: "Payment",
     entityId: payment.id,
     action: "CONFIRM",
-    after: { invoiceId: id, amount: Number(amount ?? invoice.amount), method: method ?? "CASH" },
+    after: { invoiceId: id, amount: paymentAmount, method: paymentMethod },
   });
 
   await logAudit({

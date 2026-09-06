@@ -29,6 +29,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const pendingPayment = invoice.payments[0];
   if (!pendingPayment) return NextResponse.json({ error: "Tidak ada pembayaran pending" }, { status: 400 });
 
+  const amount = pendingPayment.amount || invoice.amount;
+
   await db.$transaction([
     db.payment.update({
       where: { id: pendingPayment.id },
@@ -38,6 +40,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       where: { id },
       data: { status: "PAID" },
     }),
+    ...(invoice.branchId ? [db.branchTransaction.create({
+      data: {
+        branchId: invoice.branchId,
+        type: "INCOME",
+        category: "Pembayaran SPP",
+        amount,
+        note: `Konfirmasi admin — ${invoice.id.slice(-6)} (${pendingPayment.method})`,
+        createdBy: session.user.id,
+      },
+    })] : []),
   ]);
 
   await logAudit({

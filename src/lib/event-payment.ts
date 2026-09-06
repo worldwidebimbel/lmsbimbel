@@ -12,7 +12,7 @@ export async function createEventPayment(
   });
   if (!registration) return null;
   if (!registration.event.isPaid || registration.price === 0) return null;
-  if (registration.paymentStatus === "PAID") return null;
+  if (registration.paymentStatus === "PAID" || registration.paymentStatus === "PENDING") return null;
 
   const baseUrl = getCallbackBaseUrl();
   const orderId = `EVT-${registration.id}-${Date.now()}`;

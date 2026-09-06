@@ -237,29 +237,46 @@ async function handlePpdbPayment(
   if (registration.paymentStatus === "PAID") return; // idempotent
 
   if (success) {
-    await db.registration.update({
-      where: { id: registrationId },
-      data: {
-        paymentStatus: "PAID",
-        paymentMethod: "DUITKU",
-        externalId: callback.reference || merchantOrderId,
-        paidAt: new Date(),
-        ...(registration.status === "DRAFT" || registration.status === "SUBMITTED"
-          ? { status: "WAITING_VERIFICATION" as const }
-          : {}),
-      },
-    });
+    const ppdbAmount = callback.amount || registration.registrationFee || 0;
 
-    if (registration.convertedUserId) {
-      await db.notification.create({
+    await db.$transaction(async (tx) => {
+      await tx.registration.update({
+        where: { id: registrationId },
         data: {
-          userId: registration.convertedUserId,
-          type: "PAYMENT",
-          title: "Pembayaran PPDB Diterima",
-          content: `Pembayaran PPDB untuk ${registration.fullName} telah diterima via Duitku.`,
+          paymentStatus: "PAID",
+          paymentMethod: "DUITKU",
+          externalId: callback.reference || merchantOrderId,
+          paidAt: new Date(),
+          ...(registration.status === "DRAFT" || registration.status === "SUBMITTED"
+            ? { status: "WAITING_VERIFICATION" as const }
+            : {}),
         },
       });
-    }
+
+      if (registration.branchId && ppdbAmount > 0) {
+        await tx.branchTransaction.create({
+          data: {
+            branchId: registration.branchId,
+            type: "INCOME",
+            category: "Pendaftaran PPDB",
+            amount: ppdbAmount,
+            note: `Pembayaran PPDB Duitku — ${registration.fullName} (${registration.registrationNo})`,
+            createdBy: registration.convertedUserId || "System",
+          },
+        });
+      }
+
+      if (registration.convertedUserId) {
+        await tx.notification.create({
+          data: {
+            userId: registration.convertedUserId,
+            type: "PAYMENT",
+            title: "Pembayaran PPDB Diterima",
+            content: `Pembayaran PPDB untuk ${registration.fullName} telah diterima via Duitku.`,
+          },
+        });
+      }
+    });
 
     await logAudit({ entity: "Registration", entityId: registrationId, action: "UPDATE", after: { paymentStatus: "PAID", paymentMethod: "DUITKU", externalId: callback.reference || merchantOrderId, via: "duitku-callback" } });
   } else {

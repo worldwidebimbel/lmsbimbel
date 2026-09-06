@@ -18,6 +18,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   if (!invoice) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (invoice.status === "PAID") return NextResponse.json({ error: "Tagihan sudah lunas" }, { status: 400 });
+  if (invoice.status === "PENDING") return NextResponse.json({ error: "Tagihan sedang menunggu pembayaran/konfirmasi" }, { status: 400 });
 
   const baseUrl = getCallbackBaseUrl();
   const merchantOrderId = `INV-${invoice.id}-${Date.now()}`;

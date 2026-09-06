@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
+import { getBranchScope } from "@/lib/branch-context";
 import ExcelJS from "exceljs";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
-  if (!session?.user || !isAdminRole(session.user.role)) {
+  const role = session?.user?.role;
+  if (!session?.user || !role || !["GURU", "SUPER_ADMIN", "ADMIN", "ADMIN_CABANG", "ADMIN_AKADEMIK"].includes(role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -17,6 +18,15 @@ export async function GET(req: NextRequest) {
   const where: Record<string, unknown> = {};
   if (classId) where.classId = classId;
   if (periodId) where.periodId = periodId;
+
+  if (role === "GURU") {
+    where.class = { teacherId: session.user.id };
+  } else {
+    const { branchId, isSuperAdmin } = await getBranchScope();
+    if (!isSuperAdmin && branchId && !["ADMIN", "ADMIN_AKADEMIK"].includes(role)) {
+      where.branchId = branchId;
+    }
+  }
 
   const raports = await db.raport.findMany({
     where,

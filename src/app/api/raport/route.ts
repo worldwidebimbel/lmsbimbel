@@ -123,36 +123,31 @@ export async function POST(req: NextRequest) {
       ALPHA: studentRecords.filter((r) => r.status === "ALPHA").length,
     };
 
-    const raport = await db.raport.upsert({
-      where: {
-        studentId_classId_semester_period: {
-          studentId,
-          classId,
-          semester,
-          period: period ?? null,
-        },
-      },
-      create: {
-        studentId,
-        classId,
-        academicYearId: academicYearId ?? cls.academicYearId,
-        branchId: cls.branchId,
-        semester,
-        period: period ?? null,
-        finalGrade,
-        predicate,
-        gradeBreakdown: studentGrades,
-        attendanceSummary,
-        status: "DRAFT",
-      },
-      update: {
-        finalGrade,
-        predicate,
-        gradeBreakdown: studentGrades,
-        attendanceSummary,
-        academicYearId: academicYearId ?? cls.academicYearId,
-      },
+    const existing = await db.raport.findFirst({
+      where: { studentId, classId, semester, period: period ?? null },
     });
+
+    const raportData = {
+      finalGrade,
+      predicate,
+      gradeBreakdown: studentGrades,
+      attendanceSummary,
+      academicYearId: academicYearId ?? cls.academicYearId,
+    };
+
+    const raport = existing
+      ? await db.raport.update({ where: { id: existing.id }, data: raportData })
+      : await db.raport.create({
+          data: {
+            studentId,
+            classId,
+            branchId: cls.branchId,
+            semester,
+            period: period ?? null,
+            ...raportData,
+            status: "DRAFT",
+          },
+        });
 
     results.push({ studentId, raportId: raport.id, finalGrade });
   }

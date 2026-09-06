@@ -21,6 +21,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (registration.paymentStatus === "PAID") {
     return NextResponse.json({ error: "Pembayaran sudah lunas" }, { status: 400 });
   }
+  if (registration.paymentStatus === "PENDING") {
+    return NextResponse.json({ error: "Pembayaran sedang diproses" }, { status: 400 });
+  }
 
   const configured = await isDuitkuConfigured();
   if (!configured) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope, assertBranchAccess } from "@/lib/branch-context";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -12,7 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     where: { id },
     include: {
       student: { select: { id: true, name: true, email: true } },
-      class: { select: { id: true, name: true, subject: { select: { name: true } }, teacher: { select: { name: true } } } },
+      class: { select: { id: true, name: true, teacherId: true, subject: { select: { name: true } }, teacher: { select: { name: true } } } },
       academicYear: { select: { id: true, name: true } },
     },
   });
@@ -28,6 +29,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
   if ((session.user.role === "SISWA" || session.user.role === "ORANG_TUA") && raport.status !== "PUBLISHED") {
     return NextResponse.json({ error: "Raport belum dipublikasi" }, { status: 403 });
+  }
+
+  if (session.user.role === "GURU" && raport.class.teacherId !== session.user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  if (session.user.role !== "SISWA" && session.user.role !== "ORANG_TUA" && session.user.role !== "GURU") {
+    const scope = await getBranchScope();
+    if (!assertBranchAccess(raport.branchId, scope)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
   }
 
   const pdfDoc = await PDFDocument.create();
@@ -72,7 +84,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     { label: "Nama Siswa", value: raport.student.name },
     { label: "Kelas", value: raport.class.name },
     { label: "Mata Pelajaran", value: raport.class.subject.name },
-    { label: "Tutor", value: raport.class.teacher.name },
+    { label: "Tutor", value: raport.class.teacher?.name ?? "-" },
     { label: "Semester", value: raport.semester },
     { label: "Tahun Ajaran", value: raport.academicYear?.name ?? "-" },
     { label: "Periode", value: raport.period ?? "-" },
@@ -224,7 +236,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   page.drawText("Tutor", {
     x: margin + 40, y: sigY, size: 10, font, color: textColor,
   });
-  page.drawText(raport.class.teacher.name, {
+  page.drawText(raport.class.teacher?.name ?? "-", {
     x: margin + 40, y: sigY - 50, size: 10, font: boldFont, color: textColor,
   });
   page.drawLine({

@@ -46,23 +46,36 @@ export async function POST(req: NextRequest) {
 
     const totalAmount = Math.round(totalMeetings * meetingRate + totalHours * hourRate);
 
-    const payroll = await db.teacherPayroll.create({
-      data: {
-        teacherId,
-        branchId: isSuperAdmin ? (body.branchId ?? null) : branchId,
-        periodStart: start,
-        periodEnd: end,
-        ratePerMeeting: meetingRate,
-        ratePerHour: hourRate,
-        totalMeetings,
-        totalHours: Math.round(totalHours * 100) / 100,
-        totalAmount,
-        status: "DRAFT",
-      },
-      include: { teacher: { select: { name: true, email: true } } },
+    const existing = await db.teacherPayroll.findFirst({
+      where: { teacherId, periodStart: start, periodEnd: end },
     });
 
-    results.push({ teacherId, payrollId: payroll.id, totalMeetings, totalAmount });
+    const payrollData = {
+      branchId: isSuperAdmin ? (body.branchId ?? null) : branchId,
+      ratePerMeeting: meetingRate,
+      ratePerHour: hourRate,
+      totalMeetings,
+      totalHours: Math.round(totalHours * 100) / 100,
+      totalAmount,
+    };
+
+    const payroll = existing && existing.status === "DRAFT"
+      ? await db.teacherPayroll.update({ where: { id: existing.id }, data: payrollData })
+      : existing
+        ? null // sudah APPROVED/PAID — lewati, jangan dobel/ubah
+        : await db.teacherPayroll.create({
+            data: {
+              teacherId,
+              periodStart: start,
+              periodEnd: end,
+              ...payrollData,
+              status: "DRAFT",
+            },
+          });
+
+    if (payroll) {
+      results.push({ teacherId, payrollId: payroll.id, totalMeetings, totalAmount });
+    }
   }
 
   await logAudit({ entity: "TeacherPayroll", entityId: "bulk", action: "CREATE", after: { count: results.length, periodStart, periodEnd } });

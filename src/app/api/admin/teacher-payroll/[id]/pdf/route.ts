@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { db } from "@/lib/db";
+import { getBranchScope, assertBranchAccess } from "@/lib/branch-context";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 export async function GET(
@@ -26,6 +27,12 @@ export async function GET(
 
   if (session.user.role === "GURU" && payroll.teacherId !== session.user.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  if (isAdminRole(session.user.role) && session.user.role !== "SUPER_ADMIN" && session.user.role !== "ADMIN" && session.user.role !== "ADMIN_KEUANGAN") {
+    const scope = await getBranchScope();
+    if (!assertBranchAccess(payroll.branchId, scope)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
   }
   if (!isAdminRole(session.user.role) && session.user.role !== "GURU") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

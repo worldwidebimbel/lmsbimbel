@@ -29,6 +29,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (invoice.status === "PAID" || invoice.status === "CANCELLED") {
     return NextResponse.json({ error: `Invoice sudah ${invoice.status}` }, { status: 400 });
   }
+  if (invoice.status === "PENDING") {
+    return NextResponse.json({ error: "Invoice sedang menunggu pembayaran/konfirmasi" }, { status: 400 });
+  }
 
   if (invoice.studentId !== session.user.id && !["SUPER_ADMIN", "ADMIN"].includes(session.user.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getBranchScope, assertBranchAccess } from "@/lib/branch-context";
 import { sendInAppNotification } from "@/lib/notification-helper";
 import { logAudit } from "@/lib/audit";
 
@@ -31,6 +32,18 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     if (raport.status !== "PUBLISHED") return NextResponse.json({ error: "Raport belum dipublikasi" }, { status: 403 });
   }
 
+  if (session.user.role === "GURU") {
+    const cls = await db.class.findUnique({ where: { id: raport.classId }, select: { teacherId: true } });
+    if (cls?.teacherId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  } else if (!["SISWA", "ORANG_TUA", "SUPER_ADMIN", "ADMIN", "ADMIN_AKADEMIK"].includes(session.user.role)) {
+    const scope = await getBranchScope();
+    if (!assertBranchAccess(raport.branchId, scope)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
   return NextResponse.json(raport);
 }
 
@@ -47,6 +60,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (session.user.role === "GURU") {
     const cls = await db.class.findUnique({ where: { id: raport.classId }, select: { teacherId: true } });
     if (cls?.teacherId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  } else if (!["SUPER_ADMIN", "ADMIN", "ADMIN_AKADEMIK"].includes(session.user.role)) {
+    const scope = await getBranchScope();
+    if (!assertBranchAccess(raport.branchId, scope)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
   }
@@ -100,6 +118,14 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   }
 
   const { id } = await params;
+  const raport = await db.raport.findUnique({ where: { id }, select: { id: true, branchId: true } });
+  if (!raport) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const scope = await getBranchScope();
+  if (!assertBranchAccess(raport.branchId, scope)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   await db.raport.delete({ where: { id } });
   await logAudit({ entity: "Raport", entityId: id, action: "DELETE" });
   return NextResponse.json({ success: true });
