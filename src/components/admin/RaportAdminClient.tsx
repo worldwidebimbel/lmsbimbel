@@ -2,15 +2,23 @@
 
 import { useState } from "react";
 import {
-  FileText, Download, Eye, CheckCircle, X, Sparkles, Search, FileDown,
+  FileText, Download, CheckCircle, X, Sparkles, Search, FileDown,
   ChevronDown, ChevronRight, Edit3, Trash2,
 } from "lucide-react";
+import { StarRating, StarPicker, CategoryBadge } from "@/components/raport/StarRating";
 
 interface ClassItem {
   id: string;
   name: string;
   subject: { name: string };
   students: { student: { id: string; name: string } }[];
+}
+
+interface RaportAttitude {
+  id: string;
+  aspectId: string;
+  stars: number;
+  note: string | null;
 }
 
 interface Raport {
@@ -22,12 +30,39 @@ interface Raport {
   finalGrade: number | null;
   predicate: string | null;
   status: string;
+  description: string | null;
   teacherNote: string | null;
   principalNote: string | null;
+  academicStars: number | null;
+  academicCategory: string | null;
+  academicDescription: string | null;
+  attitudeStars: number | null;
+  attitudeCategory: string | null;
+  attitudeDescription: string | null;
+  attitudeNote: string | null;
+  attitudes: RaportAttitude[];
   publishedAt: string | null;
   student: { id: string; name: string };
   class: { id: string; name: string; subject: { name: string } };
   academicYear: { id: string; name: string } | null;
+}
+
+interface RubricLevel {
+  id: string;
+  type: "ACADEMIC" | "ATTITUDE";
+  stars: number;
+  minScore: number;
+  maxScore: number;
+  category: string;
+  description: string | null;
+  colorHex: string | null;
+}
+
+interface AttitudeAspect {
+  id: string;
+  name: string;
+  description: string | null;
+  weight: number;
 }
 
 interface AcademicYear { id: string; name: string }
@@ -45,15 +80,39 @@ const PREDICATE_COLORS: Record<string, string> = {
   E: "bg-red-100 text-red-700",
 };
 
+interface EditFormState {
+  teacherNote: string;
+  principalNote: string;
+  academicDescription: string;
+  attitudeStars: number | null;
+  attitudeDescription: string;
+  attitudeNote: string;
+  attitudes: Record<string, { stars: number | null; note: string }>;
+}
+
+const EMPTY_FORM: EditFormState = {
+  teacherNote: "",
+  principalNote: "",
+  academicDescription: "",
+  attitudeStars: null,
+  attitudeDescription: "",
+  attitudeNote: "",
+  attitudes: {},
+};
+
 export default function RaportAdminClient({
   classes,
   initialRaports,
   academicYears,
+  rubricLevels,
+  attitudeAspects,
   isGuru,
 }: {
   classes: ClassItem[];
   initialRaports: Raport[];
   academicYears: AcademicYear[];
+  rubricLevels: RubricLevel[];
+  attitudeAspects: AttitudeAspect[];
   isGuru: boolean;
 }) {
   const [raports, setRaports] = useState(initialRaports);
@@ -63,7 +122,17 @@ export default function RaportAdminClient({
   const [showGenerate, setShowGenerate] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ teacherNote: "", principalNote: "", description: "" });
+  const [saving, setSaving] = useState(false);
+  const [editForm, setEditForm] = useState<EditFormState>(EMPTY_FORM);
+
+  const academicRubric = rubricLevels.filter((l) => l.type === "ACADEMIC");
+  const attitudeRubric = rubricLevels.filter((l) => l.type === "ATTITUDE");
+
+  function levelByStars(type: "ACADEMIC" | "ATTITUDE", stars: number | null | undefined) {
+    if (stars === null || stars === undefined) return null;
+    const pool = type === "ACADEMIC" ? academicRubric : attitudeRubric;
+    return pool.find((l) => l.stars === stars) ?? null;
+  }
 
   const filtered = raports.filter((r) => {
     if (filterClass && r.classId !== filterClass) return false;
@@ -113,30 +182,82 @@ export default function RaportAdminClient({
     }
   }
 
-  async function handleSaveNotes(id: string) {
+  async function handleSaveAssessment(id: string) {
+    setSaving(true);
     const res = await fetch(`/api/raport/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         teacherNote: editForm.teacherNote || null,
         principalNote: isGuru ? undefined : (editForm.principalNote || null),
-        description: editForm.description || null,
+        academicDescription: editForm.academicDescription || null,
+        attitudeDescription: editForm.attitudeDescription || null,
+        attitudeNote: editForm.attitudeNote || null,
+        ...(editForm.attitudeStars !== null ? { attitudeStars: editForm.attitudeStars } : {}),
+        attitudes: attitudeAspects.map((a) => ({
+          aspectId: a.id,
+          stars: editForm.attitudes[a.id]?.stars ?? null,
+          note: editForm.attitudes[a.id]?.note ?? null,
+        })),
       }),
     });
+    setSaving(false);
     if (res.ok) {
       const updated = await res.json();
       setRaports((prev) => prev.map((r) => (r.id === id ? { ...r, ...updated, student: r.student, class: r.class, academicYear: r.academicYear } : r)));
       setEditingId(null);
+    } else {
+      const err = await res.json().catch(() => ({}));
+      alert(err.error ?? "Gagal menyimpan penilaian");
     }
   }
 
   function startEdit(r: Raport) {
+    const attitudes: EditFormState["attitudes"] = {};
+    for (const aspect of attitudeAspects) {
+      const saved = r.attitudes?.find((a) => a.aspectId === aspect.id);
+      attitudes[aspect.id] = { stars: saved?.stars ?? null, note: saved?.note ?? "" };
+    }
     setEditForm({
       teacherNote: r.teacherNote ?? "",
       principalNote: r.principalNote ?? "",
-      description: "",
+      academicDescription: r.academicDescription ?? levelByStars("ACADEMIC", r.academicStars)?.description ?? "",
+      attitudeStars: r.attitudeStars ?? null,
+      attitudeDescription: r.attitudeDescription ?? "",
+      attitudeNote: r.attitudeNote ?? "",
+      attitudes,
     });
     setEditingId(r.id);
+  }
+
+  function setAttitude(aspectId: string, patch: { stars?: number | null; note?: string }) {
+    setEditForm((prev) => {
+      const next = {
+        ...prev,
+        attitudes: {
+          ...prev.attitudes,
+          [aspectId]: { ...(prev.attitudes[aspectId] ?? { stars: null, note: "" }), ...patch },
+        },
+      };
+
+      if (patch.stars !== undefined) {
+        const rated = attitudeAspects
+          .map((a) => ({ stars: next.attitudes[a.id]?.stars ?? null, weight: a.weight }))
+          .filter((a): a is { stars: number; weight: number } => a.stars !== null);
+
+        if (rated.length > 0) {
+          const totalWeight = rated.reduce((sum, a) => sum + a.weight, 0);
+          const avg = rated.reduce((sum, a) => sum + a.stars * a.weight, 0) / totalWeight;
+          const rounded = Math.max(1, Math.min(5, Math.round(avg)));
+          next.attitudeStars = rounded;
+          if (!prev.attitudeDescription) {
+            next.attitudeDescription = levelByStars("ATTITUDE", rounded)?.description ?? "";
+          }
+        }
+      }
+
+      return next;
+    });
   }
 
   async function handleDelete(id: string) {
@@ -210,16 +331,24 @@ export default function RaportAdminClient({
                     </span>
                   </div>
                 </div>
-                {r.finalGrade !== null && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-gray-900">{r.finalGrade.toFixed(1)}</span>
-                    {r.predicate && (
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${PREDICATE_COLORS[r.predicate] ?? "bg-gray-100"}`}>
-                        {r.predicate}
-                      </span>
-                    )}
-                  </div>
-                )}
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  {r.finalGrade !== null && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-bold text-gray-900">{r.finalGrade.toFixed(1)}</span>
+                      {r.predicate && (
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${PREDICATE_COLORS[r.predicate] ?? "bg-gray-100"}`}>
+                          {r.predicate}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {r.academicStars !== null && (
+                    <div className="flex items-center gap-1.5">
+                      <StarRating value={r.academicStars} size="sm" />
+                      <CategoryBadge category={r.academicCategory} colorHex={levelByStars("ACADEMIC", r.academicStars)?.colorHex} />
+                    </div>
+                  )}
+                </div>
                 <div className="flex shrink-0 items-center gap-1">
                   <a
                     href={`/api/raport/${r.id}/pdf`}
@@ -231,7 +360,8 @@ export default function RaportAdminClient({
                   <button
                     onClick={() => startEdit(r)}
                     className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded-lg p-1.5 text-gray-500 hover:bg-gray-100"
-                    title="Edit Catatan"
+                    title="Nilai Sikap & Catatan"
+                    aria-label="Nilai sikap dan catatan"
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>
@@ -266,7 +396,50 @@ export default function RaportAdminClient({
 
               {/* Expanded Details */}
               {expandedId === r.id && (
-                <div className="border-t border-gray-100 bg-gray-50 p-4 space-y-2 text-sm">
+                <div className="border-t border-gray-100 bg-gray-50 p-4 space-y-4 text-sm">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="rounded-lg border border-gray-200 bg-white p-3 space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Nilai Akademik</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <StarRating value={r.academicStars} size="md" />
+                        <CategoryBadge category={r.academicCategory} colorHex={levelByStars("ACADEMIC", r.academicStars)?.colorHex} />
+                      </div>
+                      <p className="text-gray-600">
+                        {r.academicDescription ?? levelByStars("ACADEMIC", r.academicStars)?.description ?? "Belum ada penjelasan."}
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg border border-gray-200 bg-white p-3 space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Sikap Belajar</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <StarRating value={r.attitudeStars} size="md" />
+                        <CategoryBadge category={r.attitudeCategory} colorHex={levelByStars("ATTITUDE", r.attitudeStars)?.colorHex} />
+                      </div>
+                      <p className="text-gray-600">
+                        {r.attitudeDescription ?? levelByStars("ATTITUDE", r.attitudeStars)?.description ?? "Belum dinilai."}
+                      </p>
+                      {r.attitudeNote && <p className="text-xs italic text-gray-500">Catatan: {r.attitudeNote}</p>}
+                    </div>
+                  </div>
+
+                  {attitudeAspects.length > 0 && (r.attitudes?.length ?? 0) > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Rincian Aspek Sikap</p>
+                      {attitudeAspects.map((aspect) => {
+                        const saved = r.attitudes?.find((a) => a.aspectId === aspect.id);
+                        if (!saved) return null;
+                        return (
+                          <div key={aspect.id} className="flex flex-wrap items-center gap-2 rounded-lg bg-white px-3 py-2">
+                            <span className="min-w-[140px] text-gray-700">{aspect.name}</span>
+                            <StarRating value={saved.stars} size="sm" />
+                            <CategoryBadge category={levelByStars("ATTITUDE", saved.stars)?.category} colorHex={levelByStars("ATTITUDE", saved.stars)?.colorHex} />
+                            {saved.note && <span className="text-xs italic text-gray-500">{saved.note}</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
                   {r.teacherNote && (
                     <div>
                       <span className="font-medium text-gray-700">Catatan Tutor: </span>
@@ -287,34 +460,178 @@ export default function RaportAdminClient({
                 </div>
               )}
 
-              {/* Edit Notes Inline */}
+              {/* Edit Penilaian Inline */}
               {editingId === r.id && (
-                <div className="border-t border-gray-100 bg-amber-50/50 p-4 space-y-3">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">Catatan Tutor</label>
-                    <textarea
-                      value={editForm.teacherNote}
-                      onChange={(e) => setEditForm({ ...editForm, teacherNote: e.target.value })}
-                      rows={2}
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm resize-none"
-                      placeholder="Catatan untuk siswa..."
-                    />
-                  </div>
-                  {!isGuru && (
+                <div className="border-t border-gray-100 bg-amber-50/50 p-4 space-y-5">
+                  {/* Nilai akademik (otomatis dari rubrik) */}
+                  <section className="space-y-2">
+                    <h4 className="text-sm font-semibold text-gray-800">Nilai Akademik (Latihan &amp; Ujian)</h4>
+                    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2">
+                      <span className="text-lg font-bold text-gray-900">{r.finalGrade?.toFixed(1) ?? "—"}</span>
+                      <StarRating value={r.academicStars} size="lg" />
+                      <CategoryBadge category={r.academicCategory} colorHex={levelByStars("ACADEMIC", r.academicStars)?.colorHex} />
+                      <span className="text-xs text-gray-500">Bintang &amp; kategori dihitung otomatis dari rubrik nilai</span>
+                    </div>
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-gray-600">Catatan Kepala Bimbel</label>
+                      <label className="mb-1 block text-xs font-medium text-gray-600">Penjelasan Nilai Akademik</label>
                       <textarea
-                        value={editForm.principalNote}
-                        onChange={(e) => setEditForm({ ...editForm, principalNote: e.target.value })}
+                        value={editForm.academicDescription}
+                        onChange={(e) => setEditForm({ ...editForm, academicDescription: e.target.value })}
+                        rows={3}
+                        className="w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                        placeholder="Penjelasan capaian akademik siswa..."
+                      />
+                      {levelByStars("ACADEMIC", r.academicStars)?.description && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEditForm({
+                              ...editForm,
+                              academicDescription: levelByStars("ACADEMIC", r.academicStars)?.description ?? "",
+                            })
+                          }
+                          className="mt-1 text-xs text-emerald-600 hover:underline"
+                        >
+                          Gunakan teks rubrik
+                        </button>
+                      )}
+                    </div>
+                  </section>
+
+                  {/* Sikap per aspek */}
+                  <section className="space-y-2">
+                    <h4 className="text-sm font-semibold text-gray-800">Sikap dalam Belajar</h4>
+                    {attitudeAspects.length === 0 ? (
+                      <p className="rounded-lg bg-white px-3 py-2 text-xs text-gray-500">
+                        Belum ada aspek sikap. Admin dapat menambahkannya di menu Atur Rubrik.
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {attitudeAspects.map((aspect) => {
+                          const value = editForm.attitudes[aspect.id]?.stars ?? null;
+                          const level = levelByStars("ATTITUDE", value);
+                          return (
+                            <div key={aspect.id} className="rounded-lg border border-gray-200 bg-white p-3 space-y-2">
+                              <div className="flex flex-wrap items-center gap-3">
+                                <div className="min-w-[150px] flex-1">
+                                  <p className="text-sm font-medium text-gray-800">{aspect.name}</p>
+                                  {aspect.description && <p className="text-xs text-gray-500">{aspect.description}</p>}
+                                </div>
+                                <StarPicker
+                                  value={value}
+                                  onChange={(next) => setAttitude(aspect.id, { stars: next })}
+                                  label={`Bintang ${aspect.name}`}
+                                />
+                                <CategoryBadge category={level?.category} colorHex={level?.colorHex} />
+                              </div>
+                              {level?.description && <p className="text-xs text-gray-500">{level.description}</p>}
+                              <input
+                                value={editForm.attitudes[aspect.id]?.note ?? ""}
+                                onChange={(e) => setAttitude(aspect.id, { note: e.target.value })}
+                                placeholder={`Catatan ${aspect.name} (opsional)`}
+                                className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm"
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </section>
+
+                  {/* Kesimpulan sikap */}
+                  <section className="space-y-2">
+                    <h4 className="text-sm font-semibold text-gray-800">Kesimpulan Sikap Keseluruhan</h4>
+                    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2">
+                      <StarPicker
+                        value={editForm.attitudeStars}
+                        onChange={(next) =>
+                          setEditForm({
+                            ...editForm,
+                            attitudeStars: next,
+                            attitudeDescription:
+                              editForm.attitudeDescription || (levelByStars("ATTITUDE", next)?.description ?? ""),
+                          })
+                        }
+                        label="Kesimpulan sikap"
+                      />
+                      <CategoryBadge
+                        category={levelByStars("ATTITUDE", editForm.attitudeStars)?.category}
+                        colorHex={levelByStars("ATTITUDE", editForm.attitudeStars)?.colorHex}
+                      />
+                      <span className="text-xs text-gray-500">Terisi otomatis dari rata-rata aspek, bisa diubah manual</span>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-gray-600">Penjelasan Sikap</label>
+                      <textarea
+                        value={editForm.attitudeDescription}
+                        onChange={(e) => setEditForm({ ...editForm, attitudeDescription: e.target.value })}
+                        rows={3}
+                        className="w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                        placeholder="Penjelasan sikap belajar siswa..."
+                      />
+                      {levelByStars("ATTITUDE", editForm.attitudeStars)?.description && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEditForm({
+                              ...editForm,
+                              attitudeDescription: levelByStars("ATTITUDE", editForm.attitudeStars)?.description ?? "",
+                            })
+                          }
+                          className="mt-1 text-xs text-emerald-600 hover:underline"
+                        >
+                          Gunakan teks rubrik
+                        </button>
+                      )}
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-gray-600">Catatan Sikap (opsional)</label>
+                      <textarea
+                        value={editForm.attitudeNote}
+                        onChange={(e) => setEditForm({ ...editForm, attitudeNote: e.target.value })}
                         rows={2}
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm resize-none"
-                        placeholder="Catatan dari kepala..."
+                        className="w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                        placeholder="Hal khusus yang perlu diketahui orang tua..."
                       />
                     </div>
-                  )}
+                  </section>
+
+                  {/* Catatan umum */}
+                  <section className="space-y-2">
+                    <h4 className="text-sm font-semibold text-gray-800">Catatan Rapor</h4>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-gray-600">Catatan Tutor</label>
+                      <textarea
+                        value={editForm.teacherNote}
+                        onChange={(e) => setEditForm({ ...editForm, teacherNote: e.target.value })}
+                        rows={2}
+                        className="w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                        placeholder="Catatan untuk siswa..."
+                      />
+                    </div>
+                    {!isGuru && (
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-gray-600">Catatan Kepala Bimbel</label>
+                        <textarea
+                          value={editForm.principalNote}
+                          onChange={(e) => setEditForm({ ...editForm, principalNote: e.target.value })}
+                          rows={2}
+                          className="w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                          placeholder="Catatan dari kepala..."
+                        />
+                      </div>
+                    )}
+                  </section>
+
                   <div className="flex gap-2">
                     <button onClick={() => setEditingId(null)} className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50">Batal</button>
-                    <button onClick={() => handleSaveNotes(r.id)} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-700">Simpan</button>
+                    <button
+                      onClick={() => handleSaveAssessment(r.id)}
+                      disabled={saving}
+                      className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      {saving ? "Menyimpan..." : "Simpan Penilaian"}
+                    </button>
                   </div>
                 </div>
               )}

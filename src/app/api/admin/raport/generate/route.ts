@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 import { logAudit } from "@/lib/audit";
+import { ensureDefaultRubric, getRubricLevels, matchRubricByScore } from "@/lib/raport-rubric";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -40,6 +41,9 @@ export async function POST(req: NextRequest) {
     include: { records: true },
   });
 
+  await ensureDefaultRubric();
+  const academicLevels = await getRubricLevels("ACADEMIC");
+
   const results: { studentId: string; raportId: string; finalGrade: number | null }[] = [];
 
   for (const studentId of studentIds as string[]) {
@@ -74,36 +78,44 @@ export async function POST(req: NextRequest) {
       ALPHA: studentRecords.filter((r) => r.status === "ALPHA").length,
     };
 
-    const raport = await db.raport.upsert({
-      where: {
-        studentId_classId_semester_period: {
-          studentId,
-          classId,
-          semester,
-          period: period ?? null,
-        },
-      },
-      create: {
-        studentId,
-        classId,
-        academicYearId: academicYearId ?? cls.academicYearId,
-        branchId: cls.branchId,
-        semester,
-        period: period ?? null,
-        finalGrade,
-        predicate,
-        gradeBreakdown: studentGrades,
-        attendanceSummary,
-        status: "DRAFT",
-      },
-      update: {
-        finalGrade,
-        predicate,
-        gradeBreakdown: studentGrades,
-        attendanceSummary,
-        academicYearId: academicYearId ?? cls.academicYearId,
-      },
+    const existing = await db.raport.findFirst({
+      where: { studentId, classId, semester, period: period ?? null },
     });
+
+    const academicLevel = matchRubricByScore(academicLevels, finalGrade);
+
+    const raportData = {
+      finalGrade,
+      predicate,
+      gradeBreakdown: studentGrades,
+      attendanceSummary,
+      academicYearId: academicYearId ?? cls.academicYearId,
+      academicStars: academicLevel?.stars ?? null,
+      academicCategory: academicLevel?.category ?? null,
+    };
+
+    const raport = existing
+      ? await db.raport.update({
+          where: { id: existing.id },
+          data: {
+            ...raportData,
+            ...(existing.academicDescription
+              ? {}
+              : { academicDescription: academicLevel?.description ?? null }),
+          },
+        })
+      : await db.raport.create({
+          data: {
+            studentId,
+            classId,
+            branchId: cls.branchId,
+            semester,
+            period: period ?? null,
+            ...raportData,
+            academicDescription: academicLevel?.description ?? null,
+            status: "DRAFT",
+          },
+        });
 
     results.push({ studentId, raportId: raport.id, finalGrade });
   }

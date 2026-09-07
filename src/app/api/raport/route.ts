@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope } from "@/lib/branch-context";
 import { logAudit } from "@/lib/audit";
+import { ensureDefaultRubric, getRubricLevels, matchRubricByScore } from "@/lib/raport-rubric";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -89,6 +90,9 @@ export async function POST(req: NextRequest) {
     include: { records: true },
   });
 
+  await ensureDefaultRubric();
+  const academicLevels = await getRubricLevels("ACADEMIC");
+
   const results: { studentId: string; raportId: string; finalGrade: number | null }[] = [];
 
   for (const studentId of studentIds as string[]) {
@@ -127,16 +131,28 @@ export async function POST(req: NextRequest) {
       where: { studentId, classId, semester, period: period ?? null },
     });
 
+    const academicLevel = matchRubricByScore(academicLevels, finalGrade);
+
     const raportData = {
       finalGrade,
       predicate,
       gradeBreakdown: studentGrades,
       attendanceSummary,
       academicYearId: academicYearId ?? cls.academicYearId,
+      academicStars: academicLevel?.stars ?? null,
+      academicCategory: academicLevel?.category ?? null,
     };
 
     const raport = existing
-      ? await db.raport.update({ where: { id: existing.id }, data: raportData })
+      ? await db.raport.update({
+          where: { id: existing.id },
+          data: {
+            ...raportData,
+            ...(existing.academicDescription
+              ? {}
+              : { academicDescription: academicLevel?.description ?? null }),
+          },
+        })
       : await db.raport.create({
           data: {
             studentId,
@@ -145,6 +161,7 @@ export async function POST(req: NextRequest) {
             semester,
             period: period ?? null,
             ...raportData,
+            academicDescription: academicLevel?.description ?? null,
             status: "DRAFT",
           },
         });

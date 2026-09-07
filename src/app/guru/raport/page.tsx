@@ -10,7 +10,7 @@ export default async function GuruRaportPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "GURU") redirect("/guru");
 
-  const [classes, raports, academicYears] = await Promise.all([
+  const [classes, raports, academicYears, rubricLevels, attitudeAspects] = await Promise.all([
     db.class.findMany({
       where: { teacherId: session.user.id, isActive: true },
       select: {
@@ -26,6 +26,7 @@ export default async function GuruRaportPage() {
         student: { select: { id: true, name: true } },
         class: { select: { id: true, name: true, subject: { select: { name: true } } } },
         academicYear: { select: { id: true, name: true } },
+        attitudes: { select: { id: true, aspectId: true, stars: true, note: true } },
       },
       orderBy: { createdAt: "desc" },
       take: 200,
@@ -33,6 +34,14 @@ export default async function GuruRaportPage() {
     db.academicYear.findMany({
       orderBy: { name: "desc" },
       select: { id: true, name: true },
+    }),
+    db.rubricLevel.findMany({
+      where: { isActive: true },
+      orderBy: [{ type: "asc" }, { stars: "desc" }],
+    }),
+    db.attitudeAspect.findMany({
+      where: { isActive: true },
+      orderBy: { order: "asc" },
     }),
   ]);
 
@@ -52,6 +61,8 @@ export default async function GuruRaportPage() {
         classes={JSON.parse(JSON.stringify(classes))}
         initialRaports={JSON.parse(JSON.stringify(raports))}
         academicYears={JSON.parse(JSON.stringify(academicYears))}
+        rubricLevels={JSON.parse(JSON.stringify(rubricLevels))}
+        attitudeAspects={JSON.parse(JSON.stringify(attitudeAspects))}
         isGuru={true}
       />
     </div>

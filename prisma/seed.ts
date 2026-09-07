@@ -1,6 +1,12 @@
 import { PrismaClient, UserRole, FeatureTier } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { ALL_PERMISSIONS, DEFAULT_ROLE_PERMISSIONS } from "../src/lib/permission";
+import {
+  DEFAULT_ACADEMIC_RUBRIC,
+  DEFAULT_ATTITUDE_RUBRIC,
+  DEFAULT_ATTITUDE_ASPECTS,
+  MAX_STARS,
+} from "../src/lib/raport-rubric-defaults";
 
 const prisma = new PrismaClient();
 
@@ -768,6 +774,43 @@ async function main() {
     if (!existing) await prisma.siteConfig.create({ data: c });
   }
   console.log(`✅ 4 site config keys seeded`);
+
+  // Rubrik penilaian rapor (bintang 1-5)
+  const rubricSeeds = [
+    ...DEFAULT_ACADEMIC_RUBRIC.map((r) => ({ ...r, type: "ACADEMIC" as const })),
+    ...DEFAULT_ATTITUDE_RUBRIC.map((r) => ({ ...r, type: "ATTITUDE" as const })),
+  ];
+  for (const r of rubricSeeds) {
+    const data = {
+      minScore: r.minScore,
+      maxScore: r.maxScore,
+      category: r.category,
+      description: r.description,
+      colorHex: r.colorHex,
+      order: MAX_STARS - r.stars,
+    };
+    await prisma.rubricLevel.upsert({
+      where: { type_stars: { type: r.type, stars: r.stars } },
+      update: data,
+      create: { type: r.type, stars: r.stars, ...data },
+    });
+  }
+  console.log(`✅ ${rubricSeeds.length} rubric levels seeded`);
+
+  for (const [i, a] of DEFAULT_ATTITUDE_ASPECTS.entries()) {
+    const existingAspect = await prisma.attitudeAspect.findFirst({ where: { name: a.name } });
+    if (existingAspect) {
+      await prisma.attitudeAspect.update({
+        where: { id: existingAspect.id },
+        data: { description: a.description },
+      });
+    } else {
+      await prisma.attitudeAspect.create({
+        data: { name: a.name, description: a.description, weight: 1, order: i },
+      });
+    }
+  }
+  console.log(`✅ ${DEFAULT_ATTITUDE_ASPECTS.length} attitude aspects seeded`);
 
   console.log(`✅ Users seeded: superadmin, admincabang, adminkeuangan, adminakademik, afiliator, guru, siswa, orangtua`);
   console.log("\n📋 Demo Credentials:");

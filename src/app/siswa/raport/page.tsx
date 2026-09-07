@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { FileText, Download } from "lucide-react";
+import RaportRubricSummary from "@/components/raport/RaportRubricSummary";
 
 export const metadata = { title: "Raport - Siswa" };
 
@@ -9,14 +10,20 @@ export default async function SiswaRaportPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "SISWA") redirect("/siswa");
 
-  const raports = await db.raport.findMany({
-    where: { studentId: session.user.id, status: "PUBLISHED" },
-    include: {
-      class: { select: { id: true, name: true, subject: { select: { name: true } }, teacher: { select: { name: true } } } },
-      academicYear: { select: { id: true, name: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const [raports, rubricLevels] = await Promise.all([
+    db.raport.findMany({
+      where: { studentId: session.user.id, status: "PUBLISHED" },
+      include: {
+        class: { select: { id: true, name: true, subject: { select: { name: true } }, teacher: { select: { name: true } } } },
+        academicYear: { select: { id: true, name: true } },
+        attitudes: { include: { aspect: { select: { id: true, name: true, order: true } } } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    db.rubricLevel.findMany({
+      select: { type: true, stars: true, category: true, description: true, colorHex: true },
+    }),
+  ]);
 
   const PREDICATE_COLORS: Record<string, string> = {
     A: "bg-green-100 text-green-700",
@@ -46,8 +53,8 @@ export default async function SiswaRaportPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {raports.map((r) => (
-            <div key={r.id} className="rounded-xl border border-gray-200 bg-white p-5">
-              <div className="flex items-start justify-between mb-3">
+            <div key={r.id} className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
+              <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-semibold text-gray-900">{r.class.name}</h3>
                   <p className="text-sm text-gray-500">{r.class.subject.name}</p>
@@ -64,17 +71,19 @@ export default async function SiswaRaportPage() {
                 )}
               </div>
 
-              <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
+              <div className="flex items-center gap-3 text-xs text-gray-500">
                 <span>Semester {r.semester}</span>
                 {r.period && <span>• {r.period}</span>}
                 {r.academicYear && <span>• {r.academicYear.name}</span>}
               </div>
 
+              <RaportRubricSummary raport={r} rubricLevels={rubricLevels} />
+
               {r.teacherNote && (
-                <p className="text-sm text-gray-600 mb-2 italic">"{r.teacherNote}"</p>
+                <p className="text-sm italic text-gray-600">&quot;{r.teacherNote}&quot;</p>
               )}
 
-              <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+              <div className="flex items-center gap-2 border-t border-gray-100 pt-3">
                 <span className="text-xs text-gray-500">Tutor: {r.class.teacher?.name ?? "—"}</span>
                 <a
                   href={`/api/raport/${r.id}/pdf`}

@@ -2,7 +2,60 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getBranchScope, assertBranchAccess } from "@/lib/branch-context";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+
+const STAR_PATH =
+  "M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z";
+
+const STAR_FILLED = rgb(0.96, 0.72, 0.16);
+const STAR_EMPTY = rgb(0.85, 0.85, 0.85);
+
+function drawStars(page: PDFPage, x: number, y: number, filled: number, size = 11, max = 5) {
+  for (let i = 0; i < max; i++) {
+    page.drawSvgPath(STAR_PATH, {
+      x: x + i * (size + 1.5),
+      y: y + size,
+      scale: size / 24,
+      color: i < filled ? STAR_FILLED : STAR_EMPTY,
+    });
+  }
+}
+
+function starsWidth(size = 11, max = 5) {
+  return max * size + (max - 1) * 1.5;
+}
+
+function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
+  const lines: string[] = [];
+  for (const rawLine of text.split("\n")) {
+    const words = rawLine.split(/\s+/).filter(Boolean);
+    if (words.length === 0) {
+      lines.push("");
+      continue;
+    }
+    let current = words[0];
+    for (let i = 1; i < words.length; i++) {
+      const candidate = `${current} ${words[i]}`;
+      if (font.widthOfTextAtSize(candidate, size) <= maxWidth) {
+        current = candidate;
+      } else {
+        lines.push(current);
+        current = words[i];
+      }
+    }
+    lines.push(current);
+  }
+  return lines;
+}
+
+function sanitize(text: string) {
+  return text
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201c\u201d]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/[\u2022]/g, "-")
+    .replace(/[^\x20-\xFF\n]/g, "");
+}
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -15,6 +68,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       student: { select: { id: true, name: true, email: true } },
       class: { select: { id: true, name: true, teacherId: true, subject: { select: { name: true } }, teacher: { select: { name: true } } } },
       academicYear: { select: { id: true, name: true } },
+      attitudes: { include: { aspect: { select: { id: true, name: true, order: true } } } },
     },
   });
 
@@ -61,6 +115,29 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const accentColor = rgb(0.2, 0.3, 0.6);
 
   let y = pageHeight - margin;
+  const contentWidth = pageWidth - margin * 2;
+
+  const ensureSpace = (needed: number) => {
+    if (y - needed < margin + 40) {
+      page = pdfDoc.addPage([pageWidth, pageHeight]);
+      y = pageHeight - margin;
+    }
+  };
+
+  const drawParagraph = (text: string, size = 9, indent = 0) => {
+    const lines = wrapText(sanitize(text), font, size, contentWidth - indent);
+    for (const line of lines) {
+      ensureSpace(size + 4);
+      page.drawText(line, { x: margin + indent, y, size, font, color: textColor });
+      y -= size + 4;
+    }
+  };
+
+  const rubricLevels = await db.rubricLevel.findMany({
+    select: { type: true, stars: true, category: true, description: true },
+  });
+  const levelFor = (type: "ACADEMIC" | "ATTITUDE", stars: number | null) =>
+    stars === null ? null : rubricLevels.find((l) => l.type === type && l.stars === stars) ?? null;
 
   // Header border
   page.drawRectangle({
@@ -177,7 +254,94 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   y -= 10;
 
+  // Rubrik penilaian (bintang)
+  if (raport.academicStars !== null || raport.attitudeStars !== null || raport.attitudes.length > 0) {
+    ensureSpace(40);
+    page.drawText("Rubrik Penilaian", { x: margin, y, size: 12, font: boldFont, color: accentColor });
+    y -= 20;
+  }
+
+  if (raport.academicStars !== null) {
+    ensureSpace(30);
+    page.drawText("Capaian Akademik", { x: margin, y, size: 10, font: boldFont, color: textColor });
+    y -= 16;
+
+    ensureSpace(18);
+    drawStars(page, margin, y - 2, raport.academicStars);
+    const academicCat = raport.academicCategory ?? levelFor("ACADEMIC", raport.academicStars)?.category ?? "";
+    if (academicCat) {
+      page.drawText(sanitize(academicCat), {
+        x: margin + starsWidth() + 8,
+        y,
+        size: 10,
+        font: boldFont,
+        color: accentColor,
+      });
+    }
+    y -= 18;
+
+    const academicDesc = raport.academicDescription ?? levelFor("ACADEMIC", raport.academicStars)?.description;
+    if (academicDesc) drawParagraph(academicDesc);
+    y -= 8;
+  }
+
+  if (raport.attitudeStars !== null || raport.attitudes.length > 0) {
+    ensureSpace(30);
+    page.drawText("Sikap dalam Belajar", { x: margin, y, size: 10, font: boldFont, color: textColor });
+    y -= 16;
+
+    if (raport.attitudeStars !== null) {
+      ensureSpace(18);
+      drawStars(page, margin, y - 2, raport.attitudeStars);
+      const attitudeCat = raport.attitudeCategory ?? levelFor("ATTITUDE", raport.attitudeStars)?.category ?? "";
+      if (attitudeCat) {
+        page.drawText(sanitize(attitudeCat), {
+          x: margin + starsWidth() + 8,
+          y,
+          size: 10,
+          font: boldFont,
+          color: accentColor,
+        });
+      }
+      y -= 18;
+
+      const attitudeDesc = raport.attitudeDescription ?? levelFor("ATTITUDE", raport.attitudeStars)?.description;
+      if (attitudeDesc) drawParagraph(attitudeDesc);
+      y -= 6;
+    }
+
+    const sortedAttitudes = [...raport.attitudes].sort((a, b) => a.aspect.order - b.aspect.order);
+    for (const entry of sortedAttitudes) {
+      ensureSpace(18);
+      page.drawText(sanitize(entry.aspect.name), { x: margin + 10, y, size: 9, font, color: textColor });
+      drawStars(page, margin + 160, y - 2, entry.stars, 9);
+      const entryCat = levelFor("ATTITUDE", entry.stars)?.category;
+      if (entryCat) {
+        page.drawText(sanitize(entryCat), {
+          x: margin + 160 + starsWidth(9) + 8,
+          y,
+          size: 8,
+          font,
+          color: lightGray,
+        });
+      }
+      y -= 14;
+      if (entry.note) drawParagraph(entry.note, 8, 20);
+    }
+
+    if (raport.attitudeNote) {
+      y -= 4;
+      ensureSpace(18);
+      page.drawText("Catatan Sikap:", { x: margin, y, size: 9, font: boldFont, color: textColor });
+      y -= 13;
+      drawParagraph(raport.attitudeNote, 9, 10);
+    }
+
+    y -= 10;
+  }
+
   // Attendance summary
+  ensureSpace(90);
   const att = (raport.attendanceSummary as Record<string, number>) ?? {};
   page.drawText("Rekap Kehadiran", {
     x: margin, y, size: 12, font: boldFont, color: accentColor,
@@ -196,30 +360,28 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   // Notes
   if (raport.teacherNote) {
+    ensureSpace(30);
     page.drawText("Catatan Tutor:", {
       x: margin, y, size: 10, font: boldFont, color: textColor,
     });
     y -= 15;
-    const noteLines = raport.teacherNote.split("\n");
-    for (const line of noteLines) {
-      page.drawText(line, {
-        x: margin, y, size: 9, font: italicFont, color: textColor,
-      });
+    for (const line of wrapText(sanitize(raport.teacherNote), italicFont, 9, contentWidth)) {
+      ensureSpace(14);
+      page.drawText(line, { x: margin, y, size: 9, font: italicFont, color: textColor });
       y -= 14;
     }
     y -= 5;
   }
 
   if (raport.principalNote) {
+    ensureSpace(30);
     page.drawText("Catatan Kepala:", {
       x: margin, y, size: 10, font: boldFont, color: textColor,
     });
     y -= 15;
-    const noteLines = raport.principalNote.split("\n");
-    for (const line of noteLines) {
-      page.drawText(line, {
-        x: margin, y, size: 9, font: italicFont, color: textColor,
-      });
+    for (const line of wrapText(sanitize(raport.principalNote), italicFont, 9, contentWidth)) {
+      ensureSpace(14);
+      page.drawText(line, { x: margin, y, size: 9, font: italicFont, color: textColor });
       y -= 14;
     }
     y -= 5;

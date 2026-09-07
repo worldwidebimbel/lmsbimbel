@@ -925,6 +925,13 @@ model Raport {
   principalNote  String?
   attendanceSummary Json?
   gradeBreakdown Json?
+  academicStars       Int?
+  academicCategory    String?
+  academicDescription String?
+  attitudeStars       Int?
+  attitudeCategory    String?
+  attitudeDescription String?
+  attitudeNote        String?
   status         String   @default("DRAFT")
   publishedAt    DateTime?
   createdAt      DateTime @default(now())
@@ -936,6 +943,7 @@ model Raport {
   branch         Branch?  @relation(fields: [branchId], references: [id])
   reportPeriod   ReportPeriod? @relation(fields: [periodId], references: [id])
   details        ReportCardDetail[]
+  attitudes      RaportAttitude[]
 
   @@unique([studentId, classId, semester, period])
   @@map("raports")
@@ -979,6 +987,67 @@ model ReportCardDetail {
 
   @@map("report_card_details")
   @@index([raportId])
+}
+
+// ============================
+// RUBRIK PENILAIAN RAPOR
+// ============================
+
+enum RubricType {
+  ACADEMIC
+  ATTITUDE
+}
+
+model RubricLevel {
+  id          String     @id @default(cuid())
+  type        RubricType @default(ACADEMIC)
+  stars       Int
+  minScore    Float
+  maxScore    Float
+  category    String
+  description String?
+  colorHex    String?
+  order       Int        @default(0)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([type, stars])
+  @@map("rubric_levels")
+  @@index([type])
+}
+
+model AttitudeAspect {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  weight      Float    @default(1)
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  raportAttitudes RaportAttitude[]
+
+  @@map("attitude_aspects")
+}
+
+model RaportAttitude {
+  id        String   @id @default(cuid())
+  raportId  String
+  aspectId  String
+  stars     Int
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  raport    Raport         @relation(fields: [raportId], references: [id], onDelete: Cascade)
+  aspect    AttitudeAspect @relation(fields: [aspectId], references: [id], onDelete: Cascade)
+
+  @@unique([raportId, aspectId])
+  @@map("raport_attitudes")
+  @@index([raportId])
+  @@index([aspectId])
 }
 
 // ============================
