@@ -153,21 +153,11 @@ export const GUIDANCE_GUIDES: GuidanceGuide[] = [
     category: "BUILD_KONTEN",
   },
   {
-    slug: "deploy-server",
-    title: "Deploy ke VPS (lmsbimbel.digsan.id)",
+    slug: "deploy-worldwidebimbel",
+    title: "Deploy ke Hostinger (Cloud Startup)",
     description:
-      "Panduan deploy LMS ke VPS IDCloudHost: SSH, Node.js, PM2, Nginx, SSL, dan update aplikasi.",
-    file: "deploy-server.md",
-    icon: "Server",
-    category: "TEKNIS_DEPLOY",
-    superAdminOnly: true,
-  },
-  {
-    slug: "deploy-digsanstudy",
-    title: "Deploy ke Server Baru (digsan.study)",
-    description:
-      "Template deploy ke server/domain baru: domain, IP, database, Nginx, PM2, dan checklist pasca-deploy.",
-    file: "deploy-digsanstudy.md",
+      "Panduan deploy LMS ke Hostinger Cloud Startup Hosting (IP 46.202.137.132): setup hPanel, Node.js 20, MySQL, SSL, build, dan routine update.",
+    file: "guide-deploy-worldwidebimbel.md",
     icon: "Server",
     category: "TEKNIS_DEPLOY",
     superAdminOnly: true,

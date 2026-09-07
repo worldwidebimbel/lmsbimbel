@@ -34,3 +34,6 @@ next-env.d.ts
 
 # Source templates (not tracked)
 /source_files
+
+# Private docs (not tracked)
+/doc/private
