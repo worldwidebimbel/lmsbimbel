@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, GripVertical, Loader2, Save, Eye } from "lucide-react";
 import Link from "next/link";
+import WysiwygEditor from "@/components/admin/WysiwygEditor";
 
 interface Section {
   type: string;
@@ -31,6 +32,7 @@ const SECTION_TYPES = [
   { type: "TESTIMONIAL", label: "Testimoni", desc: "Ulasan siswa/orang tua" },
   { type: "FAQ", label: "FAQ", desc: "Pertanyaan jawaban" },
   { type: "CTA", label: "CTA", desc: "Call to action" },
+  { type: "CONTENT", label: "Content", desc: "Konten teks rich (WYSIWYG) — paragraf, heading, list, quote, link" },
   { type: "FORM", label: "Form", desc: "Form inquiry" },
 ];
 
@@ -48,6 +50,8 @@ function createSection(type: string): Section {
       return { type, title: "FAQ", items: [{ q: "", a: "" }] };
     case "CTA":
       return { type, title: "Siap memulai?", subtitle: "", ctaLabel: "Daftar Sekarang", ctaUrl: "/ppdb" };
+    case "CONTENT":
+      return { type, title: "", content: "", bgColor: "#ffffff", textColor: "#1f2937", maxWidth: "3xl" };
     case "FORM":
       return { type, title: "Hubungi Kami", subtitle: "" };
     default:
@@ -368,6 +372,45 @@ function SectionEditor({ section, onChange }: { section: Section; onChange: (dat
         <input value={(s.subtitle as string) ?? ""} onChange={(e) => update("subtitle", e.target.value)} placeholder="Subtitle" className="col-span-2 rounded border border-gray-300 px-2 py-1.5 text-sm" />
         <input value={(s.ctaLabel as string) ?? ""} onChange={(e) => update("ctaLabel", e.target.value)} placeholder="CTA label" className="rounded border border-gray-300 px-2 py-1.5 text-sm" />
         <input value={(s.ctaUrl as string) ?? ""} onChange={(e) => update("ctaUrl", e.target.value)} placeholder="CTA URL" className="rounded border border-gray-300 px-2 py-1.5 text-sm" />
+      </div>
+    );
+  }
+
+  if (section.type === "CONTENT") {
+    const maxW = (s.maxWidth as string) ?? "3xl";
+    return (
+      <div className="space-y-3">
+        <input value={(s.title as string) ?? ""} onChange={(e) => update("title", e.target.value)} placeholder="Judul section (opsional)" className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm" />
+        <div>
+          <label className="mb-1 block text-xs font-medium text-gray-600">Konten (WYSIWYG)</label>
+          <WysiwygEditor
+            value={(s.content as string) ?? ""}
+            onChange={(html) => update("content", html)}
+            placeholder="Tulis paragraf, heading, list, quote, atau link di sini..."
+            minHeight={250}
+          />
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-600">Lebar Konten</label>
+            <select value={maxW} onChange={(e) => update("maxWidth", e.target.value)} className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm">
+              <option value="2xl">Sempit (max-w-2xl)</option>
+              <option value="3xl">Sedang (max-w-3xl)</option>
+              <option value="4xl">Lebar (max-w-4xl)</option>
+              <option value="5xl">Terlebar (max-w-5xl)</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-medium text-gray-600">BG</label>
+            <input type="color" value={(s.bgColor as string) ?? "#ffffff"} onChange={(e) => update("bgColor", e.target.value)} className="h-8 w-12 cursor-pointer rounded border border-gray-300 p-0.5" aria-label="Warna background" />
+            <span className="font-mono text-xs text-gray-500">{(s.bgColor as string) ?? "#ffffff"}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-medium text-gray-600">Teks</label>
+            <input type="color" value={(s.textColor as string) ?? "#1f2937"} onChange={(e) => update("textColor", e.target.value)} className="h-8 w-12 cursor-pointer rounded border border-gray-300 p-0.5" aria-label="Warna teks" />
+            <span className="font-mono text-xs text-gray-500">{(s.textColor as string) ?? "#1f2937"}</span>
+          </div>
+        </div>
       </div>
     );
   }

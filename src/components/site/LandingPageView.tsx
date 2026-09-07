@@ -221,12 +221,40 @@ function FormSection({ data }: { data: Record<string, unknown> }) {
   );
 }
 
+function ContentSection({ data }: { data: Record<string, unknown> }) {
+  const bgColor = String(data.bgColor ?? "#ffffff");
+  const textColor = String(data.textColor ?? "#1f2937");
+  const maxWidth = String(data.maxWidth ?? "3xl");
+  const maxWClass =
+    maxWidth === "2xl" ? "max-w-2xl" :
+    maxWidth === "4xl" ? "max-w-4xl" :
+    maxWidth === "5xl" ? "max-w-5xl" :
+    "max-w-3xl";
+  const content = String(data.content ?? "");
+  const title = String(data.title ?? "");
+
+  return (
+    <section className="py-16" style={{ backgroundColor: bgColor, color: textColor }}>
+      <div className={`mx-auto px-4 ${maxWClass}`}>
+        {title && <h2 className="text-3xl font-bold text-center mb-8">{title}</h2>}
+        {content && (
+          <div
+            className="prose prose-sm sm:prose-base max-w-none [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_p]:leading-relaxed [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:italic [&_a]:text-blue-600 [&_a]:underline [&_a]:underline-offset-2 [&_strong]:font-semibold"
+            dangerouslySetInnerHTML={{ __html: content }}
+          />
+        )}
+      </div>
+    </section>
+  );
+}
+
 const SECTION_RENDERERS: Record<string, React.FC<{ data: Record<string, unknown> }>> = {
   HERO: HeroSection,
   FEATURES: FeaturesSection,
   TESTIMONIAL: TestimonialSection,
   FAQ: FaqSection,
   CTA: CtaSection,
+  CONTENT: ContentSection,
   FORM: FormSection,
 };
 
