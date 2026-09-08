@@ -7,10 +7,10 @@ import { useTheme } from "next-themes";
 
 type DemoType = "AKADEMIK" | "UTBK_SNBT" | "KEDINASAN" | "BAHASA";
 const DEMO_OPTIONS: { value: DemoType; label: string; desc: string; icon: string }[] = [
-  { value: "AKADEMIK", label: "Bimbel Akademik", desc: "SD/SMP/SMA — Matematika, IPA, Bahasa Indonesia (3 guru, 6 siswa, 3 kelas)", icon: "🏫" },
-  { value: "UTBK_SNBT", label: "Bimbel Persiapan Ujian (UTBK/SNBT)", desc: "TPS & Literasi Penalaran — Tryout simulasi (2 guru, 5 siswa)", icon: "🎓" },
-  { value: "KEDINASAN", label: "Bimbel Tes Masuk Kedinasan & CPNS", desc: "TWK, TIU, TKP — Simulasi SKD CPNS (2 guru, 4 siswa)", icon: "🏛️" },
-  { value: "BAHASA", label: "Bimbel Kemampuan Bahasa", desc: "Inggris, Mandarin, Jepang — Kelas konversi bahasa (3 guru, 5 siswa)", icon: "🌐" },
+  { value: "AKADEMIK", label: "Bimbel Akademik", desc: "SD/SMP/SMA — 3 guru, 6 siswa, 3 kelas + jadwal, live session, Bab materi, rapor bintang, jurnal mengajar, absensi tutor, pembayaran, notifikasi, gamifikasi", icon: "🏫" },
+  { value: "UTBK_SNBT", label: "Bimbel Persiapan Ujian (UTBK/SNBT)", desc: "TPS & Literasi — 2 guru, 5 siswa + jadwal, Bab materi, event tryout, notifikasi, gamifikasi", icon: "🎓" },
+  { value: "KEDINASAN", label: "Bimbel Tes Masuk Kedinasan & CPNS", desc: "TWK, TIU, TKP — 2 guru, 4 siswa + jadwal, notifikasi", icon: "🏛️" },
+  { value: "BAHASA", label: "Bimbel Kemampuan Bahasa", desc: "Inggris, Mandarin, Jepang — 3 guru, 5 siswa + jadwal, Bab materi, notifikasi, gamifikasi", icon: "🌐" },
 ];
 
 interface Props {
