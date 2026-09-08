@@ -13,7 +13,7 @@ import {
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
   Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
   DoorOpen, ScrollText, Share2, DollarSign, UserCheck, FileText,
-  NotebookPen, Clock, Zap, ChevronDown, HelpCircle,
+  NotebookPen, Clock, Zap, ChevronDown, HelpCircle, ExternalLink,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -330,6 +330,19 @@ export function Sidebar({ role, userName, userEmail, siteName, logoUrl }: Sideba
           })}
         </div>
       </nav>
+
+      {/* View Homepage */}
+      <div className="px-3 py-2 border-t border-sidebar-border">
+        <a
+          href="/?view=public"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white transition-all"
+        >
+          <ExternalLink className="w-4 h-4 shrink-0" />
+          Lihat Homepage
+        </a>
+      </div>
 
       {/* User Profile */}
       <div className="px-4 py-4 border-t border-sidebar-border">

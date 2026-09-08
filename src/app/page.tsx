@@ -14,10 +14,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
   const session = await auth();
+  const { view } = await searchParams;
 
-  if (session) {
+  if (session && view !== "public") {
     const roleRedirects: Record<string, string> = {
       SUPER_ADMIN: "/admin",
       ADMIN: "/admin",
