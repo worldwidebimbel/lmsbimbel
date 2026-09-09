@@ -27,6 +27,8 @@ const ROLES = [
   { value: "AFILIATOR", label: "Afiliator" },
 ];
 
+const SUPER_ADMIN_ROLE = { value: "SUPER_ADMIN", label: "Super Admin" };
+
 export default function EditUserClient({ user, isSelf, branches, isSuperAdmin }: { user: UserData; isSelf: boolean; branches: Branch[]; isSuperAdmin: boolean }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -124,6 +126,9 @@ export default function EditUserClient({ user, isSelf, branches, isSuperAdmin }:
             onChange={(e) => update("role", e.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
           >
+            {(isSuperAdmin || user.role === "SUPER_ADMIN") && (
+              <option value={SUPER_ADMIN_ROLE.value}>{SUPER_ADMIN_ROLE.label}</option>
+            )}
             {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
           </select>
         </div>

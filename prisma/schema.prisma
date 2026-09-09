@@ -4,8 +4,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // url: connection pooler (PgBouncer/Supabase port 6543) — dipakai PrismaClient runtime
+  // directUrl: direct connection (port 5432) — dipakai Prisma CLI (migrate deploy, db push, studio)
+  // Untuk PostgreSQL lokal tanpa pooler (mis. digsan.study), isi DIRECT_URL = DATABASE_URL
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ============================
