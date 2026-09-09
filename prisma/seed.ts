@@ -768,12 +768,35 @@ async function main() {
     { key: "header_call_center", value: "0812-3456-7890" },
     { key: "header_whatsapp_label", value: "Chat WhatsApp" },
     { key: "topbar_links", value: "REGISTER,APPLY ONLINE,BLOG,FAQS" },
+    // Header type & layout
+    { key: "header_type", value: "default" },
+    { key: "header_mainbar_mode", value: "light" },
+    { key: "header_show_topbar", value: "true" },
+    { key: "header_show_bottombar", value: "true" },
+    { key: "header_sticky", value: "true" },
+    { key: "header_width_mode", value: "full_width" },
+    { key: "header_mainbar_max_height", value: "80" },
+    // Colors - Top Bar
+    { key: "header_topbar_bg", value: "#1e3a5f" },
+    { key: "header_topbar_text", value: "#ffffff" },
+    // Colors - Bottom Bar / Menu
+    { key: "header_bottombar_bg", value: "#1e40af" },
+    { key: "header_menu_text", value: "#ffffff" },
+    { key: "header_menu_font_size", value: "14" },
+    { key: "header_menu_hover", value: "#eab308" },
+    { key: "header_menu_active", value: "#eab308" },
+    { key: "header_menu_hover_effect", value: "color" },
+    // CTA & WhatsApp buttons
+    { key: "header_cta_bg", value: "#22c55e" },
+    { key: "header_cta_text", value: "#ffffff" },
+    { key: "header_whatsapp_bg", value: "#22c55e" },
+    { key: "header_whatsapp_text", value: "#ffffff" },
   ];
   for (const c of siteConfigs) {
     const existing = await prisma.siteConfig.findUnique({ where: { key: c.key } });
     if (!existing) await prisma.siteConfig.create({ data: c });
   }
-  console.log(`✅ 4 site config keys seeded`);
+  console.log(`✅ ${siteConfigs.length} site config keys seeded`);
 
   // Rubrik penilaian rapor (bintang 1-5)
   const rubricSeeds = [

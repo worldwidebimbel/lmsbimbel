@@ -1,7 +1,75 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check, Monitor, Image as ImageIcon, Layout, Video } from "lucide-react";
+import { Check, Monitor, Image as ImageIcon, Layout, Video, Layers, AlignJustify } from "lucide-react";
+
+const HEADER_TYPES = [
+  {
+    value: "default",
+    label: "Header Default",
+    description: "Topbar + Mainbar + Bottombar (3 baris) — lengkap dengan info kontak & menu",
+    icon: Layers,
+    preview: (
+      <div className="overflow-hidden rounded-md border border-gray-200">
+        {/* Topbar */}
+        <div className="flex items-center justify-between bg-blue-950 px-2 py-1">
+          <div className="flex gap-1">
+            <div className="h-1.5 w-3 rounded bg-white/30" />
+            <div className="h-1.5 w-3 rounded bg-white/30" />
+          </div>
+          <div className="flex gap-1">
+            <div className="h-1.5 w-6 rounded bg-yellow-400/70" />
+            <div className="h-1.5 w-6 rounded bg-yellow-400/70" />
+          </div>
+        </div>
+        {/* Mainbar */}
+        <div className="flex items-center justify-between bg-white px-2 py-1.5">
+          <div className="flex items-center gap-1">
+            <div className="h-3 w-3 rounded bg-blue-600" />
+            <div className="h-1.5 w-12 rounded bg-gray-800" />
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="h-2 w-4 rounded bg-gray-200" />
+            <div className="h-3 w-8 rounded bg-green-500" />
+          </div>
+        </div>
+        {/* Bottombar */}
+        <div className="flex items-center bg-blue-900 px-2 py-1.5">
+          <div className="flex gap-1">
+            <div className="h-1.5 w-6 rounded bg-white/80" />
+            <div className="h-1.5 w-6 rounded bg-white/80" />
+            <div className="h-1.5 w-6 rounded bg-white/80" />
+          </div>
+          <div className="ml-auto h-2 w-8 rounded bg-yellow-400" />
+        </div>
+      </div>
+    ),
+  },
+  {
+    value: "simple",
+    label: "Header Simple",
+    description: "Mainbar only — logo, menu utama, dan tombol CTA/WhatsApp (1 baris)",
+    icon: AlignJustify,
+    preview: (
+      <div className="overflow-hidden rounded-md border border-gray-200">
+        <div className="flex items-center justify-between bg-white px-2 py-2">
+          <div className="flex items-center gap-1">
+            <div className="h-3.5 w-3.5 rounded bg-blue-600" />
+            <div className="h-2 w-12 rounded bg-gray-800" />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1">
+              <div className="h-1.5 w-6 rounded bg-gray-700" />
+              <div className="h-1.5 w-6 rounded bg-gray-700" />
+              <div className="h-1.5 w-6 rounded bg-gray-700" />
+            </div>
+            <div className="h-3.5 w-10 rounded bg-green-500" />
+          </div>
+        </div>
+      </div>
+    ),
+  },
+];
 
 const HERO_TYPES = [
   {
@@ -97,6 +165,7 @@ const HERO_TYPES = [
 ];
 
 export default function AdminCmsSettingsPage() {
+  const [headerType, setHeaderType] = useState("default");
   const [heroType, setHeroType] = useState("slider");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -106,6 +175,7 @@ export default function AdminCmsSettingsPage() {
     fetch("/api/admin/site-config")
       .then((r) => r.json())
       .then((data) => {
+        if (data.header_type) setHeaderType(data.header_type);
         if (data.hero_type) setHeroType(data.hero_type);
         setLoading(false);
       })
@@ -117,7 +187,7 @@ export default function AdminCmsSettingsPage() {
     await fetch("/api/admin/site-config", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ hero_type: heroType }),
+      body: JSON.stringify({ header_type: headerType, hero_type: heroType }),
     });
     setSaving(false);
     setSaved(true);
@@ -129,6 +199,48 @@ export default function AdminCmsSettingsPage() {
   return (
     <div className="p-6">
       <h1 className="mb-6 text-2xl font-bold text-gray-900">Pengaturan Homepage</h1>
+
+      {/* Header Type Selector */}
+      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6">
+        <h2 className="text-lg font-bold text-gray-900">Tipe Header</h2>
+        <p className="mt-1 text-sm text-gray-500">Pilih tampilan header di atas hero section</p>
+
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {HEADER_TYPES.map((type) => {
+            const Icon = type.icon;
+            const isSelected = headerType === type.value;
+            return (
+              <button
+                key={type.value}
+                onClick={() => setHeaderType(type.value)}
+                className={`group relative overflow-hidden rounded-xl border-2 text-left transition-all ${
+                  isSelected
+                    ? "border-blue-600 ring-2 ring-blue-200"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                <div className="border-b border-gray-100 bg-gray-50 p-2">
+                  {type.preview}
+                </div>
+                <div className="p-3">
+                  <div className="flex items-center gap-2">
+                    <Icon className={`h-4 w-4 ${isSelected ? "text-blue-600" : "text-gray-500"}`} />
+                    <span className={`text-sm font-bold ${isSelected ? "text-blue-600" : "text-gray-900"}`}>
+                      {type.label}
+                    </span>
+                    {isSelected && (
+                      <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-blue-600">
+                        <Check className="h-3 w-3 text-white" />
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">{type.description}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Hero Type Selector */}
       <div className="rounded-xl border border-gray-200 bg-white p-6">

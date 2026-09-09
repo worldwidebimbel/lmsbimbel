@@ -34,6 +34,27 @@ export const SITE_DEFAULTS = {
   header_whatsapp_label: "Chat WhatsApp",
   topbar_links: "REGISTER,APPLY ONLINE,BLOG,FAQS",
   hero_type: "slider",
+  // ===== Header Settings =====
+  header_type: "default", // "default" (Topbar+Mainbar+Bottombar) | "simple" (Mainbar only)
+  header_mainbar_mode: "light", // "light" | "dark"
+  header_show_topbar: "true",
+  header_show_bottombar: "true",
+  header_sticky: "true",
+  header_width_mode: "full_width", // "full_width" (max-w-7xl) | "full_screen" (w-full px-4)
+  header_mainbar_max_height: "80", // px
+  header_topbar_bg: "#1e3a5f",
+  header_topbar_text: "#ffffff",
+  header_bottombar_bg: "#1e40af",
+  header_bottombar_text: "#ffffff",
+  header_menu_font_size: "14", // px
+  header_menu_text: "#ffffff",
+  header_menu_hover: "#eab308",
+  header_menu_active: "#eab308",
+  header_menu_hover_effect: "color", // "color" | "background" | "line"
+  header_cta_bg: "#22c55e",
+  header_cta_text: "#ffffff",
+  header_whatsapp_bg: "#22c55e",
+  header_whatsapp_text: "#ffffff",
 };
 
 export type SiteConfigKeys = keyof typeof SITE_DEFAULTS;

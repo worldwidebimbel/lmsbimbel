@@ -14,6 +14,7 @@ import {
   Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
   DoorOpen, ScrollText, Share2, DollarSign, UserCheck, FileText,
   NotebookPen, Clock, Zap, ChevronDown, HelpCircle, ExternalLink,
+  PanelTop,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -23,7 +24,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
   Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
   DoorOpen, ScrollText, Share2, DollarSign, UserCheck, FileText,
-  NotebookPen, Clock, Zap, ChevronDown, HelpCircle,
+  NotebookPen, Clock, Zap, ChevronDown, HelpCircle, PanelTop,
 };
 
 interface NavItem {
@@ -70,6 +71,7 @@ const NAV_ADMIN: NavItem[] = [
     roles: ["SUPER_ADMIN", "ADMIN"],
     children: [
       { title: "Homepage", href: "/admin/cms/settings", icon: "Settings", roles: ["SUPER_ADMIN", "ADMIN"] },
+      { title: "Header", href: "/admin/cms/header", icon: "PanelTop", roles: ["SUPER_ADMIN", "ADMIN"] },
       { title: "Banner", href: "/admin/cms/banner", icon: "Image", roles: ["SUPER_ADMIN", "ADMIN"] },
       { title: "Program", href: "/admin/cms/program", icon: "GraduationCap", roles: ["SUPER_ADMIN", "ADMIN"] },
       { title: "Video", href: "/admin/cms/video", icon: "Video", roles: ["SUPER_ADMIN", "ADMIN"] },
