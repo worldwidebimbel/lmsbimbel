@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import LandingPageView from "@/components/site/LandingPageView";
+import PublicShell from "@/components/landing/PublicShell";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -30,5 +31,16 @@ export default async function LandingPageRoute({ params }: { params: Promise<{ s
   // Increment view count (fire-and-forget)
   db.landingPage.update({ where: { id: page.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
 
-  return <LandingPageView page={JSON.parse(JSON.stringify(page))} />;
+  const pageData = JSON.parse(JSON.stringify(page));
+
+  // Wrap dengan PublicShell (header + footer website) saat showHeader=true
+  if (page.showHeader || page.showFooter) {
+    return (
+      <PublicShell>
+        <LandingPageView page={pageData} showHeader={page.showHeader} showFooter={page.showFooter} />
+      </PublicShell>
+    );
+  }
+
+  return <LandingPageView page={pageData} />;
 }

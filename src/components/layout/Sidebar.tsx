@@ -80,6 +80,7 @@ const NAV_ADMIN: NavItem[] = [
       { title: "Quick Actions", href: "/admin/cms/quick-actions", icon: "Zap", roles: ["SUPER_ADMIN", "ADMIN"] },
       { title: "Social Links", href: "/admin/cms/social-links", icon: "Share2", roles: ["SUPER_ADMIN", "ADMIN"] },
       { title: "Landing Pages", href: "/admin/landing-pages", icon: "Globe", roles: ["SUPER_ADMIN", "ADMIN"] },
+      { title: "Custom Pages", href: "/admin/custom-pages", icon: "FileText", roles: ["SUPER_ADMIN", "ADMIN"] },
     ],
   },
   { title: "FAQ & Tim", href: "/admin/faq", icon: "FileText", roles: ["SUPER_ADMIN", "ADMIN"] },

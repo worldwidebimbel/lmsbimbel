@@ -258,10 +258,23 @@ const SECTION_RENDERERS: Record<string, React.FC<{ data: Record<string, unknown>
   FORM: FormSection,
 };
 
-export default function LandingPageView({ page }: { page: LandingPageData }) {
+export default function LandingPageView({
+  page,
+  showHeader,
+  showFooter,
+}: {
+  page: LandingPageData;
+  showHeader?: boolean;
+  showFooter?: boolean;
+}) {
+  // Saat dipanggil dalam PublicShell (showHeader/showFooter dari DB), skip header/footer bawaan
+  const skipOwnHeader = showHeader === true;
+  const skipOwnFooter = showFooter === true;
+
   return (
     <div className="min-h-screen">
       {(page.sections || []).map((section, i) => {
+        if (section.type === "HEADER" && skipOwnHeader) return null;
         if (section.type === "HEADER") {
           return <HeaderSection key={i} data={section as Record<string, unknown>} pageTitle={page.title} />;
         }
@@ -270,9 +283,11 @@ export default function LandingPageView({ page }: { page: LandingPageData }) {
         return <Renderer key={i} data={section as Record<string, unknown>} />;
       })}
 
-      <footer className="py-8 bg-gray-900 text-white/60 text-center text-sm">
-        <p>&copy; {new Date().getFullYear()} {page.title}. All rights reserved.</p>
-      </footer>
+      {!skipOwnFooter && (
+        <footer className="py-8 bg-gray-900 text-white/60 text-center text-sm">
+          <p>&copy; {new Date().getFullYear()} {page.title}. All rights reserved.</p>
+        </footer>
+      )}
     </div>
   );
 }

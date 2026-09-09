@@ -22,6 +22,8 @@ interface PageData {
   ogImage: string | null;
   ctaType: string;
   ctaUrl: string | null;
+  showHeader: boolean;
+  showFooter: boolean;
   isPublished: boolean;
 }
 
@@ -76,7 +78,7 @@ export default function LandingPageBuilder({
     initialData ?? {
       slug: "", title: "", description: "", sections: [],
       metaTitle: "", metaDesc: "", ogImage: "",
-      ctaType: "INQUIRY", ctaUrl: "", isPublished: false,
+      ctaType: "INQUIRY", ctaUrl: "", showHeader: false, showFooter: false, isPublished: false,
     }
   );
 
@@ -156,6 +158,23 @@ export default function LandingPageBuilder({
           <textarea value={form.description ?? ""} onChange={(e) => updateField("description", e.target.value)}
             rows={2} placeholder="Deskripsi singkat halaman..." className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
         </div>
+        <div className="flex flex-wrap gap-6 rounded-lg bg-gray-50 p-3">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={form.showHeader} onChange={(e) => updateField("showHeader", e.target.checked)} className="rounded" />
+            <span className="font-medium text-gray-700">Tampilkan Header Website</span>
+            <span className="text-xs text-gray-500">(header & menu navigasi website)</span>
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={form.showFooter} onChange={(e) => updateField("showFooter", e.target.checked)} className="rounded" />
+            <span className="font-medium text-gray-700">Tampilkan Footer Website</span>
+            <span className="text-xs text-gray-500">(footer website)</span>
+          </label>
+        </div>
+        {(form.showHeader || form.showFooter) && (
+          <p className="text-xs text-indigo-600">
+            Halaman akan ditampilkan dengan header/footer website. Section "HEADER" di builder akan diabaikan saat showHeader aktif.
+          </p>
+        )}
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">

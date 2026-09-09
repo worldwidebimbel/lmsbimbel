@@ -14,6 +14,12 @@ interface MenuItem {
   children: MenuItem[];
 }
 
+interface PageOption {
+  href: string;
+  label: string;
+  group: string;
+}
+
 export default function AdminCmsMenuPage() {
   const [menus, setMenus] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -147,6 +153,70 @@ function MenuForm({
   const [order, setOrder] = useState(item?.order ?? 0);
   const [openInNewTab, setOpenInNewTab] = useState(item?.openInNewTab ?? false);
   const [isActive, setIsActive] = useState(item?.isActive ?? true);
+  const [pageOptions, setPageOptions] = useState<PageOption[]>([]);
+  const [showPicker, setShowPicker] = useState(false);
+
+  useEffect(() => {
+    // Load landing pages & custom pages for picker
+    Promise.all([
+      fetch("/api/admin/landing-pages").then((r) => r.json()).catch(() => []),
+      fetch("/api/admin/custom-pages").then((r) => r.json()).catch(() => []),
+    ]).then(([landingPages, customPages]) => {
+      const options: PageOption[] = [
+        // Static pages
+        { href: "/", label: "Homepage", group: "Static" },
+        { href: "/tentang", label: "Tentang Kami", group: "Static" },
+        { href: "/faq", label: "FAQ", group: "Static" },
+        { href: "/galeri", label: "Galeri", group: "Static" },
+        { href: "/program", label: "Program", group: "Static" },
+        { href: "/blog", label: "Blog", group: "Static" },
+        { href: "/events", label: "Events", group: "Static" },
+        { href: "/cabang", label: "Cabang", group: "Static" },
+        { href: "/daftar", label: "Daftar (PPDB)", group: "Static" },
+        { href: "/login", label: "Login", group: "Static" },
+        // Landing pages (published only)
+        ...(Array.isArray(landingPages) ? landingPages : [])
+          .filter((p: { isPublished?: boolean }) => p.isPublished)
+          .map((p: { slug: string; title: string }) => ({
+            href: `/lp/${p.slug}`,
+            label: `${p.title} (/lp/${p.slug})`,
+            group: "Landing Pages",
+          })),
+        // Custom pages (published only)
+        ...(Array.isArray(customPages) ? customPages : [])
+          .filter((p: { isPublished?: boolean }) => p.isPublished)
+          .map((p: { slug: string; title: string }) => ({
+            href: `/p/${p.slug}`,
+            label: `${p.title} (/p/${p.slug})`,
+            group: "Custom Pages",
+          })),
+      ];
+      setPageOptions(options);
+    }).catch(() => {
+      // Fallback: static pages only
+      setPageOptions([
+        { href: "/", label: "Homepage", group: "Static" },
+        { href: "/tentang", label: "Tentang Kami", group: "Static" },
+        { href: "/faq", label: "FAQ", group: "Static" },
+        { href: "/galeri", label: "Galeri", group: "Static" },
+        { href: "/program", label: "Program", group: "Static" },
+        { href: "/blog", label: "Blog", group: "Static" },
+        { href: "/events", label: "Events", group: "Static" },
+        { href: "/cabang", label: "Cabang", group: "Static" },
+        { href: "/daftar", label: "Daftar (PPDB)", group: "Static" },
+        { href: "/login", label: "Login", group: "Static" },
+      ]);
+    });
+  }, []);
+
+  function pickPage(opt: PageOption) {
+    setHref(opt.href);
+    // Auto-fill label if empty
+    if (!label.trim()) {
+      setLabel(opt.label.replace(/\s*\(\/.*\)\s*$/, "").toUpperCase());
+    }
+    setShowPicker(false);
+  }
 
   return (
     <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
@@ -159,6 +229,36 @@ function MenuForm({
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">URL (href)</label>
           <input value={href} onChange={(e) => setHref(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="/ atau /tentang" />
+          <button
+            type="button"
+            onClick={() => setShowPicker((p) => !p)}
+            className="mt-1 text-xs text-blue-600 hover:underline"
+          >
+            {showPicker ? "Tutup picker" : "Pilih dari daftar halaman"}
+          </button>
+          {showPicker && (
+            <div className="mt-2 max-h-48 overflow-y-auto rounded-lg border border-gray-200 bg-white p-2 text-sm">
+              {["Static", "Landing Pages", "Custom Pages"].map((group) => {
+                const opts = pageOptions.filter((o) => o.group === group);
+                if (opts.length === 0) return null;
+                return (
+                  <div key={group} className="mb-2">
+                    <div className="px-2 py-1 text-xs font-bold uppercase text-gray-400">{group}</div>
+                    {opts.map((opt) => (
+                      <button
+                        key={opt.href}
+                        type="button"
+                        onClick={() => pickPage(opt)}
+                        className="block w-full rounded px-2 py-1.5 text-left text-sm hover:bg-blue-50"
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Parent Menu</label>

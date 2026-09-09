@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const { id } = await params;
-  const page = await db.landingPage.findUnique({ where: { id } });
+  const page = await db.customPage.findUnique({ where: { id } });
   if (!page) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json(page);
 }
@@ -24,29 +24,25 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params;
   const body = await req.json();
-  const { slug, title, description, sections, metaTitle, metaDesc, ogImage, ctaType, ctaUrl, showHeader, showFooter, isPublished } = body;
+  const { slug, title, content, showHeader, showFooter, metaTitle, metaDesc, isPublished } = body;
 
   if (slug) {
-    const existing = await db.landingPage.findUnique({ where: { slug } });
+    const existing = await db.customPage.findUnique({ where: { slug } });
     if (existing && existing.id !== id) {
       return NextResponse.json({ error: "Slug sudah digunakan" }, { status: 400 });
     }
   }
 
-  const page = await db.landingPage.update({
+  const page = await db.customPage.update({
     where: { id },
     data: {
       ...(slug !== undefined && { slug }),
       ...(title !== undefined && { title }),
-      ...(description !== undefined && { description }),
-      ...(sections !== undefined && { sections }),
-      ...(metaTitle !== undefined && { metaTitle }),
-      ...(metaDesc !== undefined && { metaDesc }),
-      ...(ogImage !== undefined && { ogImage }),
-      ...(ctaType !== undefined && { ctaType }),
-      ...(ctaUrl !== undefined && { ctaUrl }),
+      ...(content !== undefined && { content }),
       ...(showHeader !== undefined && { showHeader: Boolean(showHeader) }),
       ...(showFooter !== undefined && { showFooter: Boolean(showFooter) }),
+      ...(metaTitle !== undefined && { metaTitle }),
+      ...(metaDesc !== undefined && { metaDesc }),
       ...(isPublished !== undefined && {
         isPublished: Boolean(isPublished),
         publishedAt: isPublished ? new Date() : null,
@@ -55,7 +51,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   });
 
   await logAudit({
-    entity: "LandingPage",
+    entity: "CustomPage",
     entityId: id,
     action: "UPDATE",
     after: { slug, title, isPublished },
@@ -71,9 +67,9 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   }
 
   const { id } = await params;
-  await db.landingPage.delete({ where: { id } });
+  await db.customPage.delete({ where: { id } });
   await logAudit({
-    entity: "LandingPage",
+    entity: "CustomPage",
     entityId: id,
     action: "DELETE",
   });

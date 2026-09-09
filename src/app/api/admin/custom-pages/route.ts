@@ -10,8 +10,11 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const pages = await db.landingPage.findMany({
+  const pages = await db.customPage.findMany({
     orderBy: { createdAt: "desc" },
+    select: {
+      id: true, slug: true, title: true, isPublished: true, publishedAt: true, createdAt: true, updatedAt: true,
+    },
   });
   return NextResponse.json(pages);
 }
@@ -23,37 +26,33 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { slug, title, description, sections, metaTitle, metaDesc, ogImage, ctaType, ctaUrl, showHeader, showFooter, isPublished } = body;
+  const { slug, title, content, showHeader, showFooter, metaTitle, metaDesc, isPublished } = body;
 
-  if (!slug || !title) {
-    return NextResponse.json({ error: "slug dan title wajib diisi" }, { status: 400 });
+  if (!slug || !title || !content) {
+    return NextResponse.json({ error: "slug, title, dan content wajib diisi" }, { status: 400 });
   }
 
-  const existing = await db.landingPage.findUnique({ where: { slug } });
+  const existing = await db.customPage.findUnique({ where: { slug } });
   if (existing) {
     return NextResponse.json({ error: "Slug sudah digunakan" }, { status: 400 });
   }
 
-  const page = await db.landingPage.create({
+  const page = await db.customPage.create({
     data: {
       slug,
       title,
-      description: description ?? null,
-      sections: sections ?? [],
+      content,
+      showHeader: Boolean(showHeader ?? true),
+      showFooter: Boolean(showFooter ?? true),
       metaTitle: metaTitle ?? null,
       metaDesc: metaDesc ?? null,
-      ogImage: ogImage ?? null,
-      ctaType: ctaType ?? "INQUIRY",
-      ctaUrl: ctaUrl ?? null,
-      showHeader: Boolean(showHeader ?? false),
-      showFooter: Boolean(showFooter ?? false),
       isPublished: Boolean(isPublished),
       publishedAt: isPublished ? new Date() : null,
     },
   });
 
   await logAudit({
-    entity: "LandingPage",
+    entity: "CustomPage",
     entityId: page.id,
     action: "CREATE",
     after: { slug, title, isPublished: Boolean(isPublished) },
