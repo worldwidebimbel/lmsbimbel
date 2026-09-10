@@ -90,6 +90,13 @@ export default function PublicHeader({ config: cfg, menus, socialLinks }: Props)
   const waBg = cfg.header_whatsapp_bg ?? "#22c55e";
   const waText = cfg.header_whatsapp_text ?? "#ffffff";
 
+  // Logo config — light untuk mainbar light mode, dark untuk mainbar dark mode
+  const logoMaxWidth = parseInt(cfg.logoMaxWidth ?? "180", 10);
+  const logoLight = cfg.logoUrl ?? "";
+  const logoDark = cfg.logoDarkUrl ?? "";
+  const mainbarDark = mainbarMode === "dark";
+  const logoSrc = mainbarDark ? (logoDark || logoLight) : (logoLight || logoDark);
+
   const mainbarBg = mainbarMode === "dark" ? bottombarBg : "#ffffff";
   const mainbarText = mainbarMode === "dark" ? "#ffffff" : "#1f2937";
   const mainbarSubtext = mainbarMode === "dark" ? "rgba(255,255,255,0.6)" : "#6b7280";
@@ -114,8 +121,8 @@ export default function PublicHeader({ config: cfg, menus, socialLinks }: Props)
         <div className={`${widthClass} flex items-center justify-between`} style={{ minHeight: mainbarMaxHeight }}>
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 py-3">
-            {cfg.logoUrl ? (
-              <Image src={cfg.logoUrl} alt={cfg.siteName} width={180} height={40} className="h-10 w-auto max-w-[180px] object-contain" />
+            {logoSrc ? (
+              <Image src={logoSrc} alt={cfg.siteName} width={logoMaxWidth} height={40} className="h-10 w-auto object-contain" style={{ maxWidth: `${logoMaxWidth}px` }} />
             ) : (
               <>
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: cfg.colorPrimary }}>
@@ -265,8 +272,8 @@ export default function PublicHeader({ config: cfg, menus, socialLinks }: Props)
       <div className="border-b" style={{ backgroundColor: mainbarBg, borderColor: mainbarMode === "dark" ? "rgba(255,255,255,0.1)" : "#f3f4f6" }}>
         <div className={`${widthClass} flex items-center justify-between py-3`} style={{ minHeight: mainbarMaxHeight }}>
           <Link href="/" className="flex items-center gap-2">
-            {cfg.logoUrl ? (
-              <Image src={cfg.logoUrl} alt={cfg.siteName} width={180} height={40} className="h-10 w-auto max-w-[180px] object-contain" />
+            {logoSrc ? (
+              <Image src={logoSrc} alt={cfg.siteName} width={logoMaxWidth} height={40} className="h-10 w-auto object-contain" style={{ maxWidth: `${logoMaxWidth}px` }} />
             ) : (
               <>
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: cfg.colorPrimary }}>

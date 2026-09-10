@@ -768,6 +768,7 @@ async function main() {
     { key: "header_call_center", value: "0812-3456-7890" },
     { key: "header_whatsapp_label", value: "Chat WhatsApp" },
     { key: "topbar_links", value: "REGISTER,APPLY ONLINE,BLOG,FAQS" },
+    { key: "logoMaxWidth", value: "180" },
     // Header type & layout
     { key: "header_type", value: "default" },
     { key: "header_mainbar_mode", value: "light" },

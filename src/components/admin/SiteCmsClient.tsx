@@ -322,22 +322,60 @@ export default function SiteCmsClient({
               {/* Logo */}
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">URL Logo</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">URL Logo (Light)</label>
                   <input
                     type="text"
                     value={cfg.logoUrl ?? ""}
                     onChange={(e) => setCfg((p) => ({ ...p, logoUrl: e.target.value }))}
-                    placeholder="https://cdn.contoh.com/logo.png"
+                    placeholder="https://cdn.contoh.com/logo-light.png"
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                   />
-                  <p className="mt-1 text-xs text-gray-500">Format PNG/SVG transparan direkomendasikan. Tinggi otomatis 36px.</p>
+                  <p className="mt-1 text-xs text-gray-500">Dipakai pada header website light mode & footer. Format PNG/SVG transparan.</p>
                 </div>
                 <div className="flex items-center justify-center h-16 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50">
                   {cfg.logoUrl ? (
-                    <img src={cfg.logoUrl} alt="Logo preview" className="h-10 w-auto max-w-[180px] object-contain" />
+                    <img src={cfg.logoUrl} alt="Logo light preview" className="h-10 w-auto object-contain" style={{ maxWidth: `${cfg.logoMaxWidth ?? 180}px` }} />
                   ) : (
-                    <span className="text-xs text-gray-500">Preview logo akan muncul di sini</span>
+                    <span className="text-xs text-gray-500">Preview logo light</span>
                   )}
+                </div>
+              </div>
+              {/* Logo (Dark) */}
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">URL Logo (Dark)</label>
+                  <input
+                    type="text"
+                    value={cfg.logoDarkUrl ?? ""}
+                    onChange={(e) => setCfg((p) => ({ ...p, logoDarkUrl: e.target.value }))}
+                    placeholder="https://cdn.contoh.com/logo-dark.png"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Dipakai pada header website dark mode & admin sidebar (background gelap). Fallback ke logo light jika kosong.</p>
+                </div>
+                <div className="flex items-center justify-center h-16 rounded-lg border-2 border-dashed border-gray-700 bg-gray-900">
+                  {cfg.logoDarkUrl ? (
+                    <img src={cfg.logoDarkUrl} alt="Logo dark preview" className="h-10 w-auto object-contain" style={{ maxWidth: `${cfg.logoMaxWidth ?? 180}px` }} />
+                  ) : cfg.logoUrl ? (
+                    <img src={cfg.logoUrl} alt="Logo fallback preview" className="h-10 w-auto object-contain opacity-70" style={{ maxWidth: `${cfg.logoMaxWidth ?? 180}px` }} />
+                  ) : (
+                    <span className="text-xs text-gray-400">Preview logo dark</span>
+                  )}
+                </div>
+              </div>
+              {/* Logo Max Width */}
+              <div className="space-y-3 sm:col-span-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Logo Max Width (px)</label>
+                  <input
+                    type="number"
+                    min={80}
+                    max={400}
+                    value={cfg.logoMaxWidth ?? "180"}
+                    onChange={(e) => setCfg((p) => ({ ...p, logoMaxWidth: e.target.value }))}
+                    className="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Lebar maksimum logo di header & sidebar. Default 180px. Tinggi otomatis mengikuti rasio.</p>
                 </div>
               </div>
               {/* Favicon */}

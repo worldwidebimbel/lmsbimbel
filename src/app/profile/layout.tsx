@@ -29,6 +29,8 @@ export default async function ProfileLayout({ children }: { children: React.Reac
         userEmail={session.user.email ?? ""}
         siteName={cfg.siteName}
         logoUrl={cfg.logoUrl}
+        logoDarkUrl={cfg.logoDarkUrl}
+        logoMaxWidth={cfg.logoMaxWidth}
       />
       <div className="flex-1 flex flex-col ml-0 md:ml-64">
         <Header title={ROLE_TITLE[role] ?? "Profil Saya"} userName={session.user.name ?? "Pengguna"} role={role} userImage={session.user.image} />

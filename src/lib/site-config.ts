@@ -28,6 +28,8 @@ export const SITE_DEFAULTS = {
   popupBgColor: "",
   popupBgImage: "",
   logoUrl: "",
+  logoDarkUrl: "",
+  logoMaxWidth: "180",
   faviconUrl: "",
   header_email: "info@edubimbel.id",
   header_call_center: "0812-3456-7890",

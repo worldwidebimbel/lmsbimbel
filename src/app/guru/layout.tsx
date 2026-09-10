@@ -13,7 +13,7 @@ export default async function GuruLayout({ children }: { children: React.ReactNo
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar role="GURU" userName={session.user?.name ?? "Guru"} userEmail={session.user?.email ?? ""} siteName={cfg.siteName} logoUrl={cfg.logoUrl} />
+      <Sidebar role="GURU" userName={session.user?.name ?? "Guru"} userEmail={session.user?.email ?? ""} siteName={cfg.siteName} logoUrl={cfg.logoUrl} logoDarkUrl={cfg.logoDarkUrl} logoMaxWidth={cfg.logoMaxWidth} />
       <div className="flex-1 flex flex-col ml-0 md:ml-64">
         <Header title="Portal Guru" userName={session.user?.name ?? "Guru"} role="GURU" userImage={session.user?.image} />
         <main className="flex-1 p-4 sm:p-6">{children}</main>

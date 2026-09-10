@@ -14,7 +14,7 @@ export default async function OrangtuaLayout({ children }: { children: React.Rea
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar role="ORANG_TUA" userName={session.user?.name ?? "Orang Tua"} userEmail={session.user?.email ?? ""} siteName={cfg.siteName} logoUrl={cfg.logoUrl} />
+      <Sidebar role="ORANG_TUA" userName={session.user?.name ?? "Orang Tua"} userEmail={session.user?.email ?? ""} siteName={cfg.siteName} logoUrl={cfg.logoUrl} logoDarkUrl={cfg.logoDarkUrl} logoMaxWidth={cfg.logoMaxWidth} />
       <div className="flex-1 flex flex-col ml-0 md:ml-64">
         <Header title="Portal Orang Tua" userName={session.user?.name ?? "Orang Tua"} role="ORANG_TUA" userImage={session.user?.image} />
         <main className="flex-1 p-4 sm:p-6 pb-20 md:pb-6">{children}</main>

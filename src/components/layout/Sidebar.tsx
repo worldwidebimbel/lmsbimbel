@@ -189,9 +189,11 @@ interface SidebarProps {
   userEmail: string;
   siteName?: string;
   logoUrl?: string;
+  logoDarkUrl?: string;
+  logoMaxWidth?: string;
 }
 
-export function Sidebar({ role, userName, userEmail, siteName, logoUrl }: SidebarProps) {
+export function Sidebar({ role, userName, userEmail, siteName, logoUrl, logoDarkUrl, logoMaxWidth }: SidebarProps) {
   const pathname = usePathname();
   const { isFeatureActive, isLoading } = useFeatureFlags();
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
@@ -241,10 +243,15 @@ export function Sidebar({ role, userName, userEmail, siteName, logoUrl }: Sideba
         "fixed inset-y-0 left-0 w-64 bg-sidebar flex flex-col z-40 border-r border-sidebar-border transition-transform duration-200",
         mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}>
-      {/* Logo */}
+      {/* Logo — prefer logoDarkUrl (sidebar background gelap), fallback ke logoUrl */}
       <div className="flex items-center gap-3 px-5 h-16 border-b border-sidebar-border shrink-0">
-        {logoUrl ? (
-          <img src={logoUrl} alt={siteName ?? "LMS"} className="h-8 w-auto max-w-[140px] object-contain" />
+        {(logoDarkUrl || logoUrl) ? (
+          <img
+            src={logoDarkUrl || logoUrl}
+            alt={siteName ?? "LMS"}
+            className="h-8 w-auto object-contain"
+            style={{ maxWidth: `${logoMaxWidth ?? 140}px` }}
+          />
         ) : (
           <>
             <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center shrink-0">
