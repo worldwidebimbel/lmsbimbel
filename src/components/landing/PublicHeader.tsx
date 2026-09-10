@@ -122,7 +122,7 @@ export default function PublicHeader({ config: cfg, menus, socialLinks }: Props)
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 py-3">
             {logoSrc ? (
-              <Image src={logoSrc} alt={cfg.siteName} width={logoMaxWidth} height={40} className="h-10 w-auto object-contain" style={{ maxWidth: `${logoMaxWidth}px` }} />
+              <Image src={logoSrc} alt={cfg.siteName} width={logoMaxWidth} height={80} className="object-contain" style={{ maxWidth: `${logoMaxWidth}px`, width: "100%", height: "auto", maxHeight: `${mainbarMaxHeight}px` }} />
             ) : (
               <>
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: cfg.colorPrimary }}>
@@ -273,7 +273,7 @@ export default function PublicHeader({ config: cfg, menus, socialLinks }: Props)
         <div className={`${widthClass} flex items-center justify-between py-3`} style={{ minHeight: mainbarMaxHeight }}>
           <Link href="/" className="flex items-center gap-2">
             {logoSrc ? (
-              <Image src={logoSrc} alt={cfg.siteName} width={logoMaxWidth} height={40} className="h-10 w-auto object-contain" style={{ maxWidth: `${logoMaxWidth}px` }} />
+              <Image src={logoSrc} alt={cfg.siteName} width={logoMaxWidth} height={80} className="object-contain" style={{ maxWidth: `${logoMaxWidth}px`, width: "100%", height: "auto", maxHeight: `${mainbarMaxHeight}px` }} />
             ) : (
               <>
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: cfg.colorPrimary }}>
