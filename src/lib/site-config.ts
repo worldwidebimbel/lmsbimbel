@@ -36,6 +36,14 @@ export const SITE_DEFAULTS = {
   header_whatsapp_label: "Chat WhatsApp",
   topbar_links: "REGISTER,APPLY ONLINE,BLOG,FAQS",
   hero_type: "slider",
+  // ===== Counter/Stats Settings =====
+  counter_enabled: "true", // "true" | "false" — tampilkan/sembunyikan section statistik
+  counter_display: "real", // "real" (data asli DB) | "fake" (angka manual)
+  counter_layout: "1", // "1" (inline minimalis) | "2" (kartu icon) | "3" (kartu gradient sejajar)
+  counter_fake_students: "1200",
+  counter_fake_teachers: "50",
+  counter_fake_classes: "35",
+  counter_fake_subjects: "15",
   // ===== Header Settings =====
   header_type: "default", // "default" (Topbar+Mainbar+Bottombar) | "simple" (Mainbar only)
   header_mainbar_mode: "light", // "light" | "dark"

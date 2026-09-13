@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { GraduationCap, BookOpen, Users, Award, ArrowRight, CheckCircle, Star, Phone, FlaskConical, Calculator, Monitor, PenTool, Layers, Rocket } from "lucide-react";
 import { db } from "@/lib/db";
-import { getSiteConfig } from "@/lib/site-config";
+import { getSiteConfig, SITE_DEFAULTS } from "@/lib/site-config";
 import { getHomepageData } from "@/lib/homepage-data";
 import LandingInquiryForm from "@/components/landing/LandingInquiryForm";
 import HeroBannerSlider from "@/components/landing/HeroBannerSlider";
@@ -146,17 +146,8 @@ export default async function LandingPage() {
       {/* Quick Action Cards (overlapping hero) */}
       <QuickActionCards actions={quickActions} />
 
-      {/* Stats Section */}
-      <section id="statistik" className="border-y border-gray-100 bg-gray-50/50 py-14">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            <StatBox number={`${students}+`} label="Siswa Aktif" color={cfg.colorPrimary} />
-            <StatBox number={`${teachers}+`} label="Guru Profesional" color={cfg.colorPrimary} />
-            <StatBox number={`${classes}+`} label="Kelas Tersedia" color={cfg.colorPrimary} />
-            <StatBox number={`${subjects}+`} label="Mata Pelajaran" color={cfg.colorPrimary} />
-          </div>
-        </div>
-      </section>
+      {/* Stats / Counter Section */}
+      <CounterSection cfg={cfg} stats={{ students, teachers, classes, subjects }} />
 
       {/* Program Unggulan Section */}
       <ProgramUnggulanSection programs={programs} />
@@ -265,6 +256,106 @@ export default async function LandingPage() {
 
       {/* Footer */}
     </>
+  );
+}
+
+function CounterSection({
+  cfg,
+  stats,
+}: {
+  cfg: typeof SITE_DEFAULTS;
+  stats: { students: number; teachers: number; classes: number; subjects: number };
+}) {
+  const enabled = (cfg.counter_enabled ?? "true") === "true";
+  if (!enabled) return null;
+
+  // Real vs Fake counter
+  const isFake = cfg.counter_display === "fake";
+  const students = isFake ? Number(cfg.counter_fake_students ?? 0) : stats.students;
+  const teachers = isFake ? Number(cfg.counter_fake_teachers ?? 0) : stats.teachers;
+  const classes = isFake ? Number(cfg.counter_fake_classes ?? 0) : stats.classes;
+  const subjects = isFake ? Number(cfg.counter_fake_subjects ?? 0) : stats.subjects;
+
+  const items = [
+    { icon: Users, number: `${students}+`, label: "Siswa Aktif" },
+    { icon: GraduationCap, number: `${teachers}+`, label: "Guru Profesional" },
+    { icon: Layers, number: `${classes}+`, label: "Kelas Tersedia" },
+    { icon: BookOpen, number: `${subjects}+`, label: "Mata Pelajaran" },
+  ];
+
+  const layout = cfg.counter_layout ?? "1";
+
+  // Layout 3 — Kartu Gradient Sejajar
+  if (layout === "3") {
+    return (
+      <section id="statistik" className="border-y border-gray-100 bg-gray-50/50 py-14">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {items.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.label}
+                  className="flex items-center gap-4 rounded-2xl bg-gradient-to-r px-5 py-4 shadow-md"
+                  style={{ backgroundImage: `linear-gradient(to right, ${cfg.colorPrimary}, #4f46e5)` }}
+                >
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/20">
+                    <Icon className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-extrabold text-white">{item.number}</p>
+                    <p className="text-xs font-medium text-white/80">{item.label}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Layout 2 — Kartu Icon
+  if (layout === "2") {
+    return (
+      <section id="statistik" className="border-y border-gray-100 bg-gray-50/50 py-14">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {items.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.label}
+                  className="rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-md transition-transform hover:-translate-y-1"
+                >
+                  <div
+                    className="mx-auto flex h-12 w-12 items-center justify-center rounded-full"
+                    style={{ backgroundColor: `${cfg.colorPrimary}1a`, color: cfg.colorPrimary }}
+                  >
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <p className="mt-3 text-3xl font-extrabold text-gray-900">{item.number}</p>
+                  <p className="mt-1 text-sm font-medium text-gray-500">{item.label}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Layout 1 — Inline Minimalis (default)
+  return (
+    <section id="statistik" className="border-y border-gray-100 bg-gray-50/50 py-14">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {items.map((item) => (
+            <StatBox key={item.label} number={item.number} label={item.label} color={cfg.colorPrimary} />
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 

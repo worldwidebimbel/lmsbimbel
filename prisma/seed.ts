@@ -769,6 +769,14 @@ async function main() {
     { key: "header_whatsapp_label", value: "Chat WhatsApp" },
     { key: "topbar_links", value: "REGISTER,APPLY ONLINE,BLOG,FAQS" },
     { key: "logoMaxWidth", value: "180" },
+    // Counter/stats homepage
+    { key: "counter_enabled", value: "true" },
+    { key: "counter_display", value: "real" },
+    { key: "counter_layout", value: "1" },
+    { key: "counter_fake_students", value: "1200" },
+    { key: "counter_fake_teachers", value: "50" },
+    { key: "counter_fake_classes", value: "35" },
+    { key: "counter_fake_subjects", value: "15" },
     // Header type & layout
     { key: "header_type", value: "default" },
     { key: "header_mainbar_mode", value: "light" },

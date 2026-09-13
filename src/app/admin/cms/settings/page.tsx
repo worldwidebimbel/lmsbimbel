@@ -164,9 +164,68 @@ const HERO_TYPES = [
   },
 ];
 
+const COUNTER_LAYOUTS = [
+  {
+    value: "1",
+    label: "Layout 1 — Inline Minimalis",
+    description: "4 kolom angka besar tanpa kartu (tampilan saat ini)",
+    preview: (
+      <div className="flex h-20 items-center justify-around rounded-md bg-gray-50 px-2">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="text-center">
+            <div className="text-sm font-extrabold text-blue-600">99+</div>
+            <div className="text-[7px] text-gray-500">Label</div>
+          </div>
+        ))}
+      </div>
+    ),
+  },
+  {
+    value: "2",
+    label: "Layout 2 — Kartu Icon",
+    description: "4 kartu putih dengan icon di atas angka",
+    preview: (
+      <div className="flex h-20 items-center justify-around gap-1 rounded-md bg-gray-100 px-2">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex h-14 w-1/4 flex-col items-center justify-center rounded bg-white shadow-sm">
+            <div className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+            <div className="mt-1 text-[9px] font-extrabold text-gray-800">99+</div>
+            <div className="text-[6px] text-gray-500">Label</div>
+          </div>
+        ))}
+      </div>
+    ),
+  },
+  {
+    value: "3",
+    label: "Layout 3 — Kartu Gradient Sejajar",
+    description: "Kartu gradient, icon & angka sejajar kiri",
+    preview: (
+      <div className="grid h-20 grid-cols-2 content-center gap-1 rounded-md bg-gray-50 px-2">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex items-center gap-1.5 rounded bg-gradient-to-r from-blue-600 to-indigo-600 px-2 py-1.5">
+            <div className="h-3 w-3 shrink-0 rounded-full bg-white/30" />
+            <div>
+              <div className="text-[9px] font-extrabold leading-none text-white">99+</div>
+              <div className="text-[6px] leading-none text-white/70">Label</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    ),
+  },
+];
+
 export default function AdminCmsSettingsPage() {
   const [headerType, setHeaderType] = useState("default");
   const [heroType, setHeroType] = useState("slider");
+  const [counterEnabled, setCounterEnabled] = useState(true);
+  const [counterDisplay, setCounterDisplay] = useState("real");
+  const [counterLayout, setCounterLayout] = useState("1");
+  const [fakeStudents, setFakeStudents] = useState("1200");
+  const [fakeTeachers, setFakeTeachers] = useState("50");
+  const [fakeClasses, setFakeClasses] = useState("35");
+  const [fakeSubjects, setFakeSubjects] = useState("15");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -177,6 +236,13 @@ export default function AdminCmsSettingsPage() {
       .then((data) => {
         if (data.header_type) setHeaderType(data.header_type);
         if (data.hero_type) setHeroType(data.hero_type);
+        if (data.counter_enabled !== undefined) setCounterEnabled(data.counter_enabled === "true");
+        if (data.counter_display) setCounterDisplay(data.counter_display);
+        if (data.counter_layout) setCounterLayout(data.counter_layout);
+        if (data.counter_fake_students) setFakeStudents(data.counter_fake_students);
+        if (data.counter_fake_teachers) setFakeTeachers(data.counter_fake_teachers);
+        if (data.counter_fake_classes) setFakeClasses(data.counter_fake_classes);
+        if (data.counter_fake_subjects) setFakeSubjects(data.counter_fake_subjects);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -187,7 +253,17 @@ export default function AdminCmsSettingsPage() {
     await fetch("/api/admin/site-config", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ header_type: headerType, hero_type: heroType }),
+      body: JSON.stringify({
+        header_type: headerType,
+        hero_type: heroType,
+        counter_enabled: counterEnabled ? "true" : "false",
+        counter_display: counterDisplay,
+        counter_layout: counterLayout,
+        counter_fake_students: fakeStudents,
+        counter_fake_teachers: fakeTeachers,
+        counter_fake_classes: fakeClasses,
+        counter_fake_subjects: fakeSubjects,
+      }),
     });
     setSaving(false);
     setSaved(true);
@@ -243,7 +319,7 @@ export default function AdminCmsSettingsPage() {
       </div>
 
       {/* Hero Type Selector */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
+      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6">
         <h2 className="text-lg font-bold text-gray-900">Tipe Hero</h2>
         <p className="mt-1 text-sm text-gray-500">Pilih tampilan hero section di homepage</p>
 
@@ -284,21 +360,169 @@ export default function AdminCmsSettingsPage() {
             );
           })}
         </div>
+      </div>
 
-        <div className="mt-6 flex items-center gap-3">
+      {/* Counter Type Settings */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6">
+        <h2 className="text-lg font-bold text-gray-900">Tipe Counter</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Section statistik di bawah Quick Actions (Siswa Aktif, Guru Profesional, Kelas Tersedia, Mata Pelajaran)
+        </p>
+
+        {/* Enable/Disable */}
+        <div className="mt-5 flex items-center justify-between rounded-lg border border-gray-200 p-3">
+          <div>
+            <span className="text-sm font-medium text-gray-900">Tampilkan Section Counter</span>
+            <p className="text-xs text-gray-500">Sembunyikan jika tidak ingin menampilkan angka statistik di homepage</p>
+          </div>
           <button
-            onClick={save}
-            disabled={saving}
-            className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+            onClick={() => setCounterEnabled(!counterEnabled)}
+            className={`relative ml-3 inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+              counterEnabled ? "bg-blue-600" : "bg-gray-300"
+            }`}
           >
-            {saving ? "Menyimpan..." : "Simpan"}
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                counterEnabled ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
           </button>
-          {saved && (
-            <span className="flex items-center gap-1 text-sm font-medium text-green-600">
-              <Check className="h-4 w-4" /> Tersimpan
-            </span>
-          )}
         </div>
+
+        {counterEnabled && (
+          <>
+            {/* Display Mode: Real / Fake */}
+            <div className="mt-5">
+              <h3 className="mb-2 text-sm font-semibold text-gray-900">Display</h3>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <button
+                  onClick={() => setCounterDisplay("real")}
+                  className={`rounded-xl border-2 p-3 text-left transition-all ${
+                    counterDisplay === "real" ? "border-blue-600 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <span className={`text-sm font-bold ${counterDisplay === "real" ? "text-blue-600" : "text-gray-900"}`}>
+                    Real Counter
+                  </span>
+                  <p className="mt-0.5 text-xs text-gray-500">Angka dari data asli (jumlah siswa, guru, kelas & mapel di database)</p>
+                </button>
+                <button
+                  onClick={() => setCounterDisplay("fake")}
+                  className={`rounded-xl border-2 p-3 text-left transition-all ${
+                    counterDisplay === "fake" ? "border-blue-600 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <span className={`text-sm font-bold ${counterDisplay === "fake" ? "text-blue-600" : "text-gray-900"}`}>
+                    Fake Counter
+                  </span>
+                  <p className="mt-0.5 text-xs text-gray-500">Angka manual yang Anda tentukan sendiri</p>
+                </button>
+              </div>
+            </div>
+
+            {/* Layout 1-3 */}
+            <div className="mt-5">
+              <h3 className="mb-2 text-sm font-semibold text-gray-900">Layout Counter</h3>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {COUNTER_LAYOUTS.map((layout) => {
+                  const isSelected = counterLayout === layout.value;
+                  return (
+                    <button
+                      key={layout.value}
+                      onClick={() => setCounterLayout(layout.value)}
+                      className={`group relative overflow-hidden rounded-xl border-2 text-left transition-all ${
+                        isSelected ? "border-blue-600 ring-2 ring-blue-200" : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="border-b border-gray-100 bg-gray-50 p-2">{layout.preview}</div>
+                      <div className="p-3">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm font-bold ${isSelected ? "text-blue-600" : "text-gray-900"}`}>
+                            {layout.label}
+                          </span>
+                          {isSelected && (
+                            <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-blue-600">
+                              <Check className="h-3 w-3 text-white" />
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 text-xs text-gray-500">{layout.description}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Fake Counter Fields */}
+            {counterDisplay === "fake" && (
+              <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <h3 className="mb-3 text-sm font-semibold text-gray-900">Nilai Fake Counter</h3>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-700">Siswa Aktif</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={fakeStudents}
+                      onChange={(e) => setFakeStudents(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-700">Guru Profesional</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={fakeTeachers}
+                      onChange={(e) => setFakeTeachers(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-700">Kelas Tersedia</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={fakeClasses}
+                      onChange={(e) => setFakeClasses(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-700">Mata Pelajaran</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={fakeSubjects}
+                      onChange={(e) => setFakeSubjects(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+                <p className="mt-2 text-xs text-amber-600">
+                  Nilai ini hanya mengubah tampilan angka di homepage — tidak mempengaruhi data asli di database.
+                </p>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Save Bar */}
+      <div className="mt-6 flex items-center gap-3">
+        <button
+          onClick={save}
+          disabled={saving}
+          className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+        >
+          {saving ? "Menyimpan..." : "Simpan"}
+        </button>
+        {saved && (
+          <span className="flex items-center gap-1 text-sm font-medium text-green-600">
+            <Check className="h-4 w-4" /> Tersimpan
+          </span>
+        )}
       </div>
     </div>
   );
