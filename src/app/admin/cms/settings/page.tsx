@@ -216,6 +216,70 @@ const COUNTER_LAYOUTS = [
   },
 ];
 
+const LIST_SECTION_DEFAULTS: Record<string, string> = {
+  style: "grid",
+  count: "4",
+  filter: "all",
+  marquee_direction: "left",
+  marquee_speed: "30",
+  carousel_autoplay: "true",
+  carousel_loop: "true",
+  carousel_interval: "5",
+};
+
+const LIST_STYLES = [
+  {
+    value: "grid",
+    label: "Grid",
+    description: "Kartu grid statis (tampilan saat ini)",
+    preview: (
+      <div className="grid h-20 grid-cols-2 gap-1.5 rounded-md bg-gray-50 p-2">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="rounded bg-white shadow-sm" />
+        ))}
+      </div>
+    ),
+  },
+  {
+    value: "marquee",
+    label: "Carousel Infinity Loop",
+    description: "Satu baris bergeser smooth terus-menerus (arah & kecepatan bisa diatur)",
+    preview: (
+      <div className="relative h-20 overflow-hidden rounded-md bg-gray-50 p-2">
+        <div className="flex gap-1.5">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-14 w-14 shrink-0 rounded bg-white shadow-sm" />
+          ))}
+        </div>
+        <div className="absolute right-2 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full bg-blue-600 text-[8px] text-white">→</div>
+      </div>
+    ),
+  },
+  {
+    value: "carousel",
+    label: "Carousel Slide",
+    description: "Slide dengan arrow & dot, auto play & loop bisa diatur",
+    preview: (
+      <div className="flex h-20 flex-col items-center justify-center gap-2 rounded-md bg-gray-50 p-2">
+        <div className="flex w-full items-center gap-1.5">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 text-[8px]">‹</div>
+          <div className="flex h-14 flex-1 gap-1.5">
+            <div className="w-1/3 rounded bg-white shadow-sm" />
+            <div className="w-1/3 rounded bg-white opacity-50 shadow-sm" />
+            <div className="w-1/3 rounded bg-white opacity-30 shadow-sm" />
+          </div>
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 text-[8px]">›</div>
+        </div>
+        <div className="flex gap-1">
+          <div className="h-1 w-4 rounded bg-blue-600" />
+          <div className="h-1 w-1 rounded bg-gray-300" />
+          <div className="h-1 w-1 rounded bg-gray-300" />
+        </div>
+      </div>
+    ),
+  },
+];
+
 export default function AdminCmsSettingsPage() {
   const [headerType, setHeaderType] = useState("default");
   const [heroType, setHeroType] = useState("slider");
@@ -226,9 +290,19 @@ export default function AdminCmsSettingsPage() {
   const [fakeTeachers, setFakeTeachers] = useState("50");
   const [fakeClasses, setFakeClasses] = useState("35");
   const [fakeSubjects, setFakeSubjects] = useState("15");
+  const [programCfg, setProgramCfg] = useState<Record<string, string>>({ ...LIST_SECTION_DEFAULTS });
+  const [testiCfg, setTestiCfg] = useState<Record<string, string>>({ ...LIST_SECTION_DEFAULTS, count: "3" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  function updateListCfg(
+    setter: React.Dispatch<React.SetStateAction<Record<string, string>>>,
+    key: string,
+    value: string,
+  ) {
+    setter((p) => ({ ...p, [key]: value }));
+  }
 
   useEffect(() => {
     fetch("/api/admin/site-config")
@@ -243,6 +317,26 @@ export default function AdminCmsSettingsPage() {
         if (data.counter_fake_teachers) setFakeTeachers(data.counter_fake_teachers);
         if (data.counter_fake_classes) setFakeClasses(data.counter_fake_classes);
         if (data.counter_fake_subjects) setFakeSubjects(data.counter_fake_subjects);
+        setProgramCfg((p) => ({
+          style: data.program_style ?? p.style,
+          count: data.program_count ?? p.count,
+          filter: data.program_filter ?? p.filter,
+          marquee_direction: data.program_marquee_direction ?? p.marquee_direction,
+          marquee_speed: data.program_marquee_speed ?? p.marquee_speed,
+          carousel_autoplay: data.program_carousel_autoplay ?? p.carousel_autoplay,
+          carousel_loop: data.program_carousel_loop ?? p.carousel_loop,
+          carousel_interval: data.program_carousel_interval ?? p.carousel_interval,
+        }));
+        setTestiCfg((p) => ({
+          style: data.testimonial_style ?? p.style,
+          count: data.testimonial_count ?? p.count,
+          filter: data.testimonial_filter ?? p.filter,
+          marquee_direction: data.testimonial_marquee_direction ?? p.marquee_direction,
+          marquee_speed: data.testimonial_marquee_speed ?? p.marquee_speed,
+          carousel_autoplay: data.testimonial_carousel_autoplay ?? p.carousel_autoplay,
+          carousel_loop: data.testimonial_carousel_loop ?? p.carousel_loop,
+          carousel_interval: data.testimonial_carousel_interval ?? p.carousel_interval,
+        }));
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -250,6 +344,10 @@ export default function AdminCmsSettingsPage() {
 
   async function save() {
     setSaving(true);
+    const programPayload: Record<string, string> = {};
+    for (const [k, v] of Object.entries(programCfg)) programPayload[`program_${k}`] = v;
+    const testiPayload: Record<string, string> = {};
+    for (const [k, v] of Object.entries(testiCfg)) testiPayload[`testimonial_${k}`] = v;
     await fetch("/api/admin/site-config", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -263,6 +361,8 @@ export default function AdminCmsSettingsPage() {
         counter_fake_teachers: fakeTeachers,
         counter_fake_classes: fakeClasses,
         counter_fake_subjects: fakeSubjects,
+        ...programPayload,
+        ...testiPayload,
       }),
     });
     setSaving(false);
@@ -509,6 +609,24 @@ export default function AdminCmsSettingsPage() {
         )}
       </div>
 
+      {/* Program Section Style */}
+      <ListStyleSection
+        title="Tipe Program"
+        description="Section Program Unggulan di homepage (di bawah counter)"
+        cfg={programCfg}
+        onChange={(k, v) => updateListCfg(setProgramCfg, k, v)}
+        countFallback="4"
+      />
+
+      {/* Testimonial Section Style */}
+      <ListStyleSection
+        title="Tipe Testimony"
+        description="Section Testimoni Siswa di homepage"
+        cfg={testiCfg}
+        onChange={(k, v) => updateListCfg(setTestiCfg, k, v)}
+        countFallback="3"
+      />
+
       {/* Save Bar */}
       <div className="mt-6 flex items-center gap-3">
         <button
@@ -524,6 +642,160 @@ export default function AdminCmsSettingsPage() {
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+function ListStyleSection({
+  title,
+  description,
+  cfg,
+  onChange,
+  countFallback,
+}: {
+  title: string;
+  description: string;
+  cfg: Record<string, string>;
+  onChange: (key: string, value: string) => void;
+  countFallback: string;
+}) {
+  const style = cfg.style ?? "grid";
+  const showAll = cfg.count === "all";
+
+  return (
+    <div className="mt-6 rounded-xl border border-gray-200 bg-white p-6">
+      <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+      <p className="mt-1 text-sm text-gray-500">{description}</p>
+
+      {/* Style picker */}
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {LIST_STYLES.map((s) => {
+          const isSelected = style === s.value;
+          return (
+            <button
+              key={s.value}
+              onClick={() => onChange("style", s.value)}
+              className={`group relative overflow-hidden rounded-xl border-2 text-left transition-all ${
+                isSelected ? "border-blue-600 ring-2 ring-blue-200" : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              <div className="border-b border-gray-100 bg-gray-50 p-2">{s.preview}</div>
+              <div className="p-3">
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-bold ${isSelected ? "text-blue-600" : "text-gray-900"}`}>{s.label}</span>
+                  {isSelected && (
+                    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-blue-600">
+                      <Check className="h-3 w-3 text-white" />
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-gray-500">{s.description}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Count & Filter */}
+      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Jumlah Ditampilkan</label>
+          <div className="flex items-center gap-3">
+            <input
+              type="number"
+              min={1}
+              disabled={showAll}
+              value={showAll ? "" : cfg.count ?? countFallback}
+              onChange={(e) => onChange("count", e.target.value)}
+              placeholder={countFallback}
+              className="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none disabled:bg-gray-100"
+            />
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={showAll}
+                onChange={(e) => onChange("count", e.target.checked ? "all" : countFallback)}
+              />
+              Tampilkan semua
+            </label>
+          </div>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Filter & Urutan</label>
+          <select
+            value={cfg.filter ?? "all"}
+            onChange={(e) => onChange("filter", e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          >
+            <option value="all">Semua (urutan manual)</option>
+            <option value="featured">Featured Only</option>
+            <option value="newest">Terbaru</option>
+            <option value="oldest">Terlama</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Marquee settings */}
+      {style === "marquee" && (
+        <div className="mt-5 grid grid-cols-1 gap-4 rounded-lg bg-blue-50 p-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Arah Gerakan</label>
+            <select
+              value={cfg.marquee_direction ?? "left"}
+              onChange={(e) => onChange("marquee_direction", e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            >
+              <option value="left">Ke Kiri (kartu masuk dari kanan)</option>
+              <option value="right">Ke Kanan (kartu masuk dari kiri)</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Kecepatan (detik per putaran)</label>
+            <input
+              type="number"
+              min={5}
+              max={120}
+              value={cfg.marquee_speed ?? "30"}
+              onChange={(e) => onChange("marquee_speed", e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            />
+            <p className="mt-1 text-xs text-gray-500">Semakin kecil semakin cepat. Default 30 detik.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Carousel settings */}
+      {style === "carousel" && (
+        <div className="mt-5 grid grid-cols-1 gap-4 rounded-lg bg-blue-50 p-4 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={(cfg.carousel_autoplay ?? "true") === "true"}
+              onChange={(e) => onChange("carousel_autoplay", e.target.checked ? "true" : "false")}
+            />
+            <span className="font-medium text-gray-700">Auto Play</span>
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={(cfg.carousel_loop ?? "true") === "true"}
+              onChange={(e) => onChange("carousel_loop", e.target.checked ? "true" : "false")}
+            />
+            <span className="font-medium text-gray-700">Loop</span>
+          </label>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-600">Interval (detik)</label>
+            <input
+              type="number"
+              min={2}
+              max={60}
+              value={cfg.carousel_interval ?? "5"}
+              onChange={(e) => onChange("carousel_interval", e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

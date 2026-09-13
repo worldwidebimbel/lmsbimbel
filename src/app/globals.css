@@ -2,6 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== Marquee (Carousel Infinity Loop) =====
+   Konten diduplicate 2x, translateX(-50%) = seamless loop.
+   --marquee-duration mengatur kecepatan (detik per loop). */
+@keyframes marquee-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes marquee-right {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+.animate-marquee-left {
+  animation: marquee-left var(--marquee-duration, 30s) linear infinite;
+}
+.animate-marquee-right {
+  animation: marquee-right var(--marquee-duration, 30s) linear infinite;
+}
+.marquee-paused:hover .animate-marquee-left,
+.marquee-paused:hover .animate-marquee-right {
+  animation-play-state: paused;
+}
+
 /* Google Fonts (Amiri, Noto Serif Javanese) & KaTeX CSS dimuat via <link> + preconnect di layout.tsx */
 
 .font-arabic {

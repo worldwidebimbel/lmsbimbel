@@ -17,6 +17,7 @@ interface Program {
   theme: string;
   imagePosition: string;
   linkUrl: string | null;
+  featured: boolean;
   order: number;
   isActive: boolean;
 }
@@ -78,7 +79,10 @@ export default function AdminCmsProgramPage() {
                 {p.subtitle && <p className="text-sm text-gray-500">{p.subtitle}</p>}
                 {features.length > 0 && <p className="mt-1 text-xs text-gray-500">{features.length} fitur</p>}
                 <div className="mt-2 flex items-center justify-between">
-                  <span className={`rounded px-2 py-0.5 text-xs ${p.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{p.isActive ? "Aktif" : "Nonaktif"}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`rounded px-2 py-0.5 text-xs ${p.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{p.isActive ? "Aktif" : "Nonaktif"}</span>
+                    {p.featured && <span className="rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">★ Featured</span>}
+                  </div>
                   <div className="flex gap-1">
                     <button onClick={() => { setEditing(p); setShowForm(true); }} className="rounded p-1 text-gray-500 hover:bg-gray-100"><Pencil className="h-4 w-4" /></button>
                     <button onClick={() => handleDelete(p.id)} className="rounded p-1 text-red-500 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
@@ -104,6 +108,7 @@ function ProgramForm({ item, onSave, onCancel }: { item: Program | null; onSave:
   const [theme, setTheme] = useState(item?.theme ?? "blue");
   const [imagePosition, setImagePosition] = useState(item?.imagePosition ?? "left");
   const [linkUrl, setLinkUrl] = useState(item?.linkUrl ?? "");
+  const [featured, setFeatured] = useState(item?.featured ?? false);
   const [order, setOrder] = useState(item?.order ?? 0);
   const [isActive, setIsActive] = useState(item?.isActive ?? true);
   const [features, setFeatures] = useState<string[]>(
@@ -149,10 +154,11 @@ function ProgramForm({ item, onSave, onCancel }: { item: Program | null; onSave:
 
       <div className="mt-4 flex items-center gap-4">
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} /> Aktif</label>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} /> <span className="font-medium">★ Featured</span> <span className="text-xs text-gray-500">(tampil saat filter Featured Only)</span></label>
       </div>
       <div className="mt-4 flex gap-2">
         <button
-          onClick={() => onSave({ title, subtitle: subtitle || null, description: description || null, icon, imageUrl: imageUrl || null, features: features.filter((f) => f.trim()).map((f) => ({ title: f })), levelLabel: levelLabel || null, theme, imagePosition, linkUrl: linkUrl || null, order, isActive })}
+          onClick={() => onSave({ title, subtitle: subtitle || null, description: description || null, icon, imageUrl: imageUrl || null, features: features.filter((f) => f.trim()).map((f) => ({ title: f })), levelLabel: levelLabel || null, theme, imagePosition, linkUrl: linkUrl || null, featured, order, isActive })}
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
         >Simpan</button>
         <button onClick={onCancel} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</button>

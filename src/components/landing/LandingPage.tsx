@@ -150,7 +150,7 @@ export default async function LandingPage() {
       <CounterSection cfg={cfg} stats={{ students, teachers, classes, subjects }} />
 
       {/* Program Unggulan Section */}
-      <ProgramUnggulanSection programs={programs} />
+      <ProgramUnggulanSection programs={programs} config={cfg} />
 
       {/* Video Activity Section */}
       <VideoActivitySection videos={videos} highlights={videoHighlights} />
@@ -190,7 +190,7 @@ export default async function LandingPage() {
 
       {/* Testimonials */}
       {testimonials.length > 0 && (
-        <TestimoniSection testimonials={testimonials} />
+        <TestimoniSection testimonials={testimonials} config={cfg} />
       )}
 
       {/* Gallery Section */}

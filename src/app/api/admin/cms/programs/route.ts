@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const body = await req.json();
-  const { title, slug, subtitle, description, icon, color, imageUrl, features, levelLabel, theme, imagePosition, linkUrl, order, isActive } = body;
+  const { title, slug, subtitle, description, icon, color, imageUrl, features, levelLabel, theme, imagePosition, linkUrl, featured, order, isActive } = body;
   if (!title) {
     return NextResponse.json({ error: "title wajib diisi" }, { status: 400 });
   }
@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
       theme: theme || "blue",
       imagePosition: imagePosition || "left",
       linkUrl: linkUrl || null,
+      featured: featured ?? false,
       order: order ?? 0,
       isActive: isActive ?? true,
     },

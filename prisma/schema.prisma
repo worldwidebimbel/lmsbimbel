@@ -1667,6 +1667,7 @@ model SiteProgram {
   theme         String   @default("blue")
   imagePosition String   @default("left")
   linkUrl       String?
+  featured      Boolean  @default(false)
   order         Int      @default(0)
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())

@@ -44,6 +44,24 @@ export const SITE_DEFAULTS = {
   counter_fake_teachers: "50",
   counter_fake_classes: "35",
   counter_fake_subjects: "15",
+  // ===== Program Section Settings =====
+  program_style: "grid", // "grid" (2x2 kartu) | "marquee" (infinity loop) | "carousel" (slide arrow+dot)
+  program_count: "4", // angka atau "all"
+  program_filter: "all", // "all" | "featured" | "newest" | "oldest"
+  program_marquee_direction: "left", // "left" | "right"
+  program_marquee_speed: "30", // detik per loop (lebih kecil = lebih cepat)
+  program_carousel_autoplay: "true",
+  program_carousel_loop: "true",
+  program_carousel_interval: "5", // detik antar slide
+  // ===== Testimonial Section Settings =====
+  testimonial_style: "grid", // "grid" (3 kolom + nav) | "marquee" | "carousel"
+  testimonial_count: "3", // angka atau "all"
+  testimonial_filter: "all", // "all" | "featured" | "newest" | "oldest"
+  testimonial_marquee_direction: "left",
+  testimonial_marquee_speed: "30",
+  testimonial_carousel_autoplay: "true",
+  testimonial_carousel_loop: "true",
+  testimonial_carousel_interval: "5",
   // ===== Header Settings =====
   header_type: "default", // "default" (Topbar+Mainbar+Bottombar) | "simple" (Mainbar only)
   header_mainbar_mode: "light", // "light" | "dark"
