@@ -176,6 +176,36 @@ RESEND_FROM="Worldwide Bimbel <no-reply@worldwidebimbel.com>"
 
 NEXT_PUBLIC_APP_URL="https://worldwidebimbel.com"
 NEXT_PUBLIC_APP_NAME="Worldwide Bimbel"
+
+# ===== AI Builder (lihat doc/guide-ai-builder.md) =====
+# Provider teks/soal (wajib minimal 1 untuk AI Builder & AI Question Generator)
+# APIClaude.net (default) — dapat dari apiclaude.net
+APICLAUDE_API_KEY=""
+AI_BASE_URL="https://apiclaude.net/v1"
+AI_MODEL="langgananku/claude-sonnet-4-20250514"
+# OpenRouter.ai (alternatif/serbaguna — satu key untuk teks, gambar, TTS, video-direct)
+OPENROUTER_API_KEY=""
+OPENROUTER_BASE_URL="https://openrouter.ai/api/v1"
+OPENROUTER_MODEL="anthropic/claude-sonnet-4"
+OPENROUTER_SITE_URL="https://worldwidebimbel.com"
+OPENROUTER_SITE_NAME="Worldwide Bimbel"
+
+# Provider gambar (Fase 2/2b — kosong = kapabilitas gambar belum aktif)
+# Pilih 1: OpenAI Images (default) / Replicate / Stability / OpenRouter (pakai OPENROUTER_API_KEY di atas)
+OPENAI_IMAGES_API_KEY=""
+# AI_IMAGE_MODEL="gpt-image-1"
+REPLICATE_API_KEY=""
+STABILITY_API_KEY=""
+
+# Provider TTS (Fase 3 — kosong = kapabilitas audio belum aktif)
+# Pilih 1: OpenAI TTS (default) / Google / ElevenLabs / OpenRouter (pakai OPENROUTER_API_KEY di atas)
+OPENAI_TTS_API_KEY=""
+# AI_TTS_MODEL="gpt-4o-mini-tts"
+GOOGLE_TTS_API_KEY=""
+ELEVENLABS_API_KEY=""
+
+# Direct video-gen via OpenRouter (Fase 4 premium — pakai OPENROUTER_API_KEY di atas)
+# AI_VIDEO_MODEL="google/veo-3.1"
 ```
 
 > ⚠️ **`DIRECT_URL` wajib diisi.** Jika tidak, `npx prisma migrate deploy` akan error:
