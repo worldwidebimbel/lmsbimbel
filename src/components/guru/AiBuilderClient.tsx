@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/lib/ai-providers";
 import { DESIGN_PRESETS, type DesignPresetId } from "@/lib/ai-design-presets";
 import { TTS_VOICES } from "@/lib/ai-tts-providers";
+import { MAX_SCENES } from "@/lib/ai-video-pipeline";
 import type { AISettings, ProviderStatusMap } from "@/lib/ai-settings";
 
 // ============================================================
@@ -243,7 +244,16 @@ export default function AiBuilderClient({
           onDone={refreshUsage}
         />
       )}
-      {tab === "video" && <ComingSoonTab capability="VIDEO" settings={settings} providerStatus={providerStatus} />}
+      {tab === "video" && (
+        <VideoGeneratorTab
+          subjects={subjects}
+          defaultTextProvider={settings.textProvider}
+          defaultImageProvider={settings.imageProvider}
+          defaultTtsProvider={settings.ttsProvider}
+          providerStatus={providerStatus}
+          onDone={refreshUsage}
+        />
+      )}
       {tab === "soal" && <QuestionTab />}
       {tab === "riwayat" && <HistoryTab jobs={jobList} usage={usageList} quotaForRole={quotaForRole} />}
       {tab === "pengaturan" && isSuperAdmin && <SettingsTab initial={settings} />}
@@ -1668,6 +1678,403 @@ function AudioGeneratorTab({
               </button>
             )}
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============ Tab Video — Video Audio-Visual (Fase 4) ============ */
+
+const VIDEO_STAGES: { id: string; label: string }[] = [
+  { id: "naskah", label: "Naskah" },
+  { id: "gambar", label: "Gambar" },
+  { id: "audio", label: "Narasi" },
+  { id: "render", label: "Render" },
+  { id: "upload", label: "Upload" },
+];
+
+interface VideoJobState {
+  id: string;
+  status: string;
+  progress?: { stage: string; current: number; total: number; message?: string };
+  resultUrl?: string | null;
+  resultMaterialId?: string | null;
+  errorMessage?: string | null;
+  title?: string;
+  sceneCount?: number;
+  totalDurationSec?: number;
+}
+
+function VideoGeneratorTab({
+  subjects,
+  defaultTextProvider,
+  defaultImageProvider,
+  defaultTtsProvider,
+  providerStatus,
+  onDone,
+}: {
+  subjects: { id: string; name: string }[];
+  defaultTextProvider: string;
+  defaultImageProvider: string;
+  defaultTtsProvider: string;
+  providerStatus: ProviderStatusMap;
+  onDone: () => void;
+}) {
+  const [form, setForm] = useState({
+    topic: "",
+    subjectName: "",
+    jenjang: "Umum",
+    sceneCount: 5,
+  });
+  const [textProvider, setTextProvider] = useState(defaultTextProvider);
+  const [textModel, setTextModel] = useState("");
+  const [imageProvider, setImageProvider] = useState(defaultImageProvider);
+  const [imageModel, setImageModel] = useState("");
+  const [ttsProvider, setTtsProvider] = useState(defaultTtsProvider);
+  const [ttsModel, setTtsModel] = useState("");
+  const [voice, setVoice] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [job, setJob] = useState<VideoJobState | null>(null);
+
+  const textProv = AI_PROVIDERS.find((p) => p.id === textProvider) ?? AI_PROVIDERS[0];
+  const imageProv = AI_IMAGE_PROVIDERS.find((p) => p.id === imageProvider) ?? AI_IMAGE_PROVIDERS[0];
+  const ttsProv = AI_TTS_PROVIDERS.find((p) => p.id === ttsProvider) ?? AI_TTS_PROVIDERS[0];
+  const textConfigured = providerStatus.text.find((p) => p.id === textProvider)?.configured ?? false;
+  const imageConfigured = providerStatus.image.find((p) => p.id === imageProvider)?.configured ?? false;
+  const ttsConfigured = providerStatus.tts.find((p) => p.id === ttsProvider)?.configured ?? false;
+  const voices = TTS_VOICES[ttsProvider] ?? [];
+
+  const running = job?.status === "PENDING" || job?.status === "PROCESSING";
+
+  // Polling progress job
+  useEffect(() => {
+    if (!job?.id || !running) return;
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/ai/jobs/${job.id}`);
+        if (!res.ok) return;
+        const d = await res.json();
+        const p = d.job?.params ?? {};
+        setJob((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: d.job.status,
+                progress: p.progress,
+                resultUrl: d.job.resultUrl,
+                resultMaterialId: d.job.resultMaterialId,
+                errorMessage: d.job.errorMessage,
+                title: p.title,
+                sceneCount: p.sceneCount,
+                totalDurationSec: p.totalDurationSec,
+              }
+            : prev
+        );
+        if (d.job.status === "DONE") {
+          onDone();
+        }
+      } catch {
+        // abaikan — polling berikutnya
+      }
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [job?.id, running, onDone]);
+
+  async function submit() {
+    if (!form.topic.trim()) {
+      setError("Topik wajib diisi.");
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    setJob(null);
+    try {
+      const res = await fetch("/api/ai/video", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          voice: voice || undefined,
+          textProvider,
+          textModel: textModel || undefined,
+          imageProvider,
+          imageModel: imageModel || undefined,
+          ttsProvider,
+          ttsModel: ttsModel || undefined,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        setError(d.error ?? "Gagal memulai job video.");
+        return;
+      }
+      setJob({ id: d.jobId, status: "PENDING" });
+      onDone();
+    } catch {
+      setError("Gagal memulai job video. Coba lagi.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function retry() {
+    if (!job?.id) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      const res = await fetch("/api/ai/video", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ retryJobId: job.id }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        setError(d.error ?? "Gagal retry.");
+        return;
+      }
+      setJob({ id: d.jobId, status: "PENDING" });
+    } catch {
+      setError("Gagal retry. Coba lagi.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Form */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6">
+        <h2 className="text-lg font-bold text-gray-900">Buat Video Pembelajaran dengan AI</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Pipeline composite: AI menulis naskah per scene → generate ilustrasi → narasi TTS → dirakit menjadi video MP4
+          (subtitle otomatis, maks 5 menit, maks {MAX_SCENES} scene). Berjalan di background — progress bisa dipantau di bawah.
+        </p>
+
+        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-gray-700">Topik *</label>
+            <input
+              value={form.topic}
+              onChange={(e) => setForm((p) => ({ ...p, topic: e.target.value }))}
+              placeholder="mis. Fotosintesis — proses dan faktor yang memengaruhi"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Mata Pelajaran</label>
+            <input
+              value={form.subjectName}
+              onChange={(e) => setForm((p) => ({ ...p, subjectName: e.target.value }))}
+              placeholder="mis. Biologi"
+              list="ai-video-subjects"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+            <datalist id="ai-video-subjects">
+              {subjects.map((s) => (
+                <option key={s.id} value={s.name} />
+              ))}
+            </datalist>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Jenjang</label>
+            <input
+              value={form.jenjang}
+              onChange={(e) => setForm((p) => ({ ...p, jenjang: e.target.value }))}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Jumlah Scene (3–{MAX_SCENES})</label>
+            <input
+              type="number"
+              min={3}
+              max={MAX_SCENES}
+              value={form.sceneCount}
+              onChange={(e) => setForm((p) => ({ ...p, sceneCount: Math.min(MAX_SCENES, Math.max(3, Number(e.target.value) || 5)) }))}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+            <p className="mt-1 text-xs text-gray-500">Estimasi durasi: ±{form.sceneCount * 30} detik (2–4 kalimat per scene).</p>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Voice Narasi</label>
+            <select value={voice} onChange={(e) => setVoice(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <option value="">Default</option>
+              {voices.map((v) => (
+                <option key={v.value} value={v.value}>{v.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">AI Naskah (Teks)</label>
+            <select value={textProvider} onChange={(e) => { setTextProvider(e.target.value); setTextModel(""); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              {AI_PROVIDERS.map((p) => (
+                <option key={p.id} value={p.id}>{p.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Model Naskah</label>
+            <select value={textModel} onChange={(e) => setTextModel(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <option value="">Default ({textProv.models[0]?.label ?? "model"})</option>
+              {textProv.models.map((m) => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">AI Gambar</label>
+            <select value={imageProvider} onChange={(e) => { setImageProvider(e.target.value); setImageModel(""); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              {AI_IMAGE_PROVIDERS.map((p) => (
+                <option key={p.id} value={p.id}>{p.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Model Gambar</label>
+            <select value={imageModel} onChange={(e) => setImageModel(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <option value="">Default ({imageProv.models[0]?.label ?? "model"})</option>
+              {imageProv.models.map((m) => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">AI Narasi (TTS)</label>
+            <select value={ttsProvider} onChange={(e) => { setTtsProvider(e.target.value); setTtsModel(""); setVoice(""); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              {AI_TTS_PROVIDERS.map((p) => (
+                <option key={p.id} value={p.id}>{p.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Model TTS</label>
+            <select value={ttsModel} onChange={(e) => setTtsModel(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <option value="">Default ({ttsProv.models[0]?.label ?? "model"})</option>
+              {ttsProv.models.map((m) => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {(!textConfigured || !imageConfigured || !ttsConfigured) && (
+          <p className="mt-3 rounded-lg bg-amber-50 px-4 py-2 text-xs text-amber-700">
+            Pipeline butuh 3 provider: {!textConfigured && `naskah (${textProv.label}) `}
+            {!imageConfigured && `gambar (${imageProv.label}) `}
+            {!ttsConfigured && `TTS (${ttsProv.label})`} — Super Admin perlu set API key di environment variables.
+          </p>
+        )}
+
+        {error && <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>}
+
+        {!running && (
+          <button
+            onClick={submit}
+            disabled={submitting}
+            className="mt-5 flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+            {submitting ? "Memulai job..." : "Generate Video"}
+          </button>
+        )}
+      </div>
+
+      {/* Progress job */}
+      {job && running && (
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
+              <Loader2 className="h-4 w-4 animate-spin text-indigo-600" /> Video sedang dibuat
+            </h2>
+            <span className="text-xs text-gray-400">job {job.id.slice(0, 8)}…</span>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {VIDEO_STAGES.map((s, i) => {
+              const stageIdx = VIDEO_STAGES.findIndex((x) => x.id === job.progress?.stage);
+              const state = stageIdx === -1 ? "wait" : i < stageIdx ? "done" : i === stageIdx ? "active" : "wait";
+              return (
+                <div key={s.id} className="flex items-center gap-2">
+                  {i > 0 && <div className={`h-0.5 w-6 ${state === "wait" ? "bg-gray-200" : "bg-indigo-500"}`} />}
+                  <span
+                    className={`flex h-7 items-center rounded-full px-3 text-xs font-medium ${
+                      state === "active"
+                        ? "bg-indigo-600 text-white"
+                        : state === "done"
+                        ? "bg-indigo-50 text-indigo-700"
+                        : "bg-gray-100 text-gray-400"
+                    }`}
+                  >
+                    {state === "done" ? <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> : null}
+                    {s.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {job.progress?.message && (
+            <p className="mt-3 text-sm text-gray-600">{job.progress.message}</p>
+          )}
+          {(job.progress?.total ?? 0) > 0 && (
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100">
+              <div
+                className="h-full rounded-full bg-indigo-500 transition-all"
+                style={{ width: `${Math.min(100, ((job.progress?.current || 0) / (job.progress?.total || 1)) * 100)}%` }}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Hasil */}
+      {job?.status === "DONE" && (
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
+              <CheckCircle2 className="h-5 w-5 text-green-600" /> Video selesai
+              {job.title && <span className="font-normal text-gray-500">— {job.title}</span>}
+            </h2>
+            {job.totalDurationSec && (
+              <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-600">
+                {job.sceneCount} scene • {job.totalDurationSec}s
+              </span>
+            )}
+          </div>
+
+          {job.resultUrl && (
+            <video controls src={job.resultUrl} className="mt-4 w-full rounded-lg border border-gray-200" />
+          )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <Link href="/guru/materi" className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+              Buka halaman Materi <ExternalLink className="h-4 w-4" />
+            </Link>
+            <button
+              onClick={() => { setJob(null); setForm((p) => ({ ...p, topic: "" })); }}
+              className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              <RotateCcw className="h-4 w-4" /> Buat video baru
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Gagal + retry */}
+      {job?.status === "FAILED" && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+          <h2 className="text-lg font-bold text-red-800">Video gagal dibuat</h2>
+          {job.errorMessage && <p className="mt-1 text-sm text-red-700">{job.errorMessage}</p>}
+          <button
+            onClick={retry}
+            disabled={submitting}
+            className="mt-4 flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+            Coba lagi (parameter sama)
+          </button>
         </div>
       )}
     </div>

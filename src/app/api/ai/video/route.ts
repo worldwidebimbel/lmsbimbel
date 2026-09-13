@@ -1,0 +1,147 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { guardAI } from "@/lib/ai-guard";
+import {
+  resolveProviderConfig,
+  resolveImageProviderConfig,
+  resolveTTSProviderConfig,
+  type AIProviderId,
+} from "@/lib/ai-providers";
+import { runVideoPipeline, MAX_SCENES, type VideoJobRequest } from "@/lib/ai-video-pipeline";
+
+// ============================================================
+// AI Builder — Fase 4: Video Audio-Visual (composite pipeline)
+// POST → buat AiGenerationJob (PENDING) → eksekusi async
+// (fire-and-forget, cocok untuk VPS + PM2 long-running).
+// Progress dipolling lewat GET /api/ai/jobs/[id].
+//
+// Guardrails (future-commit.md):
+// - jumlah scene ≤ 12 (dipaksa 3..12)
+// - durasi total ≤ 5 menit (divalidasi di pipeline setelah naskah)
+// - satu job video aktif per user
+// ============================================================
+
+export async function POST(req: NextRequest) {
+  const guard = await guardAI(req, "VIDEO");
+  if (guard instanceof NextResponse) return guard;
+  const { session } = guard;
+
+  const body = await req.json();
+  const {
+    topic,
+    subjectName,
+    jenjang,
+    sceneCount,
+    voice,
+    textProvider,
+    textModel,
+    imageProvider,
+    imageModel,
+    ttsProvider,
+    ttsModel,
+    retryJobId,
+  } = body as {
+    topic?: string;
+    subjectName?: string;
+    jenjang?: string;
+    sceneCount?: number;
+    voice?: string;
+    textProvider?: string;
+    textModel?: string;
+    imageProvider?: string;
+    imageModel?: string;
+    ttsProvider?: string;
+    ttsModel?: string;
+    retryJobId?: string;
+  };
+
+  // ---------- Retry: ambil request dari job lama ----------
+  if (retryJobId) {
+    const old = await db.aiGenerationJob.findFirst({
+      where: { id: retryJobId, createdBy: session.userId, capability: "VIDEO", status: "FAILED" },
+      select: { params: true },
+    });
+    const oldReq = (old?.params as { request?: VideoJobRequest } | null)?.request;
+    if (!oldReq) {
+      return NextResponse.json({ error: "Job tidak ditemukan atau tidak bisa di-retry." }, { status: 404 });
+    }
+    const job = await db.aiGenerationJob.create({
+      data: {
+        capability: "VIDEO",
+        status: "PENDING",
+        provider: "composite",
+        model: "pipeline",
+        params: { request: oldReq, progress: { stage: "queued", current: 0, total: 0 } } as never,
+        createdBy: session.userId,
+      },
+    });
+    runVideoPipeline(job.id, oldReq, session.userId).catch((e) => console.error("[AI video] pipeline crashed:", e));
+    return NextResponse.json({ jobId: job.id }, { status: 202 });
+  }
+
+  // ---------- Request baru ----------
+  if (!topic?.trim()) {
+    return NextResponse.json({ error: "Topik wajib diisi" }, { status: 400 });
+  }
+  const numScenes = Math.min(MAX_SCENES, Math.max(3, Number(sceneCount) || 5));
+
+  const textId = (textProvider ?? "apiclaude") as AIProviderId;
+  const imageId = imageProvider ?? "openai";
+  const ttsId = ttsProvider ?? "openai";
+
+  // Cek konfigurasi ketiga provider sebelum mulai job
+  const textCfg = resolveProviderConfig(textId);
+  const imageCfg = resolveImageProviderConfig(imageId);
+  const ttsCfg = resolveTTSProviderConfig(ttsId);
+  if (!textCfg.apiKey) {
+    return NextResponse.json({ error: `Provider teks belum dikonfigurasi (${textCfg.keyEnvName}).` }, { status: 503 });
+  }
+  if (!imageCfg.apiKey) {
+    return NextResponse.json({ error: `Provider gambar belum dikonfigurasi (${imageCfg.keyEnvName}).` }, { status: 503 });
+  }
+  if (!ttsCfg.apiKey) {
+    return NextResponse.json({ error: `Provider TTS belum dikonfigurasi (${ttsCfg.keyEnvName}).` }, { status: 503 });
+  }
+
+  // Guardrail: satu job video aktif per user
+  const active = await db.aiGenerationJob.findFirst({
+    where: { createdBy: session.userId, capability: "VIDEO", status: { in: ["PENDING", "PROCESSING"] } },
+    select: { id: true },
+  });
+  if (active) {
+    return NextResponse.json(
+      { error: "Anda masih punya job video yang berjalan. Tunggu sampai selesai.", jobId: active.id },
+      { status: 409 }
+    );
+  }
+
+  const request: VideoJobRequest = {
+    topic: topic.trim(),
+    subjectName,
+    jenjang,
+    sceneCount: numScenes,
+    voice,
+    textProvider: textId,
+    textModel,
+    imageProvider: imageId,
+    imageModel,
+    ttsProvider: ttsId,
+    ttsModel,
+  };
+
+  const job = await db.aiGenerationJob.create({
+    data: {
+      capability: "VIDEO",
+      status: "PENDING",
+      provider: "composite",
+      model: "pipeline",
+      params: { request, progress: { stage: "queued", current: 0, total: 0 } } as never,
+      createdBy: session.userId,
+    },
+  });
+
+  // Fire-and-forget — progress lewat polling /api/ai/jobs/[id]
+  runVideoPipeline(job.id, request, session.userId).catch((e) => console.error("[AI video] pipeline crashed:", e));
+
+  return NextResponse.json({ jobId: job.id }, { status: 202 });
+}

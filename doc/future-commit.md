@@ -1,6 +1,6 @@
 # Future Commit: Modul AI Builder / AI Ecosystem
 
-> **Status:** Eksplorasi → eksekusi. **Fase 0 (Fondasi), Fase 1 (Materi Teks), Fase 2 (Materi Gambar), Fase 2b (Aset Visual CMS), & Fase 3 (Materi Audio) sudah terimplementasi**; Fase 4–5 menyusul.
+> **Status:** Eksplorasi → eksekusi. **Fase 0–4 (Fondasi, Materi Teks, Materi Gambar, Aset Visual CMS, Materi Audio, Video Audio-Visual) sudah terimplementasi**; Fase 5 (Penyatuan) menyusul.
 > Dokumen ini berisi jabaran teknologi, penyesuaian sistem yang diperlukan, timeline build, dan task list terperinci untuk membangun **Modul AI Builder**.
 > Tiap fase di-checklist di sini lalu dijadikan commit terpisah (`feat(ai-builder): fase N — ...`).
 
@@ -288,15 +288,16 @@ Kapabilitas gambar yang sama dengan 4.2, tapi diarahkan ke **aset promosi websit
 - Catatan implementasi: 3 adapter provider di `src/lib/ai-tts-providers.ts` (OpenAI TTS `gpt-4o-mini-tts`/`tts-1`, Google Cloud TTS dengan voice `id-ID` Neural2/Wavenet/Standard, ElevenLabs Multilingual v2); voice list per provider diekspos ke UI (prioritas voice Indonesia natural); migrasi `20260913210000` menambah enum `AUDIO` ke `MaterialType`; upload Cloudinary `resource_type: "video"` (Cloudinary menggolongkan audio sebagai video); `Material.duration` diisi durasi detik; usage log unit = detik audio; tipe `AUDIO` ditambahkan ke `MaterialUploadModal`; preview player `<audio controls>` di tab Audio. Player di view siswa memakai renderer materi yang sudah ada (field `fileUrl` + `duration`).
 
 ### Fase 4 — Video Audio-Visual
-- [ ] Dependency: `fluent-ffmpeg` + `ffmpeg-static`
-- [ ] `POST /api/ai/video` → buat `AiGenerationJob` (PENDING) → eksekusi async
-- [ ] Pipeline step 1: AI Writer naskah per scene (narasi + imagePrompt) — job stage tracking
-- [ ] Pipeline step 2: AI Image per scene (paralel, limit konkuransi)
-- [ ] Pipeline step 3: TTS per scene
-- [ ] Pipeline step 4: FFmpeg composite (gambar + audio + subtitle `.srt` otomatis dari naskah + transisi)
-- [ ] Upload MP4 → Cloudinary → `Material` VIDEO
-- [ ] `GET /api/ai/jobs/[id]` polling + UI progress per tahap + retry on FAILED
-- [ ] Guardrails: durasi ≤ 5 menit, jumlah scene ≤ 12, satu job video aktif per user
+- [x] Dependency: `ffmpeg-static` (binary bundel FFmpeg — fluent-ffmpeg tidak jadi dipakai, lihat catatan)
+- [x] `POST /api/ai/video` → buat `AiGenerationJob` (PENDING) → eksekusi async
+- [x] Pipeline step 1: AI Writer naskah per scene (narasi + imagePrompt) — job stage tracking
+- [x] Pipeline step 2: AI Image per scene (paralel, limit konkuransi)
+- [x] Pipeline step 3: TTS per scene
+- [x] Pipeline step 4: FFmpeg composite (gambar + audio + subtitle `.srt` otomatis dari naskah + transisi)
+- [x] Upload MP4 → Cloudinary → `Material` VIDEO
+- [x] `GET /api/ai/jobs/[id]` polling + UI progress per tahap + retry on FAILED
+- [x] Guardrails: durasi ≤ 5 menit, jumlah scene ≤ 12, satu job video aktif per user
+- Catatan implementasi: pipeline di `src/lib/ai-video-pipeline.ts` — FFmpeg dijalankan via `child_process.execFile` + `ffmpeg-static` (binary bundel, tanpa apt install) dengan `cwd` folder temp + relative paths; ini lebih robust untuk path escaping filter `subtitles` lintas Windows/Linux daripada fluent-ffmpeg (fluent-ffmpeg di-uninstall — deprecated & tidak diperlukan). Per scene: gambar + audio + `.srt` timing lokal per kalimat → MP4 1280×720 H.264+AAC dengan fade in/out + subtitle burn-in (libass), lalu concat demuxer `-c copy`. Progress per tahap (naskah → gambar → audio → render → upload) di `AiGenerationJob.params.progress`, dipolling UI tiap 3 detik. Retry: job FAILED bisa dijalankan ulang dengan parameter sama via `retryJobId`. Usage log unit = 1 video (log setelah sukses). Material VIDEO dibuat otomatis sebagai draft (`isPublished: false`) dengan `duration` total detik. Perintah FFmpeg sudah diuji end-to-end di Windows (render scene + concat).
 
 ### Fase 5 — Penyatuan & Paket Bab AI
 - [ ] UI AI Question Generator dipindah ke tab AI Hub (API `/api/guru/bank-soal/*` tidak berubah)
