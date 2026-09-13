@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Download, Phone, Award, FileText, CheckCircle } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { getLucideIcon } from "@/lib/lucide-icon-map";
 
 interface QuickAction {
   id: string;
@@ -13,14 +14,6 @@ interface QuickAction {
   fileUrl: string | null;
 }
 
-const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  Phone,
-  Download,
-  Award,
-  FileText,
-  CheckCircle,
-};
-
 export default function QuickActionCards({ actions }: { actions: QuickAction[] }) {
   if (!actions || actions.length === 0) return null;
 
@@ -29,7 +22,7 @@ export default function QuickActionCards({ actions }: { actions: QuickAction[] }
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-3">
           {actions.slice(0, 3).map((action) => {
-            const Icon = ICON_MAP[action.icon ?? "CheckCircle"] ?? CheckCircle;
+            const Icon = getLucideIcon(action.icon);
             const isYellow = action.theme === "yellow";
             const content = (
               <div className={`group relative flex h-full flex-col overflow-hidden rounded-2xl p-6 shadow-lg transition-transform hover:-translate-y-1 ${isYellow ? "bg-yellow-400 text-blue-950" : "bg-blue-900 text-white"}`}>

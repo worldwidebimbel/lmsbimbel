@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Trash2, Pencil } from "lucide-react";
+import LucideIconPicker from "@/components/admin/LucideIconPicker";
+import { getLucideIcon } from "@/lib/lucide-icon-map";
 
 interface QuickAction {
   id: string;
@@ -79,11 +81,18 @@ export default function AdminCmsQuickActionsPage() {
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((item) => (
+        {items.map((item) => {
+          const Icon = getLucideIcon(item.icon);
+          return (
           <div key={item.id} className={`rounded-lg border p-4 ${item.theme === "yellow" ? "border-yellow-200 bg-yellow-50" : "border-blue-200 bg-blue-50"}`}>
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">{item.title}</h3>
+                <div className="flex items-center gap-2">
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-full ${item.theme === "yellow" ? "bg-yellow-400 text-blue-950" : "bg-blue-900 text-white"}`}>
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <h3 className="font-semibold text-gray-900">{item.title}</h3>
+                </div>
                 {item.description && <p className="mt-1 text-sm text-gray-600">{item.description}</p>}
                 {item.linkUrl && <p className="mt-2 text-xs text-blue-600">{item.linkUrl}</p>}
                 {item.fileUrl && <p className="mt-1 text-xs text-green-600">📄 {item.fileUrl}</p>}
@@ -99,7 +108,8 @@ export default function AdminCmsQuickActionsPage() {
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
         {items.length === 0 && (
           <div className="col-span-full rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500">
             Belum ada quick action.
@@ -140,9 +150,8 @@ function QuickActionForm({
           <label className="mb-1 block text-sm font-medium text-gray-700">Deskripsi</label>
           <input value={description} onChange={(e) => setDescription(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Icon (Lucide name)</label>
-          <input value={icon} onChange={(e) => setIcon(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="Phone" />
+        <div className="sm:col-span-2">
+          <LucideIconPicker value={icon} onChange={setIcon} label="Icon" />
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Tema</label>
