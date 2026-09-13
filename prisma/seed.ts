@@ -510,11 +510,12 @@ async function main() {
   console.log(`✅ ${rolePermCount} role permissions seeded`);
 
   // Seed Subjects
+  // update: {} — jangan timpa nama/warna mapel yang sudah diubah admin.
   console.log("📚 Seeding subjects...");
   for (const subject of SUBJECTS) {
     await prisma.subject.upsert({
       where: { code: subject.code },
-      update: subject,
+      update: {},
       create: subject,
     });
   }
@@ -666,7 +667,7 @@ async function main() {
   for (const program of defaultPrograms) {
     await prisma.siteProgram.upsert({
       where: { title: program.title },
-      update: program,
+      update: {},
       create: program,
     });
   }
@@ -682,7 +683,7 @@ async function main() {
   for (const t of defaultTestimonials) {
     await prisma.siteTestimonial.upsert({
       where: { name: t.name },
-      update: t,
+      update: {},
       create: t,
     });
   }
@@ -719,7 +720,7 @@ async function main() {
   for (const post of samplePosts) {
     await prisma.blogPost.upsert({
       where: { slug: post.slug },
-      update: post,
+      update: {},
       create: post,
     });
   }
@@ -737,7 +738,7 @@ async function main() {
     { platform: "TikTok", url: "https://tiktok.com/@worldwideeducation", icon: "Music", order: 4, isActive: true },
   ];
   for (const s of socialLinks) {
-    await prisma.siteSocialLink.upsert({ where: { id: `seed-social-${s.platform}` }, update: s, create: { id: `seed-social-${s.platform}`, ...s } });
+    await prisma.siteSocialLink.upsert({ where: { id: `seed-social-${s.platform}` }, update: {}, create: { id: `seed-social-${s.platform}`, ...s } });
   }
   console.log(`✅ ${socialLinks.length} social links seeded`);
 
@@ -762,7 +763,7 @@ async function main() {
     { id: "seed-banner-2", title: "Belajar Lebih", titleHighlight: "Interaktif", subtitle: "Teknologi pembelajaran modern dengan guru profesional", imageUrl: null, linkUrl: "/#program", linkLabel: "Lihat Program", alignment: "left", overlayOpacity: 0.5, order: 2, isActive: true },
   ];
   for (const b of banners) {
-    await prisma.siteBanner.upsert({ where: { id: b.id }, update: b, create: b });
+    await prisma.siteBanner.upsert({ where: { id: b.id }, update: {}, create: b });
   }
   console.log(`✅ ${banners.length} banners seeded`);
 
@@ -773,7 +774,7 @@ async function main() {
     { id: "seed-qa-3", title: "SERTIFIKASI", description: "Program bersertifikasi resmi", icon: "Award", theme: "blue", linkUrl: "/#program", fileUrl: null, order: 3, isActive: true },
   ];
   for (const qa of quickActions) {
-    await prisma.siteQuickAction.upsert({ where: { id: qa.id }, update: qa, create: qa });
+    await prisma.siteQuickAction.upsert({ where: { id: qa.id }, update: {}, create: qa });
   }
   console.log(`✅ ${quickActions.length} quick actions seeded`);
 
@@ -785,7 +786,7 @@ async function main() {
     { id: "seed-prog-4", title: "Program TOEFL", slug: "program-toefl", subtitle: "Persiapan TOEFL ITP/PBT", description: "Program persiapan tes TOEFL dengan simulasi penuh", icon: "Award", color: "bg-yellow-100 text-yellow-700", imageUrl: null, features: [{ title: "Simulasi TOEFL" }, { title: "Audio Practice" }, { title: "Grammar Lengkap" }, { title: "Sertifikat" }], levelLabel: "Umum", theme: "yellow", imagePosition: "right", linkUrl: "/program/toefl", order: 4, isActive: true },
   ];
   for (const p of programs) {
-    await prisma.siteProgram.upsert({ where: { id: p.id }, update: p, create: p });
+    await prisma.siteProgram.upsert({ where: { id: p.id }, update: {}, create: p });
   }
   console.log(`✅ ${programs.length} programs seeded`);
 
@@ -795,7 +796,7 @@ async function main() {
     { id: "seed-video-2", title: "Kegiatan Tryout Online", videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", thumbnailUrl: null, duration: "2:30", category: "Kegiatan", isFeatured: false, order: 2, isActive: true },
   ];
   for (const v of videos) {
-    await prisma.siteVideo.upsert({ where: { id: v.id }, update: v, create: v });
+    await prisma.siteVideo.upsert({ where: { id: v.id }, update: {}, create: v });
   }
   console.log(`✅ ${videos.length} videos seeded`);
 
@@ -807,7 +808,7 @@ async function main() {
     { id: "seed-vh-4", title: "Siap Berprestasi", description: "Hasil terbukti & terukur", icon: "TrendingUp", theme: "yellow", order: 4, isActive: true },
   ];
   for (const h of videoHighlights) {
-    await prisma.siteVideoHighlight.upsert({ where: { id: h.id }, update: h, create: h });
+    await prisma.siteVideoHighlight.upsert({ where: { id: h.id }, update: {}, create: h });
   }
   console.log(`✅ ${videoHighlights.length} video highlights seeded`);
 
@@ -820,10 +821,9 @@ async function main() {
     { id: "seed-test-3", name: "Ahmad Hidayat", role: "Orang Tua", text: "Laporan progres anak saya selalu update. Saya bisa memantau perkembangannya kapan saja.", photoUrl: null, avatarUrl: null, rating: 5, programName: "Program SMP", isFeatured: true, order: 3, isActive: true },
   ];
   for (const t of testimonials) {
-    const { id: _id, ...fields } = t;
     await prisma.siteTestimonial.upsert({
       where: { name: t.name },
-      update: fields,
+      update: {},
       create: t,
     });
   }
@@ -942,7 +942,7 @@ async function main() {
     };
     await prisma.rubricLevel.upsert({
       where: { type_stars: { type: r.type, stars: r.stars } },
-      update: data,
+      update: {},
       create: { type: r.type, stars: r.stars, ...data },
     });
   }
@@ -950,12 +950,7 @@ async function main() {
 
   for (const [i, a] of DEFAULT_ATTITUDE_ASPECTS.entries()) {
     const existingAspect = await prisma.attitudeAspect.findFirst({ where: { name: a.name } });
-    if (existingAspect) {
-      await prisma.attitudeAspect.update({
-        where: { id: existingAspect.id },
-        data: { description: a.description },
-      });
-    } else {
+    if (!existingAspect) {
       await prisma.attitudeAspect.create({
         data: { name: a.name, description: a.description, weight: 1, order: i },
       });
