@@ -12,6 +12,7 @@ import {
   AI_CAPABILITIES, AI_IMAGE_PROVIDERS, AI_PROVIDERS, AI_TTS_PROVIDERS, AI_VIDEO_MODES,
   type AICapability,
 } from "@/lib/ai-providers";
+import { DESIGN_PRESETS, type DesignPresetId } from "@/lib/ai-design-presets";
 import type { AISettings, ProviderStatusMap } from "@/lib/ai-settings";
 
 // ============================================================
@@ -225,7 +226,13 @@ export default function AiBuilderClient({
           onDone={refreshUsage}
         />
       )}
-      {tab === "desain" && <ComingSoonTab capability="DESIGN" settings={settings} providerStatus={providerStatus} />}
+      {tab === "desain" && (
+        <DesignGeneratorTab
+          defaultProvider={settings.designProvider}
+          providerStatus={providerStatus}
+          onDone={refreshUsage}
+        />
+      )}
       {tab === "audio" && <ComingSoonTab capability="AUDIO" settings={settings} providerStatus={providerStatus} />}
       {tab === "video" && <ComingSoonTab capability="VIDEO" settings={settings} providerStatus={providerStatus} />}
       {tab === "soal" && <QuestionTab />}
@@ -946,6 +953,385 @@ function ImageGeneratorTab({
                       <CheckCircle2 className="h-3.5 w-3.5" /> Tersimpan sebagai draft.
                       <Link href="/guru/materi" className="font-semibold underline">
                         Buka Materi <ExternalLink className="inline h-3 w-3" />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============ Tab Desain — Aset Visual CMS (Fase 2b) ============ */
+
+function DesignGeneratorTab({
+  defaultProvider,
+  providerStatus,
+  onDone,
+}: {
+  defaultProvider: string;
+  providerStatus: ProviderStatusMap;
+  onDone: () => void;
+}) {
+  const [presetId, setPresetId] = useState<DesignPresetId>("hero_banner");
+  const [prompt, setPrompt] = useState("");
+  const [aiProvider, setAiProvider] = useState(defaultProvider);
+  const [aiModel, setAiModel] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [images, setImages] = useState<GeneratedImageRow[]>([]);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+
+  // Install state
+  const [installIdx, setInstallIdx] = useState<number | null>(null);
+  const [installForm, setInstallForm] = useState({
+    title: "",
+    subtitle: "",
+    linkUrl: "",
+    linkLabel: "",
+    programId: "",
+    blogId: "",
+    category: "AKTIVITAS",
+    description: "",
+  });
+  const [programs, setPrograms] = useState<{ id: string; title: string }[]>([]);
+  const [blogPosts, setBlogPosts] = useState<{ id: string; title: string }[]>([]);
+  const [installing, setInstalling] = useState(false);
+  const [installed, setInstalled] = useState<{ idx: number; target: string } | null>(null);
+
+  const preset = DESIGN_PRESETS.find((p) => p.id === presetId) ?? DESIGN_PRESETS[0];
+  const provider = AI_IMAGE_PROVIDERS.find((p) => p.id === aiProvider) ?? AI_IMAGE_PROVIDERS[0];
+  const providerConfigured = providerStatus.image.find((p) => p.id === aiProvider)?.configured ?? false;
+
+  async function generate() {
+    if (!prompt.trim()) {
+      setError("Prompt wajib diisi.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    setImages([]);
+    setInstalled(null);
+    try {
+      const res = await fetch("/api/ai/design", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+          presetId,
+          provider: aiProvider,
+          model: aiModel || undefined,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        setError(d.error ?? "Gagal generate aset visual.");
+        return;
+      }
+      setImages(d.images ?? []);
+      setJobId(d.jobId);
+      onDone();
+    } catch {
+      setError("Gagal generate aset visual. Coba lagi.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function copyUrl(idx: number, url: string) {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedIdx(idx);
+      setTimeout(() => setCopiedIdx(null), 2000);
+    } catch {
+      // abaikan
+    }
+  }
+
+  async function openInstall(idx: number) {
+    setInstallIdx(idx);
+    setInstalled(null);
+    setInstallForm((p) => ({ ...p, title: p.title || prompt.trim().slice(0, 50) || `Aset AI ${idx + 1}` }));
+    // Fetch daftar program/blog bila preset butuh
+    if (preset.installTarget === "SiteProgram" && programs.length === 0) {
+      try {
+        const res = await fetch("/api/admin/site/programs");
+        if (res.ok) setPrograms(await res.json());
+      } catch {
+        // abaikan
+      }
+    }
+    if (preset.installTarget === "BlogPost" && blogPosts.length === 0) {
+      try {
+        const res = await fetch("/api/admin/site/blog");
+        if (res.ok) setBlogPosts(await res.json());
+      } catch {
+        // abaikan
+      }
+    }
+  }
+
+  async function install(idx: number, img: GeneratedImageRow) {
+    setInstalling(true);
+    setError("");
+    try {
+      const res = await fetch("/api/ai/design", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          install: {
+            url: img.url,
+            mediaId: img.mediaId,
+            presetId,
+            title: installForm.title,
+            subtitle: installForm.subtitle,
+            linkUrl: installForm.linkUrl,
+            linkLabel: installForm.linkLabel,
+            programId: installForm.programId,
+            blogId: installForm.blogId,
+            category: installForm.category,
+            description: installForm.description,
+          },
+          jobId,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        setError(d.error ?? "Gagal memasang aset.");
+        return;
+      }
+      setInstalled({ idx, target: d.installed });
+      toast.success(`Aset terpasang ke ${d.installed}.`);
+      onDone();
+    } catch {
+      setError("Gagal memasang aset. Coba lagi.");
+    } finally {
+      setInstalling(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Form generate */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6">
+        <h2 className="text-lg font-bold text-gray-900">Buat Aset Visual CMS dengan AI</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Generate banner, cover program, popup promo, cover blog, galeri — lalu langsung pasang ke tujuannya.
+          Hasil tersimpan otomatis di Media Manager (Cloudinary folder <code>ai-cms</code>).
+        </p>
+
+        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-gray-700">Preset Use Case *</label>
+            <select
+              value={presetId}
+              onChange={(e) => { setPresetId(e.target.value as DesignPresetId); setInstalled(null); setInstallIdx(null); }}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            >
+              {DESIGN_PRESETS.map((p) => (
+                <option key={p.id} value={p.id}>{p.label} — {p.size}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-500">
+              {preset.description} Rasio {preset.aspectRatio}, target: {preset.installTarget}.
+            </p>
+          </div>
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-gray-700">Prompt * </label>
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              rows={3}
+              placeholder="mis. Banner promosi pendaftaran kelas SNBT dengan tema merah-biru, gambar siswa ceria"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+            <p className="mt-1 text-xs text-gray-500">Saran tema: sebutkan warna brand, suasana, dan elemen kunci.</p>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Provider Gambar</label>
+            <select
+              value={aiProvider}
+              onChange={(e) => { setAiProvider(e.target.value); setAiModel(""); }}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            >
+              {AI_IMAGE_PROVIDERS.map((p) => (
+                <option key={p.id} value={p.id}>{p.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Model</label>
+            <select value={aiModel} onChange={(e) => setAiModel(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <option value="">Default ({provider.models[0]?.label ?? "model"})</option>
+              {provider.models.map((m) => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {!providerConfigured && (
+          <p className="mt-3 rounded-lg bg-amber-50 px-4 py-2 text-xs text-amber-700">
+            Provider <strong>{provider.label}</strong> belum dikonfigurasi — Super Admin perlu set API key
+            di environment variables.
+          </p>
+        )}
+
+        {error && <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>}
+
+        <div className="mt-5 flex items-center gap-3">
+          <button
+            onClick={generate}
+            disabled={loading}
+            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+            {loading ? "Sedang membuat..." : "Generate Aset"}
+          </button>
+          {images.length > 0 && (
+            <button
+              onClick={generate}
+              disabled={loading}
+              className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              <RotateCcw className="h-4 w-4" /> Generate ulang
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Gallery hasil */}
+      {images.length > 0 && (
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <h2 className="text-lg font-bold text-gray-900">Hasil — {images.length} aset</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Klik <strong>"Pasang ke {preset.installTarget}"</strong> untuk memasang langsung, atau salin URL untuk dipakai manual.
+          </p>
+
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {images.map((img, idx) => (
+              <div key={img.mediaId} className="overflow-hidden rounded-lg border border-gray-200">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={img.url} alt={`AI ${idx + 1}`} className="h-48 w-full object-cover" />
+                <div className="space-y-2 p-3">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => copyUrl(idx, img.url)}
+                      className="flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                      {copiedIdx === idx ? <><Check className="h-3 w-3" /> URL</> : <><Copy className="h-3 w-3" /> Salin URL</>}
+                    </button>
+                    <a href={img.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50">
+                      <Link2 className="h-3 w-3" /> Buka
+                    </a>
+                    {preset.installTarget !== "MediaOnly" && (
+                      <button
+                        onClick={() => openInstall(idx)}
+                        className="ml-auto flex items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
+                      >
+                        <Save className="h-3 w-3" /> Pasang ke {preset.installTarget}
+                      </button>
+                    )}
+                  </div>
+
+                  {installIdx === idx && installed?.idx !== idx && (
+                    <div className="space-y-2 rounded-lg bg-gray-50 p-3">
+                      {(preset.installTarget === "SiteBanner" || preset.installTarget === "SiteGallery") && (
+                        <input
+                          value={installForm.title}
+                          onChange={(e) => setInstallForm((p) => ({ ...p, title: e.target.value }))}
+                          placeholder="Judul"
+                          className="w-full rounded border border-gray-300 px-2 py-1.5 text-xs"
+                        />
+                      )}
+                      {preset.installTarget === "SiteBanner" && (
+                        <>
+                          <input
+                            value={installForm.subtitle}
+                            onChange={(e) => setInstallForm((p) => ({ ...p, subtitle: e.target.value }))}
+                            placeholder="Subtitle (opsional)"
+                            className="w-full rounded border border-gray-300 px-2 py-1.5 text-xs"
+                          />
+                          <input
+                            value={installForm.linkUrl}
+                            onChange={(e) => setInstallForm((p) => ({ ...p, linkUrl: e.target.value }))}
+                            placeholder="Link URL (opsional)"
+                            className="w-full rounded border border-gray-300 px-2 py-1.5 text-xs"
+                          />
+                          <input
+                            value={installForm.linkLabel}
+                            onChange={(e) => setInstallForm((p) => ({ ...p, linkLabel: e.target.value }))}
+                            placeholder="Label tombol (opsional)"
+                            className="w-full rounded border border-gray-300 px-2 py-1.5 text-xs"
+                          />
+                        </>
+                      )}
+                      {preset.installTarget === "SiteProgram" && (
+                        <select
+                          value={installForm.programId}
+                          onChange={(e) => setInstallForm((p) => ({ ...p, programId: e.target.value }))}
+                          className="w-full rounded border border-gray-300 px-2 py-1.5 text-xs"
+                        >
+                          <option value="">— Pilih program —</option>
+                          {programs.map((p) => (
+                            <option key={p.id} value={p.id}>{p.title}</option>
+                          ))}
+                        </select>
+                      )}
+                      {preset.installTarget === "BlogPost" && (
+                        <select
+                          value={installForm.blogId}
+                          onChange={(e) => setInstallForm((p) => ({ ...p, blogId: e.target.value }))}
+                          className="w-full rounded border border-gray-300 px-2 py-1.5 text-xs"
+                        >
+                          <option value="">— Pilih artikel —</option>
+                          {blogPosts.map((b) => (
+                            <option key={b.id} value={b.id}>{b.title}</option>
+                          ))}
+                        </select>
+                      )}
+                      {preset.installTarget === "SiteGallery" && (
+                        <>
+                          <input
+                            value={installForm.category}
+                            onChange={(e) => setInstallForm((p) => ({ ...p, category: e.target.value }))}
+                            placeholder="Kategori (mis. AKTIVITAS)"
+                            className="w-full rounded border border-gray-300 px-2 py-1.5 text-xs"
+                          />
+                          <input
+                            value={installForm.description}
+                            onChange={(e) => setInstallForm((p) => ({ ...p, description: e.target.value }))}
+                            placeholder="Deskripsi (opsional)"
+                            className="w-full rounded border border-gray-300 px-2 py-1.5 text-xs"
+                          />
+                        </>
+                      )}
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => install(idx, img)}
+                          disabled={installing}
+                          className="flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          {installing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                          Pasang sekarang
+                        </button>
+                        <button onClick={() => setInstallIdx(null)} className="text-xs text-gray-500 hover:underline">
+                          Batal
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {installed?.idx === idx && (
+                    <div className="flex items-center gap-1.5 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Terpasang ke {installed.target}.
+                      <Link href="/admin/site" className="font-semibold underline">
+                        Buka CMS <ExternalLink className="inline h-3 w-3" />
                       </Link>
                     </div>
                   )}
