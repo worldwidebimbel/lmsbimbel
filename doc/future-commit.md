@@ -1,6 +1,6 @@
 # Future Commit: Modul AI Builder / AI Ecosystem
 
-> **Status:** Eksplorasi → eksekusi. **Fase 0–4 (Fondasi, Materi Teks, Materi Gambar, Aset Visual CMS, Materi Audio, Video Audio-Visual) sudah terimplementasi**; Fase 5 (Penyatuan) menyusul.
+> **Status:** Eksplorasi → eksekusi. **SEMUA FASE (0–5) TERIMPLEMENTASI**: fondasi, materi teks, materi gambar, aset visual CMS, materi audio, video audio-visual (composite + direct via OpenRouter), penyatuan & Paket Bab AI. Sisa: item backlog lanjutan.
 > Dokumen ini berisi jabaran teknologi, penyesuaian sistem yang diperlukan, timeline build, dan task list terperinci untuk membangun **Modul AI Builder**.
 > Tiap fase di-checklist di sini lalu dijadikan commit terpisah (`feat(ai-builder): fase N — ...`).
 
@@ -302,11 +302,12 @@ Kapabilitas gambar yang sama dengan 4.2, tapi diarahkan ke **aset promosi websit
 - **Direct video-gen (Strategi B) terimplementasi:** `src/lib/ai-video-direct.ts` — AI Writer menyusun satu prompt sinematik → OpenRouter `POST /api/v1/videos` (model: Veo 3.1/Hailuo 3/Wan 2.7) → poll (±20s, timeout 15 menit) → download → Cloudinary → Material VIDEO. Mode composite/direct dipilih di UI (default dari settings `videoMode`), dispatch di route, retry per mode. Registry `AI_VIDEO_PROVIDERS` + `resolveVideoProviderConfig` di `ai-providers.ts`. OpenRouter juga ditambahkan sebagai opsi provider **gambar** (`/api/v1/images` → b64_json, adapter di `ai-image-providers.ts`) dan **TTS** (`/api/v1/audio/speech`, adapter di `ai-tts-providers.ts`) — semua memakai `OPENROUTER_API_KEY`.
 
 ### Fase 5 — Penyatuan & Paket Bab AI
-- [ ] UI AI Question Generator dipindah ke tab AI Hub (API `/api/guru/bank-soal/*` tidak berubah)
-- [ ] Wizard Paket Bab AI: satu form → artikel + gambar + audio + video + soal dalam satu `chapterTitle`
-- [ ] Progress dashboard paket (per bagian: status, retry)
-- [ ] `doc/guide-ai-builder.md` + register di `src/lib/guidance.ts` (BUILD_KONTEN)
-- [ ] Review keamanan: prompt injection (`sourceMaterial`), sanitasi HTML hasil AI, kuota
+- [x] UI AI Question Generator dipindah ke tab AI Hub (API `/api/guru/bank-soal/*` tidak berubah)
+- [x] Wizard Paket Bab AI: satu form → artikel + gambar + audio + video + soal dalam satu `chapterTitle`
+- [x] Progress dashboard paket (per bagian: status, retry)
+- [x] `doc/guide-ai-builder.md` + register di `src/lib/guidance.ts` (BUILD_KONTEN)
+- [x] Review keamanan: prompt injection (`sourceMaterial`), sanitasi HTML hasil AI, kuota
+- Catatan implementasi: **wizard Paket Bab AI diorkestrasi client-side** (tab "Paket Bab") — memanggil API kapabilitas yang sudah ada secara berurutan (`/api/ai/text` → `/api/ai/image` → `/api/ai/audio` → `/api/guru/bank-soal/ai-generate` → `/api/ai/video` opsional) sehingga tiap bagian otomatis tunduk pada guard/quota/audit per kapabilitas dan mendapat status + retry sendiri; route monolitik `POST /api/ai/bab-package` tidak diperlukan. AIQuestionGenerator di-embed di tab Soal (komponen sama tetap dipakai Bank Soal dengan integrasi mapel/ujian). Keamanan: system prompt `/api/ai/text` & `ai-generate` kini menyatakan SOURCE MATERIAL sebagai data tidak terpercaya (anti prompt-injection); konten teks tetap markdown-lite tanpa HTML (di-render aman oleh ArticleRenderer); kuota/rate/budget via guardAI sudah berlaku sejak Fase 0.
 
 ---
 

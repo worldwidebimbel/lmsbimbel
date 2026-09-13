@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import {
   Sparkles, FileText, Image as ImageIcon, Palette, Volume2, Video, Database,
   History, Settings2, CheckCircle2, Loader2, Save, ExternalLink, Wand2, RotateCcw,
-  Copy, Check, Link2,
+  Copy, Check, Link2, Layers,
 } from "lucide-react";
 import {
   AI_CAPABILITIES, AI_IMAGE_PROVIDERS, AI_PROVIDERS, AI_TTS_PROVIDERS, AI_VIDEO_MODES, AI_VIDEO_PROVIDERS,
@@ -15,13 +15,14 @@ import {
 import { DESIGN_PRESETS, type DesignPresetId } from "@/lib/ai-design-presets";
 import { TTS_VOICES } from "@/lib/ai-tts-providers";
 import { MAX_SCENES } from "@/lib/ai-video-pipeline";
+import AIQuestionGenerator from "@/components/guru/AIQuestionGenerator";
 import type { AISettings, ProviderStatusMap } from "@/lib/ai-settings";
 
 // ============================================================
 // AI Builder (Fase 0 — Fondasi, lihat doc/future-commit.md)
-// Tab kapabilitas menampilkan status & rencana; generator menyusul
-// per fase. Tab Pengaturan (Super Admin) menyimpan konfigurasi
-// runtime di AppSetting.
+// Semua kapabilitas (teks/gambar/desain/audio/video/soal) + wizard
+// Paket Bab AI (Fase 5). Tab Pengaturan (Super Admin) menyimpan
+// konfigurasi runtime di AppSetting.
 // ============================================================
 
 const ALL_ROLES = ["GURU", "ADMIN_CABANG", "ADMIN_AKADEMIK", "ADMIN", "SUPER_ADMIN"];
@@ -83,11 +84,11 @@ interface UsageRow {
   count: number;
 }
 
-type Tab = "teks" | "gambar" | "desain" | "audio" | "video" | "soal" | "riwayat" | "pengaturan";
+type Tab = "teks" | "gambar" | "desain" | "audio" | "video" | "paket" | "soal" | "riwayat" | "pengaturan";
 
 const TAB_ICONS: Record<Tab, React.ElementType> = {
   teks: FileText, gambar: ImageIcon, desain: Palette, audio: Volume2,
-  video: Video, soal: Database, riwayat: History, pengaturan: Settings2,
+  video: Video, paket: Layers, soal: Database, riwayat: History, pengaturan: Settings2,
 };
 
 export default function AiBuilderClient({
@@ -121,6 +122,7 @@ export default function AiBuilderClient({
     ...(canDesign ? [{ id: "desain" as Tab, label: "Desain (CMS)" }] : []),
     { id: "audio", label: "Audio" },
     { id: "video", label: "Video" },
+    { id: "paket", label: "Paket Bab" },
     { id: "soal", label: "Soal" },
     { id: "riwayat", label: "Riwayat" },
     ...(isSuperAdmin ? [{ id: "pengaturan" as Tab, label: "Pengaturan" }] : []),
@@ -255,7 +257,14 @@ export default function AiBuilderClient({
           onDone={refreshUsage}
         />
       )}
-      {tab === "soal" && <QuestionTab />}
+      {tab === "paket" && (
+        <BabPackageTab
+          subjects={subjects}
+          classes={classes}
+          onDone={refreshUsage}
+        />
+      )}
+      {tab === "soal" && <QuestionTab subjects={subjects} onDone={refreshUsage} />}
       {tab === "riwayat" && <HistoryTab jobs={jobList} usage={usageList} quotaForRole={quotaForRole} />}
       {tab === "pengaturan" && isSuperAdmin && <SettingsTab initial={settings} />}
     </div>
@@ -2269,22 +2278,395 @@ function ComingSoonTab({
   );
 }
 
-/* ============ Tab Soal (link ke fitur existing) ============ */
+/* ============ Tab Paket Bab AI — wizard satu pintu (Fase 5) ============ */
 
-function QuestionTab() {
+type PartKey = "artikel" | "gambar" | "audio" | "soal" | "video";
+type PartState = { status: "pending" | "running" | "done" | "failed"; message?: string };
+
+const PART_LABELS: Record<PartKey, string> = {
+  artikel: "Artikel Materi",
+  gambar: "Gambar Ilustrasi",
+  audio: "Narasi Audio",
+  soal: "Latihan Soal",
+  video: "Video (background)",
+};
+
+/** Buang markdown-lite agar teks cocok untuk narasi TTS. */
+function stripMarkdownForTts(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/gm, "") // header
+    .replace(/\*\*(.+?)\*\*/g, "$1") // bold
+    .replace(/^\s*\|?[\s:|-]+\|?\s*$/gm, "") // baris pemisah tabel
+    .replace(/\|/g, " — ") // sel tabel
+    .replace(/^\s*\d+\.\s+/gm, "") // nomor daftar
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+interface PackageDraft {
+  title: string;
+  content: string;
+  keyPoints: string[];
+}
+
+function BabPackageTab({
+  subjects,
+  classes,
+  onDone,
+}: {
+  subjects: { id: string; name: string }[];
+  classes: { id: string; name: string }[];
+  onDone: () => void;
+}) {
+  const [form, setForm] = useState({
+    topic: "",
+    subjectId: "",
+    jenjang: "Umum",
+    chapterTitle: "",
+    classId: "",
+  });
+  const [parts, setParts] = useState({ artikel: true, gambar: true, audio: true, soal: true, video: false });
+  const [questionCount, setQuestionCount] = useState(5);
+  const [running, setRunning] = useState(false);
+  const [statuses, setStatuses] = useState<Partial<Record<PartKey, PartState>>>({});
+  const [draft, setDraft] = useState<PackageDraft | null>(null);
+  const [videoJobId, setVideoJobId] = useState<string | null>(null);
+  const [finished, setFinished] = useState(false);
+
+  const subjectName = subjects.find((s) => s.id === form.subjectId)?.name ?? "";
+  const chapter = form.chapterTitle.trim() || `Bab — ${form.topic.trim()}`;
+
+  function setPart(key: PartKey, state: PartState) {
+    setStatuses((p) => ({ ...p, [key]: state }));
+  }
+
+  async function callJson(url: string, body: unknown): Promise<Record<string, unknown>> {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error((d as { error?: string }).error ?? `HTTP ${res.status}`);
+    return d as Record<string, unknown>;
+  }
+
+  // ---------- Part implementations (pakai API yang sudah ada) ----------
+
+  async function doArtikel(): Promise<string> {
+    const gen = await callJson("/api/ai/text", {
+      topic: form.topic,
+      subjectName,
+      jenjang: form.jenjang,
+      length: "sedang",
+    });
+    const d = gen.draft as { title: string; content: string; keyPoints?: string[] };
+    setDraft({ title: d.title, content: d.content, keyPoints: d.keyPoints ?? [] });
+    await callJson("/api/ai/text", {
+      saveDraft: {
+        title: d.title,
+        description: null,
+        content: d.content,
+        keyPoints: d.keyPoints ?? [],
+        tips: null,
+        estDurationMenit: null,
+        classId: form.classId || null,
+        subjectId: form.subjectId || null,
+        chapterTitle: chapter,
+        chapterOrder: 0,
+      },
+      jobId: gen.jobId as string,
+    });
+    return `Draft "${d.title}" tersimpan`;
+  }
+
+  async function doGambar(): Promise<string> {
+    const prompt = `Ilustrasi utama materi: ${form.topic}${subjectName ? ` (${subjectName})` : ""} — visual edukatif yang mewakili inti materi`;
+    const gen = await callJson("/api/ai/image", { prompt, style: "flatvector", aspectRatio: "16:9", count: 1 });
+    const img = (gen.images as { url: string; mediaId: string }[])[0];
+    if (!img) throw new Error("Tidak ada gambar dihasilkan");
+    await callJson("/api/ai/image", {
+      saveImage: {
+        url: img.url,
+        mediaId: img.mediaId,
+        title: `${chapter} — Ilustrasi`,
+        classId: form.classId || null,
+        subjectId: form.subjectId || null,
+        chapterTitle: chapter,
+      },
+      jobId: gen.jobId as string,
+    });
+    return "Ilustrasi tersimpan sebagai draft";
+  }
+
+  async function doAudio(): Promise<string> {
+    const sourceText = draft?.content ?? form.topic;
+    const text = stripMarkdownForTts(sourceText).slice(0, 4000);
+    const gen = await callJson("/api/ai/audio", { text });
+    const audio = gen.audio as { url: string; mediaId: string; durationSec: number };
+    await callJson("/api/ai/audio", {
+      saveAudio: {
+        url: audio.url,
+        mediaId: audio.mediaId,
+        title: `${chapter} — Narasi`,
+        durationSec: audio.durationSec,
+        classId: form.classId || null,
+        subjectId: form.subjectId || null,
+        chapterTitle: chapter,
+      },
+      jobId: gen.jobId as string,
+    });
+    return `Narasi ±${audio.durationSec}s tersimpan`;
+  }
+
+  async function doSoal(): Promise<string> {
+    const gen = await callJson("/api/guru/bank-soal/ai-generate", {
+      topic: form.topic,
+      questionType: "PILGAN",
+      difficulty: 2,
+      count: questionCount,
+      subjectId: form.subjectId || undefined,
+      jenjang: form.jenjang,
+      bahasa: "Bahasa Indonesia",
+    });
+    const questions = gen.questions as unknown[];
+    if (!Array.isArray(questions) || questions.length === 0) throw new Error("Tidak ada soal dihasilkan");
+    const saved = await callJson("/api/guru/bank-soal/ai-generate", {
+      questionsToSave: questions,
+      subjectId: form.subjectId || null,
+      topic: form.topic,
+    });
+    return `${saved.saved ?? questions.length} soal masuk Bank Soal`;
+  }
+
+  async function doVideo(): Promise<string> {
+    const gen = await callJson("/api/ai/video", {
+      mode: "composite",
+      topic: form.topic,
+      subjectName,
+      jenjang: form.jenjang,
+      sceneCount: 5,
+    });
+    setVideoJobId(gen.jobId as string);
+    return "Job video dimulai — pantau progress di tab Video / Riwayat";
+  }
+
+  const partFns: Record<PartKey, () => Promise<string>> = {
+    artikel: doArtikel,
+    gambar: doGambar,
+    audio: doAudio,
+    soal: doSoal,
+    video: doVideo,
+  };
+
+  async function runPart(key: PartKey): Promise<boolean> {
+    setPart(key, { status: "running" });
+    try {
+      const message = await partFns[key]();
+      setPart(key, { status: "done", message });
+      return true;
+    } catch (e) {
+      setPart(key, { status: "failed", message: e instanceof Error ? e.message : "Gagal" });
+      return false;
+    }
+  }
+
+  async function generatePackage() {
+    if (!form.topic.trim()) {
+      toast.error("Topik wajib diisi.");
+      return;
+    }
+    setRunning(true);
+    setFinished(false);
+    setStatuses({});
+    setDraft(null);
+    setVideoJobId(null);
+    for (const key of ["artikel", "gambar", "audio", "soal", "video"] as PartKey[]) {
+      if (parts[key]) await runPart(key);
+    }
+    setRunning(false);
+    setFinished(true);
+    onDone();
+    toast.success("Paket Bab selesai — periksa status tiap bagian.");
+  }
+
+  const partKeys = ["artikel", "gambar", "audio", "soal", "video"] as PartKey[];
+
+  return (
+    <div className="space-y-4">
+      {/* Form */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6">
+        <h2 className="text-lg font-bold text-gray-900">Paket Bab AI — satu topik jadi Bab lengkap</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Satu form → artikel + gambar ilustrasi + narasi audio + latihan soal (video opsional) — semuanya masuk sebagai
+          draft Materi dalam satu <strong>chapterTitle</strong> (Bab). Review & publikasikan lewat halaman Materi.
+          Mengotomatisasi alur di <code>guide-pembuatan-bab.md</code>.
+        </p>
+
+        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-gray-700">Topik *</label>
+            <input
+              value={form.topic}
+              onChange={(e) => setForm((p) => ({ ...p, topic: e.target.value }))}
+              placeholder="mis. Fotosintesis — proses dan faktor yang memengaruhi"
+              disabled={running}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Mapel</label>
+            <select value={form.subjectId} onChange={(e) => setForm((p) => ({ ...p, subjectId: e.target.value }))} disabled={running} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <option value="">— Tanpa mapel —</option>
+              {subjects.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Jenjang</label>
+            <input value={form.jenjang} onChange={(e) => setForm((p) => ({ ...p, jenjang: e.target.value }))} disabled={running} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Bab / chapterTitle (opsional)</label>
+            <input
+              value={form.chapterTitle}
+              onChange={(e) => setForm((p) => ({ ...p, chapterTitle: e.target.value }))}
+              placeholder={`default: "Bab — ${form.topic.trim() || "topik"}"`}
+              disabled={running}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Kelas (opsional)</label>
+            <select value={form.classId} onChange={(e) => setForm((p) => ({ ...p, classId: e.target.value }))} disabled={running} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <option value="">— Tanpa kelas —</option>
+              {classes.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Bagian paket */}
+        <div className="mt-5 rounded-lg bg-gray-50 p-4">
+          <p className="mb-2 text-sm font-medium text-gray-700">Bagian yang dibuat:</p>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            {partKeys.map((key) => (
+              <label key={key} className={`flex items-center gap-2 text-sm ${running ? "opacity-60" : ""}`}>
+                <input
+                  type="checkbox"
+                  checked={parts[key]}
+                  disabled={running}
+                  onChange={(e) => setParts((p) => ({ ...p, [key]: e.target.checked }))}
+                />
+                {PART_LABELS[key]}
+              </label>
+            ))}
+          </div>
+          {parts.soal && (
+            <div className="mt-3 flex items-center gap-2">
+              <label className="text-xs font-medium text-gray-600">Jumlah soal:</label>
+              <input
+                type="number"
+                min={1}
+                max={20}
+                value={questionCount}
+                onChange={(e) => setQuestionCount(Math.min(20, Math.max(1, Number(e.target.value) || 5)))}
+                disabled={running}
+                className="w-20 rounded border border-gray-300 px-2 py-1 text-sm"
+              />
+            </div>
+          )}
+          {parts.video && (
+            <p className="mt-2 text-xs text-gray-500">Video berjalan sebagai job background (composite) — progress di tab Video.</p>
+          )}
+        </div>
+
+        <button
+          onClick={generatePackage}
+          disabled={running || !form.topic.trim()}
+          className="mt-5 flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+        >
+          {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+          {running ? "Sedang membuat paket..." : "Buat Paket Bab"}
+        </button>
+      </div>
+
+      {/* Progress per bagian */}
+      {(partKeys.some((k) => statuses[k]) || running) && (
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <h3 className="font-semibold text-gray-900">Progress paket</h3>
+          <div className="mt-4 space-y-2">
+            {partKeys.filter((k) => parts[k]).map((key) => {
+              const st = statuses[key];
+              const state = st?.status ?? "pending";
+              return (
+                <div key={key} className={`flex flex-wrap items-center gap-3 rounded-lg border p-3 ${
+                  state === "done" ? "border-green-200 bg-green-50"
+                  : state === "failed" ? "border-red-200 bg-red-50"
+                  : state === "running" ? "border-indigo-200 bg-indigo-50"
+                  : "border-gray-200"
+                }`}>
+                  <span className="w-36 shrink-0 text-sm font-medium text-gray-800">{PART_LABELS[key]}</span>
+                  {state === "running" && <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />}
+                  {state === "done" && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                  {state === "failed" && <span className="text-xs font-medium text-red-600">GAGAL</span>}
+                  {state === "pending" && <span className="text-xs text-gray-400">menunggu…</span>}
+                  {st?.message && <span className="min-w-0 flex-1 truncate text-xs text-gray-600">{st.message}</span>}
+                  {state === "failed" && !running && (
+                    <button
+                      onClick={() => runPart(key)}
+                      className="ml-auto flex items-center gap-1 rounded-md border border-red-200 bg-white px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
+                    >
+                      <RotateCcw className="h-3 w-3" /> Retry
+                    </button>
+                  )}
+                  {key === "video" && videoJobId && state === "done" && (
+                    <span className="ml-auto text-xs text-gray-500">job {videoJobId.slice(0, 8)}…</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {finished && !running && (
+            <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+              <CheckCircle2 className="h-4 w-4" />
+              Paket selesai — semua hasil tersimpan sebagai <strong>draft</strong>.
+              <Link href="/guru/materi" className="font-semibold underline">
+                Review di halaman Materi <ExternalLink className="inline h-3 w-3" />
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============ Tab Soal — AI Question Generator (Fase 5: disatukan ke AI Hub) ============ */
+
+function QuestionTab({
+  subjects,
+  onDone,
+}: {
+  subjects: { id: string; name: string }[];
+  onDone: () => void;
+}) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6">
       <h2 className="text-lg font-bold text-gray-900">Soal (AI Question Generator)</h2>
       <p className="mt-1 text-sm text-gray-500">
-        Generator soal sudah tersedia di Bank Soal — pilih provider/model, tipe soal, difficulty, jumlah, jenjang & kurikulum.
-        Pada Fase 5 UI-nya akan dipindah ke AI Builder (API tidak berubah).
+        Generate soal dengan AI — pilih provider/model, tipe soal, difficulty, jumlah, jenjang & kurikulum.
+        Hasil masuk ke Bank Soal untuk direview lalu dipakai di ujian.
       </p>
-      <Link
-        href="/guru/bank-soal"
-        className="mt-4 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
-      >
-        Buka AI Question Generator <ExternalLink className="h-4 w-4" />
-      </Link>
+      <div className="mt-4">
+        <AIQuestionGenerator subjects={subjects} onSaved={onDone} />
+      </div>
+      <p className="mt-4 text-xs text-gray-500">
+        Generator juga masih tersedia langsung di halaman <Link href="/guru/bank-soal" className="font-medium text-indigo-600 hover:underline">Bank Soal</Link> dengan integrasi pemilihan mapel & ujian.
+      </p>
     </div>
   );
 }

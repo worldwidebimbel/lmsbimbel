@@ -153,6 +153,15 @@ export const GUIDANCE_GUIDES: GuidanceGuide[] = [
     category: "BUILD_KONTEN",
   },
   {
+    slug: "ai-builder",
+    title: "AI Builder — Semua Kapabilitas AI Konten",
+    description:
+      "Satu pintu AI untuk materi teks, gambar, aset visual CMS, audio narasi (TTS), video pembelajaran, soal, hingga wizard Paket Bab AI (satu topik jadi Bab lengkap) — lengkap dengan alur review draft, kuota per role, dan pengaturan provider.",
+    file: "guide-ai-builder.md",
+    icon: "Sparkles",
+    category: "BUILD_KONTEN",
+  },
+  {
     slug: "custom-page",
     title: "Custom Page + Section Builder (Studi Kasus: Halaman Karir)",
     description:
