@@ -189,6 +189,9 @@ export default function LandingPageBuilder({
                   <div className="flex items-center gap-2">
                     <GripVertical className="h-4 w-4 text-gray-300" />
                     <span className="text-sm font-medium text-gray-700">{section.type}</span>
+                    {typeof section.anchor === "string" && section.anchor.trim() !== "" && (
+                      <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-mono text-xs text-indigo-600">#{section.anchor.trim()}</span>
+                    )}
                   </div>
                   <div className="flex items-center gap-1">
                     <button type="button" onClick={() => moveSection(i, -1)} disabled={i === 0}

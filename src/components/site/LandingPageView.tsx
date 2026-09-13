@@ -207,13 +207,13 @@ function FormSection({ data }: { data: Record<string, unknown> }) {
           }}
           className="space-y-4 bg-white rounded-xl border border-gray-200 p-6"
         >
-          <input name="name" required placeholder="Nama lengkap" className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm" />
-          <input name="phone" required placeholder="No. WhatsApp" className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm" />
-          <input name="email" type="email" placeholder="Email (opsional)" className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm" />
-          <input name="program" placeholder="Program yang diminati" className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm" />
-          <textarea name="message" rows={3} placeholder="Pesan" className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm" />
+          <input name="name" required placeholder={String(data.namePlaceholder ?? "Nama lengkap")} className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm" />
+          <input name="phone" required placeholder={String(data.phonePlaceholder ?? "No. WhatsApp")} className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm" />
+          <input name="email" type="email" placeholder={String(data.emailPlaceholder ?? "Email (opsional)")} className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm" />
+          <input name="program" placeholder={String(data.programPlaceholder ?? "Program yang diminati")} className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm" />
+          <textarea name="message" rows={3} placeholder={String(data.messagePlaceholder ?? "Pesan")} className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm" />
           <button type="submit" className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-medium text-white hover:bg-indigo-700">
-            Kirim
+            {String(data.submitLabel ?? "Kirim")}
           </button>
         </form>
       </div>
@@ -275,12 +275,23 @@ export default function LandingPageView({
     <div className="min-h-screen">
       {(page.sections || []).map((section, i) => {
         if (section.type === "HEADER" && skipOwnHeader) return null;
+        // Anchor: bungkus section dengan id agar bisa dituju link (#anchor)
+        const anchor = typeof section.anchor === "string" ? section.anchor.trim() : "";
+        const wrapProps = anchor ? { id: anchor, className: "scroll-mt-32" } : {};
         if (section.type === "HEADER") {
-          return <HeaderSection key={i} data={section as Record<string, unknown>} pageTitle={page.title} />;
+          return (
+            <div key={i} {...wrapProps}>
+              <HeaderSection data={section as Record<string, unknown>} pageTitle={page.title} />
+            </div>
+          );
         }
         const Renderer = SECTION_RENDERERS[section.type];
         if (!Renderer) return null;
-        return <Renderer key={i} data={section as Record<string, unknown>} />;
+        return (
+          <div key={i} {...wrapProps}>
+            <Renderer data={section as Record<string, unknown>} />
+          </div>
+        );
       })}
 
       {!skipOwnFooter && (

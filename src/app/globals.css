@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Smooth scroll untuk navigasi anchor antar-section (#id di Custom/Landing Page) */
+html {
+  scroll-behavior: smooth;
+}
+
 /* ===== Marquee (Carousel Infinity Loop) =====
    Konten diduplicate 2x, translateX(-50%) = seamless loop.
    --marquee-duration mengatur kecepatan (detik per loop). */

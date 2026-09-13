@@ -44,13 +44,43 @@ export function createSection(type: string): Section {
     case "CONTENT":
       return { type, title: "", content: "", bgColor: "#ffffff", textColor: "#1f2937", maxWidth: "3xl" };
     case "FORM":
-      return { type, title: "Hubungi Kami", subtitle: "" };
+      return {
+        type, title: "Hubungi Kami", subtitle: "",
+        namePlaceholder: "Nama lengkap",
+        phonePlaceholder: "No. WhatsApp",
+        emailPlaceholder: "Email (opsional)",
+        programPlaceholder: "Program yang diminati",
+        messagePlaceholder: "Pesan",
+        submitLabel: "Kirim",
+      };
     default:
       return { type };
   }
 }
 
 export function SectionEditor({ section, onChange }: { section: Section; onChange: (data: Section) => void }) {
+  const anchor = (section.anchor as string) ?? "";
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="mb-1 block text-xs font-medium text-gray-600">Anchor / ID (opsional)</label>
+        <input
+          value={anchor}
+          onChange={(e) => onChange({ ...section, anchor: e.target.value })}
+          placeholder="mis. kirim-lamaran — bisa di-link dengan #kirim-lamaran"
+          className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm"
+        />
+        <p className="mt-1 text-xs text-gray-400">
+          Isi untuk membuat section bisa dituju link, mis. CTA dengan URL <span className="font-mono">#kirim-lamaran</span>.
+        </p>
+      </div>
+      <SectionFields section={section} onChange={onChange} />
+    </div>
+  );
+}
+
+function SectionFields({ section, onChange }: { section: Section; onChange: (data: Section) => void }) {
   function update(k: string, v: unknown) {
     onChange({ ...section, [k]: v });
   }
@@ -228,6 +258,17 @@ export function SectionEditor({ section, onChange }: { section: Section; onChang
       <div className="space-y-2">
         <input value={(s.title as string) ?? ""} onChange={(e) => update("title", e.target.value)} placeholder="Judul form" className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm" />
         <input value={(s.subtitle as string) ?? ""} onChange={(e) => update("subtitle", e.target.value)} placeholder="Subtitle" className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm" />
+        <div className="space-y-2 rounded border border-gray-100 p-2">
+          <p className="text-xs font-medium text-gray-500">Placeholder kolom & label tombol (kosong = default)</p>
+          <div className="grid grid-cols-2 gap-2">
+            <input value={(s.namePlaceholder as string) ?? ""} onChange={(e) => update("namePlaceholder", e.target.value)} placeholder="Nama lengkap" className="rounded border border-gray-300 px-2 py-1.5 text-sm" />
+            <input value={(s.phonePlaceholder as string) ?? ""} onChange={(e) => update("phonePlaceholder", e.target.value)} placeholder="No. WhatsApp" className="rounded border border-gray-300 px-2 py-1.5 text-sm" />
+            <input value={(s.emailPlaceholder as string) ?? ""} onChange={(e) => update("emailPlaceholder", e.target.value)} placeholder="Email (opsional)" className="rounded border border-gray-300 px-2 py-1.5 text-sm" />
+            <input value={(s.programPlaceholder as string) ?? ""} onChange={(e) => update("programPlaceholder", e.target.value)} placeholder="Program yang diminati" className="rounded border border-gray-300 px-2 py-1.5 text-sm" />
+            <input value={(s.messagePlaceholder as string) ?? ""} onChange={(e) => update("messagePlaceholder", e.target.value)} placeholder="Pesan" className="rounded border border-gray-300 px-2 py-1.5 text-sm" />
+            <input value={(s.submitLabel as string) ?? ""} onChange={(e) => update("submitLabel", e.target.value)} placeholder="Label tombol submit (mis. Kirim Lamaran)" className="rounded border border-gray-300 px-2 py-1.5 text-sm" />
+          </div>
+        </div>
       </div>
     );
   }

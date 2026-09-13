@@ -26,6 +26,7 @@ Perbedaan dengan Landing Page:
   - **Tampilkan Footer Website** — footer lengkap (kontak, sosial media, link).
 - **SEO:** Meta Title & Meta Description diisi opsional; jika kosong, otomatis pakai Judul halaman.
 - **Urutan section** diatur dengan tombol **↑ / ↓**, hapus dengan ikon tempat sampah. Urutan atas ke bawah = urutan tampil di halaman.
+- **Anchor (ID) section:** setiap section punya field opsional *Anchor / ID*. Isi mis. `kirim-lamaran`, maka section bisa dituju link — CTA/hero dengan URL `#kirim-lamaran` akan menggulir halaman ke section tersebut (smooth scroll). Anchor muncul sebagai chip `#kirim-lamaran` di baris section.
 
 ---
 
@@ -39,9 +40,9 @@ Perbedaan dengan Landing Page:
 | **FAQ** | Accordion tanya-jawab | Judul, daftar item (Pertanyaan, Jawaban) |
 | **CTA** | Banner ajakan bertindak (background ungu) | Judul, Subtitle, CTA label, CTA URL |
 | **Content** | Teks bebas rich format (WYSIWYG): paragraf, heading, list, quote, link | Judul (opsional), Konten, Lebar konten (Sempit–Terlebar), warna BG & teks |
-| **Form** | Formulir kontak/pendaftaran | Judul form, Subtitle |
+| **Form** | Formulir kontak/pendaftaran | Judul form, Subtitle, placeholder tiap kolom, label tombol submit |
 
-> Catatan: field form **tidak bisa diubah** (Nama, No. WhatsApp, Email, "Program yang diminati", Pesan) dan tidak ada upload file. Untuk kebutuhan karir, lihat trik di langkah 2.6 di bawah.
+> Catatan: **jenis kolom** form tetap (Nama, No. WhatsApp, Email, "Program yang diminati", Pesan) dan tidak ada upload file — tapi teks placeholder tiap kolom serta label tombol submit bisa dikustom (lihat langkah 2.6).
 
 ---
 
@@ -79,8 +80,8 @@ Klik tombol **Hero** di Section Builder, lalu isi:
 - **Badge:** `We're Hiring!`
 - **Judul:** `Berkarya Bersama Kami`
 - **Subtitle:** `Bergabunglah dengan tim pendidik yang berdedikasi mencetak generasi berprestasi.`
-- **CTA label:** `Hubungi Recruiter`
-- **CTA URL:** `https://wa.me/6281234567890` (nomor WhatsApp HRD/personalia)
+- **CTA label:** `Kirim Lamaran`
+- **CTA URL:** `#kirim-lamaran` — menggulir halaman langsung ke form lamaran (anchor di-set di section FORM, lihat 2.6). Alternatif: `https://wa.me/6281234567890` untuk langsung chat WhatsApp HRD.
 - **BG image URL:** boleh kosong (gradient default).
 
 ### 2.2 FEATURES — "Mengapa Bergabung dengan Kami"
@@ -138,21 +139,27 @@ Klik tombol **Content**, lalu:
 ### 2.5 (Opsional) TESTIMONIAL & CTA
 
 - **Testimoni:** cuplikan pengalaman guru/tim yang sudah bergabung (Nama: nama guru, Peran: `Guru Fisika`, Testimoni: kesan bekerja).
-- **CTA:** Judul `Siap jadi bagian dari kami?`, Subtitle `Kami menantikan lamaran Anda.`, CTA label `Kirim Lamaran`, CTA URL `/p/karir` (tetap di halaman ini, form ada di bawah).
+- **CTA:** Judul `Siap jadi bagian dari kami?`, Subtitle `Kami menantikan lamaran Anda.`, CTA label `Kirim Lamaran`, CTA URL `#kirim-lamaran` (menggulir ke form di bawah).
 
 ### 2.6 FORM — Kirim Lamaran
 
 - **Judul form:** `Kirim Lamaran`
 - **Subtitle:** `Isi form di bawah, tim kami akan menghubungi Anda.`
+- **Anchor / ID:** `kirim-lamaran` — supaya CTA di HERO/CTA section (URL `#kirim-lamaran`) menggulir ke form ini.
+- **Placeholder kolom & label tombol** — sesuaikan untuk konteks karir (kosongkan = teks default):
+  - Placeholder "Program yang diminati" → `Posisi yang dilamar (mis. Guru Matematika)`
+  - Placeholder "Pesan" → `Ceritakan pengalaman singkat Anda / link CV & portofolio`
+  - Placeholder "Nama lengkap" → `Nama lengkap` (biarkan default)
+  - Label tombol submit → `Kirim Lamaran`
 
-Field form bersifat tetap. Untuk keperluan karir, gunakan pemetaan berikut dan **jelaskan di subtitle/judul** agar pelamar mengerti:
+Jenis kolom form tetap 5 (tidak bisa ditambah/dikurangi). Untuk keperluan karir, gunakan pemetaan berikut:
 
 | Field di form | Diisi pelamar dengan |
 |---|---|
 | Nama lengkap | Nama pelamar |
 | No. WhatsApp | Nomor aktif untuk dihubungi |
 | Email (opsional) | Email pelamar |
-| Program yang diminati | **Posisi yang dilamar** (mis. "Guru Matematika") |
+| "Posisi yang dilamar" (kolom Program) | Posisi yang dilamar (mis. "Guru Matematika") |
 | Pesan | Pengalaman singkat / link CV & portofolio |
 
 > Karena **tidak ada upload file**, minta pelamar menaruh link CV/LinkedIn di kolom Pesan, atau arahkan pengiriman CV via WhatsApp (lihat CTA di HERO).
@@ -233,4 +240,5 @@ Semua kiriman form (section **Form**) masuk ke:
 | Judul halaman tampil dobel | Matikan **Tampilkan Judul Halaman (H1)** karena judul sudah ada di section (mis. HERO). |
 | Ingin ganti isi halaman | CMS → Custom Pages → ikon pensil → ubah section → **Simpan & Publikasi**. ⚠️ Klik **Simpan Draft** pada halaman yang sudah published justru **meng-unpublish** halaman (langsung 404 untuk pengunjung). |
 | Hapus halaman | CMS → Custom Pages → ikon tempat sampah. Menu yang menunjuk ke halaman terhapus **tidak ikut terhapus** — hapus manual di CMS → Menu. |
+| Link `#anchor` tidak menggulir ke section | Anchor di section HARUS sama persis dengan URL (huruf besar/kecil berpengaruh), tanpa spasi & tanpa tanda `#` di field anchor. Contoh: anchor `kirim-lamaran` ↔ CTA URL `#kirim-lamaran`. |
 | Menu terhapus tak sengaja beserta submenunya | Menghapus menu juga menghapus semua submenunya (cascade). Buat ulang menu + submenunya. |
