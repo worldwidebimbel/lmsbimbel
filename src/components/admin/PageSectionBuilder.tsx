@@ -1,7 +1,9 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Image as ImageIcon, Trash2 } from "lucide-react";
 import WysiwygEditor from "@/components/admin/WysiwygEditor";
+import MediaPickerModal from "@/components/admin/MediaPickerModal";
 
 // ============================================================
 // Shared section builder — dipakai bersama oleh:
@@ -60,6 +62,21 @@ export function createSection(type: string): Section {
 
 export function SectionEditor({ section, onChange }: { section: Section; onChange: (data: Section) => void }) {
   const anchor = (section.anchor as string) ?? "";
+  // Media picker (future-commit.md Fase 2b) — pilih gambar dari Media Manager
+  // untuk field gambar section (HERO bgImage, HEADER logoUrl, avatar testimoni).
+  const [pickerKey, setPickerKey] = useState<string | null>(null);
+
+  function applyPickedUrl(key: string, url: string) {
+    if (key.startsWith("avatar:")) {
+      const idx = Number(key.slice("avatar:".length));
+      const items = (((section as Record<string, unknown>).items as Array<{ avatar?: string }>) ?? []).map((it) => ({ ...it }));
+      if (items[idx]) items[idx] = { ...items[idx], avatar: url };
+      onChange({ ...section, items });
+    } else {
+      onChange({ ...section, [key]: url });
+    }
+    setPickerKey(null);
+  }
 
   return (
     <div className="space-y-3">
@@ -75,12 +92,38 @@ export function SectionEditor({ section, onChange }: { section: Section; onChang
           Isi untuk membuat section bisa dituju link, mis. CTA dengan URL <span className="font-mono">#kirim-lamaran</span>.
         </p>
       </div>
-      <SectionFields section={section} onChange={onChange} />
+      <SectionFields section={section} onChange={onChange} pickImage={setPickerKey} />
+      {pickerKey !== null && (
+        <MediaPickerModal onSelect={(url) => applyPickedUrl(pickerKey, url)} onClose={() => setPickerKey(null)} />
+      )}
     </div>
   );
 }
 
-function SectionFields({ section, onChange }: { section: Section; onChange: (data: Section) => void }) {
+// Tombol buka Media Picker di samping input URL gambar.
+function ImagePickButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title="Pilih gambar dari Media Manager"
+      aria-label="Pilih gambar dari Media Manager"
+      className="shrink-0 rounded border border-gray-300 bg-white p-1.5 text-gray-500 hover:border-indigo-400 hover:text-indigo-600"
+    >
+      <ImageIcon className="h-4 w-4" />
+    </button>
+  );
+}
+
+function SectionFields({
+  section,
+  onChange,
+  pickImage,
+}: {
+  section: Section;
+  onChange: (data: Section) => void;
+  pickImage: (key: string) => void;
+}) {
   function update(k: string, v: unknown) {
     onChange({ ...section, [k]: v });
   }
@@ -101,8 +144,11 @@ function SectionFields({ section, onChange }: { section: Section; onChange: (dat
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-600">Logo URL</label>
-            <input value={(s.logoUrl as string) ?? ""} onChange={(e) => update("logoUrl", e.target.value)}
-              placeholder="https://... (kosong = teks judul halaman)" className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm" />
+            <div className="flex gap-1">
+              <input value={(s.logoUrl as string) ?? ""} onChange={(e) => update("logoUrl", e.target.value)}
+                placeholder="https://... (kosong = teks judul halaman)" className="min-w-0 flex-1 rounded border border-gray-300 px-2 py-1.5 text-sm" />
+              <ImagePickButton onClick={() => pickImage("logoUrl")} />
+            </div>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -139,7 +185,10 @@ function SectionFields({ section, onChange }: { section: Section; onChange: (dat
     return (
       <div className="grid grid-cols-2 gap-3">
         <input value={(s.badge as string) ?? ""} onChange={(e) => update("badge", e.target.value)} placeholder="Badge (opsional)" className="rounded border border-gray-300 px-2 py-1.5 text-sm" />
-        <input value={(s.bgImage as string) ?? ""} onChange={(e) => update("bgImage", e.target.value)} placeholder="BG image URL (opsional)" className="rounded border border-gray-300 px-2 py-1.5 text-sm" />
+        <div className="flex gap-1">
+          <input value={(s.bgImage as string) ?? ""} onChange={(e) => update("bgImage", e.target.value)} placeholder="BG image URL (opsional)" className="min-w-0 flex-1 rounded border border-gray-300 px-2 py-1.5 text-sm" />
+          <ImagePickButton onClick={() => pickImage("bgImage")} />
+        </div>
         <input value={(s.title as string) ?? ""} onChange={(e) => update("title", e.target.value)} placeholder="Judul hero" className="col-span-2 rounded border border-gray-300 px-2 py-1.5 text-sm" />
         <input value={(s.subtitle as string) ?? ""} onChange={(e) => update("subtitle", e.target.value)} placeholder="Subtitle" className="col-span-2 rounded border border-gray-300 px-2 py-1.5 text-sm" />
         <input value={(s.ctaLabel as string) ?? ""} onChange={(e) => update("ctaLabel", e.target.value)} placeholder="CTA label" className="rounded border border-gray-300 px-2 py-1.5 text-sm" />
@@ -177,6 +226,10 @@ function SectionFields({ section, onChange }: { section: Section; onChange: (dat
               <input value={item.name} onChange={(e) => { const n = [...items]; n[i] = { ...item, name: e.target.value }; update("items", n); }} placeholder="Nama" className="flex-1 rounded border border-gray-300 px-2 py-1.5 text-sm" />
               <input value={item.role} onChange={(e) => { const n = [...items]; n[i] = { ...item, role: e.target.value }; update("items", n); }} placeholder="Peran" className="flex-1 rounded border border-gray-300 px-2 py-1.5 text-sm" />
               <button type="button" onClick={() => update("items", items.filter((_, idx) => idx !== i))} className="rounded p-1 text-gray-500 hover:text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+            </div>
+            <div className="flex gap-1">
+              <input value={item.avatar ?? ""} onChange={(e) => { const n = [...items]; n[i] = { ...item, avatar: e.target.value }; update("items", n); }} placeholder="Avatar URL (opsional — tampil bulat di samping nama)" className="min-w-0 flex-1 rounded border border-gray-300 px-2 py-1.5 text-sm" />
+              <ImagePickButton onClick={() => pickImage(`avatar:${i}`)} />
             </div>
             <textarea value={item.text} onChange={(e) => { const n = [...items]; n[i] = { ...item, text: e.target.value }; update("items", n); }} placeholder="Testimoni" rows={2} className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm" />
           </div>

@@ -275,10 +275,10 @@ Kapabilitas gambar yang sama dengan 4.2, tapi diarahkan ke **aset promosi websit
 - [x] Preset use case: Hero/Slider Banner, Cover Program, Popup Promo, Gambar Section LP/CP, Cover Blog, Galeri (ukuran + rasio + style hint per preset)
 - [x] Upload hasil → `uploadToCloudinary("ai-cms")` → `MediaFile`
 - [x] Tombol **"Pasang ke..."** per preset: `SiteBanner` (buat banner baru), `SiteProgram.imageUrl`, `popupBgImage`, `BlogPost.coverImage`
-- [ ] Media picker di field gambar Section Builder (HERO `bgImage`, CONTENT, dll.) — pilih dari Media Manager
+- [x] Media picker di field gambar Section Builder (HERO `bgImage`, HEADER `logoUrl`, avatar testimoni) — pilih dari Media Manager
 - [x] Tab Desain di AI Builder — hanya tampil untuk role dengan akses DESIGN (default SUPER_ADMIN & ADMIN)
 - [x] Role matrix + kuota DESIGN di settings
-- Catatan implementasi: preset didefinisikan di `src/lib/ai-design-presets.ts` (dipakai bersama route & UI); adapter provider image difaktor ke `src/lib/ai-image-providers.ts` (dipakai route image & design); mode "Pasang ke..." di route `/api/ai/design` membuat/memperbarui entitas CMS target (SiteBanner/SiteProgram/SiteConfig.popupBgImage/BlogPost/SiteGallery) — daftar program/blog di-fetch on-demand di UI saat memilih preset Cover Program/Blog. Media picker di Section Builder dicatat sebagai tindak lanjut (hasil DESIGN sudah masuk Media Manager, bisa dipilih manual lewat Media Picker yang sudah ada).
+- Catatan implementasi: preset didefinisikan di `src/lib/ai-design-presets.ts` (dipakai bersama route & UI); adapter provider image difaktor ke `src/lib/ai-image-providers.ts` (dipakai route image & design); mode "Pasang ke..." di route `/api/ai/design` membuat/memperbarui entitas CMS target (SiteBanner/SiteProgram/SiteConfig.popupBgImage/BlogPost/SiteGallery) — daftar program/blog di-fetch on-demand di UI saat memilih preset Cover Program/Blog. Media picker di Section Builder (`src/components/admin/MediaPickerModal.tsx`) dipasang di field gambar HERO `bgImage`, HEADER `logoUrl`, dan avatar testimoni — fetch `GET /api/admin/media?type=image`; role non-SUPER_ADMIN/ADMIN (list API 403) tetap bisa tempel URL manual, modal menampilkan pesan tersebut.
 
 ### Fase 3 — Materi Audio
 - [x] `AI_TTS_PROVIDERS` + resolver + env + voice list (`id-ID` prioritas)
