@@ -468,11 +468,16 @@ async function main() {
   console.log("🌱 Starting seed...");
 
   // Seed Feature Flags
+  // update: hanya metadata (name, description, tier, dll.) — TIDAK
+  // menimpa isActive, agar flag yang sudah di-toggle admin di server
+  // tidak ter-reset saat seed dijalankan ulang (mis. menambahkan flag
+  // baru). Flag baru (create) memakai isActive dari seed.
   console.log("📌 Seeding feature flags...");
   for (const flag of FEATURE_FLAGS) {
+    const { code, isActive, ...updateFields } = flag;
     await prisma.featureFlag.upsert({
-      where: { code: flag.code },
-      update: flag,
+      where: { code },
+      update: updateFields,
       create: flag,
     });
   }

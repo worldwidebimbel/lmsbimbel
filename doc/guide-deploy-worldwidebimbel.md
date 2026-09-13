@@ -490,17 +490,18 @@ git pull origin feat/worldwide-upgrade
 npm install
 npx prisma generate
 npx prisma migrate deploy
+npm run db:seed
 npm run build
 pm2 restart lms-bimbel --update-env
 ```
 
 Atau satu baris:
 ```bash
-cd /var/www/lms-bimbel && git pull origin feat/worldwide-upgrade && npm install && npx prisma generate && npx prisma migrate deploy && npm run build && pm2 restart lms-bimbel --update-env
+cd /var/www/lms-bimbel && git pull origin feat/worldwide-upgrade && npm install && npx prisma generate && npx prisma migrate deploy && npm run db:seed && npm run build && pm2 restart lms-bimbel --update-env
 ```
 Bila lama tidak diupdate (package-lock.json di server berubah — error "local changes would be overwritten"):
 ```bash
-cd /var/www/lms-bimbel && git checkout -- package-lock.json && git pull origin feat/worldwide-upgrade && npm install && npx prisma generate && npx prisma migrate deploy && npm run build && pm2 restart lms-bimbel --update-env
+cd /var/www/lms-bimbel && git checkout -- package-lock.json && git pull origin feat/worldwide-upgrade && npm install && npx prisma generate && npx prisma migrate deploy && npm run db:seed && npm run build && pm2 restart lms-bimbel --update-env
 ```
 
 > **Jika pull ditolak**: `error: Your local changes to the following files would be overwritten by merge: package-lock.json` — lockfile di server ditulis ulang oleh `npm install` (versi npm berbeda). Buang perubahan lokal lalu pull:
