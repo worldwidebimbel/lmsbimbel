@@ -53,6 +53,7 @@ enum MaterialType {
   LINK
   TEXT
   IMAGE
+  AUDIO
 }
 
 enum QuestionType {

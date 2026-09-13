@@ -13,6 +13,7 @@ import {
   type AICapability,
 } from "@/lib/ai-providers";
 import { DESIGN_PRESETS, type DesignPresetId } from "@/lib/ai-design-presets";
+import { TTS_VOICES } from "@/lib/ai-tts-providers";
 import type { AISettings, ProviderStatusMap } from "@/lib/ai-settings";
 
 // ============================================================
@@ -233,7 +234,15 @@ export default function AiBuilderClient({
           onDone={refreshUsage}
         />
       )}
-      {tab === "audio" && <ComingSoonTab capability="AUDIO" settings={settings} providerStatus={providerStatus} />}
+      {tab === "audio" && (
+        <AudioGeneratorTab
+          subjects={subjects}
+          classes={classes}
+          defaultProvider={settings.ttsProvider}
+          providerStatus={providerStatus}
+          onDone={refreshUsage}
+        />
+      )}
       {tab === "video" && <ComingSoonTab capability="VIDEO" settings={settings} providerStatus={providerStatus} />}
       {tab === "soal" && <QuestionTab />}
       {tab === "riwayat" && <HistoryTab jobs={jobList} usage={usageList} quotaForRole={quotaForRole} />}
@@ -1338,6 +1347,326 @@ function DesignGeneratorTab({
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============ Tab Audio — Materi Audio / TTS (Fase 3) ============ */
+
+const TTS_SPEEDS = [
+  { value: 0.75, label: "0.75× (lambat)" },
+  { value: 1, label: "1× (normal)" },
+  { value: 1.25, label: "1.25× (cepat)" },
+  { value: 1.5, label: "1.5× (lebih cepat)" },
+];
+
+interface GeneratedAudioRow {
+  url: string;
+  mediaId: string;
+  publicId: string;
+  durationSec: number;
+  mimeType: string;
+}
+
+function AudioGeneratorTab({
+  subjects,
+  classes,
+  defaultProvider,
+  providerStatus,
+  onDone,
+}: {
+  subjects: { id: string; name: string }[];
+  classes: { id: string; name: string }[];
+  defaultProvider: string;
+  providerStatus: ProviderStatusMap;
+  onDone: () => void;
+}) {
+  const [text, setText] = useState("");
+  const [aiProvider, setAiProvider] = useState(defaultProvider);
+  const [aiModel, setAiModel] = useState("");
+  const [voice, setVoice] = useState("");
+  const [speed, setSpeed] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [audio, setAudio] = useState<GeneratedAudioRow | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  // Save form
+  const [saveForm, setSaveForm] = useState({ title: "", classId: "", subjectId: "", chapterTitle: "" });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const provider = AI_TTS_PROVIDERS.find((p) => p.id === aiProvider) ?? AI_TTS_PROVIDERS[0];
+  const providerConfigured = providerStatus.tts.find((p) => p.id === aiProvider)?.configured ?? false;
+  const voices = TTS_VOICES[aiProvider] ?? [];
+
+  async function generate() {
+    if (!text.trim()) {
+      setError("Teks wajib diisi.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    setAudio(null);
+    setSaved(false);
+    try {
+      const res = await fetch("/api/ai/audio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text,
+          voice: voice || undefined,
+          speed,
+          provider: aiProvider,
+          model: aiModel || undefined,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        setError(d.error ?? "Gagal generate audio.");
+        return;
+      }
+      setAudio(d.audio);
+      setJobId(d.jobId);
+      setSaveForm((p) => ({ ...p, title: p.title || text.trim().slice(0, 50) || "Narasi AI" }));
+      onDone();
+    } catch {
+      setError("Gagal generate audio. Coba lagi.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function copyUrl() {
+    if (!audio) return;
+    try {
+      await navigator.clipboard.writeText(audio.url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // abaikan
+    }
+  }
+
+  async function save() {
+    if (!audio) return;
+    if (!saveForm.title.trim()) {
+      setError("Judul wajib diisi sebelum menyimpan.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      const res = await fetch("/api/ai/audio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          saveAudio: {
+            url: audio.url,
+            mediaId: audio.mediaId,
+            title: saveForm.title,
+            durationSec: audio.durationSec,
+            classId: saveForm.classId || null,
+            subjectId: saveForm.subjectId || null,
+            chapterTitle: saveForm.chapterTitle || null,
+          },
+          jobId,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        setError(d.error ?? "Gagal menyimpan audio.");
+        return;
+      }
+      setSaved(true);
+      toast.success("Draft audio tersimpan — tinjau lalu publikasikan di halaman Materi.");
+      onDone();
+    } catch {
+      setError("Gagal menyimpan audio. Coba lagi.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Form generate */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6">
+        <h2 className="text-lg font-bold text-gray-900">Buat Narasi Materi dengan AI (Text-to-Speech)</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          AI mengubah teks materi menjadi audio narasi — siswa bisa mendengarkan materinya. Tersimpan otomatis ke Media Manager.
+        </p>
+
+        <div className="mt-5 space-y-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Teks Narasi * (maks 4000 karakter)</label>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              rows={8}
+              placeholder="Tempel teks materi di sini — bisa dari hasil AI Writer, atau ketik manual. AI akan membacakannya menjadi audio."
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              {text.length} / 4000 karakter • estimasi ±{Math.max(1, Math.round(text.trim().split(/\s+/).filter(Boolean).length / 2.5))} detik
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Provider TTS</label>
+              <select
+                value={aiProvider}
+                onChange={(e) => { setAiProvider(e.target.value); setAiModel(""); setVoice(""); }}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              >
+                {AI_TTS_PROVIDERS.map((p) => (
+                  <option key={p.id} value={p.id}>{p.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Model</label>
+              <select value={aiModel} onChange={(e) => setAiModel(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                <option value="">Default ({provider.models[0]?.label ?? "model"})</option>
+                {provider.models.map((m) => (
+                  <option key={m.value} value={m.value}>{m.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Voice</label>
+              <select value={voice} onChange={(e) => setVoice(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                <option value="">Default</option>
+                {voices.map((v) => (
+                  <option key={v.value} value={v.value}>{v.label}</option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">Prioritas voice Bahasa Indonesia natural.</p>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Kecepatan Baca</label>
+              <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                {TTS_SPEEDS.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {!providerConfigured && (
+          <p className="mt-3 rounded-lg bg-amber-50 px-4 py-2 text-xs text-amber-700">
+            Provider <strong>{provider.label}</strong> belum dikonfigurasi — Super Admin perlu set API key
+            di environment variables.
+          </p>
+        )}
+
+        {error && <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>}
+
+        <button
+          onClick={generate}
+          disabled={loading}
+          className="mt-5 flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+        >
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+          {loading ? "Sedang membuat narasi..." : "Generate Audio"}
+        </button>
+      </div>
+
+      {/* Preview player & save */}
+      {audio && (
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-bold text-gray-900">Hasil Audio — review & simpan</h2>
+            <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-600">
+              ± {audio.durationSec} detik
+            </span>
+          </div>
+
+          <div className="mt-4 space-y-4">
+            <audio controls src={audio.url} className="w-full" />
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={copyUrl}
+                className="flex items-center gap-1 rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              >
+                {copied ? <><Check className="h-3 w-3" /> URL tersalin</> : <><Copy className="h-3 w-3" /> Salin URL</>}
+              </button>
+              <a href={audio.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+                <Link2 className="h-3 w-3" /> Buka
+              </a>
+            </div>
+
+            {/* Penempatan */}
+            <div className="grid grid-cols-1 gap-4 rounded-lg bg-gray-50 p-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-sm font-medium text-gray-700">Judul Materi Audio *</label>
+                <input
+                  value={saveForm.title}
+                  onChange={(e) => setSaveForm((p) => ({ ...p, title: e.target.value }))}
+                  placeholder="mis. Narasi Bab 3 — Persamaan Kuadrat"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Kelas (opsional)</label>
+                <select value={saveForm.classId} onChange={(e) => setSaveForm((p) => ({ ...p, classId: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                  <option value="">— Tanpa kelas —</option>
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Mapel (opsional)</label>
+                <select value={saveForm.subjectId} onChange={(e) => setSaveForm((p) => ({ ...p, subjectId: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                  <option value="">— Tanpa mapel —</option>
+                  {subjects.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-sm font-medium text-gray-700">Bab / chapterTitle (opsional)</label>
+                <input
+                  value={saveForm.chapterTitle}
+                  onChange={(e) => setSaveForm((p) => ({ ...p, chapterTitle: e.target.value }))}
+                  placeholder="mis. Bab 3 — Persamaan Kuadrat"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+
+            {saved ? (
+              <div className="flex flex-wrap items-center gap-3 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+                <CheckCircle2 className="h-4 w-4" />
+                Draft audio tersimpan.
+                <Link href="/guru/materi" className="font-semibold underline">
+                  Buka halaman Materi <ExternalLink className="inline h-3 w-3" />
+                </Link>
+                <button
+                  onClick={() => { setAudio(null); setJobId(null); setSaved(false); setText(""); setSaveForm({ title: "", classId: "", subjectId: "", chapterTitle: "" }); }}
+                  className="ml-auto flex items-center gap-1 font-medium text-indigo-600 hover:underline"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" /> Buat audio baru
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={save}
+                disabled={saving}
+                className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                Simpan sebagai Draft Materi Audio
+              </button>
+            )}
           </div>
         </div>
       )}

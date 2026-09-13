@@ -26,6 +26,7 @@ const MATERIAL_TYPES = [
   { value: "LINK", label: "Link Eksternal" },
   { value: "TEXT", label: "Teks / Artikel" },
   { value: "IMAGE", label: "Gambar / Ilustrasi" },
+  { value: "AUDIO", label: "Audio / Narasi" },
 ];
 
 export function MaterialUploadModal({ classes, subjects, editData, onClose, onSaved }: Props) {
@@ -56,7 +57,7 @@ export function MaterialUploadModal({ classes, subjects, editData, onClose, onSa
   const set = (field: string, value: unknown) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  const showUrlInput = ["YOUTUBE", "LINK", "VIDEO", "IMAGE"].includes(form.type);
+  const showUrlInput = ["YOUTUBE", "LINK", "VIDEO", "IMAGE", "AUDIO"].includes(form.type);
   const showFileHint = ["PDF", "PRESENTATION", "DOCUMENT"].includes(form.type);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {

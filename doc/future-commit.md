@@ -1,6 +1,6 @@
 # Future Commit: Modul AI Builder / AI Ecosystem
 
-> **Status:** Eksplorasi → eksekusi. **Fase 0 (Fondasi), Fase 1 (Materi Teks), Fase 2 (Materi Gambar), & Fase 2b (Aset Visual CMS) sudah terimplementasi**; Fase 3–5 menyusul.
+> **Status:** Eksplorasi → eksekusi. **Fase 0 (Fondasi), Fase 1 (Materi Teks), Fase 2 (Materi Gambar), Fase 2b (Aset Visual CMS), & Fase 3 (Materi Audio) sudah terimplementasi**; Fase 4–5 menyusul.
 > Dokumen ini berisi jabaran teknologi, penyesuaian sistem yang diperlukan, timeline build, dan task list terperinci untuk membangun **Modul AI Builder**.
 > Tiap fase di-checklist di sini lalu dijadikan commit terpisah (`feat(ai-builder): fase N — ...`).
 
@@ -280,11 +280,12 @@ Kapabilitas gambar yang sama dengan 4.2, tapi diarahkan ke **aset promosi websit
 - Catatan implementasi: preset didefinisikan di `src/lib/ai-design-presets.ts` (dipakai bersama route & UI); adapter provider image difaktor ke `src/lib/ai-image-providers.ts` (dipakai route image & design); mode "Pasang ke..." di route `/api/ai/design` membuat/memperbarui entitas CMS target (SiteBanner/SiteProgram/SiteConfig.popupBgImage/BlogPost/SiteGallery) — daftar program/blog di-fetch on-demand di UI saat memilih preset Cover Program/Blog. Media picker di Section Builder dicatat sebagai tindak lanjut (hasil DESIGN sudah masuk Media Manager, bisa dipilih manual lewat Media Picker yang sudah ada).
 
 ### Fase 3 — Materi Audio
-- [ ] `AI_TTS_PROVIDERS` + resolver + env + voice list (`id-ID` prioritas)
-- [ ] `POST /api/ai/audio` (teks → MP3, kecepatan, voice)
-- [ ] `MaterialType.AUDIO` + `duration` + player di view siswa
-- [ ] UI tab Audio: textarea (atau ambil dari hasil AI Writer) + preview player
-- [ ] Job record + usage log (unit: detik audio)
+- [x] `AI_TTS_PROVIDERS` + resolver + env + voice list (`id-ID` prioritas)
+- [x] `POST /api/ai/audio` (teks → MP3, kecepatan, voice)
+- [x] `MaterialType.AUDIO` + `duration` + player di view siswa
+- [x] UI tab Audio: textarea (atau ambil dari hasil AI Writer) + preview player
+- [x] Job record + usage log (unit: detik audio)
+- Catatan implementasi: 3 adapter provider di `src/lib/ai-tts-providers.ts` (OpenAI TTS `gpt-4o-mini-tts`/`tts-1`, Google Cloud TTS dengan voice `id-ID` Neural2/Wavenet/Standard, ElevenLabs Multilingual v2); voice list per provider diekspos ke UI (prioritas voice Indonesia natural); migrasi `20260913210000` menambah enum `AUDIO` ke `MaterialType`; upload Cloudinary `resource_type: "video"` (Cloudinary menggolongkan audio sebagai video); `Material.duration` diisi durasi detik; usage log unit = detik audio; tipe `AUDIO` ditambahkan ke `MaterialUploadModal`; preview player `<audio controls>` di tab Audio. Player di view siswa memakai renderer materi yang sudah ada (field `fileUrl` + `duration`).
 
 ### Fase 4 — Video Audio-Visual
 - [ ] Dependency: `fluent-ffmpeg` + `ffmpeg-static`
