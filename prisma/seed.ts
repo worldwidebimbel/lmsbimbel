@@ -812,13 +812,20 @@ async function main() {
   console.log(`✅ ${videoHighlights.length} video highlights seeded`);
 
   // Testimonials
+  // name @unique — upsert by name agar idempoten meski admin sudah
+  // membuat testimoni dengan nama yang sama (id berbeda).
   const testimonials = [
     { id: "seed-test-1", name: "Budi Santoso", role: "Orang Tua", text: "Anak saya naik kelas dengan nilai yang sangat memuaskan berkat bimbingan di EduBimbel. Guru-gurunya sabar dan profesional.", photoUrl: null, avatarUrl: null, rating: 5, programName: "Program SMA", isFeatured: true, order: 1, isActive: true },
     { id: "seed-test-2", name: "Siti Rahayu", role: "Siswa", text: "Metode belajarnya interaktif dan tidak membosankan. Tryout online-nya sangat membantu persiapan UTBK.", photoUrl: null, avatarUrl: null, rating: 5, programName: "Program SMA", isFeatured: true, order: 2, isActive: true },
     { id: "seed-test-3", name: "Ahmad Hidayat", role: "Orang Tua", text: "Laporan progres anak saya selalu update. Saya bisa memantau perkembangannya kapan saja.", photoUrl: null, avatarUrl: null, rating: 5, programName: "Program SMP", isFeatured: true, order: 3, isActive: true },
   ];
   for (const t of testimonials) {
-    await prisma.siteTestimonial.upsert({ where: { id: t.id }, update: t, create: t });
+    const { id: _id, ...fields } = t;
+    await prisma.siteTestimonial.upsert({
+      where: { name: t.name },
+      update: fields,
+      create: t,
+    });
   }
   console.log(`✅ ${testimonials.length} testimonials seeded`);
 
