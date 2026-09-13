@@ -1,470 +1,669 @@
-# Panduan Deploy LMS Bimbel ke Hostinger (Cloud Startup Hosting)
+# Panduan Deploy LMS Bimbel ke VPS IDCloudHost (worldwidebimbel.com)
 
-**Hosting:** Cloud Startup Hosting  
-**IP Address:** 46.202.137.132  
-**Platform:** Hostinger hPanel → Node.js  
-**Database:** Supabase (PostgreSQL managed — Hostinger Cloud Startup tidak menyediakan PostgreSQL, jadi database di-host di Supabase)  
-**Repo:** https://github.com/digsanid-26/lmsbimbel  
+**Domain:** worldwidebimbel.com  
+**IP Server:** [IP-VPS-IDCLOUDHOST]  
+**Repo:** https://github.com/worldwidebimbel/lmsbimbel (public)  
+**Branch deploy:** `feat/worldwide-upgrade` (atau `main` sesuai stabil terbaru)
 
----
-
-## 0. Catatan Penting: Database di Supabase
-
-Hostinger Cloud Startup hanya menyediakan **MySQL/MariaDB**, sedangkan aplikasi LMS Bimbel menggunakan **PostgreSQL** (via Prisma). Untuk itu, database ditempatkan di **Supabase** (PostgreSQL managed gratis, dengan free tier yang cukup untuk LMS bimbel skala awal).
-
-**Arsitektur:**
-
-```
-Browser → Hostinger (Next.js app) → Supabase (PostgreSQL)
-                46.202.137.132        aws-0-[region].pooler.supabase.com
-```
-
-> Aplikasi dan database berada di server berbeda. Latency-nya kecil (tergantung region Supabase yang dipilih — pilih region terdekat dengan server Hostinger, mis. Singapore / Indonesia jika tersedia). Untuk traffic LMS bimbel, ini tidak signifikan.
-
-**Dampak pada kode aplikasi:** Tidak ada. Cukup ubah `DATABASE_URL` dan `DIRECT_URL` di `.env`. Karena Supabase = PostgreSQL asli, semua query Prisma tetap compatible.
+> Dokumen ini berisi instruksi lengkap untuk deploy aplikasi LMS Bimbel ke VPS IDCloudHost dengan domain `worldwidebimbel.com`. Dapat juga digunakan sebagai template panduan bila akan membuat website baru dengan domain lain — cukup ganti **domain**, **IP server**, dan **nama database** sesuai kebutuhan.
+>
+> Repo `worldwidebimbel/lmsbimbel` bersifat **public**, jadi tidak perlu deploy key SSH — `git clone` langsung via HTTPS.
 
 ---
 
----
+## Push Git Manual (dari lokal)
 
-## 1. Spesifikasi Lingkungan Hostinger
+```powershell
+cd C:\Users\MANAKreatif\CascadeProjects\lms-bimbel
 
-| Item | Detail |
-|---|---|
-| **Paket** | Cloud Startup Hosting |
-| **IP Address** | 46.202.137.132 |
-| **Versi Node.js** | 24.x, 22.x, 20.x, 18.x (rekomendasi: **20.x**) |
-| **Package Manager** | npm (default), yarn, pnpm |
-| **Framework Frontend** | Angular, Astro, Gatsby, **Next.js**, Nitro, Nuxt, Parcel, React, React Router, Svelte, SvelteKit, Vite, Vue.js |
-| **Framework Backend** | Astro, Express, Fastify, Hono, NestJS, **Next.js**, Nitro, Nuxt, React Router, SvelteKit |
+# Typecheck cepat
+npm run build 2>&1 | Select-String "Type error|error TS|Failed" | Select-Object -First 10
 
-> Aplikasi LMS Bimbel menggunakan **Next.js (App Router)** — fully supported oleh Hostinger Node.js hosting.
-
----
-
-## 2. Arsitektur Deploy di Hostinger
-
-```
-GitHub Repo (main / feat/worldwide-upgrade)
-    ↓ git pull atau auto-deploy
-Hostinger hPanel → Node.js App
-    ├── Build: npm install && npm run build
-    ├── Start: npm start (atau server.js)
-    ├── Port: otomatis di-assign oleh Hostinger
-    └── Domain: worldwidebimbel.com (atau domain Anda)
-         └── Nginx reverse proxy → Node.js app
+# Commit & push
+git add -A; git commit -m "feat: deskripsi commit"; git push origin feat/worldwide-upgrade
 ```
 
-Hostinger Cloud Startup menggunakan **Phusion Passenger** sebagai app server — tidak perlu PM2. Passenger otomatis restart app jika crash dan mengelola process lifecycle.
+> Repo `worldwidebimbel/lmsbimbel` adalah remote tambahan. Pastikan push ke remote yang benar:
+> ```bash
+> git remote -v
+> # Jika belum ada remote worldwidebimbel:
+> git remote add worldwidebimbel https://github.com/worldwidebimbel/lmsbimbel.git
+> git push worldwidebimbel feat/worldwide-upgrade
+> ```
 
 ---
 
-## 3. Langkah A — Setup via hPanel
+## 1. Akses Server via SSH
 
-### A1. Buat Node.js App
+Dari terminal lokal:
 
-1. Login ke **hPanel** → https://hpanel.hostinger.com
-2. Buka **Hosting → Advanced → Node.js**
-3. Klik **Create Application**
-4. Isi form:
-   - **Project name:** `lms-bimbel`
-   - **Node.js version:** `20.x`
-   - **Project directory:** `lms-bimbel` (subfolder di `domains/yourdomain.com/`)
-   - **Startup file:** `npm start` (atau `server.js` jika pakai custom start)
-   - **Package manager:** `npm`
-5. Klik **Create**
+```bash
+ssh root@[IP-VPS-IDCLOUDHOST]
+```
 
-### A2. Hubungkan Domain
-
-1. Pastikan domain (mis. `worldwidebimbel.com`) sudah mengarah ke IP `46.202.137.132` (A record di DNS)
-2. Di hPanel → **Hosting → Domains** — pastikan domain terdaftar
-3. Node.js app otomatis terhubung ke domain utama
-
-### A3. Setup SSL
-
-1. hPanel → **Hosting → Security → SSL**
-2. Aktifkan **Free SSL (Let's Encrypt)** untuk domain
-3. Aktifkan **Auto-renew**
-4. Pastikan HTTPS redirect aktif
+> Jika menggunakan key SSH:
+> ```bash
+> ssh -i ~/.ssh/id_rsa root@[IP-VPS-IDCLOUDHOST]
+> ```
 
 ---
 
-## 4. Langkah B — Deploy Kode
+## 2. Update System & Install Dependencies
 
-### B1. Via Git (Manual Pull)
+```bash
+apt update && apt upgrade -y
+```
 
-1. SSH ke server Hostinger:
-   ```bash
-   ssh uXXXXXX@46.202.137.132
-   ```
-   > Ganti `uXXXXXX` dengan username akun hosting Anda (lihat di hPanel → FTP/SSH Details)
+### Install Node.js 20 (LTS)
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt-get install -y nodejs
+node -v   # pastikan v20.x
+npm -v
+```
 
-2. **Temukan folder app yang benar:**
+### Install PM2 (process manager)
+```bash
+npm install -g pm2
+```
 
-   Struktur folder Hostinger Cloud Startup:
-   ```
-   ~/domains/
-     ├── yourdomain.com/        ← folder domain (nama = domain Anda)
-     │   ├── public_html/       ← web root (PHP/static files)
-     │   └── lmsbimbel-main/    ← folder Node.js app (nama = "Project directory" di hPanel)
-     └── subdomain.domain.com/
-   ```
+### Install Git
+```bash
+apt install git -y
+```
 
-   **Cara 1 — via SSH:**
-   ```bash
-   # Lihat daftar domain yang terdaftar
-   ls ~/domains/
+### Install Nginx
+```bash
+apt install nginx -y
+systemctl enable nginx
+systemctl start nginx
+```
 
-   # Lihat isi folder domain Anda
-   ls ~/domains/worldwidebimbel.com/
+> ⚠️ **Jika nginx gagal start** dengan error `socket() [::]:80 failed (97: Unknown error)`:
+> IPv6 tidak di-compile di kernel VM. Hapus baris `listen [::]:80` dari config default:
+> ```bash
+> sed -i 's/listen \[::\]:80/# listen [::]:80/' /etc/nginx/sites-enabled/default
+> sed -i 's/listen \[::\]:80/# listen [::]:80/' /etc/nginx/nginx.conf
+> nginx -t
+> systemctl start nginx
+> dpkg --configure -a
+> apt -f install -y
+> ```
 
-   # Folder app biasanya di dalam folder domain, cek isinya
-   ls ~/domains/worldwidebimbel.com/lmsbimbel-main/
-   ```
-   > Nama folder domain = domain yang Anda daftarkan di hPanel (mis. `worldwidebimbel.com`, `worldwidebimbel.id`, dll.)
-   > Nama folder app = "Project directory" yang Anda set saat membuat Node.js app di hPanel
+---
 
-   **Cara 2 — via hPanel (paling akurat):**
-   - hPanel → **Advanced → Node.js** → klik app Anda
-   - Lihat field **"Project directory"** dan **"Domain"**
-   - Path lengkap = `~/domains/[domain]/[project-directory]`
-   - Contoh: domain `worldwidebimbel.com`, project directory `lmsbimbel-main` → path = `~/domains/worldwidebimbel.com/lmsbimbel-main`
+## 3. Setup PostgreSQL
 
-   **Cara 3 — via hPanel File Manager:**
-   - hPanel → **Files → File Manager**
-   - Navigasi ke `domains/` → buka folder domain Anda → cari folder app
-   - Klik kanan folder → **Info** untuk melihat path lengkap
+```bash
+apt install postgresql postgresql-contrib -y
+systemctl enable postgresql
+systemctl start postgresql
+```
 
-3. Navigasi ke folder app:
-   ```bash
-   cd ~/domains/[domain-anda]/[project-directory]
-   ```
-   Contoh:
-   ```bash
-   cd ~/domains/worldwidebimbel.com/lmsbimbel-main
-   ```
+### Buat user dan database
 
-4. Clone repo (jika pertama kali):
-   ```bash
-   git clone https://github.com/digsanid-26/lmsbimbel.git .
-   git checkout feat/worldwide-upgrade
-   ```
-   Atau pull update:
-   ```bash
-   git pull origin feat/worldwide-upgrade
-   ```
+```bash
+sudo -u postgres psql
+```
 
-### B2. Install Dependencies & Build
+Di dalam psql:
+```sql
+CREATE USER lmsuser WITH PASSWORD 'WorldwideBimbel123!';
+CREATE DATABASE worldwidebimbel OWNER lmsuser;
+GRANT ALL PRIVILEGES ON DATABASE worldwidebimbel TO lmsuser;
+\q
+```
+
+> Jika membuat website baru dengan nama berbeda, ganti `worldwidebimbel` dengan nama database baru sesuai kebutuhan.
+
+### Test koneksi
+```bash
+psql -U lmsuser -d worldwidebimbel -h localhost
+```
+
+---
+
+## 4. Clone Repository dari GitHub
+
+Karena repo **public**, tidak perlu deploy key — langsung clone via HTTPS:
+
+```bash
+sudo mkdir -p /var/www/lms-bimbel
+sudo chown -R $USER:$USER /var/www/lms-bimbel
+git clone https://github.com/worldwidebimbel/lmsbimbel.git /var/www/lms-bimbel
+cd /var/www/lms-bimbel
+git checkout feat/worldwide-upgrade
+```
+
+> Jika ingin push dari server (opsional), setup git credentials:
+> ```bash
+> git config --global user.name "Worldwide Bimbel"
+> git config --global user.email "admin@worldwidebimbel.com"
+> ```
+> Karena repo public, `git pull` tidak butuh autentikasi. `git push` butuh PAT (Personal Access Token) atau SSH key.
+
+---
+
+## 5. Konfigurasi Environment Variables
+
+```bash
+cp .env.example .env
+nano .env
+```
+
+> ⚠️ **Penting:** Prisma CLI (`migrate deploy`, `db:seed`) baca file `.env`, **bukan** `.env`. Jadi buat file `.env` (bukan `.env`) di server produksi. Next.js akan baca `.env` juga (sebagai fallback), jadi cukup satu file.
+
+Isi `.env` dengan nilai production:
+
+```env
+# Database (PostgreSQL lokal)
+# - DATABASE_URL: dipakai runtime app (PrismaClient query)
+# - DIRECT_URL: dipakai Prisma CLI (migrate deploy, db push, studio).
+#   WAJIB diisi — schema.prisma mendeklarasikan directUrl.
+#   Karena PostgreSQL lokal (tanpa pooler), isi sama dengan DATABASE_URL.
+DATABASE_URL="postgresql://lmsuser:WorldwideBimbel123!@localhost:5432/worldwidebimbel"
+DIRECT_URL="postgresql://lmsuser:WorldwideBimbel123!@localhost:5432/worldwidebimbel"
+
+NEXTAUTH_URL="https://worldwidebimbel.com"
+NEXTAUTH_SECRET="isi-dengan-random-string-32-karakter"
+
+GOOGLE_CLIENT_ID="isi-dari-google-console"
+GOOGLE_CLIENT_SECRET="isi-dari-google-console"
+
+# Email via Resend (opsi termudah, cukup API key)
+RESEND_API_KEY="re_xxxxxxxxxxxx"
+RESEND_FROM="Worldwide Bimbel <no-reply@worldwidebimbel.com>"
+
+NEXT_PUBLIC_APP_URL="https://worldwidebimbel.com"
+NEXT_PUBLIC_APP_NAME="Worldwide Bimbel"
+```
+
+> ⚠️ **`DIRECT_URL` wajib diisi.** Jika tidak, `npx prisma migrate deploy` akan error:
+> ```
+> Environment variable not found: DIRECT_URL
+> ```
+> Untuk PostgreSQL lokal (tanpa connection pooler seperti PgBouncer/Supabase),
+> cukup isi `DIRECT_URL` dengan nilai yang sama dengan `DATABASE_URL`.
+
+> Generate NEXTAUTH_SECRET:
+> ```bash
+> openssl rand -base64 32
+> ```
+
+> ⚠️ **Penting untuk domain baru:** Daftarkan redirect URI baru di Google Cloud Console:
+> - Login OAuth: `https://worldwidebimbel.com/api/auth/callback/google`
+> - Gmail OAuth2: `https://worldwidebimbel.com/api/admin/email/callback`
+
+---
+
+## 6. Install Dependencies & Build
 
 ```bash
 npm install
+```
+
+### Prisma Generate
+
+`prisma generate` membutuhkan download binary engine dari `binaries.prisma.sh`. Jika server memblokir koneksi tersebut, cek dulu:
+
+```bash
+curl -I https://binaries.prisma.sh
+```
+
+**Jika berhasil (HTTP 200/301):**
+```bash
 npx prisma generate
+```
+
+**Jika gagal / timeout** — gunakan engine yang sudah ada di `node_modules`:
+
+```bash
+# Cari engine binary yang sudah ada setelah npm install
+ENGINE=$(find /var/www/lms-bimbel/node_modules -name "libquery_engine-debian-openssl-3.0.x.so.node" 2>/dev/null | head -1)
+
+# Jika ditemukan, set env var lalu generate
+PRISMA_QUERY_ENGINE_LIBRARY="$ENGINE" npx prisma generate
+
+# Jika tidak ditemukan, buka port outbound terlebih dahulu:
+sudo ufw allow out 443/tcp
+sudo ufw reload
+npx prisma generate
+```
+
+> **Catatan:** `schema.prisma` sudah dikonfigurasi dengan `binaryTargets = ["native", "debian-openssl-3.0.x"]` sehingga binary untuk Ubuntu 22.04 akan di-include saat `npm install`.
+
+### Database & Build
+
+```bash
 npx prisma migrate deploy
+npm run db:seed
 npm run build
 ```
 
-### B3. Setup Environment Variables
+> ⚠️ **Penting:** Deploy menggunakan `prisma migrate deploy` (bukan `db push`). Pastikan folder `prisma/migrations/` selalu di-commit ke git.
 
-1. Buat file `.env` di root project:
-   ```bash
-   nano .env
-   ```
-2. Isi dengan konfigurasi production (lihat section 5 di bawah)
-3. Simpan file
+> `db:seed` akan membuat:
+> - Semua feature flags
+> - Mata pelajaran default
+> - Akun demo (admin, guru, siswa, orang tua)
+> - Header config keys
+> - Custom pages default (Terms & Privacy draft)
 
-### B4. Restart App
-
-Di hPanel → **Node.js** → klik **Restart** pada app `lms-bimbel`
-
-Atau via SSH:
-```bash
-touch tmp/restart.txt
-```
-
-> Hostinger Passenger memantau perubahan pada `tmp/restart.txt` untuk restart aplikasi.
-
-### B5. Alternatif: Deploy via ZIP Upload (Tanpa SSH/Git)
-
-Jika tidak memiliki akses SSH atau akun GitHub tidak bisa dikonfigurasi di server, gunakan metode upload ZIP via hPanel File Manager.
-
-#### Persiapan ZIP di Komputer Lokal
-
-1. Build project di komputer lokal:
-   ```bash
-   npm install
-   npx prisma generate
-   npm run build
-   ```
-
-2. Buat folder sementara bernama `lmsbimbel-main` (ini akan menjadi root folder di server Hostinger)
-
-3. Salin isi project ke folder `lmsbimbel-main/` — **yang WAJIB disertakan**:
-   - `.next/` (hasil build — folder ini penting, jangan dilewati)
-   - `public/` (asset statis)
-   - `prisma/` (schema + migrations folder)
-   - `package.json` dan `package-lock.json`
-   - `next.config.mjs` atau `next.config.js`
-   - `tsconfig.json`
-   - `tailwind.config.ts` (jika ada)
-   - `postcss.config.mjs` atau `postcss.config.js` (jika ada)
-
-4. **JANGAN sertakan** (tidak perlu & memperbesar ZIP):
-   - `node_modules/`
-   - `.env` atau `.env.local` (akan dibuat terpisah di server)
-   - `doc/` (dokumentasi internal)
-   - `src/` (sudah dikompilasi ke `.next/`)
-   - `.git/`
-
-5. Kompres folder `lmsbimbel-main/` menjadi ZIP:
-   - Klik kanan folder `lmsbimbel-main` → **Compress to ZIP**
-   - Pastikan struktur di dalam ZIP: `lmsbimbel-main/.next/`, `lmsbimbel-main/package.json`, dst.
-   - Nama file: `lmsbimbel-deploy.zip`
-
-#### Upload via hPanel File Manager
-
-1. Login ke **hPanel** → **Hosting → Files → File Manager**
-2. Navigasi ke: `domains/worldwidebimbel.com/`
-3. Upload `lmsbimbel-deploy.zip` ke folder tersebut
-4. Klik kanan ZIP → **Extract** → isi nama folder `lmsbimbel-main` jika belum otomatis
-5. Verifikasi struktur: `domains/worldwidebimbel.com/lmsbimbel-main/.next/`, `lmsbimbel-main/package.json`, dst.
-
-#### Konfigurasi Node.js App di hPanel
-
-1. hPanel → **Advanced → Node.js** → **Create Application** (atau edit yang sudah ada)
-2. Set:
-   - **Project directory:** `lmsbimbel-main`
-   - **Node.js version:** `20.x`
-   - **Startup file:** `npm start`
-   - **Package manager:** `npm`
-3. Klik **Create** / **Save**
-
-#### Install Dependencies & Setup via hPanel Terminal
-
-1. hPanel → **Node.js** → app `lmsbimbel-main` → klik **Open Terminal** (atau **Run NPM Install**)
-2. Jalankan:
-   ```bash
-   npm install --production=false
-   ```
-3. Buat file `.env`:
-   - Di File Manager, navigasi ke `lmsbimbel-main/`
-   - Klik **New File** → nama: `.env`
-   - Isi dengan konfigurasi production (lihat section 5)
-4. Jalankan migrasi database:
-   ```bash
-   npx prisma migrate deploy
-   npx prisma db seed
-   ```
-5. Klik **Restart** di halaman Node.js hPanel
-
-#### Update Selanjutnya via ZIP
-
-Setiap ada update kode:
-
-1. Build ulang di lokal: `npm run build`
-2. Salin folder yang berubah (terutama `.next/`, `public/`, `prisma/`, `package.json`) ke `lmsbimbel-main/`
-3. Buat ZIP baru
-4. Upload via File Manager → Extract (overwrite file lama)
-5. Jalankan `npm install` jika ada dependency baru
-6. Jalankan `npx prisma migrate deploy` jika ada migration baru
-7. **Restart** app di hPanel
-
-> **Tips:** Untuk update kecil (hanya konten/asset), cukup upload file yang berubah tanpa membuat ZIP ulang. Gunakan File Manager → drag & drop file individual.
-
----
-
-## 5. Environment Variables (.env)
-
-```env
-# Database (Supabase PostgreSQL)
-# - DATABASE_URL: connection pooler (PgBouncer, port 6543) — untuk runtime app (Next.js)
-# - DIRECT_URL: direct connection (port 5432) — untuk Prisma migrate & long-running query
-# Ganti [REF], [PASSWORD], [REGION] sesuai project Supabase Anda (lihat section 6)
-DATABASE_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
-DIRECT_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres"
-
-# NextAuth
-AUTH_SECRET="generate-with-openssl-rand-base64-32"
-AUTH_URL="https://worldwidebimbel.com"
-
-# Google OAuth (opsional)
-GOOGLE_CLIENT_ID=""
-GOOGLE_CLIENT_SECRET=""
-
-# Email/SMTP (opsional)
-SMTP_HOST=""
-SMTP_PORT="587"
-SMTP_USER=""
-SMTP_PASSWORD=""
-SMTP_FROM=""
-
-# Payment Gateway (opsional)
-DUITKU_MERCHANT_CODE=""
-DUITKU_API_KEY=""
-DUITKU_WEBHOOK_URL="https://worldwidebimbel.com/api/payments/webhook/duitku"
-```
-
-> **Database:** Database ditempatkan di Supabase (PostgreSQL managed), bukan MySQL Hostinger. Buat project Supabase terlebih dahulu (lihat section 6). `DIRECT_URL` wajib diisi karena `schema.prisma` mendeklarasikan `directUrl` untuk migrasi & query yang butuh koneksi langsung.
-
----
-
-## 6. Langkah C — Database Setup (Supabase)
-
-### C0. Buat Project Supabase
-
-1. Daftar / login di https://supabase.com
-2. Klik **New Project**
-3. Isi:
-   - **Name:** `lms-bimbel` (bebas)
-   - **Database Password:** set password kuat — **simpan baik-baik**, password hanya ditampilkan sekali
-   - **Region:** pilih terdekat dengan Hostinger (mis. **Southeast Asia (Singapore)** jika available, atau region dengan latency terkecil ke `46.202.137.132`)
-   - **Plan:** Free tier (cukup untuk mulai) atau Pro jika butuh uptime SLA
-4. Klik **Create new project**, tunggu ±2 menit hingga provisioning selesai
-
-### C1. Ambil Connection String
-
-1. Di dashboard Supabase → **Project Settings** (gear icon) → **Database**
-2. Buka bagian **Connection string** — ada beberapa mode:
-   - **Transaction pooler** (port `6543`) → untuk `DATABASE_URL` (runtime app)
-   - **Session pooler** (port `5432`) → alternatif
-   - **Direct connection** (port `5432`) → untuk `DIRECT_URL` (Prisma migrate)
-3. Salin masing-masing, ganti `[YOUR-PASSWORD]` dengan password yang dibuat di C0:
-
-```env
-# Transaction pooler → DATABASE_URL
-DATABASE_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
-
-# Direct connection → DIRECT_URL
-DIRECT_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres"
-```
-
-> `[REF]` adalah project reference Supabase (format `xxxxxxxxxxxxxxxxxxxxx`), ada di **Project Settings → General → Reference ID**.
-> `[REGION]` tergantung region yang dipilih (mis. `ap-southeast-1`).
-
-### C2. Aktifkan PgBouncer (Connection Pooling)
-
-Supabase free tier punya batas ~60 koneksi. PgBouncer (sudah aktif default di pooler Supabase) mengelola pool koneksi.
-
-1. Dashboard Supabase → **Project Settings → Database → Connection pooling**
-2. Pastikan status: **Enabled**
-3. Mode: **Transaction** (cocok untuk Prisma + Next.js serverless-like)
-4. Pool size default sudah cukup — tidak perlu ubah
-
-### C3. Jalankan Migrasi (dari server Hostinger via SSH)
-
-```bash
-cd ~/domains/worldwidebimbel.com/lms-bimbel
-# Pastikan .env sudah berisi DATABASE_URL dan DIRECT_URL dari Supabase
-npx prisma migrate deploy
-npx prisma db seed
-```
-
-> `migrate deploy` otomatis pakai `DIRECT_URL` (direct connection) — penting karena PgBouncer (transaction mode) tidak mendukung `LISTEN/NOTIFY` & prepared statement yang dipakai migrate.
-> Jika ini deploy pertama dan belum ada migration baseline di repo, jalankan:
+> Jika database masih kosong (server baru, belum ada migration baseline):
 > ```bash
-> npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > prisma/migrations/0_init/migration.sql
+> # 1. Buat folder migration baseline
+> mkdir -p prisma/migrations/0_init
+>
+> # 2. Generate SQL dari schema saat ini
+> npx prisma migrate diff \
+>   --from-empty \
+>   --to-schema-datamodel prisma/schema.prisma \
+>   --script > prisma/migrations/0_init/migration.sql
+>
+> # 3. Tandai migration sebagai sudah di-applied (tanpa eksekusi SQL)
 > npx prisma migrate resolve --applied 0_init
-> npx prisma migrate deploy
+>
+> # 4. Verifikasi
+> npx prisma migrate status
 > ```
 
-### C4. Verifikasi di Supabase Dashboard
+---
 
-1. Supabase → **Table Editor** — pastikan tabel-tabelel LMS sudah terbentuk (User, Cabang, Siswa, Guru, dst.)
-2. Cek jumlah record di tabel `User` — harus berisi data seed (mis. akun admin/guru/siswa demo)
+## 7. Jalankan dengan PM2
 
-### C5. (Opsional) Hardening Supabase
+```bash
+pm2 start npm --name lms-bimbel -- start
+pm2 save
+pm2 startup
+```
 
-- **Restrict by IP**: Supabase → **Database → Network Restrictions** → izinkan hanya IP `46.202.137.132` (Hostinger). Mencegah akses DB dari luar.
-- **Auto-backup**: Free tier backup harian (7 hari). Aktifkan PITR (Point-in-Time Recovery) di Pro plan untuk backup lebih granular.
-- **Connection limit monitoring**: Supabase → **Database → Insights** — pantau penggunaan koneksi.
+> Perintah `pm2 startup` akan menampilkan satu baris perintah yang harus dijalankan agar PM2 auto-start saat reboot — **jalankan perintah tersebut**.
+
+### Cek status
+```bash
+pm2 status
+pm2 logs lms-bimbel
+```
 
 ---
 
-## 7. Langkah D — Update Aplikasi (Routine Deploy)
-
-Setiap ada update di repo:
+## 8. Konfigurasi Nginx Reverse Proxy
 
 ```bash
-cd ~/domains/worldwidebimbel.com/lms-bimbel
+nano /etc/nginx/sites-available/worldwidebimbel
+```
+
+Isi dengan:
+
+```nginx
+server {
+    listen 80;
+    server_name worldwidebimbel.com www.worldwidebimbel.com;
+
+    client_max_body_size 50M;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+> **Penting:** Tanpa `client_max_body_size`, nginx default hanya mengizinkan body request **1MB**, menyebabkan error `413 Request Entity Too Large` saat upload file materi (PPT/PDF/video). Batas aplikasi sudah mengizinkan hingga 50MB untuk dokumen/PPT, 100MB untuk video, dan 20MB untuk gambar — pastikan nginx tidak membatasi di bawah itu.
+
+Aktifkan dan test:
+
+```bash
+ln -s /etc/nginx/sites-available/worldwidebimbel /etc/nginx/sites-enabled/
+# Hapus default site jika konflik
+rm -f /etc/nginx/sites-enabled/default
+nginx -t
+systemctl reload nginx
+```
+
+---
+
+## 9. Setup SSL dengan Let's Encrypt
+
+> ⚠️ **Prasyarat:** Pastikan DNS di Cloudflare sudah diset ke **DNS only** (grey cloud) — bukan Proxied (orange cloud). Let's Encrypt perlu akses langsung ke server via HTTP-01 challenge. Setelah SSL terpasang, proxy Cloudflare bisa diaktifkan.
+
+```bash
+apt install certbot python3-certbot-nginx -y
+certbot --nginx -d worldwidebimbel.com -d www.worldwidebimbel.com
+```
+
+Ikuti instruksi di layar. Certbot akan otomatis:
+- Generate sertifikat SSL
+- Update konfigurasi Nginx untuk HTTPS
+- Setup auto-renewal
+
+Test auto-renewal:
+```bash
+certbot renew --dry-run
+```
+
+> Jika certbot gagal dengan error "Connection refused" atau "Timeout":
+> 1. Cek DNS sudah pointing ke IP VPS: `dig worldwidebimbel.com +short`
+> 2. Pastikan Cloudflare proxy = **DNS only** (grey cloud)
+> 3. Pastikan port 80 terbuka: `ufw allow 80/tcp && ufw allow 443/tcp`
+
+---
+
+## 10. Setup DNS di Cloudflare
+
+Domain `worldwidebimbel.com` dikelola via **Cloudflare**.
+
+1. Login ke [dash.cloudflare.com](https://dash.cloudflare.com)
+2. Pilih domain `worldwidebimbel.com`
+3. Buka tab **DNS → Records**
+4. Tambahkan record:
+
+| Type | Name | Content | Proxy status | TTL |
+|------|------|---------|--------------|-----|
+| A | `@` | [IP-VPS-IDCLOUDHOST] | **DNS only** (grey cloud) | Auto |
+| A | `www` | [IP-VPS-IDCLOUDHOST] | **DNS only** (grey cloud) | Auto |
+
+> ⚠️ **Penting — set proxy ke "DNS only" (grey cloud) saat setup SSL.**
+> Jika proxy aktif (orange cloud), Cloudflare akan menyediakan SSL sendiri dan Let's Encrypt tidak akan bisa melakukan HTTP-01 challenge. Setelah SSL Let's Encrypt terpasang, proxy bisa diaktifkan (orange cloud) jika ingin fitur CDN/DDoS protection Cloudflare.
+>
+> **Cara verifikasi DNS sudah pointing benar:**
+> ```bash
+> dig worldwidebimbel.com +short
+> # Expected: [IP-VPS-IDCLOUDHOST]
+> ```
+>
+> Propagasi DNS Cloudflare biasanya cepat (1-5 menit).
+
+### (Opsional) Aktifkan Cloudflare Proxy setelah SSL berjalan
+
+Setelah `https://worldwidebimbel.com` berfungsi dengan SSL Let's Encrypt:
+
+1. Kembali ke Cloudflare DNS Records
+2. Ubah proxy status dari **DNS only** → **Proxied** (orange cloud)
+3. Cloudflare akan otomatis menyediakan SSL edge certificate
+4. Set SSL mode di **SSL/TLS** → **Full (strict)** agar Cloudflare validate cert Let's Encrypt
+
+> **Catatan:** Jika proxy Cloudflare aktif, pastikan Nginx `server_name` menerima koneksi dari IP Cloudflare. Cloudflare mengirim header `CF-Connecting-IP` — bisa dipakai di Nginx untuk mendapat real IP visitor:
+> ```nginx
+> # Di /etc/nginx/nginx.conf, dalam blok http {}:
+> set_real_ip_from 173.245.48.0/20;
+> set_real_ip_from 103.21.244.0/22;
+> set_real_ip_from 103.22.200.0/22;
+> set_real_ip_from 103.31.4.0/22;
+> set_real_ip_from 141.101.64.0/18;
+> set_real_ip_from 108.162.192.0/18;
+> set_real_ip_from 190.93.240.0/20;
+> set_real_ip_from 188.114.96.0/20;
+> set_real_ip_from 197.234.240.0/22;
+> set_real_ip_from 198.41.128.0/17;
+> set_real_ip_from 162.158.0.0/15;
+> set_real_ip_from 104.16.0.0/13;
+> set_real_ip_from 104.24.0.0/14;
+> set_real_ip_from 172.64.0.0/13;
+> set_real_ip_from 131.0.72.0/22;
+> real_ip_header CF-Connecting-IP;
+> ```
+
+---
+
+## 11. Setup GitHub Actions CI/CD (Opsional)
+
+Agar setiap push ke branch deploy otomatis deploy ke server, tambahkan **Secrets** di GitHub repo `worldwidebimbel/lmsbimbel`:
+
+1. Buka https://github.com/worldwidebimbel/lmsbimbel/settings/secrets/actions
+2. Klik **New repository secret** dan tambahkan:
+
+| Secret Name | Value |
+|-------------|-------|
+| `DATABASE_URL` | `postgresql://lmsuser:password@localhost:5432/worldwidebimbel` |
+| `DIRECT_URL` | sama dengan `DATABASE_URL` (PostgreSQL lokal tanpa pooler) |
+| `NEXTAUTH_SECRET` | random string 32 karakter |
+| `NEXTAUTH_URL` | `https://worldwidebimbel.com` |
+| `NEXT_PUBLIC_APP_URL` | `https://worldwidebimbel.com` |
+| `VPS_USER` | `root` |
+| `VPS_HOST` | `[IP-VPS-IDCLOUDHOST]` |
+| `VPS_SSH_KEY` | isi dengan **private key** SSH (isi seluruh konten `~/.ssh/id_rsa`) |
+
+### Generate SSH Key untuk CI/CD
+Di server:
+```bash
+ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/github_actions
+cat ~/.ssh/github_actions.pub >> ~/.ssh/authorized_keys
+cat ~/.ssh/github_actions  # copy isi ini ke GitHub Secret VPS_SSH_KEY
+```
+
+---
+
+## 12. Verifikasi Final
+
+```bash
+# Cek app berjalan
+pm2 status
+
+# Cek Nginx
+systemctl status nginx
+
+# Cek SSL
+curl -I https://worldwidebimbel.com
+
+# Cek log app
+pm2 logs lms-bimbel --lines 50
+```
+
+Akses di browser: **https://worldwidebimbel.com**
+
+---
+
+## Troubleshooting
+
+| Masalah | Solusi |
+|---------|--------|
+| App tidak bisa start | Cek `pm2 logs lms-bimbel` untuk error |
+| 502 Bad Gateway | Pastikan app berjalan di port 3000: `pm2 status` |
+| SSL tidak aktif | Pastikan DNS sudah mengarah ke IP server, lalu jalankan `certbot --nginx -d worldwidebimbel.com` |
+| DB connection error | Cek `DATABASE_URL` **dan `DIRECT_URL`** di `.env` sudah benar. Jika error `Environment variable not found: DIRECT_URL`, tambahkan baris `DIRECT_URL=...` (nilai sama dengan `DATABASE_URL` untuk PostgreSQL lokal) |
+| Setelah git pull tidak update | Jalankan `npm run build` lalu `pm2 restart lms-bimbel` |
+| redirect_uri_mismatch (Google OAuth) | Daftarkan `https://worldwidebimbel.com/api/auth/callback/google` di Google Cloud Console |
+| nginx socket() [::]:80 failed | IPv6 disabled di kernel — hapus `listen [::]:80` dari nginx config |
+
+### Update Manual (tanpa CI/CD)
+
+Dari lokal:
+```powershell
+cd C:\Users\MANAKreatif\CascadeProjects\lms-bimbel
+git add -A; git commit -m "fix: deskripsi"; git push origin feat/worldwide-upgrade
+# Jika perlu push ke remote worldwidebimbel juga:
+git push worldwidebimbel feat/worldwide-upgrade
+```
+
+Di server:
+```bash
+cd /var/www/lms-bimbel
 git pull origin feat/worldwide-upgrade
 npm install
 npx prisma generate
 npx prisma migrate deploy
 npm run build
-touch tmp/restart.txt
+pm2 restart lms-bimbel --update-env
 ```
 
 Atau satu baris:
-
 ```bash
-git pull origin feat/worldwide-upgrade && npm install && npx prisma generate && npx prisma migrate deploy && npm run build && touch tmp/restart.txt
+cd /var/www/lms-bimbel && git pull origin feat/worldwide-upgrade && npm install && npx prisma generate && npx prisma migrate deploy && npm run build && pm2 restart lms-bimbel --update-env
+```
+Bila lama tidak diupdate (package-lock.json di server berubah — error "local changes would be overwritten"):
+```bash
+cd /var/www/lms-bimbel && git checkout -- package-lock.json && git pull origin feat/worldwide-upgrade && npm install && npx prisma generate && npx prisma migrate deploy && npm run build && pm2 restart lms-bimbel --update-env
 ```
 
+> **Jika pull ditolak**: `error: Your local changes to the following files would be overwritten by merge: package-lock.json` — lockfile di server ditulis ulang oleh `npm install` (versi npm berbeda). Buang perubahan lokal lalu pull:
+> ```bash
+> git checkout -- package-lock.json
+> git pull origin feat/worldwide-upgrade
+> ```
+> Jika masih ada file lain yang termodifikasi, cek `git status`, lalu `git stash && git pull ... && git stash drop`.
+> **Pencegahan permanen**: pakai `npm ci` (bukan `npm install`) di server produksi — tidak pernah menulis ulang `package-lock.json`.
+
+> **Jika build gagal** dengan error `Cannot find module '.../jest-worker/processChild.js'` atau sejenisnya, lakukan clean install:
+> ```bash
+> rm -rf node_modules .next
+> npm install
+> npx prisma generate
+> npm run build
+> pm2 restart lms-bimbel
+> ```
+
 ---
 
-## 8. Troubleshooting
+## Setup Gmail OAuth2 di Server Baru
 
-### App tidak muncul / 502 Bad Gateway
+### Redirect URI yang harus didaftarkan di Google Cloud
 
-- Cek **Node.js version** di hPanel — pastikan `20.x` (bukan 18.x jika ada fitur yang butuh Node 20+)
-- Cek **startup file** — pastikan `npm start` atau path `server.js` benar
-- Cek log: hPanel → Node.js → **View Logs** atau via SSH `cat ~/domains/worldwidebimbel.com/logs/*.log`
+Karena aplikasi ini pakai **satu Google Client ID** untuk login OAuth dan Gmail OAuth2, daftarkan semua redirect URI yang dipakai (WAJIB exact match):
 
-### Database connection error
+- Login OAuth: `https://worldwidebimbel.com/api/auth/callback/google`
+- Gmail OAuth2: `https://worldwidebimbel.com/api/admin/email/callback`
+- Localhost: `http://localhost:3000/api/auth/callback/google` dan `http://localhost:3000/api/admin/email/callback`
 
-- Pastikan `DATABASE_URL` (pooler port `6543`) dan `DIRECT_URL` (direct port `5432`) di `.env` sudah benar dan **password** sesuai
-- Pastikan project Supabase aktif (tidak di-pause). Free tier bisa pause setelah 1 minggu idle — klik **Restore** di dashboard Supabase
-- Cek region: gunakan region Supabase terdekat dengan Hostinger (`46.202.137.132`)
-- Test koneksi dari SSH Hostinger:
+```bash
+# Tahap 1 (sebelum otorisasi)
+GOOGLE_CLIENT_ID=1234...apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-...
+
+# Tahap 2 (setelah klik "Mulai Otorisasi" di /admin/settings → Email)
+GOOGLE_REFRESH_TOKEN=1//0g...
+GMAIL_FROM=akungmail@gmail.com
+```
+
+### Troubleshooting Gmail
+
+- **redirect_uri_mismatch**: pastikan URI di Google Cloud Console sama persis (https vs http, tanpa trailing slash).
+- **Tidak ada refresh_token**: cabut akses app di https://myaccount.google.com/permissions lalu otorisasi ulang.
+- **Test email gagal**: cek dulu `/api/admin/email/diagnose` untuk status kredensial.
+
+---
+
+## Panduan Recovery: Server Terhenti & Error "Client-side exception"
+
+### Gejala
+
+Server sempat berhenti (reboot, PM2 crash, OOM, dll). Setelah start ulang, halaman menampilkan:
+
+> **Application error: a client-side exception has occurred while loading worldwidebimbel.com (see the browser console for more information).**
+
+### Langkah Recovery (Urut dari Cepat ke Menyeluruh)
+
+#### Langkah 1: Cek status dasar (30 detik)
+
+```bash
+pm2 status
+pm2 logs lms-bimbel --lines 30 --err
+systemctl status postgresql
+ss -tlnp | grep 3000
+```
+
+#### Langkah 2: Restart cepat (1 menit)
+
+```bash
+cd /var/www/lms-bimbel
+cat .env | grep DATABASE_URL
+npx prisma generate
+pm2 restart lms-bimbel --update-env
+sleep 10 && pm2 logs lms-bimbel --lines 10
+```
+
+#### Langkah 3: Rebuild jika Langkah 2 tidak cukup (3-5 menit)
+
+```bash
+cd /var/www/lms-bimbel
+pm2 stop lms-bimbel
+rm -rf .next
+npx prisma generate
+npm run build
+pm2 restart lms-bimbel --update-env
+pm2 logs lms-bimbel --lines 20
+```
+
+#### Langkah 4: Clean install jika Langkah 3 gagal (5-10 menit)
+
+```bash
+cd /var/www/lms-bimbel
+pm2 stop lms-bimbel
+cp .env /tmp/.env.backup
+rm -rf node_modules .next
+npm install
+cp /tmp/.env.backup .env
+npx prisma generate
+npx prisma migrate deploy
+npm run build
+pm2 restart lms-bimbel --update-env
+sleep 10 && pm2 logs lms-bimbel --lines 20
+```
+
+#### Langkah 5: Cek database jika masih error
+
+```bash
+psql -U lmsuser -d worldwidebimbel -h localhost -c "SELECT 1;"
+systemctl restart postgresql
+sleep 5
+pm2 logs lms-bimbel --lines 30 | grep -i "database\|prisma\|connection"
+```
+
+### Verifikasi Setelah Recovery
+
+```bash
+curl -s -o /dev/null -w "%{http_code}" http://localhost:3000
+# Expected: 200
+
+curl -s -o /dev/null -w "%{http_code}" https://worldwidebimbel.com
+# Expected: 200
+
+pm2 logs lms-bimbel --lines 10 --err
+# Expected: (kosong)
+```
+
+### Pencegahan
+
+- **PM2 auto-restart:** pastikan `pm2 startup` sudah dijalankan
+- **Save PM2 list:** jalankan `pm2 save` setelah konfigurasi stabil
+- **Max memory restart:**
   ```bash
-  npx prisma db execute --schema prisma/schema.prisma --stdin <<< "SELECT 1;"
+  pm2 restart lms-bimbel --max-memory-restart 500M
+  pm2 save
   ```
-- Jika error `prepared statement does not exist` → PgBouncer transaction mode. Solusi: pastikan `DATABASE_URL` pakai `?pgbouncer=true&connection_limit=1`, dan `directUrl` di schema diisi
-- Jika error `too many connections` → turunkan `connection_limit` atau upgrade Supabase plan
-- Cek status Supabase di https://status.supabase.com
-
-### Build error (memory limit)
-
-- Cloud Startup punya limit memory — jika `npm run build` OOM:
-  - Tambah swap: `fallocate -l 1G /tmp/swapfile && chmod 600 /tmp/swapfile && mkswap /tmp/swapfile && swapon /tmp/swapfile`
-  - Atau build di lokal lalu upload folder `.next/` via FTP/SFTP
-
-### Prisma migrate error
-
-- Pastikan `prisma/migrations/` folder ikut ter-commit di repo
-- Jalankan `npx prisma migrate status` untuk cek state
-- Jika ada drift: `npx prisma migrate resolve --applied NAMA_MIGRATION`
-
-### SSL tidak aktif
-
-- Pastikan DNS A record sudah resolve ke `46.202.137.132` (cek: `dig worldwidebimbel.com A`)
-- Tunggu propagasi DNS (max 24 jam)
-- Re-issue SSL di hPanel → SSL → Re-issue
-
----
-
-## 9. Checklist Pasca-Deploy
-
-- [ ] Akses `https://worldwidebimbel.com` — halaman landing tampil
-- [ ] Login admin (`/admin`) — berhasil
-- [ ] Login siswa (`/siswa`) — berhasil
-- [ ] Login guru (`/guru`) — berhasil
-- [ ] Database terhubung (cek: buat data test di admin)
-- [ ] Upload file berfungsi (cek: upload materi/avatar)
-- [ ] Email terkirim (jika SMTP dikonfigurasi) — test reset password
-- [ ] Payment gateway callback (jika dikonfigurasi) — test sandbox
-- [ ] SSL aktif (HTTPS, no warning)
-- [ ] Google OAuth login berfungsi (jika dikonfigurasi)
-
----
-
-## 10. Catatan Penting
-
-- **Tidak perlu PM2** — Hostinger Cloud Startup menggunakan Phusion Passenger yang otomatis mengelola proses Node.js
-- **Port otomatis** — Passenger menetapkan port via environment variable `PORT`, tidak perlu set manual
-- **`.next/` folder** — harus ada setelah build; jika di-`.gitignore`, pastikan build dijalankan di server
-- **File uploads** — pastikan folder `public/uploads/` writable (`chmod -R 755 public/uploads`)
-- **Cron jobs** — jika ada scheduled task (mis. cron notifikasi), setup via hPanel → **Advanced → Cron Jobs**
-- **Backup database** — database di Supabase, bukan Hostinger. Free tier: backup harian (7 hari). Untuk backup manual: Supabase → **Database → Backups** atau via `pg_dump` dari SSH Hostinger:
+- **Backup .env:**
   ```bash
-  pg_dump "$DIRECT_URL" -F c -f backup.dump
+  cp /var/www/lms-bimbel/.env /root/.env.backup
   ```
+- **Pastikan `DIRECT_URL` tetap terisi** setelah update repo — `schema.prisma` mendeklarasikan `directUrl = env("DIRECT_URL")`. Jika env var hilang/empty, `prisma migrate deploy` akan gagal dengan error `Environment variable not found: DIRECT_URL`. Untuk PostgreSQL lokal (tanpa pooler), isi `DIRECT_URL` dengan nilai yang sama dengan `DATABASE_URL`.
+
+---
+
+## Checklist Deploy Server Baru
+
+- [ ] SSH bisa akses ke `root@[IP-VPS-IDCLOUDHOST]`
+- [ ] Node.js 20, PM2, Git, Nginx terinstall
+- [ ] Nginx berjalan (jika error IPv6, hapus `listen [::]:80`)
+- [ ] PostgreSQL berjalan, database & user dibuat
+- [ ] Repo berhasil di-clone ke `/var/www/lms-bimbel`
+- [ ] `.env` terisi dengan benar (URL = `https://worldwidebimbel.com`, `DATABASE_URL` & `DIRECT_URL` terisi)
+- [ ] `npm install` berhasil
+- [ ] `npx prisma generate` berhasil
+- [ ] `npx prisma migrate deploy` berhasil
+- [ ] `npm run db:seed` berhasil
+- [ ] `npm run build` berhasil
+- [ ] PM2 menjalankan app di port 3000
+- [ ] Nginx reverse proxy aktif
+- [ ] DNS `worldwidebimbel.com` → `[IP-VPS-IDCLOUDHOST]` sudah propagasi
+- [ ] SSL Let's Encrypt aktif (`https://worldwidebimbel.com`)
+- [ ] Google OAuth redirect URI sudah didaftarkan untuk domain baru
+- [ ] Verifikasi: `curl -I https://worldwidebimbel.com` mengembalikan 200
+- [ ] Login admin bisa diakses di `https://worldwidebimbel.com/admin`
+
