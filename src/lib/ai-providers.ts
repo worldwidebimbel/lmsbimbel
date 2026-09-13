@@ -96,3 +96,158 @@ export function resolveProviderConfig(id: AIProviderId): ResolvedProviderConfig 
     keyEnvName: "APICLAUDE_API_KEY (atau OPENAI_API_KEY)",
   };
 }
+
+// ============================================================
+// AI Builder — registry per kapabilitas (future-commit.md)
+// TEXT/QUESTION memakai AI_PROVIDERS di atas; IMAGE/DESIGN/AUDIO/VIDEO
+// punya registry sendiri. DESIGN memakai provider IMAGE yang sama.
+// ============================================================
+
+export type AICapability = "TEXT" | "IMAGE" | "DESIGN" | "AUDIO" | "VIDEO" | "QUESTION";
+
+export const AI_CAPABILITIES: { id: AICapability; label: string; description: string; unitLabel: string }[] = [
+  { id: "TEXT", label: "Materi Teks", description: "Artikel/ringkasan materi pelajaran (rich text + key points)", unitLabel: "materi" },
+  { id: "IMAGE", label: "Materi Gambar", description: "Ilustrasi & diagram untuk materi dan soal", unitLabel: "gambar" },
+  { id: "DESIGN", label: "Aset Visual CMS", description: "Banner, hero/slider, cover program, popup, gambar LP/CP — untuk admin", unitLabel: "aset" },
+  { id: "AUDIO", label: "Materi Audio", description: "Narasi materi (text-to-speech)", unitLabel: "menit" },
+  { id: "VIDEO", label: "Materi Video", description: "Video pembelajaran audio-visual (composite pipeline)", unitLabel: "video" },
+  { id: "QUESTION", label: "Soal", description: "AI Question Generator (sudah ada, akan disatukan)", unitLabel: "batch" },
+];
+
+/** Provider generik — bentuk sama dengan AIProviderMeta agar bisa dirender settings UI. */
+export interface AIGenericProviderMeta {
+  id: string;
+  label: string;
+  site: string;
+  models: AIModelOption[];
+}
+
+export const AI_IMAGE_PROVIDERS: AIGenericProviderMeta[] = [
+  {
+    id: "openai",
+    label: "OpenAI Images",
+    site: "https://platform.openai.com/docs/guides/images",
+    models: [
+      { value: "gpt-image-1", label: "GPT Image 1 (Recommended)" },
+      { value: "dall-e-3", label: "DALL-E 3" },
+    ],
+  },
+  {
+    id: "replicate",
+    label: "Replicate (Flux/SDXL)",
+    site: "https://replicate.com/collections/text-to-image",
+    models: [
+      { value: "black-forest-labs/flux-schnell", label: "Flux Schnell (murah & cepat)" },
+      { value: "stability-ai/sdxl", label: "SDXL" },
+    ],
+  },
+  {
+    id: "stability",
+    label: "Stability AI",
+    site: "https://platform.stability.ai/docs/api-reference",
+    models: [{ value: "sd3.5-large", label: "Stable Diffusion 3.5 Large" }],
+  },
+];
+
+export const AI_TTS_PROVIDERS: AIGenericProviderMeta[] = [
+  {
+    id: "openai",
+    label: "OpenAI TTS",
+    site: "https://platform.openai.com/docs/guides/text-to-speech",
+    models: [
+      { value: "gpt-4o-mini-tts", label: "GPT-4o mini TTS (Recommended)" },
+      { value: "tts-1", label: "TTS-1" },
+    ],
+  },
+  {
+    id: "google",
+    label: "Google Cloud TTS",
+    site: "https://cloud.google.com/text-to-speech",
+    models: [{ value: "id-ID-Neural2", label: "id-ID Neural2 (voice Indonesia)" }],
+  },
+  {
+    id: "elevenlabs",
+    label: "ElevenLabs",
+    site: "https://elevenlabs.io/docs",
+    models: [{ value: "eleven_multilingual_v2", label: "Multilingual v2" }],
+  },
+];
+
+export const AI_VIDEO_MODES: AIModelOption[] = [
+  { value: "composite", label: "Composite (hemat — naskah + gambar + TTS + FFmpeg)" },
+  { value: "direct", label: "Direct video-gen (premium — Runway/Veo, fase lanjutan)" },
+];
+
+export function getProvidersForCapability(capability: AICapability): AIGenericProviderMeta[] {
+  switch (capability) {
+    case "TEXT":
+    case "QUESTION":
+      return AI_PROVIDERS;
+    case "IMAGE":
+    case "DESIGN":
+      return AI_IMAGE_PROVIDERS;
+    case "AUDIO":
+      return AI_TTS_PROVIDERS;
+    case "VIDEO":
+      return []; // video: mode (composite/direct), bukan daftar provider — Fase 4
+  }
+}
+
+// ---------- Resolver server-side: status konfigurasi per provider ----------
+// Hanya dipanggil dari route handler (membaca env — mengikuti konvensi resolveProviderConfig).
+
+export function resolveImageProviderConfig(id: string): ResolvedProviderConfig {
+  if (id === "replicate") {
+    return {
+      baseUrl: process.env.REPLICATE_BASE_URL || "https://api.replicate.com/v1",
+      apiKey: process.env.REPLICATE_API_KEY,
+      headers: {},
+      defaultModel: process.env.AI_IMAGE_MODEL || "black-forest-labs/flux-schnell",
+      keyEnvName: "REPLICATE_API_KEY",
+    };
+  }
+  if (id === "stability") {
+    return {
+      baseUrl: process.env.STABILITY_BASE_URL || "https://api.stability.ai/v1",
+      apiKey: process.env.STABILITY_API_KEY,
+      headers: {},
+      defaultModel: process.env.AI_IMAGE_MODEL || "sd3.5-large",
+      keyEnvName: "STABILITY_API_KEY",
+    };
+  }
+  return {
+    baseUrl: process.env.OPENAI_IMAGES_BASE_URL || "https://api.openai.com/v1",
+    apiKey: process.env.OPENAI_IMAGES_API_KEY || process.env.OPENAI_API_KEY,
+    headers: {},
+    defaultModel: process.env.AI_IMAGE_MODEL || "gpt-image-1",
+    keyEnvName: "OPENAI_IMAGES_API_KEY (atau OPENAI_API_KEY)",
+  };
+}
+
+export function resolveTTSProviderConfig(id: string): ResolvedProviderConfig {
+  if (id === "google") {
+    return {
+      baseUrl: process.env.GOOGLE_TTS_BASE_URL || "https://texttospeech.googleapis.com",
+      apiKey: process.env.GOOGLE_TTS_API_KEY,
+      headers: {},
+      defaultModel: process.env.AI_TTS_MODEL || "id-ID-Neural2",
+      keyEnvName: "GOOGLE_TTS_API_KEY",
+    };
+  }
+  if (id === "elevenlabs") {
+    return {
+      baseUrl: process.env.ELEVENLABS_BASE_URL || "https://api.elevenlabs.io/v1",
+      apiKey: process.env.ELEVENLABS_API_KEY,
+      headers: {},
+      defaultModel: process.env.AI_TTS_MODEL || "eleven_multilingual_v2",
+      keyEnvName: "ELEVENLABS_API_KEY",
+    };
+  }
+  return {
+    baseUrl: process.env.OPENAI_TTS_BASE_URL || "https://api.openai.com/v1",
+    apiKey: process.env.OPENAI_TTS_API_KEY || process.env.OPENAI_API_KEY,
+    headers: {},
+    defaultModel: process.env.AI_TTS_MODEL || "gpt-4o-mini-tts",
+    keyEnvName: "OPENAI_TTS_API_KEY (atau OPENAI_API_KEY)",
+  };
+}

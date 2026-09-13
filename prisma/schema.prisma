@@ -272,6 +272,8 @@ model User {
   approvedPayrolls   TeacherPayroll[] @relation("ApprovedPayrolls")
   verifiedAttendances TeacherAttendance[] @relation("AttendanceVerifier")
   notificationLogs   NotificationLog[]
+  aiGenerationJobs  AiGenerationJob[] @relation("AiGenerationJobs")
+  aiUsageLogs       AiUsageLog[]      @relation("AiUsageLogs")
 
   @@map("users")
 }
@@ -1895,6 +1897,55 @@ model MediaFile {
   createdAt    DateTime @default(now())
 
   @@map("media_files")
+}
+
+// ============================
+// AI BUILDER (future-commit.md — Fase 0: Fondasi)
+// ============================
+
+// Job generate AI (semua kapabilitas: TEXT, IMAGE, AUDIO, VIDEO, QUESTION, BAB_PACKAGE).
+// Job singkat (teks/gambar/audio) bisa selesai sinkron; job panjang (video)
+// dipolling lewat status.
+model AiGenerationJob {
+  id               String    @id @default(cuid())
+  capability       String // TEXT | IMAGE | DESIGN | AUDIO | VIDEO | QUESTION | BAB_PACKAGE
+  status           String    @default("PENDING") // PENDING | PROCESSING | DONE | FAILED
+  provider         String?
+  model            String?
+  params           Json?
+  resultMaterialId String?
+  resultMediaId    String?
+  resultUrl        String?
+  errorMessage     String?   @db.Text
+  costEstimate     Int? // estimasi biaya (rupiah)
+  durationMs       Int?
+  createdBy        String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  creator User @relation("AiGenerationJobs", fields: [createdBy], references: [id])
+
+  @@index([createdBy, createdAt])
+  @@index([status, createdAt])
+  @@map("ai_generation_jobs")
+}
+
+// Log pemakaian AI per user — dasar kuota bulanan & laporan biaya.
+model AiUsageLog {
+  id           String   @id @default(cuid())
+  userId       String
+  capability   String // TEXT | IMAGE | DESIGN | AUDIO | VIDEO | QUESTION | BAB_PACKAGE
+  provider     String?
+  model        String?
+  units        Int      @default(1) // karakter tergenerate / jumlah gambar / detik audio / jumlah job
+  costEstimate Int? // estimasi biaya (rupiah)
+  createdAt    DateTime @default(now())
+
+  user User @relation("AiUsageLogs", fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([capability, createdAt])
+  @@map("ai_usage_logs")
 }
 
 // ============================

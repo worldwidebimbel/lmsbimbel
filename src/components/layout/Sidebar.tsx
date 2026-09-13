@@ -14,7 +14,7 @@ import {
   Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
   DoorOpen, ScrollText, Share2, DollarSign, UserCheck, FileText,
   NotebookPen, Clock, Zap, ChevronDown, HelpCircle, ExternalLink,
-  PanelTop,
+  PanelTop, Sparkles,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -24,7 +24,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Users2, Settings, ToggleLeft, BookMarked, Database, Trophy, QrCode,
   Mail, Smartphone, TrendingUp, Building2, Globe, Image, User,
   DoorOpen, ScrollText, Share2, DollarSign, UserCheck, FileText,
-  NotebookPen, Clock, Zap, ChevronDown, HelpCircle, PanelTop,
+  NotebookPen, Clock, Zap, ChevronDown, HelpCircle, PanelTop, Sparkles,
 };
 
 interface NavItem {
@@ -85,6 +85,7 @@ const NAV_ADMIN: NavItem[] = [
   },
   { title: "FAQ & Tim", href: "/admin/faq", icon: "FileText", roles: ["SUPER_ADMIN", "ADMIN"] },
   { title: "Site Gallery", href: "/admin/site", icon: "Image", roles: ["SUPER_ADMIN", "ADMIN"] },
+  { title: "AI Builder", href: "/guru/ai-builder", icon: "Sparkles", roles: ["SUPER_ADMIN", "ADMIN"] },
   { title: "Pengaturan", href: "/admin/settings", icon: "Settings", roles: ["SUPER_ADMIN", "ADMIN"] },
   { title: "Guidance", href: "/admin/guidance", icon: "HelpCircle", roles: ALL_ADMIN_ROLES },
   { title: "Profil Saya", href: "/profile", icon: "User" },
@@ -100,6 +101,7 @@ const NAV_GURU: NavItem[] = [
   { title: "Jurnal Mengajar", href: "/guru/jurnal", icon: "NotebookPen" },
   { title: "Raport", href: "/guru/raport", icon: "FileText" },
   { title: "Bank Soal", href: "/guru/bank-soal", icon: "Database" },
+  { title: "AI Builder", href: "/guru/ai-builder", icon: "Sparkles" },
   { title: "Absensi Siswa", href: "/guru/absensi", icon: "CheckSquare", featureFlag: "FEAT_ATTENDANCE" },
   { title: "Absensi Tutor", href: "/guru/absensi-tutor", icon: "Clock" },
   { title: "Nilai", href: "/guru/nilai", icon: "GraduationCap", featureFlag: "FEAT_GRADES" },

@@ -11,6 +11,7 @@ import {
   Megaphone, Mail, MessageCircle, MessagesSquare, MessageSquare,
   Video, Gamepad2, Award, Users2, Smartphone, Database, Trophy,
   QrCode, ToggleLeft, ToggleRight, Loader2, Search, Filter,
+  Sparkles, Image as ImageIcon,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -18,7 +19,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   CheckSquare, GraduationCap, BarChart3, Wallet, CreditCard,
   Megaphone, Mail, MessageCircle, MessagesSquare, MessageSquare,
   Video, Gamepad2, Award, Users2, Smartphone, Database, Trophy,
-  QrCode,
+  QrCode, Sparkles, Image: ImageIcon,
 };
 
 interface FeatureControlPanelProps {

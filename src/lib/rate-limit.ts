@@ -64,4 +64,10 @@ export const RATE_LIMITS = {
   publicForm: rateLimit({ windowMs: 10 * 60_000, max: 10, message: "Terlalu banyak pengiriman form. Coba lagi nanti." }),
   upload: rateLimit({ windowMs: 60_000, max: 20, message: "Terlalu banyak upload. Coba lagi nanti." }),
   ai: rateLimit({ windowMs: 60_000, max: 10, message: "Terlalu banyak permintaan AI. Coba lagi nanti." }),
+  // AI Builder — per kapabilitas (future-commit.md §5.3)
+  aiText: rateLimit({ windowMs: 60_000, max: 10, message: "Terlalu banyak permintaan AI teks. Coba lagi nanti." }),
+  aiImage: rateLimit({ windowMs: 60_000, max: 5, message: "Terlalu banyak permintaan AI gambar. Coba lagi nanti." }),
+  aiDesign: rateLimit({ windowMs: 60_000, max: 5, message: "Terlalu banyak permintaan AI desain. Coba lagi nanti." }),
+  aiAudio: rateLimit({ windowMs: 60_000, max: 5, message: "Terlalu banyak permintaan AI audio. Coba lagi nanti." }),
+  aiVideo: rateLimit({ windowMs: 60 * 60_000, max: 2, message: "Terlalu banyak permintaan AI video. Maksimal 2 per jam." }),
 };
