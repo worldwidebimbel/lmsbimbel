@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Trash2, Pencil } from "lucide-react";
+import { SocialIcon } from "react-social-icons";
 
 interface SocialLink {
   id: string;
@@ -11,6 +12,31 @@ interface SocialLink {
   order: number;
   isActive: boolean;
 }
+
+const PLATFORM_OPTIONS = [
+  { value: "facebook", label: "Facebook" },
+  { value: "instagram", label: "Instagram" },
+  { value: "youtube", label: "YouTube" },
+  { value: "tiktok", label: "TikTok" },
+  { value: "twitter", label: "Twitter" },
+  { value: "x", label: "X (Twitter baru)" },
+  { value: "linkedin", label: "LinkedIn" },
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "telegram", label: "Telegram" },
+  { value: "threads", label: "Threads" },
+  { value: "github", label: "GitHub" },
+  { value: "twitch", label: "Twitch" },
+  { value: "pinterest", label: "Pinterest" },
+  { value: "reddit", label: "Reddit" },
+  { value: "discord", label: "Discord" },
+  { value: "snapchat", label: "Snapchat" },
+  { value: "spotify", label: "Spotify" },
+  { value: "tumblr", label: "Tumblr" },
+  { value: "medium", label: "Medium" },
+  { value: "mastodon", label: "Mastodon" },
+  { value: "email", label: "Email" },
+  { value: "sharethis", label: "Lainnya (ShareThis)" },
+];
 
 export default function AdminCmsSocialLinksPage() {
   const [items, setItems] = useState<SocialLink[]>([]);
@@ -50,8 +76,11 @@ export default function AdminCmsSocialLinksPage() {
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Social Links</h1>
-        <button onClick={() => { setEditing(null); setShowForm(true); }} className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-          <Plus className="h-4 w-4" /> Tambah
+        <button
+          onClick={() => { setEditing(null); setShowForm(true); }}
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+        >
+          <Plus className="h-4 w-4" /> Tambah Social Link
         </button>
       </div>
 
@@ -61,7 +90,14 @@ export default function AdminCmsSocialLinksPage() {
         {items.map((s) => (
           <div key={s.id} className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3">
             <div className="flex items-center gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-bold uppercase text-blue-700">{s.platform.slice(0, 2)}</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
+                <SocialIcon
+                  network={s.platform.toLowerCase()}
+                  bgColor="transparent"
+                  fgColor="#374151"
+                  style={{ height: 16, width: 16, display: "block" }}
+                />
+              </span>
               <div>
                 <span className="font-semibold text-gray-900">{s.platform}</span>
                 <span className="ml-2 text-sm text-gray-500">{s.url}</span>
@@ -81,9 +117,8 @@ export default function AdminCmsSocialLinksPage() {
 }
 
 function SocialForm({ item, onSave, onCancel }: { item: SocialLink | null; onSave: (d: Partial<SocialLink> & { platform: string; url: string }) => void; onCancel: () => void }) {
-  const [platform, setPlatform] = useState(item?.platform ?? "");
+  const [platform, setPlatform] = useState(item?.platform ?? "facebook");
   const [url, setUrl] = useState(item?.url ?? "");
-  const [icon, setIcon] = useState(item?.icon ?? "");
   const [order, setOrder] = useState(item?.order ?? 0);
   const [isActive, setIsActive] = useState(item?.isActive ?? true);
 
@@ -91,16 +126,39 @@ function SocialForm({ item, onSave, onCancel }: { item: SocialLink | null; onSav
     <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
       <h3 className="mb-4 font-semibold text-gray-900">{item ? "Edit Social Link" : "Tambah Social Link"}</h3>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div><label className="mb-1 block text-sm font-medium text-gray-700">Platform *</label><input value={platform} onChange={(e) => setPlatform(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="Facebook" /></div>
-        <div><label className="mb-1 block text-sm font-medium text-gray-700">URL *</label><input value={url} onChange={(e) => setUrl(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="https://facebook.com/..." /></div>
-        <div><label className="mb-1 block text-sm font-medium text-gray-700">Icon (opsional)</label><input value={icon} onChange={(e) => setIcon(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" /></div>
-        <div><label className="mb-1 block text-sm font-medium text-gray-700">Urutan</label><input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" /></div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Platform *</label>
+          <select
+            value={platform}
+            onChange={(e) => setPlatform(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          >
+            {PLATFORM_OPTIONS.map((p) => (
+              <option key={p.value} value={p.value}>{p.label}</option>
+            ))}
+          </select>
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-xs text-gray-500">Preview:</span>
+            <SocialIcon
+              network={platform.toLowerCase()}
+              style={{ height: 20, width: 20 }}
+            />
+          </div>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">URL *</label>
+          <input value={url} onChange={(e) => setUrl(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="https://facebook.com/..." />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Urutan</label>
+          <input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+        </div>
       </div>
       <div className="mt-4 flex items-center gap-4">
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} /> Aktif</label>
       </div>
       <div className="mt-4 flex gap-2">
-        <button onClick={() => onSave({ platform, url, icon: icon || null, order, isActive })} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Simpan</button>
+        <button onClick={() => onSave({ platform, url, icon: null, order, isActive })} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Simpan</button>
         <button onClick={onCancel} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</button>
       </div>
     </div>

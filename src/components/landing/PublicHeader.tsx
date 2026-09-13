@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { GraduationCap, Menu, X, Mail, Phone, ChevronDown, Search, MessageCircle } from "lucide-react";
+import { SocialIcon } from "react-social-icons";
 import { SITE_DEFAULTS } from "@/lib/site-config";
 
 interface MenuChild {
@@ -33,15 +34,6 @@ interface Props {
   menus?: MenuNode[];
   socialLinks?: SocialLink[];
 }
-
-const SOCIAL_ICONS: Record<string, string> = {
-  facebook: "f",
-  instagram: "ig",
-  youtube: "yt",
-  twitter: "x",
-  tiktok: "tt",
-  linkedin: "in",
-};
 
 const TOPBAR_LINKS = [
   { href: "/login", label: "REGISTER" },
@@ -246,9 +238,12 @@ export default function PublicHeader({ config: cfg, menus, socialLinks }: Props)
                   className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-yellow-400 hover:text-blue-950"
                   aria-label={s.platform}
                 >
-                  <span className="text-[10px] font-bold uppercase">
-                    {SOCIAL_ICONS[s.platform.toLowerCase()] ?? s.platform.slice(0, 2)}
-                  </span>
+                  <SocialIcon
+                    network={s.platform.toLowerCase()}
+                    bgColor="transparent"
+                    fgColor="currentColor"
+                    style={{ height: 14, width: 14, display: "block" }}
+                  />
                 </a>
               ))}
             </div>
