@@ -10,11 +10,11 @@ import {
 } from "lucide-react";
 import {
   AI_CAPABILITIES, AI_IMAGE_PROVIDERS, AI_PROVIDERS, AI_TTS_PROVIDERS, AI_VIDEO_MODES, AI_VIDEO_PROVIDERS,
+  MAX_VIDEO_SCENES,
   type AICapability,
 } from "@/lib/ai-providers";
 import { DESIGN_PRESETS, type DesignPresetId } from "@/lib/ai-design-presets";
 import { TTS_VOICES } from "@/lib/ai-tts-providers";
-import { MAX_SCENES } from "@/lib/ai-video-pipeline";
 import AIQuestionGenerator from "@/components/guru/AIQuestionGenerator";
 import type { AISettings, ProviderStatusMap } from "@/lib/ai-settings";
 
@@ -1889,7 +1889,7 @@ function VideoGeneratorTab({
         <h2 className="text-lg font-bold text-gray-900">Buat Video Pembelajaran dengan AI</h2>
         <p className="mt-1 text-sm text-gray-500">
           {mode === "composite"
-            ? "Pipeline composite: AI menulis naskah per scene → generate ilustrasi → narasi TTS → dirakit menjadi video MP4 (subtitle otomatis, maks 5 menit, maks " + MAX_SCENES + " scene). Hemat & cocok untuk materi edukatif."
+            ? "Pipeline composite: AI menulis naskah per scene → generate ilustrasi → narasi TTS → dirakit menjadi video MP4 (subtitle otomatis, maks 5 menit, maks " + MAX_VIDEO_SCENES + " scene). Hemat & cocok untuk materi edukatif."
             : "Direct video-gen (premium): AI menyusun prompt sinematik → model video (Veo/Hailuo/Wan) via OpenRouter membuat klip pendek berkualitas tinggi. Biaya jauh lebih tinggi per video."}
           {" "}Berjalan di background — progress bisa dipantau di bawah.
         </p>
@@ -1957,13 +1957,13 @@ function VideoGeneratorTab({
           {mode === "composite" && (
             <>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Jumlah Scene (3–{MAX_SCENES})</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Jumlah Scene (3–{MAX_VIDEO_SCENES})</label>
                 <input
                   type="number"
                   min={3}
-                  max={MAX_SCENES}
+                  max={MAX_VIDEO_SCENES}
                   value={form.sceneCount}
-                  onChange={(e) => setForm((p) => ({ ...p, sceneCount: Math.min(MAX_SCENES, Math.max(3, Number(e.target.value) || 5)) }))}
+                  onChange={(e) => setForm((p) => ({ ...p, sceneCount: Math.min(MAX_VIDEO_SCENES, Math.max(3, Number(e.target.value) || 5)) }))}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                 />
                 <p className="mt-1 text-xs text-gray-500">Estimasi durasi: ±{form.sceneCount * 30} detik (2–4 kalimat per scene).</p>

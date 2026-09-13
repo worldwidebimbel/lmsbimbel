@@ -214,6 +214,11 @@ export const AI_VIDEO_MODES: AIModelOption[] = [
   { value: "direct", label: "Direct video-gen (premium — via OpenRouter: Veo/Hailuo/Wan)" },
 ];
 
+// Guardrail video composite (future-commit.md Fase 4) — konstanta non-secret,
+// dipakai bersama UI (client) dan pipeline (server), jadi didefinisikan di sini
+// (modul client-safe) BUKAN di ai-video-pipeline.ts yang server-only.
+export const MAX_VIDEO_SCENES = 12;
+
 export function getProvidersForCapability(capability: AICapability): AIGenericProviderMeta[] {
   switch (capability) {
     case "TEXT":

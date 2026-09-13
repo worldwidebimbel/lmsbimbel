@@ -10,6 +10,7 @@ import {
   resolveProviderConfig,
   resolveImageProviderConfig,
   resolveTTSProviderConfig,
+  MAX_VIDEO_SCENES,
   type AIProviderId,
 } from "@/lib/ai-providers";
 import { generateImages } from "@/lib/ai-image-providers";
@@ -35,7 +36,6 @@ import { getAISettings } from "@/lib/ai-settings";
 // Progress per tahap disimpan di AiGenerationJob.params.progress.
 // ============================================================
 
-export const MAX_SCENES = 12;
 export const MAX_DURATION_SEC = 300; // 5 menit
 const IMAGE_CONCURRENCY = 3;
 const VIDEO_W = 1280;
@@ -230,7 +230,7 @@ Return a JSON object with EXACTLY these keys:
     }
     let scenes: Scene[] = parsed.scenes
       .filter((s: { narration?: string }) => s?.narration?.trim())
-      .slice(0, MAX_SCENES)
+      .slice(0, MAX_VIDEO_SCENES)
       .map((s: { narration: string; imagePrompt?: string }) => ({
         narration: String(s.narration).trim(),
         imagePrompt: String(s.imagePrompt ?? s.narration).trim(),

@@ -7,9 +7,10 @@ import {
   resolveImageProviderConfig,
   resolveTTSProviderConfig,
   resolveVideoProviderConfig,
+  MAX_VIDEO_SCENES,
   type AIProviderId,
 } from "@/lib/ai-providers";
-import { runVideoPipeline, MAX_SCENES, type VideoJobRequest } from "@/lib/ai-video-pipeline";
+import { runVideoPipeline, type VideoJobRequest } from "@/lib/ai-video-pipeline";
 import { runDirectVideoPipeline, type DirectVideoJobRequest } from "@/lib/ai-video-direct";
 
 // ============================================================
@@ -181,7 +182,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ---------- Mode composite (hemat — pipeline FFmpeg) ----------
-  const numScenes = Math.min(MAX_SCENES, Math.max(3, Number(sceneCount) || 5));
+  const numScenes = Math.min(MAX_VIDEO_SCENES, Math.max(3, Number(sceneCount) || 5));
 
   const textId = (textProvider ?? "apiclaude") as AIProviderId;
   const imageId = imageProvider ?? "openai";
