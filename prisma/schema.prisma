@@ -1749,13 +1749,14 @@ model LandingPage {
 
 // ============================
 // Custom Pages (institusional sederhana: Terms, Privacy, Karir, dst.)
-// Lebih ringan dari LandingPage — cukup rich text + SEO, pakai header/footer website.
+// Section-based seperti LandingPage (tanpa HEADER section) + rich text.
 // ============================
 model CustomPage {
   id          String   @id @default(cuid())
   slug        String   @unique
   title       String
-  content     String   @db.Text
+  sections    Json
+  showTitle   Boolean  @default(true)
   showHeader  Boolean  @default(true)
   showFooter  Boolean  @default(true)
   metaTitle   String?

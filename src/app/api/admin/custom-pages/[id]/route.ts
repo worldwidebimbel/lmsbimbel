@@ -24,7 +24,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params;
   const body = await req.json();
-  const { slug, title, content, showHeader, showFooter, metaTitle, metaDesc, isPublished } = body;
+  const { slug, title, sections, showTitle, showHeader, showFooter, metaTitle, metaDesc, isPublished } = body;
 
   if (slug) {
     const existing = await db.customPage.findUnique({ where: { slug } });
@@ -38,7 +38,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     data: {
       ...(slug !== undefined && { slug }),
       ...(title !== undefined && { title }),
-      ...(content !== undefined && { content }),
+      ...(sections !== undefined && { sections }),
+      ...(showTitle !== undefined && { showTitle: Boolean(showTitle) }),
       ...(showHeader !== undefined && { showHeader: Boolean(showHeader) }),
       ...(showFooter !== undefined && { showFooter: Boolean(showFooter) }),
       ...(metaTitle !== undefined && { metaTitle }),

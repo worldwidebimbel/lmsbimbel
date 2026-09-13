@@ -801,11 +801,15 @@ async function main() {
 
   // Custom Pages (default: Syarat & Ketentuan, Kebijakan Privasi)
   // Slug berbeda dari hardcoded routes (/syarat-ketentuan, /kebijakan-privasi) — admin pilih mau pakai versi hardcoded atau CustomPage
+  const TERMS_HTML = `<h2>Syarat & Ketentuan Penggunaan</h2><p>Dengan mengakses dan menggunakan layanan kami, Anda menyetujui syarat dan ketentuan berikut. Mohon baca dengan seksama.</p><h3>1. Pendaftaran</h3><p>Pengguna wajib memberikan informasi yang akurat, valid, dan terkini saat mendaftar. Akun yang dibuat tidak boleh dipindahtangankan.</p><h3>2. Penggunaan Layanan</h3><p>Layanan ini disediakan untuk keperluan pendidikan. Pengguna dilarang menyalahgunakan platform untuk tujuan ilegal atau merugikan pihak lain.</p><h3>3. Pembayaran</h3><p>Biaya layanan dijelaskan saat pendaftaran. Pembayaran yang telah dilakukan tidak dapat dikembalikan kecuali dalam kondisi tertentu sesuai kebijakan refund.</p><h3>4. Konten</h3><p>Seluruh konten materi pembelajaran adalah milik lembaga dan dilindungi hak cipta. Dilarang menyalin, menyebarluaskan, atau menggunakan tanpa izin.</p><h3>5. Perubahan</h3><p>Kami berhak mengubah syarat ini sewaktu-waktu. Perubahan akan diumumkan melalui platform.</p><p>Untuk pertanyaan, hubungi kami melalui kontak yang tersedia.</p>`;
+  const PRIVACY_HTML = `<h2>Kebijakan Privasi</h2><p>Kami menghormati privasi Anda. Dokumen ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan melindungi data pribadi Anda.</p><h3>1. Data yang Dikumpulkan</h3><p>Nama, email, nomor telepon, dan informasi akademik yang relevan untuk keperluan pembelajaran.</p><h3>2. Penggunaan Data</h3><p>Data digunakan untuk: (a) menyediakan layanan pembelajaran, (b) komunikasi terkait program, (c) administrasi keuangan.</p><h3>3. Perlindungan Data</h3><p>Kami menerapkan langkah keamanan teknis dan organisasi untuk melindungi data Anda dari akses tidak sah.</p><h3>4. Pembagian Data</h3><p>Kami tidak menjual atau membagikan data Anda kepada pihak ketiga kecuali diwajibkan oleh hukum.</p><h3>5. Hak Pengguna</h3><p>Anda berhak mengakses, memperbaiki, atau menghapus data pribadi Anda. Hubungi kami untuk permintaan tersebut.</p><p>Pertanyaan terkait privasi? Hubungi kami melalui kontak yang tersedia.</p>`;
+
   const customPages = [
     {
       slug: "terms",
       title: "Syarat & Ketentuan",
-      content: `<h2>Syarat & Ketentuan Penggunaan</h2><p>Dengan mengakses dan menggunakan layanan kami, Anda menyetujui syarat dan ketentuan berikut. Mohon baca dengan seksama.</p><h3>1. Pendaftaran</h3><p>Pengguna wajib memberikan informasi yang akurat, valid, dan terkini saat mendaftar. Akun yang dibuat tidak boleh dipindahtangankan.</p><h3>2. Penggunaan Layanan</h3><p>Layanan ini disediakan untuk keperluan pendidikan. Pengguna dilarang menyalahgunakan platform untuk tujuan ilegal atau merugikan pihak lain.</p><h3>3. Pembayaran</h3><p>Biaya layanan dijelaskan saat pendaftaran. Pembayaran yang telah dilakukan tidak dapat dikembalikan kecuali dalam kondisi tertentu sesuai kebijakan refund.</p><h3>4. Konten</h3><p>Seluruh konten materi pembelajaran adalah milik lembaga dan dilindungi hak cipta. Dilarang menyalin, menyebarluaskan, atau menggunakan tanpa izin.</p><h3>5. Perubahan</h3><p>Kami berhak mengubah syarat ini sewaktu-waktu. Perubahan akan diumumkan melalui platform.</p><p>Untuk pertanyaan, hubungi kami melalui kontak yang tersedia.</p>`,
+      sections: [{ type: "CONTENT", title: "", content: TERMS_HTML, bgColor: "#ffffff", textColor: "#1f2937", maxWidth: "3xl" }],
+      showTitle: true,
       showHeader: true,
       showFooter: true,
       metaTitle: "Syarat & Ketentuan",
@@ -815,7 +819,8 @@ async function main() {
     {
       slug: "privacy-policy",
       title: "Kebijakan Privasi",
-      content: `<h2>Kebijakan Privasi</h2><p>Kami menghormati privasi Anda. Dokumen ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan melindungi data pribadi Anda.</p><h3>1. Data yang Dikumpulkan</h3><p>Nama, email, nomor telepon, dan informasi akademik yang relevan untuk keperluan pembelajaran.</p><h3>2. Penggunaan Data</h3><p>Data digunakan untuk: (a) menyediakan layanan pembelajaran, (b) komunikasi terkait program, (c) administrasi keuangan.</p><h3>3. Perlindungan Data</h3><p>Kami menerapkan langkah keamanan teknis dan organisasi untuk melindungi data Anda dari akses tidak sah.</p><h3>4. Pembagian Data</h3><p>Kami tidak menjual atau membagikan data Anda kepada pihak ketiga kecuali diwajibkan oleh hukum.</p><h3>5. Hak Pengguna</h3><p>Anda berhak mengakses, memperbaiki, atau menghapus data pribadi Anda. Hubungi kami untuk permintaan tersebut.</p><p>Pertanyaan terkait privasi? Hubungi kami melalui kontak yang tersedia.</p>`,
+      sections: [{ type: "CONTENT", title: "", content: PRIVACY_HTML, bgColor: "#ffffff", textColor: "#1f2937", maxWidth: "3xl" }],
+      showTitle: true,
       showHeader: true,
       showFooter: true,
       metaTitle: "Kebijakan Privasi",

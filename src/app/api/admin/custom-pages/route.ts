@@ -26,10 +26,10 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { slug, title, content, showHeader, showFooter, metaTitle, metaDesc, isPublished } = body;
+  const { slug, title, sections, showTitle, showHeader, showFooter, metaTitle, metaDesc, isPublished } = body;
 
-  if (!slug || !title || !content) {
-    return NextResponse.json({ error: "slug, title, dan content wajib diisi" }, { status: 400 });
+  if (!slug || !title || !Array.isArray(sections)) {
+    return NextResponse.json({ error: "slug, title, dan sections (array) wajib diisi" }, { status: 400 });
   }
 
   const existing = await db.customPage.findUnique({ where: { slug } });
@@ -41,7 +41,8 @@ export async function POST(req: NextRequest) {
     data: {
       slug,
       title,
-      content,
+      sections,
+      showTitle: Boolean(showTitle ?? true),
       showHeader: Boolean(showHeader ?? true),
       showFooter: Boolean(showFooter ?? true),
       metaTitle: metaTitle ?? null,
