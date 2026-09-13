@@ -1,6 +1,6 @@
 # Future Commit: Modul AI Builder / AI Ecosystem
 
-> **Status:** Eksplorasi → eksekusi. **Fase 0 (Fondasi) sudah terimplementasi**; Fase 1–5 menyusul.
+> **Status:** Eksplorasi → eksekusi. **Fase 0 (Fondasi), Fase 1 (Materi Teks), & Fase 2 (Materi Gambar) sudah terimplementasi**; Fase 2b–5 menyusul.
 > Dokumen ini berisi jabaran teknologi, penyesuaian sistem yang diperlukan, timeline build, dan task list terperinci untuk membangun **Modul AI Builder**.
 > Tiap fase di-checklist di sini lalu dijadikan commit terpisah (`feat(ai-builder): fase N — ...`).
 
@@ -97,7 +97,7 @@ Prinsip desain:
 ### 4.1 Materi Teks (AI Writer)
 - **Provider:** reuse APIClaude/OpenRouter (chat completions) — tanpa provider baru.
 - **Prompt:** structured output JSON: `{ title, content (markdown/rich text), keyPoints: string[], tips, estDurationMenit }` dengan parameter jenjang, kurikulum, mapel, topik, panjang, gaya bahasa, `sourceMaterial`.
-- **Output:** `Material` type `TEXT` + `keyPoints` + `tips`, attach ke `chapterTitle` (Bab) — reuse field yang ada.
+- **Output:** `Material` type `TEXT` + `keyPoints` + `tips`, attach ke `chapterTitle` (Bab) — reuse field yang ada. Konten dalam format **markdown-lite** sesuai `ArticleRenderer` (`#`, `##`, `**bold**`, `1. daftar`, tabel pipe).
 - **Opsional (Fase 1b):** SSE streaming (`ReadableStream`) agar guru lihat teks muncul bertahap.
 - **Biaya:** murah (≈ Rp 100–500 per materi).
 
@@ -250,22 +250,24 @@ Kapabilitas gambar yang sama dengan 4.2, tapi diarahkan ke **aset promosi websit
 - [x] `AiUsageLog` write helper (`logAIUsage`) + ringkasan pemakaian bulanan (`getMonthlyUsageSummary`)
 - [x] Env: `.env.example` — placeholder provider gambar & TTS (opsional sampai Fase 2/2b; deploy docs diupdate saat key mulai dibutuhkan)
 
-### Fase 1 — Materi Teks
-- [ ] `POST /api/ai/text` (prompt terstruktur → JSON naskah)
-- [ ] UI tab Teks: form (jenjang, kurikulum, mapel, topik, panjang, gaya, sourceMaterial) + preview + edit
-- [ ] Simpan hasil → `Material` (TEXT, `keyPoints`, `tips`, `chapterTitle`) draft
-- [ ] Tombol "Generate dengan AI" di form Materi existing
-- [ ] *(1b)* SSE streaming endpoint + render progresif
-- [ ] Job record + usage log untuk teks
+### Fase 1 — Materi Teks ✅ (terimplementasi)
+- [x] `POST /api/ai/text` (prompt terstruktur → JSON naskah; dua mode generate & save, pola seperti ai-generate)
+- [x] UI tab Teks: form (topik, mapel, jenjang, kurikulum, panjang, gaya, instruksi detail, sourceMaterial, provider & model) + preview yang bisa diedit + penempatan kelas/mapel/Bab
+- [x] Simpan hasil → `Material` (TEXT, `keyPoints`, `tips`, `chapterTitle`) draft — `isPublished: false`
+- [x] Tombol "Isi dengan AI" di form Upload Materi (tipe Teks) — mengisi deskripsi, isi artikel, poin penting, tips
+- [x] Job record + usage log untuk teks (+ refresh pemakaian setelah generate)
+- [ ] *(1b — opsional)* SSE streaming endpoint + render progresif
+- Catatan implementasi: konten TEXT di-generate dalam format **markdown-lite** (`#`, `##`, `**bold**`, `1. daftar`, tabel pipe) mengikuti `ArticleRenderer` — bukan HTML.
 
 ### Fase 2 — Materi Gambar
-- [ ] `AI_IMAGE_PROVIDERS` + resolver + env (pilih provider utama & fallback)
-- [ ] `POST /api/ai/image` (job singkat: prompt/preset gaya/rasio/batch)
-- [ ] Upload hasil → `uploadToCloudinary("ai-materials")` → `MediaFile`
-- [ ] `MaterialType.IMAGE` + attach ke Material/Bab
-- [ ] UI tab Gambar: gallery hasil + pilih-pakai + regenerate
-- [ ] Upgrade `imageMode` Question Generator: tombol generate langsung di preview soal
-- [ ] Moderasi: default `isPublished: false`, review admin
+- [x] `AI_IMAGE_PROVIDERS` + resolver + env (pilih provider utama & fallback)
+- [x] `POST /api/ai/image` (job singkat: prompt/preset gaya/rasio/batch)
+- [x] Upload hasil → `uploadToCloudinary("ai-materials")` → `MediaFile`
+- [x] `MaterialType.IMAGE` + attach ke Material/Bab
+- [x] UI tab Gambar: gallery hasil + pilih-pakai + regenerate
+- [x] Upgrade `imageMode` Question Generator: tombol generate langsung di preview soal
+- [x] Moderasi: default `isPublished: false`, review admin
+- Catatan implementasi: 3 adapter provider (OpenAI Images `gpt-image-1`/`dall-e-3`, Replicate Flux/SDXL dengan polling `Prefer: wait`, Stability SD3.5); migrasi `20260913200000_ai_image_material_type` menambah enum `IMAGE` ke `MaterialType` (jalankan `npx prisma migrate deploy` di server); tab Gambar di `AiBuilderClient` menggantikan `ComingSoonTab`; tombol "Generate gambar" di `AIQuestionGenerator` memanggil `/api/ai/image` untuk auto-isi `imageUrl` soal; tipe `IMAGE` ditambahkan ke `MaterialUploadModal` agar materi gambar bisa diedit manual.
 
 ### Fase 2b — Aset Visual CMS (kapabilitas DESIGN)
 - [ ] `POST /api/ai/design` + capability DESIGN di guard/quota/usage (model job sudah mendukung sejak Fase 0)

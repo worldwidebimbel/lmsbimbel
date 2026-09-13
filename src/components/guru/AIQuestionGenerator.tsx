@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Loader2, X, CheckCircle, Save, AlertCircle, ImageIcon, Copy, Check, ExternalLink } from "lucide-react";
+import { Sparkles, Loader2, X, CheckCircle, Save, AlertCircle, ImageIcon, Copy, Check, ExternalLink, Wand2 } from "lucide-react";
 import MathRenderer from "@/components/ui/MathRenderer";
 import SelectOrCustom from "@/components/ui/SelectOrCustom";
 import ImageUploadButton from "./ImageUploadButton";
@@ -71,6 +71,7 @@ export default function AIQuestionGenerator({
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
   const [savedCount, setSavedCount] = useState(0);
   const [copiedImgIdx, setCopiedImgIdx] = useState<number | null>(null);
+  const [generatingImgIdx, setGeneratingImgIdx] = useState<number | null>(null);
 
   const [form, setForm] = useState({
     topic: "",
@@ -158,6 +159,39 @@ export default function AIQuestionGenerator({
     await navigator.clipboard.writeText(text);
     setCopiedImgIdx(idx);
     setTimeout(() => setCopiedImgIdx(null), 2000);
+  }
+
+  // AI Builder — Fase 2: generate gambar langsung dari prompt soal (upgrade imageMode)
+  async function handleGenerateImage(idx: number, prompt: string) {
+    if (!prompt.trim()) return;
+    setGeneratingImgIdx(idx);
+    try {
+      const res = await fetch("/api/ai/image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+          style: "custom",
+          aspectRatio: "1:1",
+          count: 1,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        setError(d.error ?? "Gagal generate gambar.");
+        return;
+      }
+      const first = d.images?.[0];
+      if (first?.url) {
+        setQuestions((prev) =>
+          prev.map((item, j) => (j === idx ? { ...item, imageUrl: first.url } : item))
+        );
+      }
+    } catch {
+      setError("Gagal generate gambar. Coba lagi.");
+    } finally {
+      setGeneratingImgIdx(null);
+    }
   }
 
   async function handleSaveAll() {
@@ -443,7 +477,7 @@ export default function AIQuestionGenerator({
                 </div>
                 {form.imageMode && (
                   <p className="mt-1.5 text-xs text-indigo-700">
-                    AI akan menyertakan <strong>prompt gambar</strong> di tiap soal. Buat gambarnya di AI image generator, lalu unggah di preview.
+                    AI akan menyertakan <strong>prompt gambar</strong> di tiap soal. Klik <strong>Generate gambar</strong> di preview untuk membuatnya langsung, atau unggah manual.
                   </p>
                 )}
               </div>
@@ -571,14 +605,25 @@ export default function AIQuestionGenerator({
                         <div className="mb-2 rounded-lg border border-indigo-200 bg-indigo-50 p-2.5">
                           <div className="mb-1.5 flex items-center justify-between gap-2">
                             <span className="text-xs font-semibold text-indigo-800">Prompt Gambar</span>
-                            <button
-                              onClick={() => handleCopyImagePrompt(i, q.imagePrompt ?? "")}
-                              className="flex items-center gap-1 rounded-md bg-indigo-600 px-2 py-1 text-xs font-medium text-white hover:bg-indigo-700"
-                            >
-                              {copiedImgIdx === i
-                                ? <><Check className="h-3 w-3" /> Tersalin</>
-                                : <><Copy className="h-3 w-3" /> Copy</>}
-                            </button>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => handleGenerateImage(i, q.imagePrompt ?? "")}
+                                disabled={generatingImgIdx === i}
+                                className="flex items-center gap-1 rounded-md bg-indigo-600 px-2 py-1 text-xs font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                              >
+                                {generatingImgIdx === i
+                                  ? <><Loader2 className="h-3 w-3 animate-spin" /> Membuat...</>
+                                  : <><Wand2 className="h-3 w-3" /> Generate gambar</>}
+                              </button>
+                              <button
+                                onClick={() => handleCopyImagePrompt(i, q.imagePrompt ?? "")}
+                                className="flex items-center gap-1 rounded-md bg-white px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
+                              >
+                                {copiedImgIdx === i
+                                  ? <><Check className="h-3 w-3" /> Tersalin</>
+                                  : <><Copy className="h-3 w-3" /> Copy</>}
+                              </button>
+                            </div>
                           </div>
                           <p className="text-xs italic text-indigo-900">{q.imagePrompt}</p>
                           <div className="mt-2 flex items-center gap-2">
@@ -595,7 +640,7 @@ export default function AIQuestionGenerator({
                             <p className="text-xs text-indigo-700">
                               {q.imageUrl
                                 ? "Gambar siap — akan otomatis terhubung ke soal ini."
-                                : "Buat gambar dari prompt di atas, lalu unggah di sini."}
+                                : "Klik \"Generate gambar\" untuk membuat otomatis, atau unggah manual."}
                             </p>
                           </div>
                         </div>

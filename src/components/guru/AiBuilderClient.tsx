@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   Sparkles, FileText, Image as ImageIcon, Palette, Volume2, Video, Database,
-  History, Settings2, CheckCircle2, Loader2, Save, ExternalLink,
+  History, Settings2, CheckCircle2, Loader2, Save, ExternalLink, Wand2, RotateCcw,
+  Copy, Check, Link2,
 } from "lucide-react";
 import {
   AI_CAPABILITIES, AI_IMAGE_PROVIDERS, AI_PROVIDERS, AI_TTS_PROVIDERS, AI_VIDEO_MODES,
@@ -22,15 +24,6 @@ import type { AISettings, ProviderStatusMap } from "@/lib/ai-settings";
 const ALL_ROLES = ["GURU", "ADMIN_CABANG", "ADMIN_AKADEMIK", "ADMIN", "SUPER_ADMIN"];
 
 const PHASE_INFO: Record<string, { fase: string; features: string[] }> = {
-  TEXT: {
-    fase: "Fase 1",
-    features: [
-      "Artikel/ringkasan materi otomatis (rich text + key points + tips)",
-      "Parameter: jenjang, kurikulum, mapel, topik, panjang, gaya bahasa",
-      "Konteks dari materi sumber (sourceMaterial)",
-      "Hasil masuk sebagai draft Material — attach ke Bab",
-    ],
-  },
   IMAGE: {
     fase: "Fase 2",
     features: [
@@ -102,6 +95,8 @@ export default function AiBuilderClient({
   usage,
   role,
   quotaForRole,
+  classes,
+  subjects,
 }: {
   settings: AISettings;
   providerStatus: ProviderStatusMap;
@@ -110,6 +105,8 @@ export default function AiBuilderClient({
   usage: UsageRow[];
   role: string;
   quotaForRole: Partial<Record<AICapability, number>>;
+  classes: { id: string; name: string }[];
+  subjects: { id: string; name: string }[];
 }) {
   const isSuperAdmin = role === "SUPER_ADMIN";
   const designRoles = settings.capabilityRoles.DESIGN ?? ["SUPER_ADMIN", "ADMIN"];
@@ -127,7 +124,22 @@ export default function AiBuilderClient({
   ];
   const [tab, setTab] = useState<Tab>("teks");
 
-  const usedTotal = usage.reduce((s, u) => s + (u.cost ?? 0), 0);
+  const [jobList, setJobList] = useState<JobRow[]>(jobs);
+  const [usageList, setUsageList] = useState<UsageRow[]>(usage);
+  async function refreshUsage() {
+    try {
+      const res = await fetch("/api/ai/jobs");
+      if (res.ok) {
+        const d = await res.json();
+        setJobList(d.jobs ?? []);
+        setUsageList(d.usage ?? []);
+      }
+    } catch {
+      // abaikan — data lama tetap dipakai
+    }
+  }
+
+  const usedTotal = usageList.reduce((s, u) => s + (u.cost ?? 0), 0);
 
   return (
     <div className="space-y-6">
@@ -196,14 +208,753 @@ export default function AiBuilderClient({
       </div>
 
       {/* Tab content */}
-      {tab === "teks" && <ComingSoonTab capability="TEXT" settings={settings} providerStatus={providerStatus} />}
-      {tab === "gambar" && <ComingSoonTab capability="IMAGE" settings={settings} providerStatus={providerStatus} />}
+      {tab === "teks" && (
+        <TextGeneratorTab
+          subjects={subjects}
+          classes={classes}
+          defaultProvider={settings.textProvider}
+          onDone={refreshUsage}
+        />
+      )}
+      {tab === "gambar" && (
+        <ImageGeneratorTab
+          subjects={subjects}
+          classes={classes}
+          defaultProvider={settings.imageProvider}
+          providerStatus={providerStatus}
+          onDone={refreshUsage}
+        />
+      )}
       {tab === "desain" && <ComingSoonTab capability="DESIGN" settings={settings} providerStatus={providerStatus} />}
       {tab === "audio" && <ComingSoonTab capability="AUDIO" settings={settings} providerStatus={providerStatus} />}
       {tab === "video" && <ComingSoonTab capability="VIDEO" settings={settings} providerStatus={providerStatus} />}
       {tab === "soal" && <QuestionTab />}
-      {tab === "riwayat" && <HistoryTab jobs={jobs} usage={usage} quotaForRole={quotaForRole} />}
+      {tab === "riwayat" && <HistoryTab jobs={jobList} usage={usageList} quotaForRole={quotaForRole} />}
       {tab === "pengaturan" && isSuperAdmin && <SettingsTab initial={settings} />}
+    </div>
+  );
+}
+
+/* ============ Tab Teks — AI Writer (Fase 1) ============ */
+
+const JENJANG_OPTIONS = ["Umum", "SD", "SMP", "SMA", "SMK", "Madrasah"];
+
+interface MaterialDraftState {
+  title: string;
+  description: string | null;
+  content: string;
+  tips: string | null;
+  estDurationMenit: number | null;
+}
+
+function TextGeneratorTab({
+  subjects,
+  classes,
+  defaultProvider,
+  onDone,
+}: {
+  subjects: { id: string; name: string }[];
+  classes: { id: string; name: string }[];
+  defaultProvider: string;
+  onDone: () => void;
+}) {
+  const [form, setForm] = useState({
+    topic: "",
+    subjectName: "",
+    jenjang: "Umum",
+    kurikulum: "Kurikulum Merdeka",
+    length: "sedang",
+    style: "",
+    detailInstruction: "",
+    sourceMaterial: "",
+  });
+  const [aiProvider, setAiProvider] = useState(defaultProvider);
+  const [aiModel, setAiModel] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [draft, setDraft] = useState<MaterialDraftState | null>(null);
+  const [keyPointsText, setKeyPointsText] = useState("");
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [savedId, setSavedId] = useState<string | null>(null);
+  const [saveForm, setSaveForm] = useState({ classId: "", subjectId: "", chapterTitle: "" });
+
+  const provider = AI_PROVIDERS.find((p) => p.id === aiProvider) ?? AI_PROVIDERS[0];
+
+  function set(k: keyof typeof form, v: string) {
+    setForm((p) => ({ ...p, [k]: v }));
+  }
+
+  async function generate() {
+    if (!form.topic.trim()) {
+      setError("Topik wajib diisi.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    setDraft(null);
+    setSavedId(null);
+    try {
+      const res = await fetch("/api/ai/text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, aiProvider, aiModel: aiModel || undefined }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        setError(d.error ?? "Gagal generate materi.");
+        return;
+      }
+      setDraft({
+        title: d.draft.title,
+        description: d.draft.description,
+        content: d.draft.content,
+        tips: d.draft.tips,
+        estDurationMenit: d.draft.estDurationMenit,
+      });
+      setKeyPointsText((d.draft.keyPoints ?? []).join("\n"));
+      setJobId(d.jobId);
+      onDone();
+    } catch {
+      setError("Gagal generate materi. Coba lagi.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function save() {
+    if (!draft) return;
+    if (!draft.title.trim() || !draft.content.trim()) {
+      setError("Judul dan konten wajib diisi sebelum menyimpan.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      const res = await fetch("/api/ai/text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          saveDraft: {
+            ...draft,
+            keyPoints: keyPointsText.split("\n").map((s) => s.trim()).filter(Boolean),
+            classId: saveForm.classId || null,
+            subjectId: saveForm.subjectId || null,
+            chapterTitle: saveForm.chapterTitle || null,
+            chapterOrder: 0,
+          },
+          jobId,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        setError(d.error ?? "Gagal menyimpan materi.");
+        return;
+      }
+      setSavedId(d.material.id);
+      toast.success("Draft materi tersimpan — tinjau lalu publikasikan di halaman Materi.");
+      onDone();
+    } catch {
+      setError("Gagal menyimpan materi. Coba lagi.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Form generate */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6">
+        <h2 className="text-lg font-bold text-gray-900">Buat Materi Teks dengan AI</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          AI menulis draft materi lengkap (HTML + poin kunci + tips) — Anda review, edit, lalu simpan sebagai draft Materi.
+        </p>
+
+        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-gray-700">Topik * </label>
+            <input
+              value={form.topic}
+              onChange={(e) => set("topic", e.target.value)}
+              placeholder="mis. Persamaan Kuadrat — fungsi dan grafiknya"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Mata Pelajaran</label>
+            <input
+              value={form.subjectName}
+              onChange={(e) => set("subjectName", e.target.value)}
+              placeholder="mis. Matematika"
+              list="ai-text-subjects"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+            <datalist id="ai-text-subjects">
+              {subjects.map((s) => (
+                <option key={s.id} value={s.name} />
+              ))}
+            </datalist>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Jenjang</label>
+            <select value={form.jenjang} onChange={(e) => set("jenjang", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              {JENJANG_OPTIONS.map((j) => (
+                <option key={j} value={j}>{j}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Kurikulum</label>
+            <input value={form.kurikulum} onChange={(e) => set("kurikulum", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Panjang</label>
+            <select value={form.length} onChange={(e) => set("length", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <option value="pendek">Pendek (±300 kata)</option>
+              <option value="sedang">Sedang (±600 kata)</option>
+              <option value="panjang">Panjang (±1000 kata)</option>
+            </select>
+          </div>
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-gray-700">Gaya Bahasa (opsional)</label>
+            <input
+              value={form.style}
+              onChange={(e) => set("style", e.target.value)}
+              placeholder="mis. santai namun terstruktur, banyak contoh"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-gray-700">Instruksi Tambahan (opsional)</label>
+            <textarea
+              value={form.detailInstruction}
+              onChange={(e) => set("detailInstruction", e.target.value)}
+              rows={2}
+              placeholder="mis. fokus pada penerapan di soal UTBK, sertakan 2 contoh soal bertingkat"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-gray-700">Materi Sumber / Acuan (opsional)</label>
+            <textarea
+              value={form.sourceMaterial}
+              onChange={(e) => set("sourceMaterial", e.target.value)}
+              rows={4}
+              placeholder="Tempel teks materi/rangkuman — AI akan menjadikannya acuan utama"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Provider AI</label>
+            <select value={aiProvider} onChange={(e) => { setAiProvider(e.target.value); setAiModel(""); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              {AI_PROVIDERS.map((p) => (
+                <option key={p.id} value={p.id}>{p.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Model</label>
+            <select value={aiModel} onChange={(e) => setAiModel(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <option value="">Default ({providerConfigLabel(provider)})</option>
+              {provider.models.map((m) => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {error && <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>}
+
+        <button
+          onClick={generate}
+          disabled={loading}
+          className="mt-5 flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+        >
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+          {loading ? "Sedang menulis..." : "Generate Materi"}
+        </button>
+      </div>
+
+      {/* Preview & edit draft */}
+      {draft && (
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-bold text-gray-900">Draft Materi — review & edit</h2>
+            {draft.estDurationMenit != null && (
+              <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-600">
+                ± {draft.estDurationMenit} menit belajar
+              </span>
+            )}
+          </div>
+
+          <div className="mt-5 space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Judul</label>
+              <input
+                value={draft.title}
+                onChange={(e) => setDraft((p) => (p ? { ...p, title: e.target.value } : p))}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Deskripsi Singkat</label>
+              <input
+                value={draft.description ?? ""}
+                onChange={(e) => setDraft((p) => (p ? { ...p, description: e.target.value } : p))}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Konten (markdown-lite — dirender oleh halaman belajar siswa)
+              </label>
+              <textarea
+                value={draft.content}
+                onChange={(e) => setDraft((p) => (p ? { ...p, content: e.target.value } : p))}
+                rows={12}
+                placeholder="# Judul Bagian&#10;Paragraf...&#10;## Sub Bagian&#10;1. poin pertama&#10;2. poin kedua"
+                className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Format: <code># Judul</code>, <code>## Sub judul</code>, <code>**tebal**</code>, <code>1. daftar</code>, tabel <code>| Kolom |</code>
+              </p>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Poin Kunci (satu per baris)</label>
+              <textarea
+                value={keyPointsText}
+                onChange={(e) => setKeyPointsText(e.target.value)}
+                rows={4}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Tips Belajar</label>
+              <input
+                value={draft.tips ?? ""}
+                onChange={(e) => setDraft((p) => (p ? { ...p, tips: e.target.value } : p))}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
+
+            {/* Penempatan */}
+            <div className="grid grid-cols-1 gap-4 rounded-lg bg-gray-50 p-4 sm:grid-cols-3">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Kelas (opsional)</label>
+                <select value={saveForm.classId} onChange={(e) => setSaveForm((p) => ({ ...p, classId: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                  <option value="">— Tanpa kelas —</option>
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Mapel (opsional)</label>
+                <select value={saveForm.subjectId} onChange={(e) => setSaveForm((p) => ({ ...p, subjectId: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                  <option value="">— Tanpa mapel —</option>
+                  {subjects.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Bab / chapterTitle (opsional)</label>
+                <input
+                  value={saveForm.chapterTitle}
+                  onChange={(e) => setSaveForm((p) => ({ ...p, chapterTitle: e.target.value }))}
+                  placeholder="mis. Bab 3 — Persamaan Kuadrat"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+
+            {savedId ? (
+              <div className="flex flex-wrap items-center gap-3 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+                <CheckCircle2 className="h-4 w-4" />
+                Draft tersimpan.
+                <Link href="/guru/materi" className="font-semibold underline">
+                  Buka halaman Materi <ExternalLink className="inline h-3 w-3" />
+                </Link>
+                <button
+                  onClick={() => { setDraft(null); setJobId(null); setSavedId(null); setForm((p) => ({ ...p, topic: "" })); }}
+                  className="ml-auto flex items-center gap-1 font-medium text-indigo-600 hover:underline"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" /> Buat materi baru
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={save}
+                disabled={saving}
+                className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                Simpan sebagai Draft Materi
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function providerConfigLabel(provider: { models: { value: string; label: string }[] }): string {
+  return provider.models[0]?.label ?? "model default";
+}
+
+/* ============ Tab Gambar — AI Image (Fase 2) ============ */
+
+const IMAGE_STYLES = [
+  { value: "custom", label: "Custom (prompt apa adanya)" },
+  { value: "flatvector", label: "Flat Vector (ilustrasi minimalis)" },
+  { value: "diagram", label: "Diagram Berlabel (teknis)" },
+  { value: "kartun", label: "Kartun Edukatif (ramah siswa)" },
+  { value: "whiteboard", label: "Whiteboard Sketch" },
+  { value: "realistic", label: "Realistis" },
+];
+
+const IMAGE_ASPECTS = [
+  { value: "1:1", label: "1:1 (Persegi)" },
+  { value: "16:9", label: "16:9 (Landscape)" },
+  { value: "9:16", label: "9:16 (Portrait)" },
+  { value: "4:3", label: "4:3 (Klasik)" },
+];
+
+interface GeneratedImageRow {
+  url: string;
+  mediaId: string;
+  publicId: string;
+}
+
+function ImageGeneratorTab({
+  subjects,
+  classes,
+  defaultProvider,
+  providerStatus,
+  onDone,
+}: {
+  subjects: { id: string; name: string }[];
+  classes: { id: string; name: string }[];
+  defaultProvider: string;
+  providerStatus: ProviderStatusMap;
+  onDone: () => void;
+}) {
+  const [form, setForm] = useState({
+    prompt: "",
+    style: "flatvector",
+    aspectRatio: "1:1",
+    count: 1,
+  });
+  const [aiProvider, setAiProvider] = useState(defaultProvider);
+  const [aiModel, setAiModel] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [images, setImages] = useState<GeneratedImageRow[]>([]);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  // Save form per image index
+  const [saveIdx, setSaveIdx] = useState<number | null>(null);
+  const [saveForm, setSaveForm] = useState({ title: "", classId: "", subjectId: "", chapterTitle: "" });
+  const [saving, setSaving] = useState(false);
+  const [savedIdx, setSavedIdx] = useState<number | null>(null);
+
+  const provider = AI_IMAGE_PROVIDERS.find((p) => p.id === aiProvider) ?? AI_IMAGE_PROVIDERS[0];
+  const providerConfigured = providerStatus.image.find((p) => p.id === aiProvider)?.configured ?? false;
+
+  function set(k: keyof typeof form, v: string | number) {
+    setForm((p) => ({ ...p, [k]: v }));
+  }
+
+  async function generate() {
+    if (!form.prompt.trim()) {
+      setError("Prompt wajib diisi.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    setImages([]);
+    setSavedIdx(null);
+    try {
+      const res = await fetch("/api/ai/image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: form.prompt,
+          style: form.style,
+          aspectRatio: form.aspectRatio,
+          count: form.count,
+          provider: aiProvider,
+          model: aiModel || undefined,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        setError(d.error ?? "Gagal generate gambar.");
+        return;
+      }
+      setImages(d.images ?? []);
+      setJobId(d.jobId);
+      onDone();
+    } catch {
+      setError("Gagal generate gambar. Coba lagi.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function copyUrl(idx: number, url: string) {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedIdx(idx);
+      setTimeout(() => setCopiedIdx(null), 2000);
+    } catch {
+      // abaikan
+    }
+  }
+
+  function openSave(idx: number) {
+    setSaveIdx(idx);
+    setSavedIdx(null);
+    setSaveForm((p) => ({
+      ...p,
+      title: p.title || form.prompt.trim().slice(0, 60) || `Gambar AI ${idx + 1}`,
+    }));
+  }
+
+  async function save(idx: number, img: GeneratedImageRow) {
+    if (!saveForm.title.trim()) {
+      setError("Judul wajib diisi.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      const res = await fetch("/api/ai/image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          saveImage: {
+            url: img.url,
+            mediaId: img.mediaId,
+            title: saveForm.title,
+            classId: saveForm.classId || null,
+            subjectId: saveForm.subjectId || null,
+            chapterTitle: saveForm.chapterTitle || null,
+          },
+          jobId,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        setError(d.error ?? "Gagal menyimpan gambar.");
+        return;
+      }
+      setSavedIdx(idx);
+      toast.success("Draft gambar tersimpan — tinjau lalu publikasikan di halaman Materi.");
+      onDone();
+    } catch {
+      setError("Gagal menyimpan gambar. Coba lagi.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Form generate */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6">
+        <h2 className="text-lg font-bold text-gray-900">Buat Gambar Materi dengan AI</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          AI menghasilkan ilustrasi/diagram dari prompt — tersimpan otomatis ke Media Manager (Cloudinary).
+          Simpan sebagai draft Materi gambar, atau salin URL untuk dipakai di soal/materi lain.
+        </p>
+
+        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-gray-700">Prompt * </label>
+            <textarea
+              value={form.prompt}
+              onChange={(e) => set("prompt", e.target.value)}
+              rows={3}
+              placeholder="mis. Diagram alur fotosintesis dengan label kloroplas, cahaya matahari, CO₂, dan O₂"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Gaya</label>
+            <select value={form.style} onChange={(e) => set("style", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              {IMAGE_STYLES.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Rasio</label>
+            <select value={form.aspectRatio} onChange={(e) => set("aspectRatio", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              {IMAGE_ASPECTS.map((a) => (
+                <option key={a.value} value={a.value}>{a.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Jumlah Gambar</label>
+            <input
+              type="number"
+              min={1}
+              max={4}
+              value={form.count}
+              onChange={(e) => set("count", Math.min(4, Math.max(1, Number(e.target.value) || 1)))}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Provider Gambar</label>
+            <select
+              value={aiProvider}
+              onChange={(e) => { setAiProvider(e.target.value); setAiModel(""); }}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            >
+              {AI_IMAGE_PROVIDERS.map((p) => (
+                <option key={p.id} value={p.id}>{p.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Model</label>
+            <select value={aiModel} onChange={(e) => setAiModel(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <option value="">Default ({provider.models[0]?.label ?? "model"})</option>
+              {provider.models.map((m) => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {!providerConfigured && (
+          <p className="mt-3 rounded-lg bg-amber-50 px-4 py-2 text-xs text-amber-700">
+            Provider <strong>{provider.label}</strong> belum dikonfigurasi — Super Admin perlu set API key
+            di environment variables. Pilih provider lain atau hubungi admin.
+          </p>
+        )}
+
+        {error && <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>}
+
+        <div className="mt-5 flex items-center gap-3">
+          <button
+            onClick={generate}
+            disabled={loading}
+            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+            {loading ? "Sedang membuat..." : "Generate Gambar"}
+          </button>
+          {images.length > 0 && (
+            <button
+              onClick={generate}
+              disabled={loading}
+              className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              <RotateCcw className="h-4 w-4" /> Generate ulang
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Gallery hasil */}
+      {images.length > 0 && (
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <h2 className="text-lg font-bold text-gray-900">Hasil — {images.length} gambar</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Pilih gambar → "Simpan ke Materi" untuk menjadikannya draft Materi gambar (perlu review sebelum publish).
+          </p>
+
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {images.map((img, idx) => (
+              <div key={img.mediaId} className="overflow-hidden rounded-lg border border-gray-200">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={img.url} alt={`AI ${idx + 1}`} className="h-48 w-full object-cover" />
+                <div className="space-y-2 p-3">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => copyUrl(idx, img.url)}
+                      className="flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                      {copiedIdx === idx ? <><Check className="h-3 w-3" /> URL</> : <><Copy className="h-3 w-3" /> Salin URL</>}
+                    </button>
+                    <a
+                      href={img.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                      <Link2 className="h-3 w-3" /> Buka
+                    </a>
+                    <button
+                      onClick={() => openSave(idx)}
+                      className="ml-auto flex items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
+                    >
+                      <Save className="h-3 w-3" /> Simpan ke Materi
+                    </button>
+                  </div>
+
+                  {saveIdx === idx && savedIdx !== idx && (
+                    <div className="space-y-2 rounded-lg bg-gray-50 p-3">
+                      <input
+                        value={saveForm.title}
+                        onChange={(e) => setSaveForm((p) => ({ ...p, title: e.target.value }))}
+                        placeholder="Judul gambar materi"
+                        className="w-full rounded border border-gray-300 px-2 py-1.5 text-xs"
+                      />
+                      <div className="grid grid-cols-1 gap-2">
+                        <select value={saveForm.classId} onChange={(e) => setSaveForm((p) => ({ ...p, classId: e.target.value }))} className="w-full rounded border border-gray-300 px-2 py-1.5 text-xs">
+                          <option value="">— Tanpa kelas —</option>
+                          {classes.map((c) => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
+                        <select value={saveForm.subjectId} onChange={(e) => setSaveForm((p) => ({ ...p, subjectId: e.target.value }))} className="w-full rounded border border-gray-300 px-2 py-1.5 text-xs">
+                          <option value="">— Tanpa mapel —</option>
+                          {subjects.map((s) => (
+                            <option key={s.id} value={s.id}>{s.name}</option>
+                          ))}
+                        </select>
+                        <input
+                          value={saveForm.chapterTitle}
+                          onChange={(e) => setSaveForm((p) => ({ ...p, chapterTitle: e.target.value }))}
+                          placeholder="Bab / chapterTitle (opsional)"
+                          className="w-full rounded border border-gray-300 px-2 py-1.5 text-xs"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => save(idx, img)}
+                          disabled={saving}
+                          className="flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                          Simpan Draft
+                        </button>
+                        <button onClick={() => setSaveIdx(null)} className="text-xs text-gray-500 hover:underline">
+                          Batal
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {savedIdx === idx && (
+                    <div className="flex items-center gap-1.5 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Tersimpan sebagai draft.
+                      <Link href="/guru/materi" className="font-semibold underline">
+                        Buka Materi <ExternalLink className="inline h-3 w-3" />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

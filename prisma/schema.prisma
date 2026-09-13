@@ -52,6 +52,7 @@ enum MaterialType {
   DOCUMENT
   LINK
   TEXT
+  IMAGE
 }
 
 enum QuestionType {

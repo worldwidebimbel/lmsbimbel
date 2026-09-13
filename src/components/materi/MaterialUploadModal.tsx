@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { X, Upload, Link2, Youtube, Loader2, FileText, CheckCircle } from "lucide-react";
+import { X, Upload, Link2, Youtube, Loader2, FileText, CheckCircle, Wand2 } from "lucide-react";
 import type { MaterialItem, MaterialClass, MaterialSubject } from "./types";
 
 type Subject = MaterialSubject;
@@ -25,6 +25,7 @@ const MATERIAL_TYPES = [
   { value: "DOCUMENT", label: "Dokumen (Word)" },
   { value: "LINK", label: "Link Eksternal" },
   { value: "TEXT", label: "Teks / Artikel" },
+  { value: "IMAGE", label: "Gambar / Ilustrasi" },
 ];
 
 export function MaterialUploadModal({ classes, subjects, editData, onClose, onSaved }: Props) {
@@ -32,6 +33,8 @@ export function MaterialUploadModal({ classes, subjects, editData, onClose, onSa
   const [isPending, startTransition] = useTransition();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
 
   const [form, setForm] = useState({
     title: editData?.title ?? "",
@@ -53,7 +56,7 @@ export function MaterialUploadModal({ classes, subjects, editData, onClose, onSa
   const set = (field: string, value: unknown) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  const showUrlInput = ["YOUTUBE", "LINK", "VIDEO"].includes(form.type);
+  const showUrlInput = ["YOUTUBE", "LINK", "VIDEO", "IMAGE"].includes(form.type);
   const showFileHint = ["PDF", "PRESENTATION", "DOCUMENT"].includes(form.type);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -79,6 +82,42 @@ export function MaterialUploadModal({ classes, subjects, editData, onClose, onSa
       toast.success("File berhasil diupload");
     } finally {
       setUploading(false);
+    }
+  }
+
+  // AI Builder — isi form materi teks dengan AI (Fase 1)
+  async function handleGenerateWithAI() {
+    const topic = (aiTopic.trim() || form.title.trim());
+    if (!topic) {
+      toast.error("Isi topik (atau judul materi) terlebih dahulu");
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const subjectName = subjects.find((s) => s.id === form.subjectId)?.name;
+      const res = await fetch("/api/ai/text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic, subjectName, length: "sedang" }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        toast.error(d.error ?? "Gagal generate materi");
+        return;
+      }
+      setForm((prev) => ({
+        ...prev,
+        title: prev.title.trim() ? prev.title : d.draft.title,
+        description: d.draft.description ?? prev.description,
+        content: d.draft.content ?? prev.content,
+        keyPoints: (d.draft.keyPoints ?? []).join("\n") || prev.keyPoints,
+        tips: d.draft.tips ?? prev.tips,
+      }));
+      toast.success("Draft AI terisi — periksa & edit sebelum menyimpan");
+    } catch {
+      toast.error("Gagal generate materi. Coba lagi.");
+    } finally {
+      setAiLoading(false);
     }
   }
 
@@ -288,6 +327,35 @@ export function MaterialUploadModal({ classes, subjects, editData, onClose, onSa
               />
             </div>
           </div>
+
+          {/* Isi dengan AI (khusus materi teks) */}
+          {form.type === "TEXT" && (
+            <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-3">
+              <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                Isi dengan AI <span className="text-indigo-500">(AI Builder)</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  value={aiTopic}
+                  onChange={(e) => setAiTopic(e.target.value)}
+                  placeholder={form.title.trim() ? `Topik (default: "${form.title}")` : "Topik materi, mis. Persamaan Kuadrat"}
+                  className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <button
+                  type="button"
+                  onClick={handleGenerateWithAI}
+                  disabled={aiLoading}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 whitespace-nowrap"
+                >
+                  {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                  {aiLoading ? "Menulis..." : "Generate"}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1.5">
+                AI mengisi deskripsi, isi artikel, poin penting, dan tips — selalu review sebelum publish.
+              </p>
+            </div>
+          )}
 
           {/* Konten Halaman Belajar */}
           <div>
