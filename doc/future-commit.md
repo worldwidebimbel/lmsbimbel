@@ -176,9 +176,16 @@ Satu wizard: topik + mapel + jenjang → hasilkan sekaligus **artikel + gambar i
 - Integrasi ke halaman existing: tombol **"Generate dengan AI"** di form Materi & preview soal (`AIQuestionGenerator.tsx`).
 - Hasil generate selalu **preview dulu** → guru pilih classId/subjectId/chapterTitle → simpan sebagai draft (`isPublished: false`) → review → publish. (Kontrol kualitas & moderasi konten.)
 
-### 5.5 Settings & kuota
-- `/admin/settings` (SUPER_ADMIN): pilih default provider/model per kapabilitas, kuota per role per bulan (unit per kapabilitas), aktif/nonaktif per kapabilitas.
-- Tampilkan **estimasi biaya sebelum generate** (tabel harga per model) dan **total pemakaian bulan berjalan** per user.
+### 5.5 Settings & kuota (semuanya runtime — tanpa deploy ulang)
+- `/admin/settings` → section AI Builder (SUPER_ADMIN; aktif per-cabang bisa via FeatureFlag):
+  - **Provider aktif per kapabilitas** — dropdown provider & model (hanya menampilkan provider yang terimplementasi + terkonfigurasi; indikator status key per provider) + tombol **Test koneksi**.
+  - **Budget & kuota** — angka budget AI bulanan global + kuota unit per role per kapabilitas.
+  - **Matriks akses role** — checkbox role × kapabilitas.
+  - **Label AI** — toggle tampilkan/sembunyikan badge "Dibuat dengan AI" di view siswa.
+  - **Mode video** — Composite (hemat) / Direct video-gen (premium; opsi muncul setelah provider-nya tersedia).
+  - **Tujuan storage video** — Cloudinary / VPS lokal (serve via Nginx) + indikator sisa kuota.
+- Tampilkan **estimasi biaya sebelum generate** (tabel harga per model, editable) dan **total pemakaian bulan berjalan** per user.
+- **Kunci API tetap di environment variables** (server-only, mengikuti pattern `resolveProviderConfig` yang sudah ada) — settings hanya *memilih* provider aktif, tidak menyimpan key. Alternatif menyimpan key terenkripsi di DB (ganti key tanpa akses server) dicatat sebagai enhancement lanjutan.
 
 ### 5.6 Deploy & docs
 - `ffmpeg-static` (bundled) — tidak ada apt baru di VPS; alternatif: `apt install ffmpeg`.
@@ -193,7 +200,7 @@ Satu wizard: topik + mapel + jenjang → hasilkan sekaligus **artikel + gambar i
 
 | Fase | Deliverable | Estimasi |
 |---|---|---|
-| **0 — Fondasi** | Model job & usage, `ai-guard`, AI Hub shell (UI tab kosong), settings provider/kuota, feature flags | 1 minggu |
+| **0 — Fondasi** | Model job & usage, `ai-guard`, AI Hub shell (UI tab kosong), settings runtime (provider/kuota/role/label/mode), feature flags | 1 minggu |
 | **1 — Materi Teks** | Generator teks → Material draft (keyPoints, tips, Bab) + tombol "Generate dengan AI" di form Materi; *(1b: SSE streaming)* | 1 minggu (+1) |
 | **2 — Materi Gambar** | Provider image, generate → Cloudinary → MediaFile → Material IMAGE; upgrade `imageMode` soal jadi generate langsung | 1 minggu |
 | **3 — Materi Audio** | Provider TTS, voice picker, Material AUDIO + duration | 1 minggu |
@@ -213,7 +220,7 @@ Satu wizard: topik + mapel + jenjang → hasilkan sekaligus **artikel + gambar i
 - [ ] `src/lib/ai-guard.ts` (auth + flag + rate limit per kapabilitas + kuota + audit)
 - [ ] `src/lib/ai-providers.ts`: struktur registry per kapabilitas (TEXT diisi dari existing)
 - [ ] `/admin/ai-builder` shell + sidebar entry + role gate
-- [ ] `/admin/settings`: section AI Builder (provider default, kuota, estimasi harga)
+- [ ] `/admin/settings`: section AI Builder — provider aktif per kapabilitas (+ test koneksi), budget & kuota per role, matriks akses role, toggle label AI, mode video, storage video, tabel estimasi harga
 - [ ] `AiUsageLog` write helper + laporan pemakaian bulanan per user
 - [ ] Env: `.env.example` + kedua deploy doc diupdate
 
@@ -289,14 +296,25 @@ Satu wizard: topik + mapel + jenjang → hasilkan sekaligus **artikel + gambar i
 
 ---
 
-## 10. Keputusan yang Perlu Diambil (sebelum mulai)
+## 10. Konfigurasi Runtime di Admin (bukan keputusan permanen)
 
-| # | Pertanyaan | Rekomendasi awal |
-|---|---|---|
-| 1 | Provider gambar utama? | OpenAI Images (`gpt-image-1`) untuk kualitas, Replicate/Flux untuk hemat |
-| 2 | Provider TTS utama? | OpenAI TTS (gampang, multilingual) atau Google TTS `id-ID` (paling natural untuk Indonesia) |
-| 3 | Budget bulanan AI? | Mulai Rp 500rb–1 jt/bulan untuk pilot 1 cabang, naik bertahap |
-| 4 | Siapa yang boleh akses? | GURU ke atas (konsisten dengan AI Question Generator) |
-| 5 | Materi AI diberi label ke siswa? | Ya — transparansi (`aiGenerated` + badge di view materi) |
-| 6 | Cloudinary plan cukup untuk video? | Cek kuota bandwidth/video; bila tidak, simpan video di storage VPS + serve via Nginx |
-| 7 | MVP video composite atau langsung direct video-gen? | Composite (murah, cepat jadi, edukatif); direct video-gen nanti sebagai opsi premium |
+Semua aspek operasional di bawah ini **tidak perlu dikunci sebelum mulai** — dibuat sebagai opsi fleksibel di `/admin/settings` (lihat 5.5) dan bisa diubah kapan pun tanpa deploy ulang:
+
+| # | Aspek | Opsi di Settings Admin | Default awal |
+|---|---|---|---|
+| 1 | Provider gambar | Dropdown provider & model + **Test koneksi** | OpenAI Images |
+| 2 | Provider TTS | Dropdown provider & voice (dengan preview suara) | OpenAI TTS |
+| 3 | Budget AI bulanan | Angka budget global + kuota unit per role per kapabilitas | Rp 500rb (pilot) |
+| 4 | Role yang boleh akses | Matriks checkbox role × kapabilitas | GURU ke atas |
+| 5 | Label "Dibuat dengan AI" | Toggle tampilkan/sembunyikan badge di view siswa | ON |
+| 6 | Storage video | Cloudinary / VPS lokal (serve via Nginx) | Cloudinary |
+| 7 | Mode video | Composite (hemat) / Direct video-gen (premium) | Composite |
+
+Yang tetap menjadi keputusan **fase development** (karena berbiaya implementasi, bukan sekadar konfigurasi):
+
+| Keputusan | Implikasi |
+|---|---|
+| Provider mana yang diimplementasikan duluan per kapabilitas | Tiap provider = adapter + testing sendiri. MVP cukup 1 utama + 1 fallback; sisanya menyusul bertahap — dropdown settings otomatis hanya menampilkan provider yang sudah tersedia, jadi menambah provider baru tidak mengubah kode pemanggilnya |
+| Kunci API di env (rekomendasi) vs DB terenkripsi | Env = lebih aman & konsisten dengan pola `resolveProviderConfig` sekarang; DB = ganti key tanpa akses server (enhancement lanjutan, bukan blokir) |
+
+> Dengan pendekatan ini, tabel "keputusan" berubah menjadi tabel **konfigurasi**: pindah dari OpenAI Images ke Replicate kelak cukup implementasi adapter barunya sekali, lalu ganti pilihan di admin — tanpa menyentuh kode fitur lainnya.
