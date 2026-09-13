@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
   const costEstimate = costPerImage * numImages;
 
   try {
-    const genCfg = { baseUrl: cfg.baseUrl, apiKey: cfg.apiKey!, model };
+    const genCfg = { baseUrl: cfg.baseUrl, apiKey: cfg.apiKey!, model, headers: cfg.headers };
     const images = await generateImages(providerId, genCfg, fullPrompt, aspect, numImages);
 
     if (images.length === 0) {

@@ -60,6 +60,8 @@ export interface VideoJobProgress {
   current: number;
   total: number;
   message?: string;
+  /** Mode pipeline — UI memakai ini untuk menampilkan stepper yang sesuai. */
+  mode?: "composite" | "direct";
 }
 
 interface Scene {
@@ -99,7 +101,7 @@ function runFfmpeg(args: string[], cwd: string, timeoutMs = 180_000): Promise<vo
   });
 }
 
-async function setProgress(jobId: string, progress: VideoJobProgress): Promise<void> {
+export async function setProgress(jobId: string, progress: VideoJobProgress): Promise<void> {
   const job = await db.aiGenerationJob.findUnique({ where: { id: jobId }, select: { params: true } });
   const params = (job?.params as Record<string, unknown> | null) ?? {};
   await db.aiGenerationJob.update({
@@ -111,7 +113,7 @@ async function setProgress(jobId: string, progress: VideoJobProgress): Promise<v
   });
 }
 
-async function setFailed(jobId: string, message: string): Promise<void> {
+export async function setFailed(jobId: string, message: string): Promise<void> {
   const job = await db.aiGenerationJob.findUnique({ where: { id: jobId }, select: { params: true } });
   const params = (job?.params as Record<string, unknown> | null) ?? {};
   await db.aiGenerationJob.update({

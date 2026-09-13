@@ -133,6 +133,17 @@ export const AI_IMAGE_PROVIDERS: AIGenericProviderMeta[] = [
     ],
   },
   {
+    id: "openrouter",
+    label: "OpenRouter Images (gpt-image/Gemini/Flux)",
+    site: "https://openrouter.ai/models?output_modalities=image",
+    models: [
+      { value: "openai/gpt-image-1", label: "GPT Image 1 (Recommended)" },
+      { value: "google/gemini-2.5-flash-image", label: "Gemini 2.5 Flash Image" },
+      { value: "black-forest-labs/flux.2-pro", label: "Flux 2 Pro" },
+      { value: "bytedance-seed/seedream-4.5", label: "Seedream 4.5" },
+    ],
+  },
+  {
     id: "replicate",
     label: "Replicate (Flux/SDXL)",
     site: "https://replicate.com/collections/text-to-image",
@@ -160,6 +171,16 @@ export const AI_TTS_PROVIDERS: AIGenericProviderMeta[] = [
     ],
   },
   {
+    id: "openrouter",
+    label: "OpenRouter TTS (GPT/Voxtral/Fish)",
+    site: "https://openrouter.ai/models?output_modalities=speech",
+    models: [
+      { value: "openai/gpt-4o-mini-tts-2025-12-15", label: "GPT-4o mini TTS (Recommended)" },
+      { value: "mistralai/voxtral-mini-tts-2603", label: "Voxtral Mini TTS" },
+      { value: "fish-audio/s2.1-pro", label: "Fish Audio S2.1 Pro" },
+    ],
+  },
+  {
     id: "google",
     label: "Google Cloud TTS",
     site: "https://cloud.google.com/text-to-speech",
@@ -173,9 +194,24 @@ export const AI_TTS_PROVIDERS: AIGenericProviderMeta[] = [
   },
 ];
 
+// Provider direct video-gen (fase premium, future-commit.md §4.4 Strategi B) —
+// diimplementasi via OpenRouter async video API (/api/v1/videos).
+export const AI_VIDEO_PROVIDERS: AIGenericProviderMeta[] = [
+  {
+    id: "openrouter",
+    label: "OpenRouter Video (Veo/Hailuo/Wan)",
+    site: "https://openrouter.ai/models?output_modalities=video",
+    models: [
+      { value: "google/veo-3.1", label: "Google Veo 3.1 (dengan audio)" },
+      { value: "minimax/hailuo-3", label: "MiniMax Hailuo 3 (dengan audio)" },
+      { value: "alibaba/wan-2.7", label: "Alibaba Wan 2.7" },
+    ],
+  },
+];
+
 export const AI_VIDEO_MODES: AIModelOption[] = [
   { value: "composite", label: "Composite (hemat — naskah + gambar + TTS + FFmpeg)" },
-  { value: "direct", label: "Direct video-gen (premium — Runway/Veo, fase lanjutan)" },
+  { value: "direct", label: "Direct video-gen (premium — via OpenRouter: Veo/Hailuo/Wan)" },
 ];
 
 export function getProvidersForCapability(capability: AICapability): AIGenericProviderMeta[] {
@@ -189,14 +225,33 @@ export function getProvidersForCapability(capability: AICapability): AIGenericPr
     case "AUDIO":
       return AI_TTS_PROVIDERS;
     case "VIDEO":
-      return []; // video: mode (composite/direct), bukan daftar provider — Fase 4
+      return AI_VIDEO_PROVIDERS; // direct video-gen via OpenRouter (mode premium)
   }
 }
 
 // ---------- Resolver server-side: status konfigurasi per provider ----------
 // Hanya dipanggil dari route handler (membaca env — mengikuti konvensi resolveProviderConfig).
 
+/** Header atribusi OpenRouter (opsional, untuk ranking/attribution) — dipakai semua resolver OpenRouter. */
+function openrouterAttributionHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {};
+  const referer = process.env.OPENROUTER_SITE_URL || process.env.NEXT_PUBLIC_APP_URL;
+  const title = process.env.OPENROUTER_SITE_NAME || process.env.NEXT_PUBLIC_APP_NAME;
+  if (referer) headers["HTTP-Referer"] = referer;
+  if (title) headers["X-Title"] = title;
+  return headers;
+}
+
 export function resolveImageProviderConfig(id: string): ResolvedProviderConfig {
+  if (id === "openrouter") {
+    return {
+      baseUrl: process.env.OPENROUTER_IMAGES_BASE_URL || "https://openrouter.ai/api/v1",
+      apiKey: process.env.OPENROUTER_API_KEY,
+      headers: openrouterAttributionHeaders(),
+      defaultModel: process.env.AI_IMAGE_MODEL || "openai/gpt-image-1",
+      keyEnvName: "OPENROUTER_API_KEY",
+    };
+  }
   if (id === "replicate") {
     return {
       baseUrl: process.env.REPLICATE_BASE_URL || "https://api.replicate.com/v1",
@@ -225,6 +280,15 @@ export function resolveImageProviderConfig(id: string): ResolvedProviderConfig {
 }
 
 export function resolveTTSProviderConfig(id: string): ResolvedProviderConfig {
+  if (id === "openrouter") {
+    return {
+      baseUrl: process.env.OPENROUTER_TTS_BASE_URL || "https://openrouter.ai/api/v1",
+      apiKey: process.env.OPENROUTER_API_KEY,
+      headers: openrouterAttributionHeaders(),
+      defaultModel: process.env.AI_TTS_MODEL || "openai/gpt-4o-mini-tts-2025-12-15",
+      keyEnvName: "OPENROUTER_API_KEY",
+    };
+  }
   if (id === "google") {
     return {
       baseUrl: process.env.GOOGLE_TTS_BASE_URL || "https://texttospeech.googleapis.com",
@@ -249,5 +313,17 @@ export function resolveTTSProviderConfig(id: string): ResolvedProviderConfig {
     headers: {},
     defaultModel: process.env.AI_TTS_MODEL || "gpt-4o-mini-tts",
     keyEnvName: "OPENAI_TTS_API_KEY (atau OPENAI_API_KEY)",
+  };
+}
+
+/** Resolver provider direct video-gen (mode premium — OpenRouter async video API). */
+export function resolveVideoProviderConfig(id: string): ResolvedProviderConfig {
+  // Saat ini hanya OpenRouter; provider lain (Runway/Luma) menyusul.
+  return {
+    baseUrl: process.env.OPENROUTER_VIDEO_BASE_URL || "https://openrouter.ai/api/v1",
+    apiKey: process.env.OPENROUTER_API_KEY,
+    headers: openrouterAttributionHeaders(),
+    defaultModel: process.env.AI_VIDEO_MODEL || "google/veo-3.1",
+    keyEnvName: "OPENROUTER_API_KEY",
   };
 }

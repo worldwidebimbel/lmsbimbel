@@ -9,7 +9,7 @@ import {
   Copy, Check, Link2,
 } from "lucide-react";
 import {
-  AI_CAPABILITIES, AI_IMAGE_PROVIDERS, AI_PROVIDERS, AI_TTS_PROVIDERS, AI_VIDEO_MODES,
+  AI_CAPABILITIES, AI_IMAGE_PROVIDERS, AI_PROVIDERS, AI_TTS_PROVIDERS, AI_VIDEO_MODES, AI_VIDEO_PROVIDERS,
   type AICapability,
 } from "@/lib/ai-providers";
 import { DESIGN_PRESETS, type DesignPresetId } from "@/lib/ai-design-presets";
@@ -247,6 +247,7 @@ export default function AiBuilderClient({
       {tab === "video" && (
         <VideoGeneratorTab
           subjects={subjects}
+          defaultMode={settings.videoMode}
           defaultTextProvider={settings.textProvider}
           defaultImageProvider={settings.imageProvider}
           defaultTtsProvider={settings.ttsProvider}
@@ -1697,7 +1698,8 @@ const VIDEO_STAGES: { id: string; label: string }[] = [
 interface VideoJobState {
   id: string;
   status: string;
-  progress?: { stage: string; current: number; total: number; message?: string };
+  mode?: "composite" | "direct";
+  progress?: { stage: string; current: number; total: number; message?: string; mode?: string };
   resultUrl?: string | null;
   resultMaterialId?: string | null;
   errorMessage?: string | null;
@@ -1708,6 +1710,7 @@ interface VideoJobState {
 
 function VideoGeneratorTab({
   subjects,
+  defaultMode,
   defaultTextProvider,
   defaultImageProvider,
   defaultTtsProvider,
@@ -1715,18 +1718,25 @@ function VideoGeneratorTab({
   onDone,
 }: {
   subjects: { id: string; name: string }[];
+  defaultMode: "composite" | "direct";
   defaultTextProvider: string;
   defaultImageProvider: string;
   defaultTtsProvider: string;
   providerStatus: ProviderStatusMap;
   onDone: () => void;
 }) {
+  const [mode, setMode] = useState<"composite" | "direct">(defaultMode);
   const [form, setForm] = useState({
     topic: "",
     subjectName: "",
     jenjang: "Umum",
     sceneCount: 5,
   });
+  // Direct mode (premium — OpenRouter video API)
+  const [videoModel, setVideoModel] = useState("");
+  const [durationSec, setDurationSec] = useState(8);
+  const [resolution, setResolution] = useState("720p");
+  const [aspectRatio, setAspectRatio] = useState("16:9");
   const [textProvider, setTextProvider] = useState(defaultTextProvider);
   const [textModel, setTextModel] = useState("");
   const [imageProvider, setImageProvider] = useState(defaultImageProvider);
@@ -1741,12 +1751,17 @@ function VideoGeneratorTab({
   const textProv = AI_PROVIDERS.find((p) => p.id === textProvider) ?? AI_PROVIDERS[0];
   const imageProv = AI_IMAGE_PROVIDERS.find((p) => p.id === imageProvider) ?? AI_IMAGE_PROVIDERS[0];
   const ttsProv = AI_TTS_PROVIDERS.find((p) => p.id === ttsProvider) ?? AI_TTS_PROVIDERS[0];
+  const videoProv = AI_VIDEO_PROVIDERS.find((p) => p.id === "openrouter") ?? AI_VIDEO_PROVIDERS[0];
   const textConfigured = providerStatus.text.find((p) => p.id === textProvider)?.configured ?? false;
   const imageConfigured = providerStatus.image.find((p) => p.id === imageProvider)?.configured ?? false;
   const ttsConfigured = providerStatus.tts.find((p) => p.id === ttsProvider)?.configured ?? false;
+  // Direct video memakai OPENROUTER_API_KEY (sama seperti provider teks OpenRouter)
+  const directConfigured = providerStatus.text.find((p) => p.id === "openrouter")?.configured ?? false;
   const voices = TTS_VOICES[ttsProvider] ?? [];
 
   const running = job?.status === "PENDING" || job?.status === "PROCESSING";
+  const jobMode = (job?.mode ?? job?.progress?.mode ?? "composite") as "composite" | "direct";
+  const stages = jobMode === "direct" ? VIDEO_STAGES.filter((s) => ["naskah", "render", "upload"].includes(s.id)) : VIDEO_STAGES;
 
   // Polling progress job
   useEffect(() => {
@@ -1762,6 +1777,7 @@ function VideoGeneratorTab({
             ? {
                 ...prev,
                 status: d.job.status,
+                mode: p.mode,
                 progress: p.progress,
                 resultUrl: d.job.resultUrl,
                 resultMaterialId: d.job.resultMaterialId,
@@ -1795,14 +1811,29 @@ function VideoGeneratorTab({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          mode,
           ...form,
-          voice: voice || undefined,
+          // Direct (premium)
+          ...(mode === "direct"
+            ? {
+                videoModel: videoModel || undefined,
+                durationSec,
+                resolution,
+                aspectRatio,
+              }
+            : {}),
+          // Composite
+          ...(mode === "composite"
+            ? {
+                voice: voice || undefined,
+                imageProvider,
+                imageModel: imageModel || undefined,
+                ttsProvider,
+                ttsModel: ttsModel || undefined,
+              }
+            : {}),
           textProvider,
           textModel: textModel || undefined,
-          imageProvider,
-          imageModel: imageModel || undefined,
-          ttsProvider,
-          ttsModel: ttsModel || undefined,
         }),
       });
       const d = await res.json();
@@ -1810,7 +1841,7 @@ function VideoGeneratorTab({
         setError(d.error ?? "Gagal memulai job video.");
         return;
       }
-      setJob({ id: d.jobId, status: "PENDING" });
+      setJob({ id: d.jobId, status: "PENDING", mode });
       onDone();
     } catch {
       setError("Gagal memulai job video. Coba lagi.");
@@ -1848,9 +1879,37 @@ function VideoGeneratorTab({
       <div className="rounded-xl border border-gray-200 bg-white p-6">
         <h2 className="text-lg font-bold text-gray-900">Buat Video Pembelajaran dengan AI</h2>
         <p className="mt-1 text-sm text-gray-500">
-          Pipeline composite: AI menulis naskah per scene → generate ilustrasi → narasi TTS → dirakit menjadi video MP4
-          (subtitle otomatis, maks 5 menit, maks {MAX_SCENES} scene). Berjalan di background — progress bisa dipantau di bawah.
+          {mode === "composite"
+            ? "Pipeline composite: AI menulis naskah per scene → generate ilustrasi → narasi TTS → dirakit menjadi video MP4 (subtitle otomatis, maks 5 menit, maks " + MAX_SCENES + " scene). Hemat & cocok untuk materi edukatif."
+            : "Direct video-gen (premium): AI menyusun prompt sinematik → model video (Veo/Hailuo/Wan) via OpenRouter membuat klip pendek berkualitas tinggi. Biaya jauh lebih tinggi per video."}
+          {" "}Berjalan di background — progress bisa dipantau di bawah.
         </p>
+
+        {/* Mode toggle */}
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setMode("composite")}
+            className={`rounded-xl border-2 px-3 py-2.5 text-sm font-medium transition-all ${
+              mode === "composite"
+                ? "border-indigo-500 bg-indigo-50 text-indigo-800"
+                : "border-gray-200 text-gray-600 hover:border-gray-300"
+            }`}
+          >
+            Composite (hemat)
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("direct")}
+            className={`rounded-xl border-2 px-3 py-2.5 text-sm font-medium transition-all ${
+              mode === "direct"
+                ? "border-purple-500 bg-purple-50 text-purple-800"
+                : "border-gray-200 text-gray-600 hover:border-gray-300"
+            }`}
+          >
+            Direct video-gen (premium)
+          </button>
+        </div>
 
         <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
@@ -1885,27 +1944,106 @@ function VideoGeneratorTab({
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             />
           </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Jumlah Scene (3–{MAX_SCENES})</label>
-            <input
-              type="number"
-              min={3}
-              max={MAX_SCENES}
-              value={form.sceneCount}
-              onChange={(e) => setForm((p) => ({ ...p, sceneCount: Math.min(MAX_SCENES, Math.max(3, Number(e.target.value) || 5)) }))}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-            />
-            <p className="mt-1 text-xs text-gray-500">Estimasi durasi: ±{form.sceneCount * 30} detik (2–4 kalimat per scene).</p>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Voice Narasi</label>
-            <select value={voice} onChange={(e) => setVoice(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              <option value="">Default</option>
-              {voices.map((v) => (
-                <option key={v.value} value={v.value}>{v.label}</option>
-              ))}
-            </select>
-          </div>
+
+          {mode === "composite" && (
+            <>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Jumlah Scene (3–{MAX_SCENES})</label>
+                <input
+                  type="number"
+                  min={3}
+                  max={MAX_SCENES}
+                  value={form.sceneCount}
+                  onChange={(e) => setForm((p) => ({ ...p, sceneCount: Math.min(MAX_SCENES, Math.max(3, Number(e.target.value) || 5)) }))}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+                <p className="mt-1 text-xs text-gray-500">Estimasi durasi: ±{form.sceneCount * 30} detik (2–4 kalimat per scene).</p>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Voice Narasi</label>
+                <select value={voice} onChange={(e) => setVoice(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                  <option value="">Default</option>
+                  {voices.map((v) => (
+                    <option key={v.value} value={v.value}>{v.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">AI Gambar</label>
+                <select value={imageProvider} onChange={(e) => { setImageProvider(e.target.value); setImageModel(""); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                  {AI_IMAGE_PROVIDERS.map((p) => (
+                    <option key={p.id} value={p.id}>{p.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Model Gambar</label>
+                <select value={imageModel} onChange={(e) => setImageModel(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                  <option value="">Default ({imageProv.models[0]?.label ?? "model"})</option>
+                  {imageProv.models.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">AI Narasi (TTS)</label>
+                <select value={ttsProvider} onChange={(e) => { setTtsProvider(e.target.value); setTtsModel(""); setVoice(""); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                  {AI_TTS_PROVIDERS.map((p) => (
+                    <option key={p.id} value={p.id}>{p.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Model TTS</label>
+                <select value={ttsModel} onChange={(e) => setTtsModel(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                  <option value="">Default ({ttsProv.models[0]?.label ?? "model"})</option>
+                  {ttsProv.models.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
+
+          {mode === "direct" && (
+            <>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Model Video</label>
+                <select value={videoModel} onChange={(e) => setVideoModel(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                  <option value="">Default ({videoProv.models[0]?.label ?? "model"})</option>
+                  {videoProv.models.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500">Via OpenRouter — butuh OPENROUTER_API_KEY.</p>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Durasi (detik)</label>
+                <select value={durationSec} onChange={(e) => setDurationSec(Number(e.target.value))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                  {[4, 6, 8, 10].map((d) => (
+                    <option key={d} value={d}>{d}s</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500">Dukungan durasi bergantung model (mis. Veo 3.1: 4/6/8s).</p>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Resolusi</label>
+                <select value={resolution} onChange={(e) => setResolution(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                  <option value="720p">720p</option>
+                  <option value="1080p">1080p</option>
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Rasio</label>
+                <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                  <option value="16:9">16:9 (Landscape)</option>
+                  <option value="9:16">9:16 (Portrait)</option>
+                  <option value="1:1">1:1 (Persegi)</option>
+                </select>
+              </div>
+            </>
+          )}
+
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">AI Naskah (Teks)</label>
             <select value={textProvider} onChange={(e) => { setTextProvider(e.target.value); setTextModel(""); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
@@ -1923,47 +2061,18 @@ function VideoGeneratorTab({
               ))}
             </select>
           </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">AI Gambar</label>
-            <select value={imageProvider} onChange={(e) => { setImageProvider(e.target.value); setImageModel(""); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              {AI_IMAGE_PROVIDERS.map((p) => (
-                <option key={p.id} value={p.id}>{p.label}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Model Gambar</label>
-            <select value={imageModel} onChange={(e) => setImageModel(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              <option value="">Default ({imageProv.models[0]?.label ?? "model"})</option>
-              {imageProv.models.map((m) => (
-                <option key={m.value} value={m.value}>{m.label}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">AI Narasi (TTS)</label>
-            <select value={ttsProvider} onChange={(e) => { setTtsProvider(e.target.value); setTtsModel(""); setVoice(""); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              {AI_TTS_PROVIDERS.map((p) => (
-                <option key={p.id} value={p.id}>{p.label}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Model TTS</label>
-            <select value={ttsModel} onChange={(e) => setTtsModel(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              <option value="">Default ({ttsProv.models[0]?.label ?? "model"})</option>
-              {ttsProv.models.map((m) => (
-                <option key={m.value} value={m.value}>{m.label}</option>
-              ))}
-            </select>
-          </div>
         </div>
 
-        {(!textConfigured || !imageConfigured || !ttsConfigured) && (
+        {mode === "composite" && (!textConfigured || !imageConfigured || !ttsConfigured) && (
           <p className="mt-3 rounded-lg bg-amber-50 px-4 py-2 text-xs text-amber-700">
             Pipeline butuh 3 provider: {!textConfigured && `naskah (${textProv.label}) `}
             {!imageConfigured && `gambar (${imageProv.label}) `}
             {!ttsConfigured && `TTS (${ttsProv.label})`} — Super Admin perlu set API key di environment variables.
+          </p>
+        )}
+        {mode === "direct" && !directConfigured && (
+          <p className="mt-3 rounded-lg bg-amber-50 px-4 py-2 text-xs text-amber-700">
+            Mode direct butuh OpenRouter (OPENROUTER_API_KEY) — Super Admin perlu set di environment variables.
           </p>
         )}
 
@@ -1992,8 +2101,8 @@ function VideoGeneratorTab({
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            {VIDEO_STAGES.map((s, i) => {
-              const stageIdx = VIDEO_STAGES.findIndex((x) => x.id === job.progress?.stage);
+            {stages.map((s, i) => {
+              const stageIdx = stages.findIndex((x) => x.id === job.progress?.stage);
               const state = stageIdx === -1 ? "wait" : i < stageIdx ? "done" : i === stageIdx ? "active" : "wait";
               return (
                 <div key={s.id} className="flex items-center gap-2">

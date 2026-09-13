@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
   const costEstimate = costPerImage; // DESIGN generate 1 aset per kali
 
   try {
-    const genCfg = { baseUrl: cfg.baseUrl, apiKey: cfg.apiKey!, model };
+    const genCfg = { baseUrl: cfg.baseUrl, apiKey: cfg.apiKey!, model, headers: cfg.headers };
     const images = await generateImages(providerId, genCfg, fullPrompt, aspect, 1);
 
     if (images.length === 0) {

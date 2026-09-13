@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
   const costEstimate = Math.ceil((estDurationSec / 60) * costPerMin) || costPerMin;
 
   try {
-    const genCfg = { baseUrl: cfg.baseUrl, apiKey: cfg.apiKey!, model };
+    const genCfg = { baseUrl: cfg.baseUrl, apiKey: cfg.apiKey!, model, headers: cfg.headers };
     const audio = await generateAudio(providerId, genCfg, text.trim(), voice ?? "", ttsSpeed);
 
     // Upload ke Cloudinary — resource_type "video" (Cloudinary menggolongkan audio sebagai video)

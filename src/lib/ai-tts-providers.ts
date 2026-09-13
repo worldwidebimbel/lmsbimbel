@@ -8,6 +8,8 @@ export interface TTSProviderConfig {
   baseUrl: string;
   apiKey: string;
   model: string;
+  /** Header tambahan (mis. atribusi OpenRouter) — opsional. */
+  headers?: Record<string, string>;
 }
 
 export interface GeneratedAudio {
@@ -21,6 +23,18 @@ export interface GeneratedAudio {
 // Dipakai UI untuk dropdown pilihan voice.
 export const TTS_VOICES: Record<string, { value: string; label: string }[]> = {
   openai: [
+    { value: "alloy", label: "Alloy (netral)" },
+    { value: "ash", label: "Ash (pria, hangat)" },
+    { value: "ballad", label: "Ballad (naratif)" },
+    { value: "coral", label: "Coral (wanita, ceria)" },
+    { value: "sage", label: "Sage (tenang)" },
+    { value: "verse", label: "Verse (dinamis)" },
+    { value: "nova", label: "Nova (wanita, jernih)" },
+    { value: "shimmer", label: "Shimmer (wanita, cerah)" },
+  ],
+  // OpenRouter TTS — voice untuk model OpenAI (gpt-4o-mini-tts);
+  // model lain (Voxtral/Fish) punya set voice berbeda — cek halaman modelnya.
+  openrouter: [
     { value: "alloy", label: "Alloy (netral)" },
     { value: "ash", label: "Ash (pria, hangat)" },
     { value: "ballad", label: "Ballad (naratif)" },
@@ -172,9 +186,47 @@ async function generateWithElevenLabs(
   };
 }
 
+// OpenRouter TTS (docs: /docs/guides/overview/multimodal/tts)
+// POST {baseUrl}/audio/speech — kompatibel OpenAI Audio Speech API → raw audio bytes.
+async function generateWithOpenRouterTTS(
+  cfg: TTSProviderConfig,
+  text: string,
+  voice: string,
+  speed: number
+): Promise<GeneratedAudio> {
+  const res = await fetch(`${cfg.baseUrl}/audio/speech`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${cfg.apiKey}`,
+      ...(cfg.headers ?? {}),
+    },
+    body: JSON.stringify({
+      model: cfg.model,
+      input: text,
+      voice: voice || "alloy",
+      response_format: "mp3",
+      speed,
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error(`[AI audio] OpenRouter TTS error (${cfg.model}):`, errText);
+    throw new Error(`OpenRouter TTS error (HTTP ${res.status})`);
+  }
+
+  const ab = await res.arrayBuffer();
+  return {
+    buffer: Buffer.from(ab),
+    mimeType: "audio/mpeg",
+    durationSec: estimateDurationSec(text),
+  };
+}
+
 /**
  * Jalankan TTS via provider yang dipilih.
- * providerId: "openai" | "google" | "elevenlabs"
+ * providerId: "openai" | "openrouter" | "google" | "elevenlabs"
  */
 export async function generateAudio(
   providerId: string,
@@ -183,6 +235,9 @@ export async function generateAudio(
   voice: string,
   speed: number
 ): Promise<GeneratedAudio> {
+  if (providerId === "openrouter") {
+    return generateWithOpenRouterTTS(cfg, text, voice, speed);
+  }
   if (providerId === "google") {
     return generateWithGoogle(cfg, text, voice, speed);
   }

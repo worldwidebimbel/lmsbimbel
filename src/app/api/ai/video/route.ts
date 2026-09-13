@@ -1,22 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { guardAI } from "@/lib/ai-guard";
+import { getAISettings } from "@/lib/ai-settings";
 import {
   resolveProviderConfig,
   resolveImageProviderConfig,
   resolveTTSProviderConfig,
+  resolveVideoProviderConfig,
   type AIProviderId,
 } from "@/lib/ai-providers";
 import { runVideoPipeline, MAX_SCENES, type VideoJobRequest } from "@/lib/ai-video-pipeline";
+import { runDirectVideoPipeline, type DirectVideoJobRequest } from "@/lib/ai-video-direct";
 
 // ============================================================
-// AI Builder — Fase 4: Video Audio-Visual (composite pipeline)
+// AI Builder — Fase 4: Video Audio-Visual
+// Dua mode (future-commit.md §4.4):
+// - composite (hemat): naskah → gambar → TTS → FFmpeg → MP4
+// - direct (premium): OpenRouter async video API (Veo/Hailuo/Wan)
+//
 // POST → buat AiGenerationJob (PENDING) → eksekusi async
-// (fire-and-forget, cocok untuk VPS + PM2 long-running).
+// (fire-and-forget — cocok untuk deploy VPS + PM2 long-running).
 // Progress dipolling lewat GET /api/ai/jobs/[id].
 //
 // Guardrails (future-commit.md):
-// - jumlah scene ≤ 12 (dipaksa 3..12)
+// - jumlah scene ≤ 12 (dipaksa 3..12, composite)
 // - durasi total ≤ 5 menit (divalidasi di pipeline setelah naskah)
 // - satu job video aktif per user
 // ============================================================
@@ -26,8 +33,10 @@ export async function POST(req: NextRequest) {
   if (guard instanceof NextResponse) return guard;
   const { session } = guard;
 
+  const settings = await getAISettings();
   const body = await req.json();
   const {
+    mode: bodyMode,
     topic,
     subjectName,
     jenjang,
@@ -39,8 +48,15 @@ export async function POST(req: NextRequest) {
     imageModel,
     ttsProvider,
     ttsModel,
+    // Direct mode params
+    durationSec,
+    resolution,
+    aspectRatio,
+    videoProvider,
+    videoModel,
     retryJobId,
   } = body as {
+    mode?: string;
     topic?: string;
     subjectName?: string;
     jenjang?: string;
@@ -52,16 +68,57 @@ export async function POST(req: NextRequest) {
     imageModel?: string;
     ttsProvider?: string;
     ttsModel?: string;
+    durationSec?: number;
+    resolution?: string;
+    aspectRatio?: string;
+    videoProvider?: string;
+    videoModel?: string;
     retryJobId?: string;
   };
 
-  // ---------- Retry: ambil request dari job lama ----------
+  const mode = bodyMode === "direct" || bodyMode === "composite" ? bodyMode : settings.videoMode;
+
+  // Guardrail: satu job video aktif per user
+  const active = await db.aiGenerationJob.findFirst({
+    where: { createdBy: session.userId, capability: "VIDEO", status: { in: ["PENDING", "PROCESSING"] } },
+    select: { id: true },
+  });
+  if (active) {
+    return NextResponse.json(
+      { error: "Anda masih punya job video yang berjalan. Tunggu sampai selesai.", jobId: active.id },
+      { status: 409 }
+    );
+  }
+
+  // ---------- Retry: ambil request dari job lama, dispatch sesuai mode ----------
   if (retryJobId) {
     const old = await db.aiGenerationJob.findFirst({
       where: { id: retryJobId, createdBy: session.userId, capability: "VIDEO", status: "FAILED" },
       select: { params: true },
     });
-    const oldReq = (old?.params as { request?: VideoJobRequest } | null)?.request;
+    const oldParams = old?.params as { request?: unknown; mode?: string } | null;
+    const oldMode = oldParams?.mode === "direct" ? "direct" : "composite";
+
+    if (oldMode === "direct") {
+      const oldReq = oldParams?.request as DirectVideoJobRequest | undefined;
+      if (!oldReq) {
+        return NextResponse.json({ error: "Job tidak ditemukan atau tidak bisa di-retry." }, { status: 404 });
+      }
+      const job = await db.aiGenerationJob.create({
+        data: {
+          capability: "VIDEO",
+          status: "PENDING",
+          provider: oldReq.videoProvider ?? "openrouter",
+          model: oldReq.videoModel ?? "direct",
+          params: { request: oldReq, mode: "direct", progress: { stage: "queued", current: 0, total: 0, mode: "direct" } } as never,
+          createdBy: session.userId,
+        },
+      });
+      runDirectVideoPipeline(job.id, oldReq, session.userId).catch((e) => console.error("[AI video direct] pipeline crashed:", e));
+      return NextResponse.json({ jobId: job.id }, { status: 202 });
+    }
+
+    const oldReq = oldParams?.request as VideoJobRequest | undefined;
     if (!oldReq) {
       return NextResponse.json({ error: "Job tidak ditemukan atau tidak bisa di-retry." }, { status: 404 });
     }
@@ -71,7 +128,7 @@ export async function POST(req: NextRequest) {
         status: "PENDING",
         provider: "composite",
         model: "pipeline",
-        params: { request: oldReq, progress: { stage: "queued", current: 0, total: 0 } } as never,
+        params: { request: oldReq, mode: "composite", progress: { stage: "queued", current: 0, total: 0, mode: "composite" } } as never,
         createdBy: session.userId,
       },
     });
@@ -83,6 +140,47 @@ export async function POST(req: NextRequest) {
   if (!topic?.trim()) {
     return NextResponse.json({ error: "Topik wajib diisi" }, { status: 400 });
   }
+
+  // ---------- Mode direct (premium — OpenRouter video API) ----------
+  if (mode === "direct") {
+    const videoCfg = resolveVideoProviderConfig(videoProvider ?? "openrouter");
+    if (!videoCfg.apiKey) {
+      return NextResponse.json({ error: `Provider video belum dikonfigurasi (${videoCfg.keyEnvName}).` }, { status: 503 });
+    }
+    const textCfg = resolveProviderConfig((textProvider ?? "apiclaude") as AIProviderId);
+    if (!textCfg.apiKey) {
+      return NextResponse.json({ error: `Provider teks belum dikonfigurasi (${textCfg.keyEnvName}).` }, { status: 503 });
+    }
+
+    const request: DirectVideoJobRequest = {
+      topic: topic.trim(),
+      subjectName,
+      jenjang,
+      durationSec: durationSec ? Math.min(10, Math.max(2, Number(durationSec))) : undefined,
+      resolution: resolution || "720p",
+      aspectRatio: aspectRatio || "16:9",
+      videoProvider: videoProvider ?? "openrouter",
+      videoModel,
+      textProvider,
+      textModel,
+    };
+
+    const job = await db.aiGenerationJob.create({
+      data: {
+        capability: "VIDEO",
+        status: "PENDING",
+        provider: request.videoProvider!,
+        model: videoModel || "direct",
+        params: { request, mode: "direct", progress: { stage: "queued", current: 0, total: 0, mode: "direct" } } as never,
+        createdBy: session.userId,
+      },
+    });
+
+    runDirectVideoPipeline(job.id, request, session.userId).catch((e) => console.error("[AI video direct] pipeline crashed:", e));
+    return NextResponse.json({ jobId: job.id, mode: "direct" }, { status: 202 });
+  }
+
+  // ---------- Mode composite (hemat — pipeline FFmpeg) ----------
   const numScenes = Math.min(MAX_SCENES, Math.max(3, Number(sceneCount) || 5));
 
   const textId = (textProvider ?? "apiclaude") as AIProviderId;
@@ -101,18 +199,6 @@ export async function POST(req: NextRequest) {
   }
   if (!ttsCfg.apiKey) {
     return NextResponse.json({ error: `Provider TTS belum dikonfigurasi (${ttsCfg.keyEnvName}).` }, { status: 503 });
-  }
-
-  // Guardrail: satu job video aktif per user
-  const active = await db.aiGenerationJob.findFirst({
-    where: { createdBy: session.userId, capability: "VIDEO", status: { in: ["PENDING", "PROCESSING"] } },
-    select: { id: true },
-  });
-  if (active) {
-    return NextResponse.json(
-      { error: "Anda masih punya job video yang berjalan. Tunggu sampai selesai.", jobId: active.id },
-      { status: 409 }
-    );
   }
 
   const request: VideoJobRequest = {
@@ -135,7 +221,7 @@ export async function POST(req: NextRequest) {
       status: "PENDING",
       provider: "composite",
       model: "pipeline",
-      params: { request, progress: { stage: "queued", current: 0, total: 0 } } as never,
+      params: { request, mode: "composite", progress: { stage: "queued", current: 0, total: 0, mode: "composite" } } as never,
       createdBy: session.userId,
     },
   });
@@ -143,5 +229,5 @@ export async function POST(req: NextRequest) {
   // Fire-and-forget — progress lewat polling /api/ai/jobs/[id]
   runVideoPipeline(job.id, request, session.userId).catch((e) => console.error("[AI video] pipeline crashed:", e));
 
-  return NextResponse.json({ jobId: job.id }, { status: 202 });
+  return NextResponse.json({ jobId: job.id, mode: "composite" }, { status: 202 });
 }

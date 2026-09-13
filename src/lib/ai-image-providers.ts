@@ -22,6 +22,51 @@ export interface ImageProviderConfig {
   baseUrl: string;
   apiKey: string;
   model: string;
+  /** Header tambahan (mis. atribusi OpenRouter) — opsional. */
+  headers?: Record<string, string>;
+}
+
+// OpenRouter Image API (docs: /docs/guides/overview/multimodal/image-generation)
+// POST {baseUrl}/images → { data: [{ b64_json, media_type }], usage }
+async function generateWithOpenRouterImages(
+  cfg: ImageProviderConfig,
+  prompt: string,
+  aspectRatio: AspectRatio,
+  count: number
+): Promise<GeneratedImage[]> {
+  const res = await fetch(`${cfg.baseUrl}/images`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${cfg.apiKey}`,
+      ...(cfg.headers ?? {}),
+    },
+    body: JSON.stringify({
+      model: cfg.model,
+      prompt,
+      n: Math.min(10, count),
+      aspect_ratio: aspectRatio,
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error(`[AI image] OpenRouter error (${cfg.model}):`, errText);
+    throw new Error(`OpenRouter Images error (HTTP ${res.status})`);
+  }
+
+  const data = await res.json();
+  const items: Array<{ b64_json?: string; media_type?: string }> = data?.data ?? [];
+  const results: GeneratedImage[] = [];
+  for (const item of items) {
+    if (item.b64_json) {
+      results.push({
+        buffer: Buffer.from(item.b64_json, "base64"),
+        mimeType: item.media_type || "image/png",
+      });
+    }
+  }
+  return results;
 }
 
 async function generateWithOpenAI(
@@ -180,6 +225,9 @@ export async function generateImages(
   aspectRatio: AspectRatio,
   count: number
 ): Promise<GeneratedImage[]> {
+  if (providerId === "openrouter") {
+    return generateWithOpenRouterImages(cfg, prompt, aspectRatio, count);
+  }
   if (providerId === "replicate") {
     return generateWithReplicate(cfg, prompt, aspectRatio, count);
   }

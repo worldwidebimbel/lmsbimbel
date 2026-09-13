@@ -31,6 +31,7 @@ Tujuan bisnis: guru membuat **satu Bab lengkap** (artikel → gambar → audio �
   - **OpenRouter.ai** — `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, dll.
   - Model tersedia: Claude, GPT-4o, Gemini Flash, DeepSeek, Grok, Llama, Qwen.
 - Pattern yang sudah bagus dan akan dipertahankan: metadata non-secret di client, `resolveProviderConfig()` server-only untuk key.
+- **Update (Fase 4 lanjutan):** OpenRouter ternyata mendukung multimodal output — sekarang menjadi opsi provider untuk **gambar** (`POST /api/v1/images`), **TTS** (`POST /api/v1/audio/speech`, kompatibel OpenAI), dan **direct video-gen** (`POST /api/v1/videos`, async) — semua memakai `OPENROUTER_API_KEY` yang sama.
 
 ### 2.2 AI Question Generator
 - Route: `src/app/api/guru/bank-soal/ai-generate/route.ts` (+ `ai-prompt-import`).
@@ -140,7 +141,7 @@ Topik → AI Writer: naskah per bagian/scene (JSON: narasi + prompt gambar per s
 - Durasi dibatasi (MVP: ≤ 5 menit); job berjalan background, UI polling status per tahap (naskah → gambar → audio → render → upload).
 - Cocok untuk konten edukatif (narasi + ilustrasi), biaya jauh lebih murah dari video-gen.
 
-**Strategi B — Direct video-gen (fase premium):** Runway Gen-3, Google Veo, Luma, Kling — kualitas sinematik tapi mahal (≈ Rp 50.000+/video) & lambat (2–5 menit render). Tambah sebagai provider `AI_VIDEO_PROVIDERS` di fase lanjut.
+**Strategi B — Direct video-gen (fase premium):** **terimplementasi via OpenRouter async video API** (`POST /api/v1/videos` — Veo 3.1, Hailuo 3, Wan 2.7): submit → poll → download → Cloudinary → Material VIDEO. Mode dapat dipilih di UI (default dari settings `videoMode`).
 
 - **Biaya composite:** ≈ Rp 5.000–15.000 per video materi (tergantung jumlah scene).
 
@@ -298,6 +299,7 @@ Kapabilitas gambar yang sama dengan 4.2, tapi diarahkan ke **aset promosi websit
 - [x] `GET /api/ai/jobs/[id]` polling + UI progress per tahap + retry on FAILED
 - [x] Guardrails: durasi ≤ 5 menit, jumlah scene ≤ 12, satu job video aktif per user
 - Catatan implementasi: pipeline di `src/lib/ai-video-pipeline.ts` — FFmpeg dijalankan via `child_process.execFile` + `ffmpeg-static` (binary bundel, tanpa apt install) dengan `cwd` folder temp + relative paths; ini lebih robust untuk path escaping filter `subtitles` lintas Windows/Linux daripada fluent-ffmpeg (fluent-ffmpeg di-uninstall — deprecated & tidak diperlukan). Per scene: gambar + audio + `.srt` timing lokal per kalimat → MP4 1280×720 H.264+AAC dengan fade in/out + subtitle burn-in (libass), lalu concat demuxer `-c copy`. Progress per tahap (naskah → gambar → audio → render → upload) di `AiGenerationJob.params.progress`, dipolling UI tiap 3 detik. Retry: job FAILED bisa dijalankan ulang dengan parameter sama via `retryJobId`. Usage log unit = 1 video (log setelah sukses). Material VIDEO dibuat otomatis sebagai draft (`isPublished: false`) dengan `duration` total detik. Perintah FFmpeg sudah diuji end-to-end di Windows (render scene + concat).
+- **Direct video-gen (Strategi B) terimplementasi:** `src/lib/ai-video-direct.ts` — AI Writer menyusun satu prompt sinematik → OpenRouter `POST /api/v1/videos` (model: Veo 3.1/Hailuo 3/Wan 2.7) → poll (±20s, timeout 15 menit) → download → Cloudinary → Material VIDEO. Mode composite/direct dipilih di UI (default dari settings `videoMode`), dispatch di route, retry per mode. Registry `AI_VIDEO_PROVIDERS` + `resolveVideoProviderConfig` di `ai-providers.ts`. OpenRouter juga ditambahkan sebagai opsi provider **gambar** (`/api/v1/images` → b64_json, adapter di `ai-image-providers.ts`) dan **TTS** (`/api/v1/audio/speech`, adapter di `ai-tts-providers.ts`) — semua memakai `OPENROUTER_API_KEY`.
 
 ### Fase 5 — Penyatuan & Paket Bab AI
 - [ ] UI AI Question Generator dipindah ke tab AI Hub (API `/api/guru/bank-soal/*` tidak berubah)
