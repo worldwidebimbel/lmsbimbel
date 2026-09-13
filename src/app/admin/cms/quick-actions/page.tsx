@@ -86,16 +86,16 @@ export default function AdminCmsQuickActionsPage() {
           return (
           <div key={item.id} className={`rounded-lg border p-4 ${item.theme === "yellow" ? "border-yellow-200 bg-yellow-50" : "border-blue-200 bg-blue-50"}`}>
             <div className="flex items-start justify-between">
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className={`flex h-8 w-8 items-center justify-center rounded-full ${item.theme === "yellow" ? "bg-yellow-400 text-blue-950" : "bg-blue-900 text-white"}`}>
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${item.theme === "yellow" ? "bg-yellow-400 text-blue-950" : "bg-blue-900 text-white"}`}>
                     <Icon className="h-4 w-4" />
                   </span>
                   <h3 className="font-semibold text-gray-900">{item.title}</h3>
                 </div>
                 {item.description && <p className="mt-1 text-sm text-gray-600">{item.description}</p>}
-                {item.linkUrl && <p className="mt-2 text-xs text-blue-600">{item.linkUrl}</p>}
-                {item.fileUrl && <p className="mt-1 text-xs text-green-600">📄 {item.fileUrl}</p>}
+                {item.linkUrl && <p className="mt-2 break-all text-xs text-blue-600">{item.linkUrl}</p>}
+                {item.fileUrl && <p className="mt-1 break-all text-xs text-green-600">📄 {item.fileUrl}</p>}
                 {!item.isActive && <span className="mt-2 inline-block rounded bg-gray-200 px-2 py-0.5 text-xs text-gray-600">Nonaktif</span>}
               </div>
               <div className="flex gap-1">

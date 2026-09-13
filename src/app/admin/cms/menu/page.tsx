@@ -87,15 +87,15 @@ export default function AdminCmsMenuPage() {
       <div className="space-y-2">
         {menus.map((menu) => (
           <div key={menu.id} className="rounded-lg border border-gray-200 bg-white">
-            <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-2">
-                <GripVertical className="h-4 w-4 text-gray-300" />
-                <span className="font-semibold text-gray-900">{menu.label}</span>
-                {menu.href && <span className="text-xs text-gray-500">{menu.href}</span>}
-                {menu.children.length > 0 && <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700">{menu.children.length} submenu</span>}
-                {!menu.isActive && <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-500">Nonaktif</span>}
+            <div className="flex items-center justify-between gap-3 px-4 py-3">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <GripVertical className="h-4 w-4 shrink-0 text-gray-300" />
+                <span className="shrink-0 font-semibold text-gray-900">{menu.label}</span>
+                {menu.href && <span className="break-all text-xs text-gray-500">{menu.href}</span>}
+                {menu.children.length > 0 && <span className="shrink-0 rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700">{menu.children.length} submenu</span>}
+                {!menu.isActive && <span className="shrink-0 rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-500">Nonaktif</span>}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2">
                 <button onClick={() => { setEditing(menu); setShowForm(true); }} title="Edit" className="max-md:min-h-[44px] max-md:min-w-[44px] max-md:inline-flex max-md:items-center max-md:justify-center rounded p-1.5 text-gray-500 hover:bg-gray-100">
                   <Pencil className="h-4 w-4" />
                 </button>
@@ -108,11 +108,11 @@ export default function AdminCmsMenuPage() {
               <div className="border-t border-gray-100 bg-gray-50 px-4 py-2">
                 {menu.children.map((child) => (
                   <div key={child.id} className="flex items-center justify-between py-1.5">
-                    <div className="flex items-center gap-2 pl-6">
-                      <span className="text-sm text-gray-700">↳ {child.label}</span>
-                      {child.href && <span className="text-xs text-gray-500">{child.href}</span>}
+                    <div className="flex min-w-0 flex-1 items-center gap-2 pl-6">
+                      <span className="shrink-0 text-sm text-gray-700">↳ {child.label}</span>
+                      {child.href && <span className="break-all text-xs text-gray-500">{child.href}</span>}
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex shrink-0 items-center gap-1">
                       <button onClick={() => { setEditing(child); setShowForm(true); }} className="rounded p-1 text-gray-500 hover:bg-gray-200">
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
