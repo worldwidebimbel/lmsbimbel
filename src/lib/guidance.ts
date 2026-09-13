@@ -153,10 +153,19 @@ export const GUIDANCE_GUIDES: GuidanceGuide[] = [
     category: "BUILD_KONTEN",
   },
   {
-    slug: "deploy-worldwidebimbel",
-    title: "Deploy ke Hostinger (Cloud Startup)",
+    slug: "custom-page",
+    title: "Custom Page + Section Builder (Studi Kasus: Halaman Karir)",
     description:
-      "Panduan deploy LMS ke Hostinger Cloud Startup Hosting (IP 46.202.137.132): setup hPanel, Node.js 20, MySQL, SSL, build, dan routine update.",
+      "Membuat halaman institusional (mis. lowongan kerja/karir) dengan Section Builder — Hero, Fitur, Content WYSIWYG, anchor antar-section, form — plus pembuatan menu navigasi di header & pengelolaan lamaran masuk.",
+    file: "guide-custom-page.md",
+    icon: "FileText",
+    category: "BUILD_KONTEN",
+  },
+  {
+    slug: "deploy-worldwidebimbel",
+    title: "Deploy ke VPS IDCloudHost (worldwidebimbel.com)",
+    description:
+      "Panduan deploy LMS ke VPS IDCloudHost: SSH, PostgreSQL lokal, PM2, Nginx reverse proxy, SSL Let's Encrypt, DNS Cloudflare, CI/CD GitHub Actions, recovery & checklist — sekaligus template untuk deploy domain baru.",
     file: "guide-deploy-worldwidebimbel.md",
     icon: "Server",
     category: "TEKNIS_DEPLOY",
@@ -169,6 +178,16 @@ export const GUIDANCE_GUIDES: GuidanceGuide[] = [
       "Setup Google Login (redirect URI exact match) dan Gmail SMTP di Next.js + Auth.js v5 — termasuk solusi error umum.",
     file: "panduan-nextjs-google-oauth-smtp.md",
     icon: "KeyRound",
+    category: "TEKNIS_DEPLOY",
+    superAdminOnly: true,
+  },
+  {
+    slug: "future-commit-ai-builder",
+    title: "Roadmap: Modul AI Builder / Ecosystem",
+    description:
+      "Eksplorasi pembuatan modul AI Builder: penyatuan AI Question Generator + generator materi teks, gambar, audio, dan video (audio-visual) — jabaran teknologi, penyesuaian sistem, timeline build, dan task list per fase.",
+    file: "future-commit.md",
+    icon: "Sparkles",
     category: "TEKNIS_DEPLOY",
     superAdminOnly: true,
   },

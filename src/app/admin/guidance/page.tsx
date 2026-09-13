@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { HelpCircle, ArrowRight, BookOpen, GraduationCap, Wallet, UserPlus, Banknote, Share2, MonitorSmartphone, Award, FileBadge, Video, CalendarDays, Server, KeyRound } from "lucide-react";
+import { HelpCircle, ArrowRight, BookOpen, GraduationCap, Wallet, UserPlus, Banknote, Share2, MonitorSmartphone, Award, FileBadge, Video, CalendarDays, Server, KeyRound, FileText, Sparkles } from "lucide-react";
 import { GUIDANCE_CATEGORIES, getGuidanceGuidesForRole } from "@/lib/guidance";
 
 export const metadata = { title: "Guidance" };
@@ -21,6 +21,8 @@ const ICON_MAP: Record<string, React.ElementType> = {
   CalendarDays,
   Server,
   KeyRound,
+  FileText,
+  Sparkles,
 };
 
 export default async function GuidancePage() {

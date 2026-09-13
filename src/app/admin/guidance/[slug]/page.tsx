@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/permission";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, BookOpen, GraduationCap, Wallet, UserPlus, Banknote, Share2, MonitorSmartphone, Award, FileBadge, Video, CalendarDays, Server, KeyRound, HelpCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, GraduationCap, Wallet, UserPlus, Banknote, Share2, MonitorSmartphone, Award, FileBadge, Video, CalendarDays, Server, KeyRound, HelpCircle, FileText, Sparkles } from "lucide-react";
 import GuideMarkdown from "@/components/guidance/GuideMarkdown";
 import { getGuidanceGuide, getGuidanceGuidesForRole } from "@/lib/guidance";
 
@@ -24,6 +24,8 @@ const ICON_MAP: Record<string, React.ElementType> = {
   CalendarDays,
   Server,
   KeyRound,
+  FileText,
+  Sparkles,
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {

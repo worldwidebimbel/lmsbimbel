@@ -1,0 +1,302 @@
+# Future Commit: Modul AI Builder / AI Ecosystem
+
+> **Status:** Eksplorasi / perencanaan — belum diimplementasikan.
+> Dokumen ini berisi jabaran teknologi, penyesuaian sistem yang diperlukan, timeline build, dan task list terperinci untuk membangun **Modul AI Builder**.
+> Setelah disetujui, tiap fase di-checklist di sini lalu dijadikan commit terpisah (`feat(ai-builder): fase N — ...`).
+
+---
+
+## 1. Ringkasan & Tujuan
+
+Modul **AI Builder / Ecosystem** adalah satu pintu untuk semua kapabilitas AI pembuatan konten edukatif:
+
+| Kapabilitas | Output | Status saat ini |
+|---|---|---|
+| **AI Question Generator** | Soal ujian (PILGAN, essay, menjodohkan, dll.) | ✅ Sudah ada (`/guru/bank-soal`) |
+| **Materi Teks** | Artikel/ringkasan materi pelajaran (rich text, key points, tips) | ❌ Belum ada |
+| **Materi Gambar** | Ilustrasi/diagram untuk materi & soal | ⚠️ Setengah — `imageMode` hanya menghasilkan *prompt teks*, guru harus generate manual di tool eksternal (mis. Bing Image Creator) lalu upload sendiri |
+| **Materi Audio** | Narasi materi (TTS) untuk siswa dengar | ❌ Belum ada |
+| **Materi Video (audio-visual)** | Video pembelajaran: narasi + visual | ❌ Belum ada |
+
+Tujuan bisnis: guru membuat **satu Bab lengkap** (artikel → gambar → audio → video → latihan soal) dalam hitungan menit, bukan hari.
+
+---
+
+## 2. Kondisi Eksisting (Fondasi yang Sudah Ada)
+
+### 2.1 AI Provider — teks/JSON saja
+- `src/lib/ai-providers.ts` — registry 2 provider, keduanya **OpenAI-compatible chat completions**:
+  - **APIClaude.net** (default) — `AI_BASE_URL`, `AI_MODEL`, key `APICLAUDE_API_KEY`/`OPENAI_API_KEY`
+  - **OpenRouter.ai** — `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, dll.
+  - Model tersedia: Claude, GPT-4o, Gemini Flash, DeepSeek, Grok, Llama, Qwen.
+- Pattern yang sudah bagus dan akan dipertahankan: metadata non-secret di client, `resolveProviderConfig()` server-only untuk key.
+
+### 2.2 AI Question Generator
+- Route: `src/app/api/guru/bank-soal/ai-generate/route.ts` (+ `ai-prompt-import`).
+- Fitur: pilih provider/model, tipe soal, difficulty, jumlah, jenjang, kurikulum, bahasa, instruksi detail, `sourceMaterial` (konteks materi), `strictMode`, `imageMode`.
+- Output dinormalisasi (jawaban huruf → teks opsi, pair menjodohkan) lalu insert ke `Question`.
+- Kelemahan yang akan diselesaikan modul ini: `imageMode` berhenti di `imagePrompt` (teks) — UI malah menautkan ke Bing Image Creator.
+
+### 2.3 Infrastruktur pendukung
+- **Media:** Cloudinary (`src/lib/cloudinary.ts` → `uploadToCloudinary()`, folder `edubimbel/...`, resource type image/video/raw) + model `MediaFile`.
+- **Materi:** model `Material` — `type` (PDF, VIDEO, YOUTUBE, PRESENTATION, DOCUMENT, LINK, TEXT), `content` (rich text), `keyPoints` (Json), `tips`, `chapterTitle`/`chapterOrder` (sistem Bab), relasi `classId`/`subjectId`, `isPublished`.
+- **Keamanan:** `logAudit()` untuk audit trail; `RATE_LIMITS.ai` (10 req/menit per IP, in-memory) di `src/lib/rate-limit.ts`.
+- **Gating:** model `FeatureFlag` + `BillingPlan`/`FeatureTier` — bisa dipakai untuk aktifkan modul per cabang/plan.
+- **Deploy:** VPS single instance + PM2 (belum ada Redis) → desain job **tanpa dependency baru** untuk MVP.
+
+---
+
+## 3. Gambaran Arsitektur Modul
+
+```
+┌─────────────────────────── AI Builder (UI) ───────────────────────────┐
+│  /admin/ai-builder                                                    │
+│  Tab: Soal │ Teks │ Gambar │ Audio │ Video │ Paket Bab AI              │
+└──────┬────────────────────────────────────────────────────────────────┘
+       │
+┌──────▼──────────────────── src/lib/ai-guard.ts ───────────────────────┐
+│ auth → feature flag → rate limit per kapabilitas → kuota user → audit │
+└──────┬────────────────────────────────────────────────────────────────┘
+       │
+┌──────▼─────────────── /api/ai/* (route handlers) ────────────────────┐
+│  POST /api/ai/text   → sinkron (opsional SSE stream)                  │
+│  POST /api/ai/image  → job singkat (detik)                            │
+│  POST /api/ai/audio  → job singkat (detik–menit)                      │
+│  POST /api/ai/video  → job panjang (menit) + polling status           │
+│  GET  /api/ai/jobs, /api/ai/jobs/[id]                                 │
+└──────┬────────────────────────────────────────────────────────────────┘
+       │
+┌──────▼──────────── Provider per kapabilitas (ai-providers.ts) ───────┐
+│  TEXT : APIClaude / OpenRouter          (sudah ada)                   │
+│  IMAGE: baru (OpenAI Images / Replicate / Stability / Gemini-Imagen) │
+│  AUDIO: baru (OpenAI TTS / ElevenLabs / Google TTS id-ID)             │
+│  VIDEO: composite pipeline (FFmpeg) — MVP; direct video-gen nanti    │
+└──────┬────────────────────────────────────────────────────────────────┘
+       │
+┌──────▼─────────────── Cloudinary + Prisma ───────────────────────────┐
+│  uploadToCloudinary("ai-materials") → MediaFile                      │
+│  Material (type TEXT/IMAGE/AUDIO/VIDEO, attach ke Bab)               │
+│  AiGenerationJob + AiUsageLog (tracking & kuota)                     │
+└───────────────────────────────────────────────────────────────────────┘
+```
+
+Prinsip desain:
+1. **Satu gerbang** (`ai-guard`) untuk semua kapabilitas — mudah atur kuota/biaya/audit di satu tempat.
+2. **Provider per kapabilitas**, bukan satu provider serba bisa — tiap kapabilitas punya registry + env sendiri mengikuti pattern `ai-providers.ts` yang ada.
+3. **Job DB-backed, tanpa Redis** (MVP) — cocok dengan deploy PM2 single instance; upgrade path ke BullMQ/Inngest bila multi-instance.
+4. **Hasil selalu masuk MediaFile + Material** — konsisten dengan alur konten yang ada, guru tetap review sebelum publish (`isPublished: false` default).
+
+---
+
+## 4. Jabaran Teknologi per Kapabilitas
+
+### 4.1 Materi Teks (AI Writer)
+- **Provider:** reuse APIClaude/OpenRouter (chat completions) — tanpa provider baru.
+- **Prompt:** structured output JSON: `{ title, content (markdown/rich text), keyPoints: string[], tips, estDurationMenit }` dengan parameter jenjang, kurikulum, mapel, topik, panjang, gaya bahasa, `sourceMaterial`.
+- **Output:** `Material` type `TEXT` + `keyPoints` + `tips`, attach ke `chapterTitle` (Bab) — reuse field yang ada.
+- **Opsional (Fase 1b):** SSE streaming (`ReadableStream`) agar guru lihat teks muncul bertahap.
+- **Biaya:** murah (≈ Rp 100–500 per materi).
+
+### 4.2 Materi Gambar (AI Image)
+- **Kandidat provider** (pilih 1 utama + 1 fallback):
+  | Provider | Model | Kelebihan | Catatan |
+  |---|---|---|---|
+  | OpenAI Images | `gpt-image-1` / `dall-e-3` | Kualitas & adherence prompt tinggi | Harga per gambar lebih tinggi |
+  | Replicate | Flux, SDXL | Banyak pilihan model, murah | Rate limit & latency bervariasi |
+  | Stability AI | SD 3.5 | Stabil, murah | Gaya lebih terbatas |
+  | Gemini/Imagen | `imagen-3` | Bagus untuk diagram teknis | Perlu project GCP |
+- **Fitur:** preset gaya edukatif (flat vector, diagram berlabel, kartun edukatif, whiteboard), rasio (1:1, 16:9), jumlah batch.
+- **Alur:** prompt (bisa dari `imagePrompt` soal!) → generate → buffer → `uploadToCloudinary("ai-materials")` → `MediaFile` → attach ke `Material`/`Question`.
+- **Upgrade langsung ke fitur lama:** `imageMode` di AI Question Generator tidak lagi berhenti di prompt — tombol "Generate gambar" langsung di preview soal.
+- **Biaya:** ≈ Rp 1.000–2.500 per gambar.
+
+### 4.3 Materi Audio (TTS)
+- **Kandidat provider:**
+  | Provider | Kelebihan | Catatan |
+  |---|---|---|
+  | OpenAI TTS (`gpt-4o-mini-tts`, `tts-1`) | Kualitas bagus, natural, mudah | Per menit audio berbayar |
+  | Google Cloud TTS | Voice `id-ID` terbaik untuk Bahasa Indonesia | Setup GCP |
+  | ElevenLabs | Paling natural + cloning | Paling mahal |
+- **Fitur:** pilih voice (prioritas voice Indonesia natural), kecepatan baca, input dari teks materi (bisa langsung dari hasil AI Writer).
+- **Penyesuaian:** `MaterialType` perlu nilai enum baru `AUDIO`; upload Cloudinary `resource_type: "video"` (Cloudinary menggolongkan audio sebagai video).
+- **Biaya:** ≈ Rp 500–2.000 per menit audio.
+
+### 4.4 Materi Video Audio-Visual
+Dua strategi — **MVP pakai composite**, direct video-gen jadi fase premium:
+
+**Strategi A — Composite pipeline (MVP, direkomendasikan):**
+```
+Topik → AI Writer: naskah per bagian/scene (JSON: narasi + prompt gambar per scene)
+      → AI Image: gambar per scene (paralel)
+      → TTS: audio narasi per scene
+      → FFmpeg (server): gabung gambar + audio + subtitle otomatis + transisi
+      → MP4 → Cloudinary → Material type VIDEO
+```
+- Paket npm: `fluent-ffmpeg` + `ffmpeg-static` (binary bundel, tanpa install manual di server) — atau `apt install ffmpeg` di VPS bila ingin native.
+- Durasi dibatasi (MVP: ≤ 5 menit); job berjalan background, UI polling status per tahap (naskah → gambar → audio → render → upload).
+- Cocok untuk konten edukatif (narasi + ilustrasi), biaya jauh lebih murah dari video-gen.
+
+**Strategi B — Direct video-gen (fase premium):** Runway Gen-3, Google Veo, Luma, Kling — kualitas sinematik tapi mahal (≈ Rp 50.000+/video) & lambat (2–5 menit render). Tambah sebagai provider `AI_VIDEO_PROVIDERS` di fase lanjut.
+
+- **Biaya composite:** ≈ Rp 5.000–15.000 per video materi (tergantung jumlah scene).
+
+### 4.5 Paket Bab AI (puncak integrasi)
+Satu wizard: topik + mapel + jenjang → hasilkan sekaligus **artikel + gambar ilustrasi + audio narasi + video audio-visual + set latihan soal** — semuanya masuk sebagai `Material` berurutan dalam satu `chapterTitle` (Bab) + `Exam` latihan terlampir. Ini meng-otomatisasi alur manual di `guide-pembuatan-bab.md`.
+
+---
+
+## 5. Penyesuaian Sistem yang Diperlukan
+
+### 5.1 Database (Prisma)
+1. `MaterialType` enum: tambah **`IMAGE`** dan **`AUDIO`** + migrasi.
+2. Model baru **`AiGenerationJob`**:
+   ```
+   id, capability (TEXT|IMAGE|AUDIO|VIDEO|QUESTION|BAB_PACKAGE), status
+   (PENDING|PROCESSING|DONE|FAILED), provider, model, params Json,
+   resultMaterialId?, resultMediaId?, errorMessage?, costEstimate?,
+   durationMs?, createdBy, createdAt, updatedAt
+   ```
+3. Model baru **`AiUsageLog`** (atau agregat bulanan `AiUsageMonthly`): userId, capability, provider, model, units (char/gambar/detik), costEstimate, createdAt → dasar kuota & laporan biaya.
+4. `Material` opsional: `aiGenerated Boolean @default(false)` (label transparansi).
+5. `FeatureFlag`: entri `ai_builder`, `ai_image`, `ai_audio`, `ai_video` (gating per cabang/plan).
+
+### 5.2 Provider registry (`src/lib/ai-providers.ts`)
+- Pertahankan pattern: metadata aman client, `resolveProviderConfig()` server-only.
+- Tambah: `AI_IMAGE_PROVIDERS`, `AI_TTS_PROVIDERS`, `AI_VIDEO_PROVIDERS` + resolver masing-masing.
+- Env baru (contoh): `AI_IMAGE_PROVIDER`, `AI_IMAGE_API_KEY`, `AI_IMAGE_MODEL`, `AI_TTS_PROVIDER`, `AI_TTS_API_KEY`, `AI_TTS_VOICE`, `AI_VIDEO_*` → update `.env.example` + kedua deploy doc.
+
+### 5.3 API & guard
+- `src/lib/ai-guard.ts` — middleware bersama: auth (role GURU ke atas), feature flag, rate limit **per kapabilitas** (usulan: teks 10/menit, gambar 5/menit, audio 5/menit, video 2/jam), cek kuota bulanan user, `logAudit`.
+- Route baru: `POST /api/ai/{text|image|audio|video}`, `GET /api/ai/jobs`, `GET /api/ai/jobs/[id]`, `POST /api/ai/bab-package`.
+- Catatan rate limit: store in-memory (`rate-limit.ts`) hanya valid single instance — sesuai deploy sekarang; catat upgrade path bila nanti multi-instance (Redis/BullMQ).
+
+### 5.4 UI
+- Sidebar: grup baru **AI Builder** (`/admin/ai-builder`) untuk role GURU, ADMIN_CABANG, ADMIN_AKADEMIK, ADMIN, SUPER_ADMIN — di luar grup CMS karena ini tool produksi konten, bukan pengelolaan website.
+- Halaman: tab per kapabilitas + tab "Paket Bab AI"; riwayat job (status, retry, lihat hasil).
+- Integrasi ke halaman existing: tombol **"Generate dengan AI"** di form Materi & preview soal (`AIQuestionGenerator.tsx`).
+- Hasil generate selalu **preview dulu** → guru pilih classId/subjectId/chapterTitle → simpan sebagai draft (`isPublished: false`) → review → publish. (Kontrol kualitas & moderasi konten.)
+
+### 5.5 Settings & kuota
+- `/admin/settings` (SUPER_ADMIN): pilih default provider/model per kapabilitas, kuota per role per bulan (unit per kapabilitas), aktif/nonaktif per kapabilitas.
+- Tampilkan **estimasi biaya sebelum generate** (tabel harga per model) dan **total pemakaian bulan berjalan** per user.
+
+### 5.6 Deploy & docs
+- `ffmpeg-static` (bundled) — tidak ada apt baru di VPS; alternatif: `apt install ffmpeg`.
+- Update `guide-deploy-worldwidebimbel.md` & `doc/private/deploy-digsanstudy.md` dengan env vars baru.
+- Panduan pemakaian baru → `doc/guide-ai-builder.md` + daftarkan di `src/lib/guidance.ts`.
+
+---
+
+## 6. Build Timeline
+
+> Asumsi 1 developer fokus; beberapa fase bisa diparalelkan bila 2 orang.
+
+| Fase | Deliverable | Estimasi |
+|---|---|---|
+| **0 — Fondasi** | Model job & usage, `ai-guard`, AI Hub shell (UI tab kosong), settings provider/kuota, feature flags | 1 minggu |
+| **1 — Materi Teks** | Generator teks → Material draft (keyPoints, tips, Bab) + tombol "Generate dengan AI" di form Materi; *(1b: SSE streaming)* | 1 minggu (+1) |
+| **2 — Materi Gambar** | Provider image, generate → Cloudinary → MediaFile → Material IMAGE; upgrade `imageMode` soal jadi generate langsung | 1 minggu |
+| **3 — Materi Audio** | Provider TTS, voice picker, Material AUDIO + duration | 1 minggu |
+| **4 — Video Audio-Visual** | Composite pipeline (naskah → gambar → TTS → FFmpeg → MP4 → Cloudinary), job polling UI, batas durasi | 2–3 minggu |
+| **5 — Penyatuan** | AI Question Generator pindah UI ke AI Hub (API tetap), wizard **Paket Bab AI**, `guide-ai-builder.md` | 1–2 minggu |
+| **Total MVP (0–4)** | | **6–8 minggu** |
+| **Total termasuk integrasi penuh (0–5)** | | **7–10 minggu** |
+| *(Lanjutan)* | Direct video-gen premium, avatar presenter, PPT otomatis, billing per plan | backlog |
+
+---
+
+## 7. Build Task List
+
+### Fase 0 — Fondasi
+- [ ] Prisma: model `AiGenerationJob` + `AiUsageLog` + migrasi
+- [ ] Prisma: `FeatureFlag` seed `ai_builder`, `ai_image`, `ai_audio`, `ai_video`
+- [ ] `src/lib/ai-guard.ts` (auth + flag + rate limit per kapabilitas + kuota + audit)
+- [ ] `src/lib/ai-providers.ts`: struktur registry per kapabilitas (TEXT diisi dari existing)
+- [ ] `/admin/ai-builder` shell + sidebar entry + role gate
+- [ ] `/admin/settings`: section AI Builder (provider default, kuota, estimasi harga)
+- [ ] `AiUsageLog` write helper + laporan pemakaian bulanan per user
+- [ ] Env: `.env.example` + kedua deploy doc diupdate
+
+### Fase 1 — Materi Teks
+- [ ] `POST /api/ai/text` (prompt terstruktur → JSON naskah)
+- [ ] UI tab Teks: form (jenjang, kurikulum, mapel, topik, panjang, gaya, sourceMaterial) + preview + edit
+- [ ] Simpan hasil → `Material` (TEXT, `keyPoints`, `tips`, `chapterTitle`) draft
+- [ ] Tombol "Generate dengan AI" di form Materi existing
+- [ ] *(1b)* SSE streaming endpoint + render progresif
+- [ ] Job record + usage log untuk teks
+
+### Fase 2 — Materi Gambar
+- [ ] `AI_IMAGE_PROVIDERS` + resolver + env (pilih provider utama & fallback)
+- [ ] `POST /api/ai/image` (job singkat: prompt/preset gaya/rasio/batch)
+- [ ] Upload hasil → `uploadToCloudinary("ai-materials")` → `MediaFile`
+- [ ] `MaterialType.IMAGE` + attach ke Material/Bab
+- [ ] UI tab Gambar: gallery hasil + pilih-pakai + regenerate
+- [ ] Upgrade `imageMode` Question Generator: tombol generate langsung di preview soal
+- [ ] Moderasi: default `isPublished: false`, review admin
+
+### Fase 3 — Materi Audio
+- [ ] `AI_TTS_PROVIDERS` + resolver + env + voice list (`id-ID` prioritas)
+- [ ] `POST /api/ai/audio` (teks → MP3, kecepatan, voice)
+- [ ] `MaterialType.AUDIO` + `duration` + player di view siswa
+- [ ] UI tab Audio: textarea (atau ambil dari hasil AI Writer) + preview player
+- [ ] Job record + usage log (unit: detik audio)
+
+### Fase 4 — Video Audio-Visual
+- [ ] Dependency: `fluent-ffmpeg` + `ffmpeg-static`
+- [ ] `POST /api/ai/video` → buat `AiGenerationJob` (PENDING) → eksekusi async
+- [ ] Pipeline step 1: AI Writer naskah per scene (narasi + imagePrompt) — job stage tracking
+- [ ] Pipeline step 2: AI Image per scene (paralel, limit konkuransi)
+- [ ] Pipeline step 3: TTS per scene
+- [ ] Pipeline step 4: FFmpeg composite (gambar + audio + subtitle `.srt` otomatis dari naskah + transisi)
+- [ ] Upload MP4 → Cloudinary → `Material` VIDEO
+- [ ] `GET /api/ai/jobs/[id]` polling + UI progress per tahap + retry on FAILED
+- [ ] Guardrails: durasi ≤ 5 menit, jumlah scene ≤ 12, satu job video aktif per user
+
+### Fase 5 — Penyatuan & Paket Bab AI
+- [ ] UI AI Question Generator dipindah ke tab AI Hub (API `/api/guru/bank-soal/*` tidak berubah)
+- [ ] Wizard Paket Bab AI: satu form → artikel + gambar + audio + video + soal dalam satu `chapterTitle`
+- [ ] Progress dashboard paket (per bagian: status, retry)
+- [ ] `doc/guide-ai-builder.md` + register di `src/lib/guidance.ts` (BUILD_KONTEN)
+- [ ] Review keamanan: prompt injection (`sourceMaterial`), sanitasi HTML hasil AI, kuota
+
+---
+
+## 8. Estimasi Biaya Operasional (indikatif)
+
+| Kapabilitas | Unit | Estimasi biaya |
+|---|---|---|
+| Teks | per materi | Rp 100–500 |
+| Gambar | per gambar | Rp 1.000–2.500 |
+| Audio | per menit | Rp 500–2.000 |
+| Video composite | per video (≤5 mnt) | Rp 5.000–15.000 |
+| Soal (existing) | per batch 10 | ± Rp 200–1.000 |
+
+> Angka bergantung provider & model terpilih — tabel harga live di settings, ditampilkan sebagai estimasi sebelum generate. Kuota per role mencegah pembengkakan (mis. guru: 50 gambar, 60 menit audio, 10 video/bulan).
+
+---
+
+## 9. Risiko & Mitigasi
+
+| Risiko | Mitigasi |
+|---|---|
+| Biaya API membengkak / abuse | Kuota bulanan per role, rate limit per kapabilitas, estimasi biaya pre-generate, usage report |
+| Kualitas/kesesuaian konten AI | Preview + draft-only (`isPublished: false`), guru wajib review, label `aiGenerated` |
+| Beban CPU server saat render video | Batas durasi & jumlah scene, antrean serial per user, ffmpeg-static, offload ke worker terpisah bila perlu |
+| Provider eksternal down/mahal | Fallback provider per kapabilitas, semua hasil tersimpan di Cloudinary (tidak tergantung provider) |
+| Prompt injection via `sourceMaterial` | Sanitasi input, instruksi sistem tegas, validasi struktur output |
+| Konten tidak pantas (gambar) | Provider-side moderation + review manual sebelum publish |
+| Rate limit in-memory tidak valid multi-instance | Catat sebagai batasan known; upgrade ke Redis/BullMQ saat scaling |
+
+---
+
+## 10. Keputusan yang Perlu Diambil (sebelum mulai)
+
+| # | Pertanyaan | Rekomendasi awal |
+|---|---|---|
+| 1 | Provider gambar utama? | OpenAI Images (`gpt-image-1`) untuk kualitas, Replicate/Flux untuk hemat |
+| 2 | Provider TTS utama? | OpenAI TTS (gampang, multilingual) atau Google TTS `id-ID` (paling natural untuk Indonesia) |
+| 3 | Budget bulanan AI? | Mulai Rp 500rb–1 jt/bulan untuk pilot 1 cabang, naik bertahap |
+| 4 | Siapa yang boleh akses? | GURU ke atas (konsisten dengan AI Question Generator) |
+| 5 | Materi AI diberi label ke siswa? | Ya — transparansi (`aiGenerated` + badge di view materi) |
+| 6 | Cloudinary plan cukup untuk video? | Cek kuota bandwidth/video; bila tidak, simpan video di storage VPS + serve via Nginx |
+| 7 | MVP video composite atau langsung direct video-gen? | Composite (murah, cepat jadi, edukatif); direct video-gen nanti sebagai opsi premium |
