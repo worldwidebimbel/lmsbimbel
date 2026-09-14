@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { GraduationCap, BookOpen, Users, Award, ArrowRight, CheckCircle, Star, Phone, FlaskConical, Calculator, Monitor, PenTool, Layers, Rocket } from "lucide-react";
+import { GraduationCap, BookOpen, Users, Award, ArrowRight, CheckCircle, Star, Phone, FlaskConical, Calculator, Monitor, PenTool, Layers, Rocket, Building2, UserCheck } from "lucide-react";
 import { db } from "@/lib/db";
 import { getSiteConfig, SITE_DEFAULTS } from "@/lib/site-config";
 import { getHomepageData } from "@/lib/homepage-data";
@@ -29,16 +29,19 @@ const PROGRAM_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 
 async function getLandingData() {
   try {
-    const [students, teachers, classes, subjects, gallery, homepage] = await Promise.all([
+    const [students, teachers, classes, subjects, programCount, branchCount, affiliateCount, gallery, homepage] = await Promise.all([
       db.user.count({ where: { role: "SISWA", isActive: true } }),
       db.user.count({ where: { role: "GURU", isActive: true } }),
       db.class.count({ where: { isActive: true } }),
       db.subject.count({ where: { isActive: true } }),
+      db.siteProgram.count({ where: { isActive: true } }),
+      db.branch.count({ where: { isActive: true } }),
+      db.user.count({ where: { role: "AFILIATOR", isActive: true } }),
       db.siteGallery.findMany({ where: { isActive: true }, orderBy: [{ category: "asc" }, { order: "asc" }] }),
       getHomepageData(),
     ]);
     return {
-      students, teachers, classes, subjects,
+      students, teachers, classes, subjects, programCount, branchCount, affiliateCount,
       gallery,
       banners: homepage.banners,
       quickActions: homepage.quickActions,
@@ -48,13 +51,13 @@ async function getLandingData() {
       testimonials: homepage.testimonials,
     };
   } catch {
-    return { students: 0, teachers: 0, classes: 0, subjects: 0, gallery: [], banners: [], quickActions: [], programs: [], videos: [], videoHighlights: [], testimonials: [] };
+    return { students: 0, teachers: 0, classes: 0, subjects: 0, programCount: 0, branchCount: 0, affiliateCount: 0, gallery: [], banners: [], quickActions: [], programs: [], videos: [], videoHighlights: [], testimonials: [] };
   }
 }
 
 export default async function LandingPage() {
   const [data, cfg] = await Promise.all([getLandingData(), getSiteConfig()]);
-  const { students, teachers, classes, subjects, banners, gallery, programs, quickActions, videos, videoHighlights, testimonials } = data;
+  const { students, teachers, classes, subjects, programCount, branchCount, affiliateCount, banners, gallery, programs, quickActions, videos, videoHighlights, testimonials } = data;
 
   const groupedGallery: Record<string, typeof gallery> = {};
   for (const item of gallery) {
@@ -147,7 +150,7 @@ export default async function LandingPage() {
       <QuickActionCards actions={quickActions} />
 
       {/* Stats / Counter Section */}
-      <CounterSection cfg={cfg} stats={{ students, teachers, classes, subjects }} />
+      <CounterSection cfg={cfg} stats={{ students, teachers, classes, subjects, programs: programCount, branches: branchCount, affiliates: affiliateCount }} />
 
       {/* Program Unggulan Section */}
       <ProgramUnggulanSection programs={programs} config={cfg} />
@@ -264,33 +267,55 @@ function CounterSection({
   stats,
 }: {
   cfg: typeof SITE_DEFAULTS;
-  stats: { students: number; teachers: number; classes: number; subjects: number };
+  stats: { students: number; teachers: number; classes: number; subjects: number; programs: number; branches: number; affiliates: number };
 }) {
   const enabled = (cfg.counter_enabled ?? "true") === "true";
   if (!enabled) return null;
 
   // Real vs Fake counter
   const isFake = cfg.counter_display === "fake";
-  const students = isFake ? Number(cfg.counter_fake_students ?? 0) : stats.students;
-  const teachers = isFake ? Number(cfg.counter_fake_teachers ?? 0) : stats.teachers;
-  const classes = isFake ? Number(cfg.counter_fake_classes ?? 0) : stats.classes;
-  const subjects = isFake ? Number(cfg.counter_fake_subjects ?? 0) : stats.subjects;
 
-  const items = [
-    { icon: Users, number: `${students}+`, label: "Siswa Aktif" },
-    { icon: GraduationCap, number: `${teachers}+`, label: "Guru Profesional" },
-    { icon: Layers, number: `${classes}+`, label: "Kelas Tersedia" },
-    { icon: BookOpen, number: `${subjects}+`, label: "Mata Pelajaran" },
-  ];
+  // Daftar counter yang didukung — urutan array = urutan tampil default.
+  // Admin bisa toggle on/off per-counter lewat `counter_items` (comma-
+  // separated). Hanya counter yang listed di counter_items yang dirender.
+  const ALL_COUNTERS = [
+    { key: "students", icon: Users, label: "Siswa Aktif", fakeKey: "counter_fake_students", real: stats.students },
+    { key: "teachers", icon: GraduationCap, label: "Guru Profesional", fakeKey: "counter_fake_teachers", real: stats.teachers },
+    { key: "classes", icon: Layers, label: "Kelas Tersedia", fakeKey: "counter_fake_classes", real: stats.classes },
+    { key: "subjects", icon: BookOpen, label: "Mata Pelajaran", fakeKey: "counter_fake_subjects", real: stats.subjects },
+    { key: "programs", icon: Award, label: "Program Tersedia", fakeKey: "counter_fake_programs", real: stats.programs },
+    { key: "branches", icon: Building2, label: "Cabang Aktif", fakeKey: "counter_fake_branches", real: stats.branches },
+    { key: "affiliates", icon: UserCheck, label: "Afiliator", fakeKey: "counter_fake_affiliates", real: stats.affiliates },
+  ] as const;
+
+  const enabledKeys = (cfg.counter_items ?? "students,teachers,classes,subjects,programs,branches,affiliates")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const items = ALL_COUNTERS
+    .filter((c) => enabledKeys.includes(c.key))
+    .map((c) => ({
+      icon: c.icon,
+      number: `${isFake ? Number((cfg as Record<string, string>)[c.fakeKey] ?? 0) : c.real}+`,
+      label: c.label,
+    }));
+
+  if (items.length === 0) return null;
 
   const layout = cfg.counter_layout ?? "1";
+  // Grid responsive — sesuaikan kolom dengan jumlah counter aktif.
+  const gridCols =
+    items.length <= 4 ? "sm:grid-cols-2 lg:grid-cols-4"
+    : items.length === 5 ? "sm:grid-cols-2 lg:grid-cols-5"
+    : items.length === 6 ? "sm:grid-cols-3 lg:grid-cols-6"
+    : "sm:grid-cols-3 lg:grid-cols-7";
 
   // Layout 3 — Kartu Gradient Sejajar
   if (layout === "3") {
     return (
       <section id="statistik" className="border-y border-gray-100 bg-gray-50/50 py-14">
         <div className="mx-auto max-w-7xl px-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className={`grid gap-4 ${gridCols}`}>
             {items.map((item) => {
               const Icon = item.icon;
               return (
@@ -320,7 +345,7 @@ function CounterSection({
     return (
       <section id="statistik" className="border-y border-gray-100 bg-gray-50/50 py-14">
         <div className="mx-auto max-w-7xl px-6">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className={`grid gap-6 ${gridCols}`}>
             {items.map((item) => {
               const Icon = item.icon;
               return (
@@ -349,7 +374,7 @@ function CounterSection({
   return (
     <section id="statistik" className="border-y border-gray-100 bg-gray-50/50 py-14">
       <div className="mx-auto max-w-7xl px-6">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className={`grid gap-8 ${gridCols}`}>
           {items.map((item) => (
             <StatBox key={item.label} number={item.number} label={item.label} color={cfg.colorPrimary} />
           ))}

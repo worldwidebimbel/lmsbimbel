@@ -216,6 +216,19 @@ const COUNTER_LAYOUTS = [
   },
 ];
 
+// Daftar counter yang bisa di-toggle on/off oleh admin. Urutan array
+// = urutan tampil default di homepage. Harus sinkron dengan ALL_COUNTERS
+// di src/components/landing/LandingPage.tsx.
+const COUNTER_OPTIONS = [
+  { key: "students", label: "Siswa" },
+  { key: "teachers", label: "Guru" },
+  { key: "classes", label: "Kelas" },
+  { key: "subjects", label: "Mapel" },
+  { key: "programs", label: "Program" },
+  { key: "branches", label: "Cabang" },
+  { key: "affiliates", label: "Afiliator" },
+];
+
 const LIST_SECTION_DEFAULTS: Record<string, string> = {
   style: "grid",
   count: "4",
@@ -286,10 +299,14 @@ export default function AdminCmsSettingsPage() {
   const [counterEnabled, setCounterEnabled] = useState(true);
   const [counterDisplay, setCounterDisplay] = useState("real");
   const [counterLayout, setCounterLayout] = useState("1");
+  const [counterItems, setCounterItems] = useState<string[]>(["students", "teachers", "classes", "subjects", "programs", "branches", "affiliates"]);
   const [fakeStudents, setFakeStudents] = useState("1200");
   const [fakeTeachers, setFakeTeachers] = useState("50");
   const [fakeClasses, setFakeClasses] = useState("35");
   const [fakeSubjects, setFakeSubjects] = useState("15");
+  const [fakePrograms, setFakePrograms] = useState("8");
+  const [fakeBranches, setFakeBranches] = useState("3");
+  const [fakeAffiliates, setFakeAffiliates] = useState("25");
   const [programCfg, setProgramCfg] = useState<Record<string, string>>({ ...LIST_SECTION_DEFAULTS });
   const [testiCfg, setTestiCfg] = useState<Record<string, string>>({ ...LIST_SECTION_DEFAULTS, count: "3" });
   const [loading, setLoading] = useState(true);
@@ -313,10 +330,14 @@ export default function AdminCmsSettingsPage() {
         if (data.counter_enabled !== undefined) setCounterEnabled(data.counter_enabled === "true");
         if (data.counter_display) setCounterDisplay(data.counter_display);
         if (data.counter_layout) setCounterLayout(data.counter_layout);
+        if (data.counter_items) setCounterItems(data.counter_items.split(",").map((s: string) => s.trim()).filter(Boolean));
         if (data.counter_fake_students) setFakeStudents(data.counter_fake_students);
         if (data.counter_fake_teachers) setFakeTeachers(data.counter_fake_teachers);
         if (data.counter_fake_classes) setFakeClasses(data.counter_fake_classes);
         if (data.counter_fake_subjects) setFakeSubjects(data.counter_fake_subjects);
+        if (data.counter_fake_programs) setFakePrograms(data.counter_fake_programs);
+        if (data.counter_fake_branches) setFakeBranches(data.counter_fake_branches);
+        if (data.counter_fake_affiliates) setFakeAffiliates(data.counter_fake_affiliates);
         setProgramCfg((p) => ({
           style: data.program_style ?? p.style,
           count: data.program_count ?? p.count,
@@ -357,10 +378,14 @@ export default function AdminCmsSettingsPage() {
         counter_enabled: counterEnabled ? "true" : "false",
         counter_display: counterDisplay,
         counter_layout: counterLayout,
+        counter_items: counterItems.join(","),
         counter_fake_students: fakeStudents,
         counter_fake_teachers: fakeTeachers,
         counter_fake_classes: fakeClasses,
         counter_fake_subjects: fakeSubjects,
+        counter_fake_programs: fakePrograms,
+        counter_fake_branches: fakeBranches,
+        counter_fake_affiliates: fakeAffiliates,
         ...programPayload,
         ...testiPayload,
       }),
@@ -554,6 +579,35 @@ export default function AdminCmsSettingsPage() {
               </div>
             </div>
 
+            {/* Pilih Counter — toggle per-counter on/off */}
+            <div className="mt-5">
+              <h3 className="mb-2 text-sm font-semibold text-gray-900">Pilih Counter yang Ditampilkan</h3>
+              <p className="mb-3 text-xs text-gray-500">Centang counter yang ingin dimunculkan di homepage. Urutan tampil mengikuti urutan daftar ini.</p>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+                {COUNTER_OPTIONS.map((opt) => {
+                  const checked = counterItems.includes(opt.key);
+                  return (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => setCounterItems((prev) => checked ? prev.filter((k) => k !== opt.key) : [...prev, opt.key])}
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs transition-all ${
+                        checked ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                      }`}
+                    >
+                      <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${checked ? "border-blue-600 bg-blue-600" : "border-gray-300"}`}>
+                        {checked && <Check className="h-3 w-3 text-white" />}
+                      </span>
+                      <span className="font-medium">{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {counterItems.length === 0 && (
+                <p className="mt-2 text-xs text-amber-600">Tidak ada counter dipilih — section counter akan kosong. Nonaktifkan section saja bila tidak ingin menampilkan statistik.</p>
+              )}
+            </div>
+
             {/* Fake Counter Fields */}
             {counterDisplay === "fake" && (
               <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4">
@@ -596,6 +650,36 @@ export default function AdminCmsSettingsPage() {
                       min={0}
                       value={fakeSubjects}
                       onChange={(e) => setFakeSubjects(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-700">Program Tersedia</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={fakePrograms}
+                      onChange={(e) => setFakePrograms(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-700">Cabang Aktif</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={fakeBranches}
+                      onChange={(e) => setFakeBranches(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-700">Afiliator</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={fakeAffiliates}
+                      onChange={(e) => setFakeAffiliates(e.target.value)}
                       className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
                     />
                   </div>

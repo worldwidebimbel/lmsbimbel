@@ -40,10 +40,16 @@ export const SITE_DEFAULTS = {
   counter_enabled: "true", // "true" | "false" — tampilkan/sembunyikan section statistik
   counter_display: "real", // "real" (data asli DB) | "fake" (angka manual)
   counter_layout: "1", // "1" (inline minimalis) | "2" (kartu icon) | "3" (kartu gradient sejajar)
+  // Daftar counter yang ditampilkan (comma-separated, urutan = urutan tampil).
+  // Admin toggle per-counter di /admin/cms/settings.
+  counter_items: "students,teachers,classes,subjects,programs,branches,affiliates",
   counter_fake_students: "1200",
   counter_fake_teachers: "50",
   counter_fake_classes: "35",
   counter_fake_subjects: "15",
+  counter_fake_programs: "8",
+  counter_fake_branches: "3",
+  counter_fake_affiliates: "25",
   // ===== Program Section Settings =====
   program_style: "grid", // "grid" (2x2 kartu) | "marquee" (infinity loop) | "carousel" (slide arrow+dot)
   program_count: "4", // angka atau "all"
