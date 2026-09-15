@@ -174,6 +174,12 @@ GOOGLE_CLIENT_SECRET="isi-dari-google-console"
 RESEND_API_KEY="re_xxxxxxxxxxxx"
 RESEND_FROM="Worldwide Bimbel <no-reply@worldwidebimbel.com>"
 
+# Email via Mailketing (provider Indonesia — alternatif)
+# Dapatkan API Token di menu Integration mailketing.co.id
+# MAILKETING_API_TOKEN=""
+# MAILKETING_FROM_NAME="Worldwide Bimbel"
+# MAILKETING_FROM_EMAIL="no-reply@worldwidebimbel.com"
+
 NEXT_PUBLIC_APP_URL="https://worldwidebimbel.com"
 NEXT_PUBLIC_APP_NAME="Worldwide Bimbel"
 

@@ -25,6 +25,8 @@ export async function GET() {
     method: { ok: cfg.method !== "none", detail: cfg.method },
     resend_api_key: { ok: !!cfg.resend.apiKey, detail: cfg.resend.apiKey ? "✓ diset" : "belum diset" },
     resend_from: { ok: !!cfg.resend.from, detail: cfg.resend.from || "belum diset" },
+    mailketing_api_token: { ok: !!cfg.mailketing.apiToken, detail: cfg.mailketing.apiToken ? "✓ diset" : "belum diset" },
+    mailketing_from_email: { ok: !!cfg.mailketing.fromEmail, detail: cfg.mailketing.fromEmail || "belum diset" },
     client_id: { ok: !!cfg.oauth2.clientId, detail: cfg.oauth2.clientId ? "✓ diset" : "belum diset" },
     client_secret: { ok: !!cfg.oauth2.clientSecret, detail: cfg.oauth2.clientSecret ? "✓ diset" : "belum diset" },
     refresh_token: { ok: !!cfg.oauth2.refreshToken, detail: cfg.oauth2.refreshToken ? "✓ diset" : "belum diset" },
@@ -93,6 +95,8 @@ export async function GET() {
     commonIssues: [
       "Resend: pastikan RESEND_API_KEY sudah benar dan domain sudah diverifikasi di dashboard Resend.",
       "Resend: untuk production, gunakan domain sendiri (bukan onboarding@resend.dev).",
+      "Mailketing: pastikan MAILKETING_API_TOKEN benar dan sender email sudah ditambahkan di menu Add Domain mailketing.co.id.",
+      "Mailketing: pastikan credit masih cukup — top up bila habis.",
       "Pastikan redirect URI di Google Cloud Console mencakup callbackUri di atas (persis, termasuk https/http).",
       "Gmail OAuth2 dan NextAuth Google login memakai client ID yang sama. Keduanya harus memiliki authorized redirect URIs masing-masing.",
       "OAuth consent screen minimal dalam mode Testing dan user pengirim sudah ditambahkan sebagai Test User.",

@@ -44,6 +44,7 @@ export default async function AdminSettingsPage() {
 
   const smtpConfigured = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
   const resendConfigured = !!process.env.RESEND_API_KEY;
+  const mailketingConfigured = !!process.env.MAILKETING_API_TOKEN;
 
   const gmailClientId = settings.gmail_client_id ?? "";
   const gmailClientSecret = settings.gmail_client_secret ?? "";
@@ -85,6 +86,7 @@ export default async function AdminSettingsPage() {
         demoStatus={demoStatus}
         smtpConfigured={smtpConfigured}
         resendConfigured={resendConfigured}
+        mailketingConfigured={mailketingConfigured}
         oauth2Configured={oauth2Configured}
         oauth2Vars={oauth2Vars}
         oauth2DbConfig={oauth2DbConfig}

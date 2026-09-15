@@ -9,7 +9,7 @@ interface MailOptions {
   html: string;
 }
 
-export type EmailMethod = "resend" | "oauth2" | "smtp" | "none";
+export type EmailMethod = "resend" | "mailketing" | "oauth2" | "smtp" | "none";
 
 function env(key: string): string {
   return (process.env[key] ?? "").replace(/^["']|["']$/g, "").trim();
@@ -81,6 +81,7 @@ export async function getGmailOAuthCredentials(): Promise<{
 
 export async function getActiveEmailMethodAsync(): Promise<EmailMethod> {
   if (env("RESEND_API_KEY")) return "resend";
+  if (env("MAILKETING_API_TOKEN")) return "mailketing";
   const dbCfg = await getDbOAuth2Settings();
   const hasOAuth2Db = !!(dbCfg.gmail_client_id && dbCfg.gmail_client_secret && dbCfg.gmail_refresh_token && dbCfg.gmail_from);
   const hasOAuth2Env = !!(env("GOOGLE_CLIENT_ID") && env("GOOGLE_CLIENT_SECRET") && env("GOOGLE_REFRESH_TOKEN") && env("GMAIL_FROM"));
@@ -91,6 +92,7 @@ export async function getActiveEmailMethodAsync(): Promise<EmailMethod> {
 
 export function getActiveEmailMethod(): EmailMethod {
   if (env("RESEND_API_KEY")) return "resend";
+  if (env("MAILKETING_API_TOKEN")) return "mailketing";
   if (
     env("GOOGLE_CLIENT_ID") &&
     env("GOOGLE_CLIENT_SECRET") &&
@@ -114,6 +116,11 @@ export async function getEmailConfigAsync() {
     resend: {
       apiKey: env("RESEND_API_KEY"),
       from: env("RESEND_FROM") || "EduBimbel <no-reply@resend.dev>",
+    },
+    mailketing: {
+      apiToken: env("MAILKETING_API_TOKEN"),
+      fromName: env("MAILKETING_FROM_NAME") || (process.env.APP_NAME ?? "EduBimbel"),
+      fromEmail: env("MAILKETING_FROM_EMAIL"),
     },
     oauth2: {
       clientId,
@@ -185,6 +192,62 @@ function resendHttpSend(opts: {
   });
 }
 
+// Mailketing API — https://mailketing.co.id/docs/send-email-via-api/
+// POST https://api.mailketing.co.id/api/v1/send (form-encoded)
+// Response: {"status":"success","response":"Mail Sent"}
+function mailketingHttpSend(opts: {
+  apiToken: string;
+  fromName: string;
+  fromEmail: string;
+  to: string;
+  subject: string;
+  html: string;
+}): Promise<{ id: string }> {
+  return new Promise((resolve, reject) => {
+    const params = new URLSearchParams();
+    params.append("api_token", opts.apiToken);
+    params.append("from_name", opts.fromName);
+    params.append("from_email", opts.fromEmail);
+    params.append("recipient", opts.to);
+    params.append("subject", opts.subject);
+    params.append("content", opts.html);
+    const body = params.toString();
+
+    const req = https.request(
+      {
+        hostname: "api.mailketing.co.id",
+        path: "/api/v1/send",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Content-Length": Buffer.byteLength(body),
+        },
+        timeout: 15000,
+      },
+      (res) => {
+        let raw = "";
+        res.on("data", (chunk) => (raw += chunk));
+        res.on("end", () => {
+          let parsed: Record<string, unknown> = {};
+          try { parsed = JSON.parse(raw); } catch { /* ignore */ }
+          const status = parsed.status as string | undefined;
+          const response = parsed.response as string | undefined;
+          if (status === "success") {
+            resolve({ id: response ?? "mailketing-sent" });
+          } else {
+            const msg = response ?? raw;
+            reject(new Error(`Mailketing API: ${msg}`));
+          }
+        });
+      },
+    );
+    req.on("error", reject);
+    req.on("timeout", () => { req.destroy(); reject(new Error("Mailketing API timeout: server tidak dapat menjangkau api.mailketing.co.id.")); });
+    req.write(body);
+    req.end();
+  });
+}
+
 export async function sendEmail({ to, subject, html }: MailOptions) {
   const method = await getActiveEmailMethodAsync();
   const toAddr = Array.isArray(to) ? to.join(", ") : to;
@@ -204,6 +267,25 @@ export async function sendEmail({ to, subject, html }: MailOptions) {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("[email] Resend send failed:", msg, err);
+      throw err;
+    }
+  }
+
+  if (method === "mailketing") {
+    const cfg = await getEmailConfigAsync();
+    try {
+      const result = await mailketingHttpSend({
+        apiToken: cfg.mailketing.apiToken,
+        fromName: cfg.mailketing.fromName,
+        fromEmail: cfg.mailketing.fromEmail,
+        to: toAddr,
+        subject,
+        html,
+      });
+      return { id: result.id, provider: "mailketing" };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[email] Mailketing send failed:", msg, err);
       throw err;
     }
   }
