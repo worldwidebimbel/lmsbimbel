@@ -28,12 +28,23 @@ export interface ImageProviderConfig {
 
 // OpenRouter Image API (docs: /docs/guides/overview/multimodal/image-generation)
 // POST {baseUrl}/images → { data: [{ b64_json, media_type }], usage }
+//
+// Catatan: OpenRouter hanya mendukung aspect_ratio: 1:1, 3:2, 2:3, auto.
+// Rasio lain (16:9, 4:3, 9:16) di-map ke yang terdekat.
+const OPENROUTER_ASPECT_MAP: Record<AspectRatio, string> = {
+  "1:1": "1:1",
+  "16:9": "3:2",  // landscape terdekat
+  "9:16": "2:3",  // portrait terdekat
+  "4:3": "3:2",   // landscape terdekat
+};
+
 async function generateWithOpenRouterImages(
   cfg: ImageProviderConfig,
   prompt: string,
   aspectRatio: AspectRatio,
   count: number
 ): Promise<GeneratedImage[]> {
+  const mappedAspect = OPENROUTER_ASPECT_MAP[aspectRatio] ?? "auto";
   const res = await fetch(`${cfg.baseUrl}/images`, {
     method: "POST",
     headers: {
@@ -45,7 +56,7 @@ async function generateWithOpenRouterImages(
       model: cfg.model,
       prompt,
       n: Math.min(10, count),
-      aspect_ratio: aspectRatio,
+      aspect_ratio: mappedAspect,
     }),
   });
 
