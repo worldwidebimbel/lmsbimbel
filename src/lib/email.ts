@@ -222,7 +222,7 @@ function mailketingHttpSend(opts: {
           "Content-Type": "application/x-www-form-urlencoded",
           "Content-Length": Buffer.byteLength(body),
         },
-        timeout: 15000,
+        timeout: 30000,
       },
       (res) => {
         let raw = "";
