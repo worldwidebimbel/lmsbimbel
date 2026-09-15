@@ -70,7 +70,7 @@ export default async function OrangTuaRaportDetailPage({
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">{raport.class.name}</h2>
-            <p className="text-sm text-gray-500">{raport.class.subject.name}</p>
+            <p className="text-sm text-gray-500">{raport.class.subject?.name ?? "Tanpa Mapel"}</p>
             <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
               <span>Semester {raport.semester}</span>
               {raport.period && <span>• {raport.period}</span>}

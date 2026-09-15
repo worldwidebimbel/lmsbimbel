@@ -51,7 +51,7 @@ export default async function OrangtuaNilaiPage() {
   function groupBySubject(childGrades: typeof grades) {
     const map: Record<string, { subject: string; scores: number[]; avg: number }> = {};
     for (const g of childGrades) {
-      const subj = g.component.class.subject.name;
+      const subj = g.component.class.subject?.name ?? "Tanpa Mapel";
       if (!map[subj]) map[subj] = { subject: subj, scores: [], avg: 0 };
       map[subj].scores.push(g.score);
     }

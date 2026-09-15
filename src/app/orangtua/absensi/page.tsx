@@ -111,7 +111,7 @@ export default async function OrangtuaAbsensiPage() {
                 {childRecords.map((rec) => (
                   <div key={rec.id} className="flex items-center justify-between px-5 py-2.5">
                     <div>
-                      <p className="text-sm font-medium text-gray-800">{rec.attendance.class.subject.name}</p>
+                      <p className="text-sm font-medium text-gray-800">{rec.attendance.class.subject?.name ?? "Tanpa Mapel"}</p>
                       <p className="text-xs text-gray-500">
                         {format(new Date(rec.createdAt), "EEEE, d MMM yyyy", { locale: localeId })}
                       </p>

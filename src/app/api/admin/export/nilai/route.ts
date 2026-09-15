@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
   const data = grades.map((g) => ({
     siswa: g.student.name,
     kelas: g.component.class.name,
-    mapel: g.component.class.subject.name,
+    mapel: g.component.class.subject?.name ?? "-",
     komponen: g.component.name,
     bobot: g.component.weight,
     nilai: g.score,

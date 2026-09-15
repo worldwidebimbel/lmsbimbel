@@ -10,7 +10,7 @@ import { StarRating, StarPicker, CategoryBadge } from "@/components/raport/StarR
 interface ClassItem {
   id: string;
   name: string;
-  subject: { name: string };
+  subject: { name: string } | null;
   students: { student: { id: string; name: string } }[];
 }
 
@@ -43,7 +43,7 @@ interface Raport {
   attitudes: RaportAttitude[];
   publishedAt: string | null;
   student: { id: string; name: string };
-  class: { id: string; name: string; subject: { name: string } };
+  class: { id: string; name: string; subject: { name: string } | null };
   academicYear: { id: string; name: string } | null;
 }
 

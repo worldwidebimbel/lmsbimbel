@@ -72,7 +72,7 @@ export default async function PpdbDetailPage({
         classes={classes.map((c) => ({
           id: c.id,
           name: c.name,
-          subjectName: c.subject.name,
+          subjectName: c.subject?.name ?? "Tanpa Mapel",
           teacherName: c.teacher.name,
         }))}
         registration={{

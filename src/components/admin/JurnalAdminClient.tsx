@@ -16,11 +16,11 @@ interface Journal {
   solution: string | null;
   studentCount: number;
   status: string;
-  class: { id: string; name: string; subject: { name: string } };
+  class: { id: string; name: string; subject: { name: string } | null };
   teacher: { id: string; name: string };
 }
 
-interface ClassItem { id: string; name: string; subject: { name: string } }
+interface ClassItem { id: string; name: string; subject: { name: string } | null }
 interface Teacher { id: string; name: string }
 
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
@@ -152,7 +152,7 @@ export default function JurnalAdminClient({
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700">{j.class.name}</span>
-                    <span className="text-xs text-gray-500">{j.class.subject.name}</span>
+                    <span className="text-xs text-gray-500">{j.class.subject?.name ?? "Tanpa Mapel"}</span>
                     <span className="text-xs font-medium text-gray-700">{j.teacher.name}</span>
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_LABELS[j.status]?.cls ?? STATUS_LABELS.DRAFT.cls}`}>
                       {STATUS_LABELS[j.status]?.label ?? j.status}

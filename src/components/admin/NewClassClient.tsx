@@ -18,6 +18,7 @@ export default function NewClassClient({ subjects, teachers, branches, rooms, de
     name: "",
     description: "",
     subjectId: "",
+    newSubjectName: "",
     teacherId: "",
     branchId: defaultBranchId ?? "",
     type: "REGULER",
@@ -26,6 +27,8 @@ export default function NewClassClient({ subjects, teachers, branches, rooms, de
     startDate: "",
     endDate: "",
   });
+  const [subjectMode, setSubjectMode] = useState<"select" | "new">("select");
+  const [subjectsState, setSubjectsState] = useState<Subject[]>(subjects);
 
   function update(k: string, v: string) { setForm((p) => ({ ...p, [k]: v })); }
 
@@ -33,10 +36,24 @@ export default function NewClassClient({ subjects, teachers, branches, rooms, de
     e.preventDefault();
     setError("");
     startTransition(async () => {
+      const payload: Record<string, unknown> = {
+        ...form,
+        roomId: form.room || null,
+        maxStudents: Number(form.maxStudents),
+      };
+      // Mode "new": kirim newSubjectName, bukan subjectId — API
+      // akan buat Subject baru lalu pakai ID-nya.
+      if (subjectMode === "new") {
+        payload.newSubjectName = form.newSubjectName.trim();
+        payload.subjectId = null;
+      } else {
+        payload.subjectId = form.subjectId || null;
+        payload.newSubjectName = null;
+      }
       const res = await fetch("/api/admin/classes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, roomId: form.room || null, maxStudents: Number(form.maxStudents) }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const d = await res.json();
@@ -66,16 +83,46 @@ export default function NewClassClient({ subjects, teachers, branches, rooms, de
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Mata Pelajaran *</label>
-          <select
-            required
-            value={form.subjectId}
-            onChange={(e) => update("subjectId", e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
-          >
-            <option value="">Pilih mata pelajaran</option>
-            {subjects.map((s) => <option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
-          </select>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">Mata Pelajaran</label>
+          {subjectMode === "select" ? (
+            <div className="flex gap-2">
+              <select
+                value={form.subjectId}
+                onChange={(e) => update("subjectId", e.target.value)}
+                className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
+              >
+                <option value="">— Tanpa Mapel —</option>
+                {subjectsState.map((s) => <option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
+              </select>
+              <button
+                type="button"
+                onClick={() => setSubjectMode("new")}
+                className="shrink-0 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5 text-xs font-medium text-blue-600 hover:bg-blue-100"
+                title="Buat mapel baru"
+              >
+                + Mapel Baru
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <input
+                value={form.newSubjectName}
+                onChange={(e) => update("newSubjectName", e.target.value)}
+                placeholder="Nama mapel baru (mis. AI Learning)"
+                className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => { setSubjectMode("select"); update("newSubjectName", ""); }}
+                className="shrink-0 rounded-lg border border-gray-200 px-3 py-2.5 text-xs text-gray-600 hover:bg-gray-50"
+              >
+                Pilih
+              </button>
+            </div>
+          )}
+          <p className="mt-1 text-xs text-gray-400">
+            Opsional — kosongkan untuk kelas di luar lingkup sekolah (mis. AI Learning, Kewirausahaan).
+          </p>
         </div>
 
         <div>

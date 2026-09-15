@@ -13,7 +13,7 @@ interface QuestionGroup { id: string; type: string; title: string | null; passag
 interface Exam {
   id: string; title: string; duration: number; passingScore: number;
   description: string | null; isRandomized: boolean; shuffleOptions?: boolean;
-  class: { name: string; subject: { name: string; color: string } };
+  class: { name: string; subject: { name: string; color: string } | null };
   questions: Question[];
   sections?: ExamSection[];
   questionGroups?: QuestionGroup[];
@@ -203,7 +203,7 @@ export default function TakeExamClient({ exam, existingAttempt, maxAttempts = 1,
       {/* Header */}
       <div className="sticky top-0 z-10 flex items-center justify-between rounded-xl border border-gray-200 bg-white px-3 sm:px-5 py-3 shadow-sm">
         <div>
-          <p className="text-xs text-gray-500">{exam.class.subject.name} · {exam.class.name}</p>
+          <p className="text-xs text-gray-500">{exam.class.subject?.name ?? "Tanpa Mapel"} · {exam.class.name}</p>
           <p className="font-semibold text-gray-900 text-sm">{exam.title}</p>
           {hasSections && (
             <p className="text-xs text-indigo-600 font-medium mt-0.5">

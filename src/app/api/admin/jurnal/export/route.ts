@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
   const data = journals.map((j) => ({
     tanggal: new Date(j.sessionDate).toLocaleDateString("id-ID"),
     kelas: j.class.name,
-    mapel: j.class.subject.name,
+    mapel: j.class.subject?.name ?? "-",
     tutor: j.teacher.name,
     jam: `${j.startTime} - ${j.endTime}`,
     jumlahSiswa: j.studentCount,

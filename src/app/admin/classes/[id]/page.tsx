@@ -59,12 +59,12 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
         <Link href="/admin/classes" className="rounded-lg p-2 hover:bg-gray-100">
           <ArrowLeft className="h-4 w-4 text-gray-500" />
         </Link>
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: cls.subject.color + "22" }}>
-          <BookOpen className="h-5 w-5" style={{ color: cls.subject.color }} />
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: (cls.subject?.color ?? "#9CA3AF") + "22" }}>
+          <BookOpen className="h-5 w-5" style={{ color: cls.subject?.color ?? "#9CA3AF" }} />
         </div>
         <div>
           <h1 className="text-xl font-bold text-gray-900">{cls.name}</h1>
-          <p className="text-sm text-gray-500">{cls.subject.name} · {cls.teacher.name}</p>
+          <p className="text-sm text-gray-500">{cls.subject?.name ?? "Tanpa Mapel"} · {cls.teacher.name}</p>
         </div>
       </div>
 

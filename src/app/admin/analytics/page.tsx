@@ -222,10 +222,10 @@ export default async function AnalyticsPage() {
                   <tr key={cls.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: cls.subject.color }} />
+                        <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: cls.subject?.color ?? "#9CA3AF" }} />
                         <div>
                           <p className="font-medium text-gray-900">{cls.name}</p>
-                          <p className="text-xs text-gray-500">{cls.subject.name}</p>
+                          <p className="text-xs text-gray-500">{cls.subject?.name ?? "Tanpa Mapel"}</p>
                         </div>
                       </div>
                     </td>

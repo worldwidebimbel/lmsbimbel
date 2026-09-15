@@ -55,7 +55,7 @@ export async function checkAndIssueClassCompletionCertificate(
 
   const certificateNo = await generateCertificateNo();
   const code = await generateCertificateCode();
-  const programName = cls.program?.name ?? cls.subject.name;
+  const programName = cls.program?.name ?? cls.subject?.name ?? "Tanpa Mapel";
 
   const certificate = await db.certificate.create({
     data: {

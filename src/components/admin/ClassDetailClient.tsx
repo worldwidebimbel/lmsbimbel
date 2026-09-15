@@ -20,10 +20,10 @@ interface ClassData {
   roomId: string | null;
   roomRel: { id: string; name: string } | null;
   isActive: boolean;
-  subjectId: string;
+  subjectId: string | null;
   teacherId: string;
   branchId: string | null;
-  subject: Subject;
+  subject: Subject | null;
   teacher: Teacher;
   branch: Branch | null;
   students: ClassStudent[];
@@ -47,7 +47,7 @@ export default function ClassDetailClient({ cls, allStudents, subjects, teachers
   const [editForm, setEditForm] = useState({
     name: cls.name,
     description: cls.description ?? "",
-    subjectId: cls.subject.id,
+    subjectId: cls.subject?.id ?? "",
     teacherId: cls.teacher.id,
     branchId: cls.branchId ?? "",
     type: cls.type,
@@ -110,6 +110,7 @@ export default function ClassDetailClient({ cls, allStudents, subjects, teachers
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...editForm,
+          subjectId: editForm.subjectId || null,
           roomId: editForm.room || null,
           maxStudents: Number(editForm.maxStudents),
           branchId: isSuperAdmin ? editForm.branchId : cls.branchId,
@@ -232,6 +233,7 @@ export default function ClassDetailClient({ cls, allStudents, subjects, teachers
               <div>
                 <label className="text-xs text-gray-500">Mata Pelajaran</label>
                 <select value={editForm.subjectId} onChange={(e) => handleEditChange("subjectId", e.target.value)} className="w-full rounded border border-gray-200 px-2 py-1 text-sm">
+                  <option value="">— Tanpa Mapel —</option>
                   {subjects.map((s) => <option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
                 </select>
               </div>

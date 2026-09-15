@@ -47,8 +47,8 @@ export default async function NilaiGrafikPage() {
     if (!byClass[classId]) {
       byClass[classId] = {
         className: g.component.class.name,
-        subjectName: g.component.class.subject.name,
-        subjectColor: g.component.class.subject.color,
+        subjectName: g.component.class.subject?.name ?? "Tanpa Mapel",
+        subjectColor: g.component.class.subject?.color ?? "#9CA3AF",
         components: [],
       };
     }

@@ -48,12 +48,12 @@ export default async function GuruKelasPage() {
             <div key={cls.id} className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
               <div className="flex items-start gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl shrink-0"
-                  style={{ backgroundColor: cls.subject.color + "22" }}>
-                  <BookOpen className="h-5 w-5" style={{ color: cls.subject.color }} />
+                  style={{ backgroundColor: (cls.subject?.color ?? "#9CA3AF") + "22" }}>
+                  <BookOpen className="h-5 w-5" style={{ color: cls.subject?.color ?? "#9CA3AF" }} />
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-bold text-gray-900 truncate">{cls.name}</h3>
-                  <p className="text-xs text-gray-500">{cls.subject.name} ({cls.subject.code})</p>
+                  <p className="text-xs text-gray-500">{cls.subject?.name ?? "Tanpa Mapel"} ({cls.subject?.code ?? "—"})</p>
                 </div>
               </div>
 

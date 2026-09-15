@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
     tanggal: r.attendance.date.toISOString().split("T")[0],
     siswa: r.student.name,
     kelas: r.attendance.class.name,
-    mapel: r.attendance.class.subject.name,
+    mapel: r.attendance.class.subject?.name ?? "-",
     status: r.status,
     catatan: r.note ?? "",
   }));

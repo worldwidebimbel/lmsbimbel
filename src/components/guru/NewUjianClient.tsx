@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
-interface Class { id: string; name: string; subject: { name: string } }
+interface Class { id: string; name: string; subject: { name: string } | null }
 interface EventItem { id: string; title: string; type: string }
 interface MaterialItem { id: string; title: string; chapterTitle: string | null; classId: string | null }
 
@@ -80,7 +80,7 @@ export default function NewUjianClient({ classes, events, materials = [] }: { cl
             <select required value={form.classId} onChange={(e) => handleClassChange(e.target.value)}
               className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none">
               <option value="">Pilih kelas</option>
-              {classes.map((c) => <option key={c.id} value={c.id}>{c.name} — {c.subject.name}</option>)}
+              {classes.map((c) => <option key={c.id} value={c.id}>{c.name} — {c.subject?.name ?? "Tanpa Mapel"}</option>)}
             </select>
           </div>
           <div>

@@ -11,10 +11,10 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { name, description, subjectId, teacherId, branchId, type, maxStudents, roomId, startDate, endDate } = body;
+  const { name, description, subjectId, newSubjectName, teacherId, branchId, type, maxStudents, roomId, startDate, endDate } = body;
 
-  if (!name || !subjectId || !teacherId) {
-    return NextResponse.json({ error: "name, subjectId, teacherId wajib diisi" }, { status: 400 });
+  if (!name || !teacherId) {
+    return NextResponse.json({ error: "name, teacherId wajib diisi" }, { status: 400 });
   }
 
   // Admin non-super must use their own branch
@@ -22,11 +22,32 @@ export async function POST(req: NextRequest) {
     ? (branchId || session.user.defaultBranchId)
     : session.user.defaultBranchId;
 
+  // Buat mapel baru jika admin input "Mapel Baru" di form kelas.
+  let finalSubjectId = subjectId || null;
+  if (newSubjectName && String(newSubjectName).trim()) {
+    const subjName = String(newSubjectName).trim();
+    // Generate code dari nama (uppercase, ambil huruf/angka, max 10 char)
+    const code = subjName.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10) || "CUSTOM";
+    // Pastikan code unik — append angka jika sudah ada
+    let uniqueCode = code;
+    let suffix = 1;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const exists = await db.subject.findUnique({ where: { code: uniqueCode }, select: { id: true } });
+      if (!exists) break;
+      uniqueCode = `${code}${suffix++}`;
+    }
+    const newSubject = await db.subject.create({
+      data: { name: subjName, code: uniqueCode, color: "#3B82F6", isActive: true },
+    });
+    finalSubjectId = newSubject.id;
+  }
+
   const cls = await db.class.create({
     data: {
       name,
       description,
-      subjectId,
+      subjectId: finalSubjectId,
       teacherId,
       branchId: assignedBranchId,
       type: type ?? "REGULER",

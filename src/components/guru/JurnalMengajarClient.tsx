@@ -6,7 +6,7 @@ import { Plus, Trash2, X, Calendar, Clock, Users, FileText, CheckCircle, Edit3, 
 interface ClassItem {
   id: string;
   name: string;
-  subject: { name: string };
+  subject: { name: string } | null;
   schedules: { id: string; dayOfWeek: string; startTime: string; endTime: string }[];
 }
 
@@ -22,7 +22,7 @@ interface Journal {
   solution: string | null;
   studentCount: number;
   status: string;
-  class: { id: string; name: string; subject: { name: string } };
+  class: { id: string; name: string; subject: { name: string } | null };
 }
 
 const DAY_LABELS: Record<string, string> = {
@@ -188,7 +188,7 @@ export default function JurnalMengajarClient({
                     <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
                       {j.class.name}
                     </span>
-                    <span className="text-xs text-gray-500">{j.class.subject.name}</span>
+                    <span className="text-xs text-gray-500">{j.class.subject?.name ?? "Tanpa Mapel"}</span>
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_LABELS[j.status]?.cls ?? STATUS_LABELS.DRAFT.cls}`}>
                       {STATUS_LABELS[j.status]?.label ?? j.status}
                     </span>
@@ -269,7 +269,7 @@ export default function JurnalMengajarClient({
               >
                 <option value="">— Pilih Kelas —</option>
                 {classes.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name} ({c.subject.name})</option>
+                  <option key={c.id} value={c.id}>{c.name} ({c.subject?.name ?? "Tanpa Mapel"})</option>
                 ))}
               </select>
             </div>

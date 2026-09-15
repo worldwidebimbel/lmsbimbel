@@ -67,8 +67,8 @@ export default async function GuruUjianPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     {exam.class ? (
                       <>
-                        <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: exam.class?.subject.color }} />
-                        <span className="text-xs text-gray-500">{exam.class?.subject.name} · {exam.class?.name}</span>
+                        <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: exam.class?.subject?.color ?? "#9CA3AF" }} />
+                        <span className="text-xs text-gray-500">{exam.class?.subject?.name ?? "Tanpa Mapel"} · {exam.class?.name}</span>
                       </>
                     ) : exam.event ? (
                       <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">🏆 {exam.event.type} · {exam.event.title}</span>

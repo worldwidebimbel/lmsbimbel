@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
     mulai: s.startTime,
     selesai: s.endTime,
     kelas: s.class.name,
-    mapel: s.class.subject.name,
+    mapel: s.class.subject?.name ?? "-",
     tutor: s.teacher?.name ?? "",
     ruangan: s.roomRel?.name ?? "",
     gedung: s.roomRel?.building.name ?? "",

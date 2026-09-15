@@ -68,7 +68,7 @@ export default async function UjianDetailPage({ params }: { params: Promise<{ id
         </div>
         <div>
           <h1 className="text-xl font-bold text-gray-900">{exam.title}</h1>
-          <p className="text-sm text-gray-500">{exam.class ? `${exam.class?.subject.name} - ${exam.class?.name}` : exam.event ? `🏆 ${exam.event.type} - ${exam.event.title}` : "Ujian mandiri"}</p>
+          <p className="text-sm text-gray-500">{exam.class ? `${exam.class?.subject?.name ?? "Tanpa Mapel"} - ${exam.class?.name}` : exam.event ? `🏆 ${exam.event.type} - ${exam.event.title}` : "Ujian mandiri"}</p>
         </div>
       </div>
 

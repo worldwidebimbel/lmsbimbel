@@ -66,7 +66,7 @@ export default async function OrangtuaDashboard() {
                   <div className="space-y-2">
                     {child.grades.map((g) => (
                       <div key={g.id} className="flex justify-between items-center">
-                        <span className="text-xs text-gray-600">{g.component.class.subject.name}</span>
+                        <span className="text-xs text-gray-600">{g.component.class.subject?.name ?? "Tanpa Mapel"}</span>
                         <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${g.score >= 75 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                           {g.score}
                         </span>
@@ -87,7 +87,7 @@ export default async function OrangtuaDashboard() {
                   <div className="space-y-2">
                     {child.attendanceRecords.map((rec) => (
                       <div key={rec.id} className="flex justify-between items-center">
-                        <span className="text-xs text-gray-600">{rec.attendance.class.subject.name}</span>
+                        <span className="text-xs text-gray-600">{rec.attendance.class.subject?.name ?? "Tanpa Mapel"}</span>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getAttendanceStatusColor(rec.status)}`}>
                           {getAttendanceStatusLabel(rec.status)}
                         </span>

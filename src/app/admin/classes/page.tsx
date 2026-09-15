@@ -69,15 +69,15 @@ export default async function ClassesPage({ searchParams }: { searchParams: Prom
               className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all hover:border-blue-200 group">
               <div className="flex items-start justify-between mb-3">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-                  style={{ backgroundColor: cls.subject.color }}>
-                  {cls.subject.code.slice(0, 3)}
+                  style={{ backgroundColor: cls.subject?.color ?? "#9CA3AF" }}>
+                  {(cls.subject?.code ?? "—").slice(0, 3)}
                 </div>
                 <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${CLASS_TYPE_COLOR[cls.type]}`}>
                   {CLASS_TYPE_LABEL[cls.type]}
                 </span>
               </div>
               <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{cls.name}</h3>
-              <p className="text-sm text-gray-500 mt-0.5">{cls.subject.name}</p>
+              <p className="text-sm text-gray-500 mt-0.5">{cls.subject?.name ?? "Tanpa Mapel"}</p>
               <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
                 <span className="flex items-center gap-1">
                   <Users className="w-3.5 h-3.5" />

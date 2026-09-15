@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     kelas: s.profile?.gradeLevel ?? "",
     cabang: s.defaultBranch?.name ?? "",
     kelasAktif: s.enrolledClasses[0]?.class.name ?? "",
-    mapel: s.enrolledClasses[0]?.class.subject.name ?? "",
+    mapel: s.enrolledClasses[0]?.class.subject?.name ?? "-",
     status: s.profile?.studentStatus ?? "AKTIF",
     bergabung: s.createdAt.toISOString().split("T")[0],
   }));

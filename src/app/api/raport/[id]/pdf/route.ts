@@ -160,7 +160,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const infoLines = [
     { label: "Nama Siswa", value: raport.student.name },
     { label: "Kelas", value: raport.class.name },
-    { label: "Mata Pelajaran", value: raport.class.subject.name },
+    { label: "Mata Pelajaran", value: raport.class.subject?.name ?? "Tanpa Mapel" },
     { label: "Tutor", value: raport.class.teacher?.name ?? "-" },
     { label: "Semester", value: raport.semester },
     { label: "Tahun Ajaran", value: raport.academicYear?.name ?? "-" },

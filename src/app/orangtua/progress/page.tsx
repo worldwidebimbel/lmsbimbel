@@ -117,10 +117,10 @@ export default async function OrangtuaProgressPage() {
               <p className="px-5 py-6 text-center text-sm text-gray-500">Belum terdaftar di kelas apapun</p>
             ) : enrolledClasses.map((ec) => (
               <div key={ec.classId} className="flex items-center gap-3 px-5 py-3">
-                <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: ec.class.subject.color }} />
+                <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: ec.class.subject?.color ?? "#9CA3AF" }} />
                 <div>
                   <p className="text-sm font-medium text-gray-900">{ec.class.name}</p>
-                  <p className="text-xs text-gray-500">{ec.class.subject.name}</p>
+                  <p className="text-xs text-gray-500">{ec.class.subject?.name ?? "Tanpa Mapel"}</p>
                 </div>
               </div>
             ))}
@@ -137,9 +137,9 @@ export default async function OrangtuaProgressPage() {
               {grades.map((g) => (
                 <div key={g.id} className="flex items-center justify-between px-5 py-3">
                   <div className="flex items-center gap-2">
-                    <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: g.component.class.subject.color }} />
+                    <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: g.component.class.subject?.color ?? "#9CA3AF" }} />
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{g.component.class.subject.name}</p>
+                      <p className="text-sm font-medium text-gray-900">{g.component.class.subject?.name ?? "Tanpa Mapel"}</p>
                       <p className="text-xs text-gray-500">{g.component.name}</p>
                     </div>
                   </div>

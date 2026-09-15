@@ -74,7 +74,7 @@ export default async function SiswaDashboard() {
               {stats.recentGrades.map((grade) => (
                 <div key={grade.id} className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50">
                   <div>
-                    <p className="text-sm font-medium text-gray-800">{grade.component.class.subject.name}</p>
+                    <p className="text-sm font-medium text-gray-800">{grade.component.class.subject?.name ?? "Tanpa Mapel"}</p>
                     <p className="text-xs text-gray-500">{grade.component.name}</p>
                   </div>
                   <span className={`text-sm font-bold px-3 py-1 rounded-full ${grade.score >= 75 ? "bg-green-100 text-green-700" : grade.score >= 60 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}>

@@ -57,7 +57,7 @@ export default async function SiswaRaportPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-semibold text-gray-900">{r.class.name}</h3>
-                  <p className="text-sm text-gray-500">{r.class.subject.name}</p>
+                  <p className="text-sm text-gray-500">{r.class.subject?.name ?? "Tanpa Mapel"}</p>
                 </div>
                 {r.finalGrade !== null && (
                   <div className="text-right">

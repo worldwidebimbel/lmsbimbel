@@ -393,7 +393,7 @@ model Class {
   id          String    @id @default(cuid())
   name        String
   description String?
-  subjectId   String
+  subjectId   String?
   teacherId   String
   branchId    String?
   type        ClassType @default(REGULER)
@@ -408,7 +408,7 @@ model Class {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  subject     Subject   @relation(fields: [subjectId], references: [id])
+  subject     Subject?  @relation(fields: [subjectId], references: [id])
   teacher     User      @relation("TeacherClasses", fields: [teacherId], references: [id])
   branch      Branch?   @relation(fields: [branchId], references: [id])
   roomRel     Room?     @relation(fields: [roomId], references: [id])

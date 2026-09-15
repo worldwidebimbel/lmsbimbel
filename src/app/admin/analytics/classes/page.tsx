@@ -61,8 +61,8 @@ export default async function ClassAnalyticsPage() {
       return {
         id: cls.id,
         name: cls.name,
-        subject: cls.subject.name,
-        subjectColor: cls.subject.color,
+        subject: cls.subject?.name ?? "Tanpa Mapel",
+        subjectColor: cls.subject?.color ?? "#9CA3AF",
         teacher: cls.teacher.name,
         studentCount: cls._count.students,
         materialCount: cls._count.materials,

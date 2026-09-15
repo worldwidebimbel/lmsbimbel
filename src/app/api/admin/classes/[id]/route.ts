@@ -56,7 +56,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     data: {
       ...(body.name && { name: body.name }),
       ...(body.description !== undefined && { description: body.description }),
-      ...(body.subjectId && { subjectId: body.subjectId }),
+      ...(body.subjectId !== undefined && { subjectId: body.subjectId || null }),
       ...(body.teacherId && { teacherId: body.teacherId }),
       ...(body.type && { type: body.type }),
       ...(body.maxStudents !== undefined && { maxStudents: body.maxStudents }),

@@ -63,12 +63,12 @@ export default async function GuruDashboard() {
                 className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors group border border-gray-100">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-                    style={{ backgroundColor: cls.subject.color }}>
-                    {cls.subject.code.slice(0, 3)}
+                    style={{ backgroundColor: cls.subject?.color ?? "#9CA3AF" }}>
+                    {(cls.subject?.code ?? "—").slice(0, 3)}
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-800">{cls.name}</p>
-                    <p className="text-xs text-gray-500">{cls.subject.name} · {cls.type}</p>
+                    <p className="text-xs text-gray-500">{cls.subject?.name ?? "Tanpa Mapel"} · {cls.type}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-gray-500">

@@ -60,8 +60,8 @@ export default async function SiswaJadwalPage() {
       byDay[s.dayOfWeek]?.push({
         classId: ec.classId,
         className: ec.class.name,
-        subjectName: ec.class.subject.name,
-        subjectColor: ec.class.subject.color,
+        subjectName: ec.class.subject?.name ?? "Tanpa Mapel",
+        subjectColor: ec.class.subject?.color ?? "#9CA3AF",
         teacherName: ec.class.teacher.name,
         startTime: s.startTime,
         endTime: s.endTime,
